@@ -52,18 +52,7 @@ const blockChain = new dsteem.Blockchain(client);
     };
 
   const followUser = async (userName) => {
-        // const key = '5JKTrjkXrXRsaYRwDpByazkjSm8juahvJLwjdVeRCXTAKFGMSU9';
-        const key = '5JEWK6YE4AcjAZDZt7xGKFPznKgijettZip6nWKmdvcsojsGfbG';
-        // const name = 'monterey';
-        const name = 'eugenezh';
-        const data = { required_auths: [],
-            required_posting_auths: [ name ],
-            id: 'follow',
-            json:
-                `["follow",{"follower":"${name}","following":"${userName}","what":["blog"]}]` };
-        const returnData = await client.broadcast.json(data, PrivateKey.fromString(key));
-        if(returnData) console.log(`["follow",{"follower":"${name}","following":"${userName}","what":["blog"]}]`);
-        return returnData;
+
   };
 
 module.exports = {
