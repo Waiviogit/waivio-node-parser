@@ -1,3 +1,3 @@
 module.exports = {
-    validator: require('./validator')
+    wobjectValidator: require('./wobjectValidator')
 };

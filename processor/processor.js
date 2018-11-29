@@ -22,7 +22,8 @@ const runStream = async (req, res) => {
         if(!transactionStatus){
             res.status(422).json({error: 'Data is incorrect'})
         } else {
-            res.status(200).json();
+            console.log('Start stream!');
+            res.status(200).json({'message':'Stream started!'});
         }
     }
     catch (e) {
