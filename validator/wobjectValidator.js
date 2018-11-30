@@ -1,4 +1,4 @@
-const requiredFieldsCreateObject = 'authorPermlink,app,object_type,fields'.split(',');    //for object
+const requiredFieldsCreateObject = 'author_permlink,app,object_type,fields'.split(',');    //for object
 const requiredFieldsAppendObject = 'name,body,locale,author,permlink'.split(',');                   //for field
 
 const validateCreateObject = (data) => {

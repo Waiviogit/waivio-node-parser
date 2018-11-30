@@ -41,7 +41,7 @@ const parseSwitcher = transactions => {
                                 if (metadata && metadata.wobj && metadata.wobj.field) {
                                     const data =
                                         {
-                                            authorPermlink: operation[1].author + '_' + operation[1].permlink,
+                                            author_permlink: operation[1].author + '_' + operation[1].permlink,
                                             app: metadata.app,
                                             object_type: metadata.wobj.object_type,
                                             community: metadata.community,
@@ -55,7 +55,7 @@ const parseSwitcher = transactions => {
                                         };
                                     const res = createObjectParser.createObject(data);
                                     if (res) {
-                                        console.log("Waivio object " + metadata.wobj.field.name + "created!\n")
+                                        console.log("Waivio object " + metadata.wobj.field.body + "created!\n")
                                     }
                                 }
 
@@ -72,7 +72,7 @@ const parseSwitcher = transactions => {
                                 if (metadata && metadata.wobj && metadata.wobj.field) {
                                     const data =
                                         {
-                                            authorPermlink: operation[1].parent_author + '_' + operation[1].parent_permlink,
+                                            author_permlink: operation[1].parent_author + '_' + operation[1].parent_permlink,
                                             author: operation[1].author,
                                             permlink: operation[1].permlink,
                                             name: metadata.wobj.field.name,
@@ -81,7 +81,7 @@ const parseSwitcher = transactions => {
                                         };
                                     const res = appendObjectParser.appendObject(data);
                                     if (res) {
-                                        console.log(`Field ${metadata.wobj.field.name} added to wobject!\n`)
+                                        console.log(`Field ${metadata.wobj.field.name}, with value:${metadata.wobj.field.body} added to wobject!\n`)
                                     }
                                 }
 
