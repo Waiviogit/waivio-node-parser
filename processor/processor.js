@@ -49,6 +49,14 @@ const getCurrentBlock = async (req, res) => {
     }
 };
 
+const awake = async (req, res) => {
+    try {
+        res.status(200).json({message: 'hello'})
+    } catch (e) {
+        res.status(422).json({error: e.message})
+    }
+};
+
 module.exports = {
-    parseAllBlockChain, runStream, getCurrentBlock
+    parseAllBlockChain, runStream, getCurrentBlock, awake
 };
