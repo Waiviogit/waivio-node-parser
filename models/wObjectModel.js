@@ -18,8 +18,9 @@ const addField = async function (data) {
                         fields: {
                             name: data.name,
                             body: data.body,
-                            weight: 1,
-                            locale: data.locale
+                            locale: data.locale,
+                            author: data.author,
+                            permlink: data.permlink
                         }
                     }
             });
