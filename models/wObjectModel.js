@@ -34,7 +34,7 @@ const addFollower = async function (data) {
     try{
         await WObjectModel.update({author_permlink: data.author_permlink},
             {
-                $push:
+                $addToSet:
                     {
                         followers_names: data.user
                     }
