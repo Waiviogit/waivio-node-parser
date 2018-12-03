@@ -29,4 +29,19 @@ const addField = async function (data) {
         return {error}
     }
 };
-module.exports = {create, addField};
+
+const addFollower = async function (data) {
+    try{
+        await WObjectModel.update({author_permlink: data.author_permlink},
+            {
+                $push:
+                    {
+                        followers_names: data.user
+                    }
+            });
+        return{result: true}
+    } catch (error){
+        return {error}
+    }
+}
+module.exports = {create, addField, addFollower};

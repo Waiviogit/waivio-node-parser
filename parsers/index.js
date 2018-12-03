@@ -1,5 +1,6 @@
 module.exports= {
     mainParser: require('./mainParser'),
     createObjectParser: require('./createObjectParser'),
-    appendObjectParser: require('./appendObjectParser')
+    appendObjectParser: require('./appendObjectParser'),
+    followObjectParser: require('./followObjectParser')
 };
