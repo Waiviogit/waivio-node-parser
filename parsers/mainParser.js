@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const {createObjectParser} = require('../parsers');
 const {appendObjectParser} = require('../parsers');
+const {followObjectParser} = require('../parsers');
 
 const parseSwitcher = transactions => {
     const {api} = require('../api');
@@ -55,7 +56,7 @@ const parseSwitcher = transactions => {
                                         };
                                     const res = createObjectParser.createObject(data);
                                     if (res) {
-                                        console.log("Waivio object " + metadata.wobj.field.body + "created!\n")
+                                        console.log("Waivio object " + metadata.wobj.field.body + " created!\n")
                                     }
                                 }
 
@@ -81,7 +82,7 @@ const parseSwitcher = transactions => {
                                         };
                                     const res = appendObjectParser.appendObject(data);
                                     if (res) {
-                                        console.log(`Field ${metadata.wobj.field.name}, with value:${metadata.wobj.field.body} added to wobject!\n`)
+                                        console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject!\n`)
                                     }
                                 }
 
@@ -119,12 +120,9 @@ const parseSwitcher = transactions => {
                         break;
                     case 'custom':
                     case 'custom_json':
-                        // console.log(operation[0]);
-                        // console.log(transaction.operations[0][1]);
-                        // if(transaction.operations[0][1].id && transaction.operations[0][1].id === 'follow'){
-                        //     console.log(transaction.operations[0][1]);
-                        // }
-                        // update_accounts_light.add(account_from_auths());
+                        if (operation[1].id && operation[1].id === 'follow_wobject') {
+                            followObjectParser.followObject(operation[1]);
+                        }
                         break;
                     case 'delegate_vesting_shares':
                         // console.log(operation[0]);
