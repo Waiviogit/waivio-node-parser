@@ -5,7 +5,7 @@ const WObjectSchema = new Schema({
         app: String,
         community: String,
         object_type: String,
-        authorPermlink: {type: String, index: true, unique: true, required: true},  //unique identity for wobject, link to create object POST
+        author_permlink: {type: String, index: true, unique: true, required: true},  //unique identity for wobject, link to create object POST
         weight: {type: Number, index: true, default: 1},  //value in STEEM(or WVIO) as a summ of rewards, index for quick sort
         parents: {type: [String], default: []},
         fields: [{
@@ -16,7 +16,7 @@ const WObjectSchema = new Schema({
             author: String,         //
             permlink: String        //author+permlink is link to appendObject COMMENT(or to create object post if it's first field)
         }],
-        followersNames: {type: [String], default: []}
+        followers_names: {type: [String], default: []}
     },
     {
         toObject: {virtuals: true}, timestamps: true

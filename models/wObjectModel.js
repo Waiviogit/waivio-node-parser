@@ -11,15 +11,16 @@ const create = async function (data) {
 
 const addField = async function (data) {
     try {
-        await WObjectModel.update({authorPermlink: data.authorPermlink},
+        await WObjectModel.update({author_permlink: data.author_permlink},
             {
                 $push:
                     {
                         fields: {
                             name: data.name,
                             body: data.body,
-                            weight: 1,
-                            locale: data.locale
+                            locale: data.locale,
+                            author: data.author,
+                            permlink: data.permlink
                         }
                     }
             });
@@ -28,4 +29,19 @@ const addField = async function (data) {
         return {error}
     }
 };
-module.exports = {create, addField};
+
+const addFollower = async function (data) {
+    try{
+        await WObjectModel.update({author_permlink: data.author_permlink},
+            {
+                $addToSet:
+                    {
+                        followers_names: data.user
+                    }
+            });
+        return{result: true}
+    } catch (error){
+        return {error}
+    }
+}
+module.exports = {create, addField, addFollower};
