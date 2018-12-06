@@ -14,7 +14,5 @@ routes.route('/run-stream')
 routes.route('/get-current-block')
     .post(processor.getCurrentBlock);
 
-routes.route('/awake')
-    .get(processor.awake);
 
 module.exports = routes;
