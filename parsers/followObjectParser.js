@@ -8,13 +8,13 @@ const followObject = async function (data) {
         console.log(error);
         return;
     }
-    if (json && json[0]==='follow' && json[1].user && json[1].author_permlink) {
+    if (json && json[0] === 'follow' && json[1] && json[1].user && json[1].author_permlink && json[1].what) {
         if (json[1].what.length) {
             const {result} = await User.addObjectFollow(json[1]);
             if (result) {
                 console.log(`User ${json[1].user} now following wobject ${json[1].author_permlink}!\n`)
             }
-        } else if (json[1].what.length === 0) {
+        } else {
             const {result} = await User.removeObjectFollow(json[1]);
             if (result) {
                 console.log(`User ${json[1].user} now unfollow wobject ${json[1].author_permlink} !\n`);
