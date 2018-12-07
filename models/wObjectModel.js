@@ -30,34 +30,4 @@ const addField = async function (data) {
     }
 };
 
-const addFollower = async function (data) {
-    try {
-        await WObjectModel.update({author_permlink: data.author_permlink},
-            {
-                $addToSet:
-                    {
-                        followers_names: data.user
-                    }
-            });
-        return {result: true}
-    } catch (error) {
-        return {error}
-    }
-};
-
-const removeFollower = async function (data) {
-    try {
-        await WObjectModel.update({author_permlink: data.author_permlink},
-            {
-                $pull:
-                    {
-                        followers_names: data.user
-                    }
-            });
-        return {result: true}
-    } catch (error) {
-        return {error}
-    }
-};
-
-module.exports = {create, addField, addFollower, removeFollower};
+module.exports = {create, addField};
