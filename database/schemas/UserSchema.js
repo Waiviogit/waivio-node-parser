@@ -9,7 +9,8 @@ const UserSchema = new Schema({
         weight: Number,  //Object Shares, value in STEEM(or WVIO) coin
         rank: Number     //Object Expertise, value from 1 to 99
     }],
-    read_locales:[String]
+    read_locales:[String],
+    objects_follow: {type: [String], default: []} //arr of author_permlink of objects what user following
 },{timestamps: true});
 const UserModel = mongoose.model('User', UserSchema);
 

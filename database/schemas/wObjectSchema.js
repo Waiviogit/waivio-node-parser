@@ -15,8 +15,7 @@ const WObjectSchema = new Schema({
             locale: {type: String, default: 'en-US'},
             author: String,         //
             permlink: String        //author+permlink is link to appendObject COMMENT(or to create object post if it's first field)
-        }],
-        followers_names: {type: [String], default: []}
+        }]
     },
     {
         toObject: {virtuals: true}, timestamps: true

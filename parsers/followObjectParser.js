@@ -1,4 +1,4 @@
-const {Wobj} = require('../models');
+const {User} = require('../models');
 
 const followObject = async function (data) {
     let json;
@@ -10,17 +10,15 @@ const followObject = async function (data) {
     }
     if (json && json.follow && json.follow.user && json.follow.author_permlink) {
         if (json.follow.what) {
-            const {error} = await Wobj.addFollower(json.follow);
-            if (error) {
-                console.log(error);
+            const {result} = await User.addObjectFollow(json.follow);
+            if (result) {
+                console.log(`User ${json.follow.user} now following wobject ${json.follow.author_permlink}!\n`)
             }
-            console.log(`User ${json.follow.user} now following wobject ${json.follow.author_permlink}!\n`);
-        } else if (json.follow.what === ''){
-            const {error} = await Wobj.removeFollower(json.follow);
-            if(error){
-                console.log(error);
+        } else if (json.follow.what === '') {
+            const {result} = await User.removeObjectFollow(json.follow);
+            if (result) {
+                console.log(`User ${json.follow.user} now unfollow wobject ${json.follow.author_permlink} !\n`);
             }
-            console.log(`User ${json.follow.user} now unfollow wobject ${json.follow.author_permlink} !\n`);
         }
     }
 };
