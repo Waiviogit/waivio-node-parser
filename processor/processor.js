@@ -18,7 +18,6 @@ const parseAllBlockChain = async (req, res) => {
 const runStream = async (req, res) => {
     try {
         const transactionStatus = await api.getBlockNumberStream();
-        console.log(transactionStatus);
         if(!transactionStatus){
             res.status(422).json({error: 'Data is incorrect'})
         } else {
