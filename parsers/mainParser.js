@@ -1,7 +1,6 @@
 const _ = require('lodash');
-const {createObjectParser} = require('../parsers');
-const {appendObjectParser} = require('../parsers');
 const {followObjectParser} = require('../parsers');
+const {commentParser} = require('../parsers');
 
 const parseSwitcher = transactions => {
     const {api} = require('../api');
@@ -32,68 +31,7 @@ const parseSwitcher = transactions => {
                         break;
                     case 'author_reward':
                     case 'comment':
-                        if (operation[1].parent_author === '') {
-                            try {
-                                // console.log('Post in: ' + transaction.block_num + "\n");
-                                let metadata;
-                                if (operation[1].json_metadata !== '') {
-                                    metadata = JSON.parse(operation[1].json_metadata)
-                                }
-                                if (metadata && metadata.wobj && metadata.wobj.field) {
-                                    const data =
-                                        {
-                                            author_permlink: operation[1].author + '_' + operation[1].permlink,
-                                            app: metadata.app,
-                                            object_type: metadata.wobj.object_type,
-                                            community: metadata.community,
-                                            fields: [{
-                                                name: metadata.wobj.field.name,       //
-                                                body: metadata.wobj.field.body,       //
-                                                locale: metadata.wobj.field.locale,   //this params for initialize first field in wobject
-                                                author: operation[1].author,          //
-                                                permlink: operation[1].permlink,      //
-                                            }]
-                                        };
-                                    const res = createObjectParser.createObject(data);
-                                    if (res) {
-                                        console.log("Waivio object " + metadata.wobj.field.body + " created!\n")
-                                    }
-                                }
-
-                            } catch (e) {
-                                console.log(e)
-                            }
-                        } else {
-                            try {
-                                // console.log('Comment in: ' + transaction.block_num + "\n");
-                                let metadata;
-                                if (operation[1].json_metadata !== '') {
-                                    metadata = JSON.parse(operation[1].json_metadata)
-                                }
-                                if (metadata && metadata.wobj && metadata.wobj.field) {
-                                    const data =
-                                        {
-                                            author_permlink: operation[1].parent_author + '_' + operation[1].parent_permlink,
-                                            author: operation[1].author,
-                                            permlink: operation[1].permlink,
-                                            name: metadata.wobj.field.name,
-                                            body: metadata.wobj.field.body,
-                                            locale: metadata.wobj.field.locale
-                                        };
-                                    const res = appendObjectParser.appendObject(data);
-                                    if (res) {
-                                        console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject!\n`)
-                                    }
-                                }
-
-                            } catch (e) {
-                                console.log(e);
-                            }
-                        }
-                        // console.log(operation[0]);
-                        // console.log(transaction.operations[0][1]);
-                        // update_accounts_light.add(op['author'])
-                        // update_comments.add(construct_identifier())
+                        commentParser.parse(operation[1]);
                         break;
                     case 'vote':
                         // console.log(operation[0]);
@@ -121,7 +59,7 @@ const parseSwitcher = transactions => {
                     case 'custom':
                     case 'custom_json':
                         if (operation[1].id && operation[1].id === 'follow_wobject') {
-                            followObjectParser.followObject(operation[1]);
+                            followObjectParser.parse(operation[1]);
                         }
                         break;
                     case 'delegate_vesting_shares':

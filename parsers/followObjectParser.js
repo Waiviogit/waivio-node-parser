@@ -1,6 +1,6 @@
 const {User} = require('../models');
 
-const followObject = async function (data) {
+const parse = async function (data) {
     let json;
     try {
         json = JSON.parse(data.json);
@@ -23,4 +23,4 @@ const followObject = async function (data) {
     }
 };
 
-module.exports = {followObject};
+module.exports = {parse};
