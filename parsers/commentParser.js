@@ -1,5 +1,6 @@
 const createObjectParser = require('./createObjectParser');
 const appendObjectParser = require('./appendObjectParser');
+const postWithObjectsParser = require('./postWithObjectParser');
 
 const parse = async function (operation) {  //data is operation[1] of transaction in block
     let metadata;
@@ -15,7 +16,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             if (metadata.wobj.field) {
                 createObjectParser.parse(operation, metadata);
             } else if (metadata.wobj.wobjects) {
-                // parse post with list wobjects
+                postWithObjectsParser.parse(operation, metadata);
             }
         }
     } else {                                //comment with parent_author is reply to post
@@ -23,7 +24,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             if (metadata.wobj.field) {
                 appendObjectParser.parse(operation, metadata);
             } else if (metadata.wobj.wobjects) {
-                // parse reply to post with list wobjects
+                // #parse reply to post with list wobjects
             }
         }
     }
