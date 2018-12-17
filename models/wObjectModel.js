@@ -11,7 +11,7 @@ const create = async function (data) {
 
 const addField = async function (data) {
     try {
-        await WObjectModel.update({author_permlink: data.author_permlink},
+        await WObjectModel.updateOne({author_permlink: data.author_permlink},
             {
                 $push:
                     {
