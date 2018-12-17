@@ -1,34 +1,36 @@
 const {Post} = require('../models');
+const {postsUtil} = require('../utilities/steemApi');
+const {User} = require('../models');
 
-const parse = async function (operation, metadata) {
+const parse = async function (operation) {
     const data = {
         author: operation.author,
-        permlink: operation.permlink,
-        parent_author: operation.parent_author,
-        parent_permlink: operation.parent_permlink,
-        title: operation.title,
-        body: operation.body,
-        json_metadata: operation.json_metadata,
-        app: metadata.app,
-        wobjects: metadata.wobj.wobjects
+        permlink: operation.permlink
     };
 
-    const {post, error} = await createPost(data);
+    User.checkAndCreate({name: operation.author});
+
+    const {result, error} = await createOrUpdatePost(data);
     if (error) {
         console.log(error);
     }
-    if (post) {
+    if (result) {
         console.log(`Post with wobjects created by ${operation.author}`)
     }
 };
 
-const createPost = async function (data) {
+const createOrUpdatePost = async function (data) {
+    const {post, err} = await postsUtil.getPost(data.author, data.permlink);
+    if (err) {
+        return {error: err}
+    }
     //here can be validators for post//
-    const {post, error} = await Post.create(data);
+    const {result, error} = await Post.update(post);
     if (error) {
         return {error}
     }
-    return {post};
+    return {result};
 };
+
 
 module.exports = {parse};

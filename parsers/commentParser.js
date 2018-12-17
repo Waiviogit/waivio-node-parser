@@ -6,7 +6,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
     let metadata;
     try {
         if (operation.json_metadata !== '') {
-            metadata = JSON.parse(operation.json_metadata)
+            metadata = JSON.parse(operation.json_metadata)          //parse json_metadata from string to JSON
         }
     } catch (e) {
         console.log(e)
@@ -16,7 +16,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             if (metadata.wobj.field) {
                 createObjectParser.parse(operation, metadata);      //create wobject in database
             } else if (metadata.wobj.wobjects) {
-                postWithObjectsParser.parse(operation, metadata);   //create post with wobjects in database
+                postWithObjectsParser.parse(operation);             //create post with wobjects in database
             }
         }
     } else {                                //comment with parent_author is reply to post

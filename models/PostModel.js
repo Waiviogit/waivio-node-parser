@@ -12,4 +12,24 @@ const create = async function (data) {
     }
 };
 
-module.exports = {create};
+const update = async function (data) {
+    try {
+        const res = await PostModel.findOneAndUpdate(
+            {
+                author: data.author,
+                permlink: data.permlink
+            },
+            data,
+            {
+                upsert: true,
+                new: true,
+                setDefaultsOnInsert: true
+            }
+        );
+        return {result: !!res}
+    } catch (error) {
+        return {error}
+    }
+};
+
+module.exports = {create, update};
