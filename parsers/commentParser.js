@@ -6,7 +6,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
     let metadata;
     try {
         if (operation.json_metadata !== '') {
-            metadata = JSON.parse(operation.json_metadata)
+            metadata = JSON.parse(operation.json_metadata)          //parse json_metadata from string to JSON
         }
     } catch (e) {
         console.log(e)
