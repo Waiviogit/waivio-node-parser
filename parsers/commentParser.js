@@ -16,7 +16,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             if (metadata.wobj.field) {
                 createObjectParser.parse(operation, metadata);      //create wobject in database
             } else if (metadata.wobj.wobjects) {
-                postWithObjectsParser.parse(operation, metadata);   //create post with wobjects in database
+                postWithObjectsParser.parse(operation);             //create post with wobjects in database
             }
         }
     } else {                                //comment with parent_author is reply to post
