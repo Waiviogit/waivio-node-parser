@@ -2,10 +2,12 @@ const {Post} = require('../models');
 const {postsUtil} = require('../utilities/steemApi');
 const {User} = require('../models');
 
-const parse = async function (operation) {
+const parse = async function (operation, metadata) {
     const data = {
         author: operation.author,
-        permlink: operation.permlink
+        permlink: operation.permlink,
+        wobjects: metadata.wobj.wobjects,
+        app: metadata.app
     };
 
     User.checkAndCreate({name: operation.author});
@@ -24,6 +26,7 @@ const createOrUpdatePost = async function (data) {
     if (err) {
         return {error: err}
     }
+    Object.assign(post,data);                           //assign to post fields wobjects and app
     //here can be validators for post//
     const {result, error} = await Post.update(post);
     if (error) {
