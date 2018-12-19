@@ -30,4 +30,37 @@ const addField = async function (data) {
     }
 };
 
-module.exports = {create, addField};
+const incrementFieldWeight = async function (data) {    //data include: author, permlink, author_permlink, weight
+    try {
+        await WObjectModel.updateOne({
+            author_permlink: data.author_permlink,
+            'fields.author': data.author,
+            'fields.permlink': data.permlink
+        }, {
+            $inc: {
+                'fields.$.weight': data.weight
+            }
+        });
+        return {result: true}
+    } catch (error) {
+        return {error}
+    }
+};
+
+const incrementWobjectWeight = async function (data) {
+    try {
+        await WObjectModel.updateOne({
+            author_permlink: data.author_permlink
+        }, {
+            $inc: {
+                weight: data.weight
+            }
+        });
+        return {result: true}
+    } catch (error) {
+        return {error}
+    }
+
+};
+
+module.exports = {create, addField, incrementFieldWeight, incrementWobjectWeight};

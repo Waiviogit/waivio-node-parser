@@ -49,14 +49,45 @@ const removeObjectFollow = async function (data) {          //create user(if it 
 };
 
 const checkAndCreate = async function (data) {              //check for existing user and create if not exist
-    if(!(await UserModel.count({name: data.name}))){
-        UserModel.create({name: data.name},(err, user)=>{
-            if(!err){
+    if (!(await UserModel.count({name: data.name}))) {
+        UserModel.create({name: data.name}, (err, user) => {
+            if (!err) {
                 console.log(`User ${data.name} created!`)
             }
         });
     }
 };
 
+const incrementWobjectWeight = async function (data) {
+    try {
+        await checkAndCreate({name: data.name});                //check for existing user in DB
+        const user = await UserModel.findOne({name: data.name}).lean();      //get user data from db
+        const wobject = user.w_objects.find(wobject => wobject.author_permlink === data.author_permlink);   //find wobject
+        if (!wobject) {                     //if user have no any weight in current wobject, add wobject with initial weight
+            await UserModel.updateOne({name: data.name}, {
+                $addToSet: {
+                    w_objects: {
+                        rank: 1,
+                        weight: 1,
+                        author_permlink: data.author_permlink
+                    }
+                }
+            });
+        }
 
-module.exports = {create, addObjectFollow, removeObjectFollow, checkAndCreate};
+        await UserModel.updateOne({
+            name: data.name,
+            'w_objects.author_permlink': data.author_permlink
+        }, {
+            $inc: {
+                'w_objects.$.weight': data.weight
+            }
+        });
+        return {result: true}
+    } catch (error) {
+        return {error}
+    }
+};
+
+
+module.exports = {create, addObjectFollow, removeObjectFollow, checkAndCreate, incrementWobjectWeight};

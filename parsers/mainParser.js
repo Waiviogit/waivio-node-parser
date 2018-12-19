@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const {followObjectParser} = require('../parsers');
 const {commentParser} = require('../parsers');
+const {voteParser} = require('../parsers');
 
 const parseSwitcher = transactions => {
     const {api} = require('../api');
@@ -34,7 +35,8 @@ const parseSwitcher = transactions => {
                         commentParser.parse(operation[1]);
                         break;
                     case 'vote':
-                        // console.log(operation[0]);
+                        voteParser.parse(operation[1]);
+                        // console.log(operation[1]);
                         // update_accounts_light.add(op['voter'])
                         // update_comments.add(construct_identifier())
                         break;
