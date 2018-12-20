@@ -19,22 +19,48 @@ const parse = async function (operation) {
     if (post.parent_author === '') {
         if (metadata && metadata.wobj) {
             if (metadata.wobj.field) {
-                //vote for 'createObject'
+                await voteCreateAppendObject({
+                        author: operation.author,
+                        permlink: operation.permlink,
+                        voter: operation.voter,
+                        author_permlink: operation.author + '_' + operation.permlink
+                    }
+                )     //vote for post 'createObject' types
             } else if (metadata.wobj.wobjects) {
                 await votePostWithObjects({post, metadata, voter: operation.voter});  //vote for post with wobjects
             }
         }
     } else if (post.parent_author) {
         if (metadata && metadata.wobj && metadata.wobj.field) {
-            //vote for 'appendObject'
+            await voteCreateAppendObject({
+                author: operation.author,                   //author and permlink - identity of field
+                permlink: operation.permlink,
+                voter: operation.voter,
+                author_permlink: post.root_author + '_' + post.root_permlink    //author_permlink - identity of wobject
+            })                                                                  //vote for comment 'appendObject' type
         } else if (await Post.checkForExist(post.root_author, post.root_permlink)) {
             //vote for comment to post with wobjects
         }
     }
 };
 
-const voteCreateAppendObject = async function (data) {      //data include: author_permlink, author, permlink, weight
-
+const voteCreateAppendObject = async function (data) {      //data include: author, permlink, voter, author_permlink
+                                                            //author and permlink - identity of field
+                                                            //author_permlink - identity of wobject
+    const {weight, error} = await User.checkForObjectShares({
+        name: data.voter,
+        author_permlink: data.author_permlink
+    });
+    if (!weight || error) {
+        return {};
+    }
+    await Wobj.increaseFieldWeight({
+        author: data.author,
+        permlink: data.permlink,
+        author_permlink: data.author_permlink,
+        weight: weight
+    });
+    console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
 };
 
 const votePostWithObjects = async function (data) {         //data include: post, metadata, voter
@@ -45,19 +71,19 @@ const votePostWithObjects = async function (data) {         //data include: post
 
     data.metadata.wobj.wobjects.forEach(async (wObject) => {
         let voteWeight = weight * (wObject.percent / 100);      //calculate vote weight for each wobject in post
-        await Wobj.incrementWobjectWeight({
-            author_permlink: wObject.author_permlink,           //increment wobject weight
+        await Wobj.increaseWobjectWeight({
+            author_permlink: wObject.author_permlink,           //increase wobject weight
             weight: voteWeight
         });
-        await User.incrementWobjectWeight({
+        await User.increaseWobjectWeight({
             name: data.post.author,
-            author_permlink: wObject.author_permlink,           //increment author weight in wobject
+            author_permlink: wObject.author_permlink,           //increase author weight in wobject
             weight: voteWeight
         });
         if (data.voter !== data.post.author) {
-            await User.incrementWobjectWeight({
+            await User.increaseWobjectWeight({
                 name: data.voter,
-                author_permlink: wObject.author_permlink,       //increment voter weight in wobject if he isn't author
+                author_permlink: wObject.author_permlink,       //increase voter weight in wobject if he isn't author
                 weight: voteWeight
             });
         }

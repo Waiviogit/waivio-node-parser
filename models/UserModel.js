@@ -58,7 +58,7 @@ const checkAndCreate = async function (data) {              //check for existing
     }
 };
 
-const incrementWobjectWeight = async function (data) {
+const increaseWobjectWeight = async function (data) {
     try {
         await checkAndCreate({name: data.name});                //check for existing user in DB
         const user = await UserModel.findOne({name: data.name}).lean();      //get user data from db
@@ -89,5 +89,22 @@ const incrementWobjectWeight = async function (data) {
     }
 };
 
+const checkForObjectShares = async function (data) {     //object shares - user weight in specified wobject
+    try {
+        const user = await UserModel.findOne({
+            name: data.name,
+            'w_objects.author_permlink': data.author_permlink
+        })
+        // .select('w_objects')
+            .lean();
+        if (!user) {
+            return {error: false}
+        }
+        return {weight: user.w_objects.find(wobject => wobject.author_permlink === data.author_permlink).weight}
+    } catch (error) {
+        return {error}
+    }
+};
 
-module.exports = {create, addObjectFollow, removeObjectFollow, checkAndCreate, incrementWobjectWeight};
+
+module.exports = {create, addObjectFollow, removeObjectFollow, checkAndCreate, increaseWobjectWeight, checkForObjectShares};
