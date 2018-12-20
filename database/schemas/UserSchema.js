@@ -8,9 +8,9 @@ const UserSchema = new Schema({
         {
             type:
                 [{
-                    author_permlink: String,
-                    weight: Number,  //Object Shares, value in STEEM(or WVIO) coin
-                    rank: Number     //Object Expertise, value from 1 to 99
+                    author_permlink: {type: String, index: true},
+                    weight: {type: Number, default: 1},  //Object Shares, value in STEEM(or WVIO) coin
+                    rank: {type: Number, default: 1}     //Object Expertise, value from 1 to 99
                 }],
             default: []
         },

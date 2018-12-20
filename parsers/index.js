@@ -3,5 +3,6 @@ module.exports= {
     createObjectParser: require('./createObjectParser'),
     appendObjectParser: require('./appendObjectParser'),
     followObjectParser: require('./followObjectParser'),
-    commentParser: require('./commentParser')
+    commentParser: require('./commentParser'),
+    voteParser: require('./voteParser')
 };
