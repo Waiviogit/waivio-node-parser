@@ -32,4 +32,13 @@ const update = async function (data) {
     }
 };
 
-module.exports = {create, update};
+const checkForExist = async function (author, permlink) {
+    try {
+        const count = PostModel.count({author: author, permlink: permlink});
+        return !!count;
+    } catch (error) {
+        return false;
+    }
+};
+
+module.exports = {create, update, checkForExist};
