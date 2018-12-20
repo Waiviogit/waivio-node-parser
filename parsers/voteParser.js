@@ -4,6 +4,9 @@ const {Wobj} = require('../models');
 const {User} = require('../models');
 
 const parse = async function (operation) {
+    if(operation.weight <= 0){
+        return {};                      //now we not parse downvotes and unvotes
+    }
     const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
     if (err) {
         return {};
