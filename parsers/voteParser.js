@@ -2,6 +2,7 @@ const {postsUtil} = require('../utilities/steemApi');
 const {Post} = require('../models');
 const {Wobj} = require('../models');
 const {User} = require('../models');
+const {voteHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {
     if(operation.weight <= 0){
@@ -39,6 +40,7 @@ const parse = async function (operation) {
                 author: operation.author,                   //author and permlink - identity of field
                 permlink: operation.permlink,
                 voter: operation.voter,
+                percent: operation.weight,
                 author_permlink: post.root_author + '_' + post.root_permlink    //author_permlink - identity of wobject
             })                                                                  //vote for comment 'appendObject' type
         } else if (await Post.checkForExist(post.root_author, post.root_permlink)) {
@@ -47,23 +49,26 @@ const parse = async function (operation) {
     }
 };
 
-const voteCreateAppendObject = async function (data) {      //data include: author, permlink, voter, author_permlink
-                                                            //author and permlink - identity of field
-                                                            //author_permlink - identity of wobject
-    const {weight, error} = await User.checkForObjectShares({
+const voteCreateAppendObject = async function (data) {  //data include: author, permlink, percent, voter, author_permlink
+                                                        //author and permlink - identity of field
+                                                        //author_permlink - identity of wobject
+    let {weight, error} = await User.checkForObjectShares({
         name: data.voter,
         author_permlink: data.author_permlink
     });
     if (!weight || error) {
         return {};
     }
-    await Wobj.increaseFieldWeight({
-        author: data.author,
-        permlink: data.permlink,
-        author_permlink: data.author_permlink,
-        weight: weight
-    });
-    console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
+    data.weight = weight;
+    await voteHelper(data);
+
+    // await Wobj.increaseFieldWeight({
+    //     author: data.author,
+    //     permlink: data.permlink,
+    //     author_permlink: data.author_permlink,
+    //     weight: weight
+    // });
+    // console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
 };
 
 const votePostWithObjects = async function (data) {         //data include: post, metadata, voter
