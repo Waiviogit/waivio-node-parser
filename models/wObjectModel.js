@@ -62,4 +62,57 @@ const increaseWobjectWeight = async function (data) {
     }
 };
 
-module.exports = {create, addField, increaseFieldWeight, increaseWobjectWeight};
+const findVote = async function (data) {    //data include: author, permlink, author_permlink, voter
+    try {
+        const wobject = WObjectModel.findOne({author_permlink: data.author_permlink});
+        if (wobject) {
+            const field = wobject.fields.find((field) => field.author === data.author && field.permlink === data.permlink);
+            if (field) {
+                const vote = field.active_votes.find((vote) => vote.author === data.voter);
+                if (vote) {
+                    return {weight: vote.weight};
+                }
+            }
+        }
+    } catch (error) {
+        return {error}
+    }
+};
+
+const removeVote = async (data) => {  //data include: author, permlink, author_permlink, voter
+    try {
+        await WObjectModel.updateOne({
+            author_permlink: data.author_permlink,
+            'fields.author': data.author,
+            'fields.permlink': data.permlink
+        }, {
+            $pull: {
+                'fields.$.active_votes': {voter: data.voter}
+            }
+        });
+    } catch (error) {
+        return {error}
+    }
+};
+
+const addVote = async (data) => {   //data include: author, permlink, author_permlink, voter, weight
+    try {
+        await WObjectModel.updateOne({
+                author_permlink: data.author_permlink,
+                'fields.author': data.author,
+                'fields.permlink': data.permlink
+            }, {
+                $push: {
+                    'fields.$.active_votes': {
+                        voter: data.voter,
+                        weight: data.weight
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return {error}
+    }
+};
+
+module.exports = {create, addField, increaseFieldWeight, increaseWobjectWeight, findVote, removeVote, addVote};

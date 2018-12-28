@@ -5,7 +5,7 @@ const {User} = require('../models');
 const {voteHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {
-    if(operation.weight <= 0){
+    if (operation.weight <= 0) {
         return {};                      //now we not parse downvotes and unvotes
     }
     const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
@@ -20,9 +20,9 @@ const parse = async function (operation) {
     } catch (e) {                                               //
         console.log(e)                                          //
     }                                                           //
-    if (post.parent_author === '') {
+    if (post.parent_author === '') {        //votes for post or comment
         if (metadata && metadata.wobj) {
-            if (metadata.wobj.field) {
+            if (metadata.wobj.field) {      //votes for createObject or post with objects
                 await voteCreateAppendObject({
                         author: operation.author,
                         permlink: operation.permlink,
@@ -34,17 +34,18 @@ const parse = async function (operation) {
                 await votePostWithObjects({post, metadata, voter: operation.voter});  //vote for post with wobjects
             }
         }
-    } else if (post.parent_author) {
-        if (metadata && metadata.wobj && metadata.wobj.field) {
+    } else if (post.parent_author) {        //votes for comment
+        if (metadata && metadata.wobj && metadata.wobj.field) {     //votes for appendObject
             await voteCreateAppendObject({
                 author: operation.author,                   //author and permlink - identity of field
                 permlink: operation.permlink,
                 voter: operation.voter,
                 percent: operation.weight,
                 author_permlink: post.root_author + '_' + post.root_permlink    //author_permlink - identity of wobject
-            })                                                                  //vote for comment 'appendObject' type
+            })
         } else if (await Post.checkForExist(post.root_author, post.root_permlink)) {
             //vote for comment to post with wobjects
+            //not implemented
         }
     }
 };
@@ -56,19 +57,17 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
         name: data.voter,
         author_permlink: data.author_permlink
     });
-    if (!weight || error) {
+    if (weight === undefined || error) {
         return {};
     }
     data.weight = weight;
-    await voteHelper(data);
+    await voteHelper.voteOnField(data);
 
-    // await Wobj.increaseFieldWeight({
-    //     author: data.author,
-    //     permlink: data.permlink,
-    //     author_permlink: data.author_permlink,
-    //     weight: weight
-    // });
-    // console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
+    if (data.percent === 0) {
+        console.log(`${data.voter} unvote from field in ${data.author_permlink} wobject\n`);
+    } else {
+        console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
+    }
 };
 
 const votePostWithObjects = async function (data) {         //data include: post, metadata, voter
