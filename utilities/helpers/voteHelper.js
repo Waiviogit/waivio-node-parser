@@ -1,4 +1,4 @@
-const {Wobj} = require('../models');
+const {Wobj} = require('../../models');
 
 const voteOnField = async (data) => {
     if (data.percent === 0) {               //case for unvote
@@ -35,11 +35,3 @@ const addVoteOnField = async (data) => {
 };
 
 module.exports = {voteOnField}
-
-db.wobjects.find({}).forEach(function(w){
-    var f = w.fields;
-    f.forEach(function(e){
-        e.active_votes=[]
-    });
-    db.wobjects.update({_id:w._id},{$set:{fields:f}})
-})

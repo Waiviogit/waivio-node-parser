@@ -5,9 +5,6 @@ const {User} = require('../models');
 const {voteHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {
-    if (operation.weight <= 0) {
-        return {};                      //now we not parse downvotes and unvotes
-    }
     const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
     if (err) {
         return {};
@@ -27,6 +24,7 @@ const parse = async function (operation) {
                         author: operation.author,
                         permlink: operation.permlink,
                         voter: operation.voter,
+                        percent: operation.percent,
                         author_permlink: operation.author + '_' + operation.permlink
                     }
                 )     //vote for post 'createObject' types
@@ -58,7 +56,7 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
         author_permlink: data.author_permlink
     });
     if (weight === undefined || error) {
-        return {};
+        return {};                          //here will be method for checking 7-days expired and increase user weight
     }
     data.weight = weight;
     await voteHelper.voteOnField(data);

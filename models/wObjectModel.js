@@ -64,11 +64,13 @@ const increaseWobjectWeight = async function (data) {
 
 const findVote = async function (data) {    //data include: author, permlink, author_permlink, voter
     try {
-        const wobject = WObjectModel.findOne({author_permlink: data.author_permlink});
+        const wobject = await WObjectModel.findOne({'author_permlink': data.author_permlink})
+            .select('fields')
+            .lean();
         if (wobject) {
             const field = wobject.fields.find((field) => field.author === data.author && field.permlink === data.permlink);
             if (field) {
-                const vote = field.active_votes.find((vote) => vote.author === data.voter);
+                const vote = field.active_votes.find((vote) => vote.voter === data.voter);
                 if (vote) {
                     return {weight: vote.weight};
                 }
