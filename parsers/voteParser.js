@@ -2,11 +2,9 @@ const {postsUtil} = require('../utilities/steemApi');
 const {Post} = require('../models');
 const {Wobj} = require('../models');
 const {User} = require('../models');
+const {voteHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {
-    if(operation.weight <= 0){
-        return {};                      //now we not parse downvotes and unvotes
-    }
     const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
     if (err) {
         return {};
@@ -19,13 +17,14 @@ const parse = async function (operation) {
     } catch (e) {                                               //
         console.log(e)                                          //
     }                                                           //
-    if (post.parent_author === '') {
+    if (post.parent_author === '') {        //votes for post or comment
         if (metadata && metadata.wobj) {
-            if (metadata.wobj.field) {
+            if (metadata.wobj.field) {      //votes for createObject or post with objects
                 await voteCreateAppendObject({
                         author: operation.author,
                         permlink: operation.permlink,
                         voter: operation.voter,
+                        percent: operation.percent,
                         author_permlink: operation.author + '_' + operation.permlink
                     }
                 )     //vote for post 'createObject' types
@@ -33,37 +32,40 @@ const parse = async function (operation) {
                 await votePostWithObjects({post, metadata, voter: operation.voter});  //vote for post with wobjects
             }
         }
-    } else if (post.parent_author) {
-        if (metadata && metadata.wobj && metadata.wobj.field) {
+    } else if (post.parent_author) {        //votes for comment
+        if (metadata && metadata.wobj && metadata.wobj.field) {     //votes for appendObject
             await voteCreateAppendObject({
                 author: operation.author,                   //author and permlink - identity of field
                 permlink: operation.permlink,
                 voter: operation.voter,
+                percent: operation.weight,
                 author_permlink: post.root_author + '_' + post.root_permlink    //author_permlink - identity of wobject
-            })                                                                  //vote for comment 'appendObject' type
+            })
         } else if (await Post.checkForExist(post.root_author, post.root_permlink)) {
             //vote for comment to post with wobjects
+            //not implemented
         }
     }
 };
 
-const voteCreateAppendObject = async function (data) {      //data include: author, permlink, voter, author_permlink
-                                                            //author and permlink - identity of field
-                                                            //author_permlink - identity of wobject
-    const {weight, error} = await User.checkForObjectShares({
+const voteCreateAppendObject = async function (data) {  //data include: author, permlink, percent, voter, author_permlink
+                                                        //author and permlink - identity of field
+                                                        //author_permlink - identity of wobject
+    let {weight, error} = await User.checkForObjectShares({
         name: data.voter,
         author_permlink: data.author_permlink
     });
-    if (!weight || error) {
-        return {};
+    if (weight === undefined || error) {
+        return {};                          //here will be method for checking 7-days expired and increase user weight
     }
-    await Wobj.increaseFieldWeight({
-        author: data.author,
-        permlink: data.permlink,
-        author_permlink: data.author_permlink,
-        weight: weight
-    });
-    console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
+    data.weight = weight;
+    await voteHelper.voteOnField(data);
+
+    if (data.percent === 0) {
+        console.log(`${data.voter} unvote from field in ${data.author_permlink} wobject\n`);
+    } else {
+        console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
+    }
 };
 
 const votePostWithObjects = async function (data) {         //data include: post, metadata, voter

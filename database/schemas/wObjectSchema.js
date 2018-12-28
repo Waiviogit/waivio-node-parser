@@ -14,12 +14,27 @@ const WObjectSchema = new Schema({
             weight: {type: Number, default: 1},
             locale: {type: String, default: 'en-US'},
             author: String,         //
-            permlink: String        //author+permlink is link to appendObject COMMENT(or to create object post if it's first field)
+            permlink: String,       //author+permlink is link to appendObject COMMENT(or to create object post if it's first field)
+            active_votes:
+                {
+                    type:
+                        [{
+                            voter: {type: String},
+                            weight: {type: Number}
+                        }],
+                    default: []
+                }
         }]
     },
     {
-        toObject: {virtuals: true}, timestamps: true
-    });
+        toObject: {
+            virtuals: true
+        }
+        ,
+        timestamps: true
+    }
+    )
+;
 
 const wObjectModel = mongoose.model('wobject', WObjectSchema);
 module.exports = wObjectModel;
