@@ -1,3 +1,3 @@
 module.exports = {
-    voteHelper: require('./voteHelper')
+    voteFieldHelper: require('./voteFieldHelper')
 };

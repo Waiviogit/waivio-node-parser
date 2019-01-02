@@ -2,7 +2,7 @@ const {postsUtil} = require('../utilities/steemApi');
 const {Post} = require('../models');
 const {Wobj} = require('../models');
 const {User} = require('../models');
-const {voteHelper} = require('../utilities/helpers');
+const {voteFieldHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {
     const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
@@ -59,7 +59,7 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
         return {};                          //here will be method for checking 7-days expired and increase user weight
     }
     data.weight = weight;
-    await voteHelper.voteOnField(data);
+    await voteFieldHelper.voteOnField(data);
 
     if (data.percent === 0) {
         console.log(`${data.voter} unvote from field in ${data.author_permlink} wobject\n`);
@@ -67,12 +67,12 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
         console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${data.percent > 0 ? weight : -weight}\n`);
     }
 };
-
+/////////////////////////////////////////////////////////////////////////////////////////////////
 const votePostWithObjects = async function (data) {         //data include: post, metadata, voter
     data.post.wobjects = data.metadata.wobj.wobjects;
     data.post.app = data.metadata.app;
-    let {result, error} = await Post.update(data.post);     //update post info in DB
-    const weight = data.post.active_votes.find((vote) => vote.voter === data.voter).weight; //get vote weight
+    //get vote weight, take rshares, parse to number and fold back 6 last numbers
+    const weight = Number(data.post.active_votes.find((vote) => vote.voter === data.voter).rshares)*1e-6;
 
     data.metadata.wobj.wobjects.forEach(async (wObject) => {
         let voteWeight = weight * (wObject.percent / 100);      //calculate vote weight for each wobject in post
@@ -94,6 +94,7 @@ const votePostWithObjects = async function (data) {         //data include: post
         }
         console.log(`${data.voter} increase his weight in ${wObject.author_permlink} on ${voteWeight}\n`);
     });
+    const {result, error} = await Post.update(data.post);     //update post info in DB
 };
 
 
