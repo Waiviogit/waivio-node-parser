@@ -64,7 +64,7 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
     if (data.percent === 0) {
         console.log(`${data.voter} unvote from field in ${data.author_permlink} wobject\n`);
     } else {
-        console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${weight}\n`);
+        console.log(`${data.voter} vote for field in ${data.author_permlink} wobject with weight ${data.percent > 0 ? weight : -weight}\n`);
     }
 };
 
