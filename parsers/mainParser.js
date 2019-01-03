@@ -155,5 +155,5 @@ const parseSwitcher = transactions => {
 };
 
 module.exports = {
-    parseSwitcher: parseSwitcher
+    parseSwitcher
 };

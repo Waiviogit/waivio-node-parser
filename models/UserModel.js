@@ -67,7 +67,6 @@ const increaseWobjectWeight = async function (data) {
             await UserModel.updateOne({name: data.name}, {
                 $addToSet: {
                     w_objects: {
-                        rank: 1,
                         weight: 1,
                         author_permlink: data.author_permlink
                     }
