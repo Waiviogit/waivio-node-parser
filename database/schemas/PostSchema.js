@@ -50,8 +50,6 @@ const PostSchema = new Schema({
     active_votes: {
         type: [{
             voter: {type: String, required: true},
-            author: {type: String, required: true},
-            permlink: {type: String, required: true},
             weight: {type: Number, required: true}
         }],
         default: []

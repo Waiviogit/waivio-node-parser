@@ -12,6 +12,18 @@ const create = async function (data) {
     }
 };
 
+const findOne = async function (data) {
+    try {
+        const post = await PostModel.findOne({
+            author: data.author,
+            permlink: data.permlink
+        }).lean();
+        return {post}
+    } catch (error) {
+        return {error}
+    }
+};
+
 const update = async function (data) {
     try {
         const res = await PostModel.findOneAndUpdate(
@@ -41,4 +53,4 @@ const checkForExist = async function (author, permlink) {
     }
 };
 
-module.exports = {create, update, checkForExist};
+module.exports = {create, update, checkForExist, findOne};
