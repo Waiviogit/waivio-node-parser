@@ -50,7 +50,8 @@ const PostSchema = new Schema({
     active_votes: {
         type: [{
             voter: {type: String, required: true},
-            weight: {type: Number, required: true}
+            weight: {type: Number, required: true},
+            percent: {type: Number}
         }],
         default: []
     },

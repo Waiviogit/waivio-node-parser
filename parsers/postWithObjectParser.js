@@ -28,6 +28,13 @@ const createOrUpdatePost = async function (data) {
     }
     Object.assign(post,data);                           //assign to post fields wobjects and app
     //here can be validators for post//
+    post.active_votes = post.active_votes.map((vote) => {
+        return {
+            voter: vote.voter,
+            weight: Math.round(vote.rshares * 1e-6),
+            percent: vote.percent
+        }
+    });
     const {result, error} = await Post.update(post);
     if (error) {
         return {error}
