@@ -4,8 +4,9 @@ const {wobjectValidator} = require('../validator');
 const parse = async function (operation, metadata) {
     const data =
         {
-            author_permlink: operation.parent_author + '_' + operation.parent_permlink,
+            author_permlink: operation.parent_permlink,
             author: operation.author,
+            creator: metadata.wobj.creator,
             permlink: operation.permlink,
             name: metadata.wobj.field.name,
             body: metadata.wobj.field.body,
