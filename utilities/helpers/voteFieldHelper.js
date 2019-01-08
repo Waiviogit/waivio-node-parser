@@ -1,13 +1,12 @@
 const {Wobj} = require('../../models');
 
 const voteOnField = async (data) => {
-    if (data.percent === 0) {               //case for unvote
-        await findAndRemoveVote(data);
-    } else {                                //case for upvote
+    await findAndRemoveVote(data);          //case for un-vote
+    if (data.percent !== 0) {
         if (data.percent < 0) {
-            data.weight = -data.weight;     //case for downvote
+            data.weight = -data.weight;     //case for down-vote
         }
-        await addVoteOnField(data);
+        await addVoteOnField(data);         //case for up-vote
     }
 };
 

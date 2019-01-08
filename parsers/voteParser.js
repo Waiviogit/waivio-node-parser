@@ -58,7 +58,7 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
         name: data.voter,
         author_permlink: data.author_permlink
     });
-    if (weight === undefined || error) {
+    if (weight === undefined || weight <= 0 || error) {     //ignore users with zero or negative weight in wobject
         return {};                          //here will be method for checking 7-days expired and increase user weight
     }
     data.weight = weight;
