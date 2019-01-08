@@ -8,6 +8,8 @@ const parse = async function (operation, metadata){
                 app: metadata.app,
                 object_type: metadata.wobj.object_type,
                 community: metadata.community,
+                is_posting_open: metadata.wobj.is_posting_open,
+                is_extending_open: metadata.wobj.is_extending_open,
                 fields: [{
                     name: metadata.wobj.field.name,         //
                     body: metadata.wobj.field.body,         //
