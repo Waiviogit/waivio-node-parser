@@ -19,10 +19,15 @@ const voteOnPost = async (data) => {
     data.post.wobjects = data.metadata.wobj.wobjects;
     data.post.app = data.metadata.app;
     data.post.active_votes = data.post.active_votes.map((vote) => {
-        return {voter: vote.voter, weight: Math.round(vote.rshares * 1e-6)}
+        return {
+            voter: vote.voter,
+            weight: Math.round(vote.rshares * 1e-6),
+            percent: vote.percent
+        }
     });
     await Post.update(data.post);     //update post info in DB
 };
+
 
 const unvoteOnPost = async function (data) {    //method also using as undo previous vote before up- or down-vote
     const {post, error} = await Post.findOne({author: data.post.author, permlink: data.post.permlink});
