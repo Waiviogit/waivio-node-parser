@@ -25,7 +25,7 @@ const parse = async function (operation) {
                     permlink: operation.permlink,
                     voter: operation.voter,
                     percent: operation.percent,
-                    author_permlink: operation.author + '_' + operation.permlink
+                    author_permlink: operation.permlink
                 });
         } else if (metadata.wobj.wobjects) {        //vote for post with wobjects
             await votePostWithObjects({
@@ -42,7 +42,7 @@ const parse = async function (operation) {
                 permlink: operation.permlink,
                 voter: operation.voter,
                 percent: operation.weight,
-                author_permlink: post.root_author + '_' + post.root_permlink    //author_permlink - identity of wobject
+                author_permlink: post.root_permlink    //author_permlink - identity of wobject
             })
         } else if (await Post.checkForExist(post.root_author, post.root_permlink)) {
             //vote for comment to post with wobjects

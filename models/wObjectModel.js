@@ -20,7 +20,8 @@ const addField = async function (data) {
                             body: data.body,
                             locale: data.locale,
                             author: data.author,
-                            permlink: data.permlink
+                            permlink: data.permlink,
+                            creator: data.creator
                         }
                     }
             });
