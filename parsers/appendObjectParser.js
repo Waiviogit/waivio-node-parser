@@ -12,7 +12,7 @@ const parse = async function (operation, metadata) {
             body: metadata.wobj.field.body,
             locale: metadata.wobj.field.locale
         };
-    const res = appendObject(data);
+    const res = await appendObject(data);
     if (res) {
         console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject ${data.author_permlink}!\n`)
     }
