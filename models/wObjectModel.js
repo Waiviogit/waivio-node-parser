@@ -68,7 +68,7 @@ const findVote = async function (data) {    //data include: author, permlink, au
         const wobject = await WObjectModel.findOne({'author_permlink': data.author_permlink})
             .select('fields')
             .lean();
-        if (wobject) {
+        if (wobject && wobject.fields) {
             const field = wobject.fields.find((field) => field.author === data.author && field.permlink === data.permlink);
             if (field) {
                 const vote = field.active_votes.find((vote) => vote.voter === data.voter);
@@ -77,6 +77,7 @@ const findVote = async function (data) {    //data include: author, permlink, au
                 }
             }
         }
+        return {error: {message: 'vote not found'}}
     } catch (error) {
         return {error}
     }

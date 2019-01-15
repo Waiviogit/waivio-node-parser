@@ -11,8 +11,8 @@ const voteOnField = async (data) => {
 };
 
 const findAndRemoveVote = async (data) => { //data include: author, permlink, author_permlink, voter
-    const {weight, error} = await Wobj.findVote(data);
-    if(weight){
+    const res = await Wobj.findVote(data);
+    if(res && res.weight){
         await Wobj.increaseFieldWeight({    //if weight is negative - weight will be decreased
             author: data.author,
             permlink: data.permlink,
