@@ -7,11 +7,12 @@ const parse = async function (operation, metadata) {
             author_permlink: operation.parent_permlink,
             author: operation.author,
             creator: metadata.wobj.creator,
-            permlink: operation.permlink,
-            name: metadata.wobj.field.name,
-            body: metadata.wobj.field.body,
-            locale: metadata.wobj.field.locale
+            permlink: operation.permlink
         };
+    for(const fieldItem in metadata.wobj.field){
+        data[fieldItem] = metadata.wobj.field[fieldItem];
+    }
+
     const res = await appendObject(data);
     if (res) {
         console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject ${data.author_permlink}!\n`)
