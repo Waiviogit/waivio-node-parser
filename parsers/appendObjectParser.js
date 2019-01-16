@@ -5,12 +5,14 @@ const parse = async function (operation, metadata) {
     const data =
         {
             author_permlink: operation.parent_permlink,
-            author: operation.author,
-            creator: metadata.wobj.creator,
-            permlink: operation.permlink
+            field:{
+                creator: metadata.wobj.creator,
+                author: operation.author,
+                permlink: operation.permlink
+            }
         };
     for(const fieldItem in metadata.wobj.field){
-        data[fieldItem] = metadata.wobj.field[fieldItem];
+        data.field[fieldItem] = metadata.wobj.field[fieldItem];
     }
 
     const res = await appendObject(data);
@@ -21,7 +23,7 @@ const parse = async function (operation, metadata) {
 
 const appendObject = async function (data) {
     try {
-        if (!wobjectValidator.validateAppendObject(data)) {
+        if (!wobjectValidator.validateAppendObject(data.field)) {
             throw new Error('Data is not valid');
         }
         const {result, error} = await Wobj.addField(data);

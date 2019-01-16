@@ -15,14 +15,7 @@ const addField = async function (data) {
             {
                 $push:
                     {
-                        fields: {
-                            name: data.name,
-                            body: data.body,
-                            locale: data.locale,
-                            author: data.author,
-                            permlink: data.permlink,
-                            creator: data.creator
-                        }
+                        fields: data.field
                     }
             });
         return {result: true};
