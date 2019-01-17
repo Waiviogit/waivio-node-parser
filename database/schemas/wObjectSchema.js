@@ -21,6 +21,7 @@ const WObjectSchema = new Schema({
             creator: {type: String},
             author: String,         //
             permlink: String,       //author+permlink is link to appendObject COMMENT(or to create object post if it's first field)
+            id: String,
             active_votes:
                 {
                     type:
@@ -33,14 +34,12 @@ const WObjectSchema = new Schema({
         }]
     },
     {
+        strict: false,
         toObject: {
             virtuals: true
-        }
-        ,
+        },
         timestamps: true
-    }
-    )
-;
+    });
 
 const wObjectModel = mongoose.model('wobject', WObjectSchema);
 module.exports = wObjectModel;
