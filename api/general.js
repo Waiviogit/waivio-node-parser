@@ -1,24 +1,13 @@
-const dsteem = require('dsteem');
-const es = require('event-stream');
-const util = require('util');
+const steem = require('steem');
 const {parseSwitcher} = require('../parsers/mainParser');
 
-const opts = {};
-//connect to production server
-opts.addressPrefix = 'STM';
-opts.chainId = '0000000000000000000000000000000000000000000000000000000000000000';
-
 //connect to server which is connected to the network/production
-const client = new dsteem.Client('https://api.steemit.com');
-
-const blockChain = new dsteem.Blockchain(client);
+steem.api.setOptions({url: 'https://api.steemit.com'});
 
 const getBlockNumberStream = async () => {
-    const stream = client.blockchain.getBlockStream();
-    stream.pipe(es.map(function (block, callback) {
-        parseSwitcher(block.transactions);
-        callback(null, util.inspect(block, {colors: true, depth: null}) + '\n')
-    }));
+    steem.api.streamBlock('head', async function (err, block) {
+        await parseSwitcher(block.transactions);
+    });
     return {};
 };
 
