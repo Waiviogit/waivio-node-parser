@@ -5,8 +5,8 @@ const {parseSwitcher} = require('../parsers/mainParser');
 steem.api.setOptions({url: 'https://api.steemit.com'});
 
 const getBlockNumberStream = async () => {
-    steem.api.streamBlock('head', async function (err, block) {
-        await parseSwitcher(block.transactions);
+    steem.api.streamBlock('irreversible', async function (err, block) {
+        if(block) await parseSwitcher(block.transactions);
     });
     return {};
 };

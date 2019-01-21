@@ -12,6 +12,7 @@
     "start": "node ./bin/service.js"
   },
   "dependencies": {
+    "bluebird": "^3.5.3",
     "body-parser": "^1.15.2",
     "dsteem": "^0.8.7",
     "event-stream": "^4.0.1",
@@ -20,11 +21,12 @@
     "lodash": "^4.17.5",
     "mongoose": "^5.3.5",
     "morgan": "~1.9.0",
+    "redis": "^2.8.0",
     "steem": "^0.7.4",
     "util": "^0.11.1"
   },
   "devDependencies": {
     "nodemon": "^1.11.0"
   },
-  "homepage": "https://github.com/Waiviogit/objects-bot#readme"
+  "homepage": "https://github.com/Waiviogit/waivio-node-parser#readme"
 }

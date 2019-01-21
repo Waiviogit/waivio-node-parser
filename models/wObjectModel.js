@@ -112,4 +112,63 @@ const addVote = async (data) => {   //data include: author, permlink, author_per
     }
 };
 
-module.exports = {create, addField, increaseFieldWeight, increaseWobjectWeight, findVote, removeVote, addVote};
+//method for redis restore wobjects author and author_permlink
+const getWobjectsRefs = async () => {
+    try {
+        return {
+            wobjects: await WObjectModel.aggregate([
+                {
+                    $project: {
+                        _id: 0,
+                        author_permlink: 1
+                    }
+                }
+            ])
+        }
+    } catch (error) {
+        return {error}
+    }
+};
+
+//method for redis restore fields author and author_permlink
+const getFieldsRefs = async (author_permlink) => {
+    try {
+         return {
+             fields: await WObjectModel.aggregate([
+                 {
+                     $match:{author_permlink: author_permlink}
+                 },
+                 {
+                     $unwind: '$fields'
+                 },
+                 {
+                     $addFields: {
+                         field_author:'$fields.author',
+                         field_permlink:'$fields.permlink'
+                     }
+                 },
+                 {
+                     $project: {
+                         _id:0,
+                         field_author:1,
+                         field_permlink:1
+                     }
+                 }
+             ])
+         }
+    } catch (error) {
+        return {error}
+    }
+}
+
+module.exports = {
+    create,
+    addField,
+    increaseFieldWeight,
+    increaseWobjectWeight,
+    findVote,
+    removeVote,
+    addVote,
+    getWobjectsRefs,
+    getFieldsRefs
+};
