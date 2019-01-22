@@ -18,7 +18,8 @@ const restoreAppendWobjects = async function () {
             if (fields && fields.length) {
                 fieldsCount += fields.length;
                 for (const field of fields) {
-                    await redis.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'type', 'append_wobj', 'root_wobj', wobject.author_permlink);
+                    await redis.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'type', 'append_wobj');
+                    await redis.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'root_wobj', wobject.author_permlink);
                 }
             }
         }

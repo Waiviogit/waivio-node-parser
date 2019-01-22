@@ -1,6 +1,6 @@
 const {api} = require('../api');
 const _ = require('lodash');
-const restoreRedisHelper = require('../utilities/helpers/restoreRedisHelper');
+const {restoreRedisHelper} = require('../utilities/redis');
 
 const parseAllBlockChain = async (req, res) => {
     try {
