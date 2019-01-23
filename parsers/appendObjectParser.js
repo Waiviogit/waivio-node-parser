@@ -1,17 +1,18 @@
 const {Wobj} = require('../models');
 const {wobjectValidator} = require('../validator');
+const {redisSetter} = require('../utilities/redis');
 
 const parse = async function (operation, metadata) {
     const data =
         {
             author_permlink: operation.parent_permlink,
-            field:{
+            field: {
                 creator: metadata.wobj.creator,
                 author: operation.author,
                 permlink: operation.permlink
             }
         };
-    for(const fieldItem in metadata.wobj.field){
+    for (const fieldItem in metadata.wobj.field) {
         data.field[fieldItem] = metadata.wobj.field[fieldItem];
     }
 
@@ -26,6 +27,10 @@ const appendObject = async function (data) {
         if (!wobjectValidator.validateAppendObject(data.field)) {
             throw new Error('Data is not valid');
         }
+        await redisSetter.addAppendWobj(
+            data.field.author + '_' + data.field.permlink,
+            data.author_permlink
+        );
         const {result, error} = await Wobj.addField(data);
         if (error) {
             throw error;

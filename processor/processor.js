@@ -17,6 +17,10 @@ const parseAllBlockChain = async (req, res) => {
 
 const runStream = async (req, res) => {
     try {
+        const result = await restoreRedisHelper.restore();
+        if(result){
+            console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects`);
+        }
         const transactionStatus = await api.getBlockNumberStream();
         if (!transactionStatus) {
             res.status(422).json({error: 'Data is incorrect'})
@@ -48,8 +52,8 @@ const getCurrentBlock = async (req, res) => {
 
 const restoreRedis = async (req, res) => {
     const result = await restoreRedisHelper.restore();
-    const str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects`;
     if (result) {
+        const str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects`;
         console.log(str);
         res.status(200).json({message:str})
     }

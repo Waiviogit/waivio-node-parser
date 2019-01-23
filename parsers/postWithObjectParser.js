@@ -1,6 +1,7 @@
 const {Post} = require('../models');
 const {postsUtil} = require('../utilities/steemApi');
 const {User} = require('../models');
+const {redisSetter} = require('../utilities/redis');
 
 const parse = async function (operation, metadata) {
     const data = {
@@ -26,12 +27,12 @@ const createOrUpdatePost = async function (data) {
     if (err) {
         return {error: err}
     }
-    Object.assign(post,data);                           //assign to post fields wobjects and app
+    Object.assign(post, data);                           //assign to post fields wobjects and app
     //here can be validators for post//
     const existing = await Post.findOne({author: data.author, permlink: data.permlink});
-    if(!existing.post){
+    if (!existing.post) {
         post.active_votes = [];
-    } else{
+    } else {
         post.active_votes = post.active_votes.map((vote) => {
             return {
                 voter: vote.voter,
@@ -40,6 +41,7 @@ const createOrUpdatePost = async function (data) {
             }
         });
     }
+    await redisSetter.addPostWithWobj(data.author + '_' + data.permlink);
     const {result, error} = await Post.update(post);
     if (error) {
         return {error}
