@@ -17,7 +17,7 @@ const findAndRemoveVote = async (data) => { //data include: author, permlink, au
             author: data.author,
             permlink: data.permlink,
             author_permlink: data.author_permlink,
-            weight: -data.weight
+            weight: -res.weight
         });
         await Wobj.removeVote(data);
     }
