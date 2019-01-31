@@ -133,33 +133,68 @@ const getWobjectsRefs = async () => {
 //method for redis restore fields author and author_permlink
 const getFieldsRefs = async (author_permlink) => {
     try {
-         return {
-             fields: await WObjectModel.aggregate([
-                 {
-                     $match:{author_permlink: author_permlink}
-                 },
-                 {
-                     $unwind: '$fields'
-                 },
-                 {
-                     $addFields: {
-                         field_author:'$fields.author',
-                         field_permlink:'$fields.permlink'
-                     }
-                 },
-                 {
-                     $project: {
-                         _id:0,
-                         field_author:1,
-                         field_permlink:1
-                     }
-                 }
-             ])
-         }
+        return {
+            fields: await WObjectModel.aggregate([
+                {
+                    $match: {author_permlink: author_permlink}
+                },
+                {
+                    $unwind: '$fields'
+                },
+                {
+                    $addFields: {
+                        field_author: '$fields.author',
+                        field_permlink: '$fields.permlink'
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        field_author: 1,
+                        field_permlink: 1
+                    }
+                }
+            ])
+        }
     } catch (error) {
         return {error}
     }
-}
+};
+
+const getWobjectTags = async () => {
+    try {
+        const [{wobject_tags}] = await WObjectModel.aggregate([
+            {
+                $unwind: '$fields'
+            },
+            {
+                $match: {
+                    'fields.name': 'tag'
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    wobject_tags: {
+                        $addToSet: {
+                            tag: '$fields.body',
+                            author_permlink: '$author_permlink'
+                        }
+                    }
+                }
+            }, {
+                $project: {
+                    _id: 0,
+                    wobject_tags: 1
+                }
+            }
+        ]);
+        return {wobject_tags};
+    } catch (error) {
+        return {error}
+    }
+};
+
 
 module.exports = {
     create,
@@ -170,5 +205,6 @@ module.exports = {
     removeVote,
     addVote,
     getWobjectsRefs,
-    getFieldsRefs
+    getFieldsRefs,
+    getWobjectTags
 };

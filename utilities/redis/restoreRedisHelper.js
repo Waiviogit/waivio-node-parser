@@ -1,10 +1,12 @@
 const {Wobj, Post} = require('../../models');
-const redis = require('./redis');
+const {wobjRefsClient, tagsClient} = require('./redis');
+const _ = require('lodash');
 
 const restore = async function () {
     const {fieldsCount, wobjectsCount} = await restoreAppendWobjects();
     const {postsCount} = await restorePostsWithWobjects();
-    return {fieldsCount, wobjectsCount, postsCount}
+    const {tagsCount} = await restoreWobjTags();
+    return {fieldsCount, wobjectsCount, postsCount, tagsCount}
 };
 
 const restoreAppendWobjects = async function () {
@@ -18,8 +20,8 @@ const restoreAppendWobjects = async function () {
             if (fields && fields.length) {
                 fieldsCount += fields.length;
                 for (const field of fields) {
-                    await redis.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'type', 'append_wobj');
-                    await redis.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'root_wobj', wobject.author_permlink);
+                    await wobjRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'type', 'append_wobj');
+                    await wobjRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'root_wobj', wobject.author_permlink);
                 }
             }
         }
@@ -32,10 +34,26 @@ const restorePostsWithWobjects = async function () {
     let postsCount = 0;
     if (posts && posts.length) {
         postsCount += posts.length;
-        for (const post of posts)
-            await redis.hsetAsync(`${post.author}_${post.permlink}`, 'type', 'post_with_wobj');
+        for (const post of posts) {
+            await wobjRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'type', 'post_with_wobj');
+            await wobjRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'wobjects', JSON.stringify(post.wobjects));
+        }
     }
     return {postsCount}
+};
+
+const restoreWobjTags = async function () {
+    const {wobject_tags, error} = await Wobj.getWobjectTags();
+    let tagsCount = 0;
+    if (wobject_tags && Array.isArray(wobject_tags) && wobject_tags.length) {
+        for (const item of wobject_tags) {
+            if (item && _.isString(item.tag) && _.isString(item.author_permlink)) {
+                await tagsClient.saddAsync(item.tag, item.author_permlink);
+                tagsCount++;
+            }
+        }
+    }
+    return {tagsCount}
 };
 
 module.exports = {restore}

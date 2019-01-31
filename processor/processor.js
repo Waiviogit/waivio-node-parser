@@ -1,6 +1,6 @@
 const {api} = require('../api');
 const _ = require('lodash');
-const {restoreRedisHelper} = require('../utilities/redis');
+const {restoreRedisHelper, redisGetter, redisSetter} = require('../utilities/redis');
 
 const parseAllBlockChain = async (req, res) => {
     try {
@@ -17,13 +17,23 @@ const parseAllBlockChain = async (req, res) => {
 
 const runStream = async (req, res) => {
     try {
+        const isStarted = await redisGetter.getParserStarted();
+        if (isStarted) {
+            res.status(422).json({error: 'Stream is already started!'});
+            return
+        } else
+            await redisSetter.setParserStarted(1);
+
         const result = await restoreRedisHelper.restore();
-        if(result){
-            console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects`);
+        if (result) {
+            console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.\nRestored ${result.tagsCount} tags in wobjects`);
         }
-        const transactionStatus = await api.getBlockNumberStream();
+        const transactionStatus = await api.getBlockNumberStream({
+            startFromBlock: req.body.startFromBlock,
+            startFromCurrent: req.body.startFromCurrent
+        });
         if (!transactionStatus) {
-            res.status(422).json({error: 'Data is incorrect'})
+            res.status(422).json({error: 'Data is incorrect or stream is already started!'})
         } else {
             console.log('Start stream!');
             res.status(200).json({'message': 'Stream started!'});
@@ -53,9 +63,9 @@ const getCurrentBlock = async (req, res) => {
 const restoreRedis = async (req, res) => {
     const result = await restoreRedisHelper.restore();
     if (result) {
-        const str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects`;
+        const str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.\nRestored ${result.tagsCount} tags in wobjects`;
         console.log(str);
-        res.status(200).json({message:str})
+        res.status(200).json({message: str})
     }
 };
 

@@ -1,6 +1,7 @@
 const createObjectParser = require('./createObjectParser');
 const appendObjectParser = require('./appendObjectParser');
 const postWithObjectsParser = require('./postWithObjectParser');
+const {postByTagsHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {  //data is operation[1] of transaction in block
     let metadata;
@@ -17,6 +18,14 @@ const parse = async function (operation) {  //data is operation[1] of transactio
                 await createObjectParser.parse(operation, metadata);      //create wobject in database
             } else if (metadata.wobj.wobjects) {
                 await postWithObjectsParser.parse(operation, metadata);             //create post with wobjects in database
+            }
+        } else if (metadata && metadata.tags) {
+            const wobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
+            if (wobjects && wobjects.length) {
+                metadata.wobj = {
+                    wobjects: wobjects.map(item => ({author_permlink: item, percent: Math.round(100 / wobjects.length)}))
+                };
+                await postWithObjectsParser.parse(operation, metadata);
             }
         }
     } else {                                //comment with parent_author is reply to post

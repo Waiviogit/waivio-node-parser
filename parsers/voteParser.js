@@ -6,13 +6,12 @@ const {voteFieldHelper} = require('../utilities/helpers');
 const {votePostHelper} = require('../utilities/helpers');
 const redisGetter = require('../utilities/redis/redisGetter');
 const parse = async function (operation) {
-    const response = await redisGetter.getHashAll(operation.author + '_' + operation.permlink);
-    if(!response || !response.type){
+    const redisResponse = await redisGetter.getHashAll(operation.author + '_' + operation.permlink);
+    if(!redisResponse || !redisResponse.type){
         return{}
     }
 
-
-    if(response.type==='post_with_wobj'){       //vote for post with wobjects
+    if(redisResponse.type==='post_with_wobj') {       //vote for post with wobjects
         const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
         if (err) {
             return {};
@@ -25,19 +24,22 @@ const parse = async function (operation) {
         } catch (e) {                                               //
             console.log(e)                                          //
         }
+        if(!metadata.wobj){
+            metadata.wobj={wobjects:JSON.parse(redisResponse.wobjects)}
+        }
         await votePostWithObjects({
             post,
             metadata,
             voter: operation.voter,
             percent: operation.weight
         });
-    } else if(response.type === 'append_wobj' && response.root_wobj){     //vote for field
+    } else if(redisResponse.type === 'append_wobj' && redisResponse.root_wobj){     //vote for field
         await voteCreateAppendObject({
             author: operation.author,                   //author and permlink - identity of field
             permlink: operation.permlink,
             voter: operation.voter,
             percent: operation.weight,
-            author_permlink: response.root_wobj
+            author_permlink: redisResponse.root_wobj
         })
     }
 };

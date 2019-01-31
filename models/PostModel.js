@@ -60,7 +60,8 @@ const getPostsRefs = async function(){
                 $project:{
                     _id:0,
                     author:1,
-                    permlink:1
+                    permlink:1,
+                    wobjects:1
                 }
             }])
         }

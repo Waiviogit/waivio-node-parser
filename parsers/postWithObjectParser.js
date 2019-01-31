@@ -41,7 +41,7 @@ const createOrUpdatePost = async function (data) {
             }
         });
     }
-    await redisSetter.addPostWithWobj(data.author + '_' + data.permlink);
+    await redisSetter.addPostWithWobj(data.author + '_' + data.permlink, data.wobjects);
     const {result, error} = await Post.update(post);
     if (error) {
         return {error}
