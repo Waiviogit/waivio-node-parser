@@ -4,6 +4,12 @@ const {Post} = require('../../models');
 
 const voteOnPost = async (data) => {
     //calculated value, for using in wobject environment
+    const currentVote = data.post.active_votes.find((vote) => vote.voter === data.voter);
+    if(!currentVote){
+        console.log(data.post.active_votes);
+        console.log(data.voter);
+        return;
+    }
     const weight = Math.round((data.post.active_votes.find((vote) => vote.voter === data.voter).rshares) * 1e-6);
     if (data.percent === 0) {               //case for un-vote
         await unvoteOnPost(data);
