@@ -1,6 +1,6 @@
 const {api} = require('../api');
 const _ = require('lodash');
-const {restoreRedisHelper, redisGetter, redisSetter} = require('../utilities/redis');
+const {restoreRedisHelper} = require('../utilities/redis');
 
 const parseAllBlockChain = async (req, res) => {
     try {
@@ -15,31 +15,22 @@ const parseAllBlockChain = async (req, res) => {
     }
 };
 
-const runStream = async (req, res) => {
+const runStream = async () => {
     try {
-        const isStarted = await redisGetter.getParserStarted();
-        if (isStarted) {
-            res.status(422).json({error: 'Stream is already started!'});
-            return
-        } else
-            await redisSetter.setParserStarted(1);
-
         const result = await restoreRedisHelper.restore();
         if (result) {
             console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.\nRestored ${result.tagsCount} tags in wobjects`);
         }
         const transactionStatus = await api.getBlockNumberStream({
-            startFromBlock: req.body.startFromBlock,
-            startFromCurrent: req.body.startFromCurrent
+            startFromCurrent: true
         });
         if (!transactionStatus) {
-            res.status(422).json({error: 'Data is incorrect or stream is already started!'})
+            console.log('Data is incorrect or stream is already started!');
         } else {
-            console.log('Start stream!');
-            res.status(200).json({'message': 'Stream started!'});
+            console.log('Stream started!');
         }
     } catch (e) {
-        res.status(422).json({error: e.message})
+        console.log(e.message);
     }
 };
 const getCurrentBlock = async (req, res) => {

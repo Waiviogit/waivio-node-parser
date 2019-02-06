@@ -43,8 +43,14 @@ const loadNextBlock = async (startBlock) => {
 };
 
 const loadBlock = async (block_num) => { //return true if block exist and parsed, else - false
-    const block = await steem.api.getBlockAsync(block_num);
-    if (block) {
+    let block;
+    try {
+        block = await steem.api.getBlockAsync(block_num);
+    } catch (error) {
+        console.log(error.message);
+        return false;
+    }
+    if (block && block.transactions && block.transactions[0]) {
         console.time(block.transactions[0].block_num);
         await parseSwitcher(block.transactions);
         console.timeEnd(block.transactions[0].block_num);
