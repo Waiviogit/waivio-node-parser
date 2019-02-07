@@ -23,9 +23,4 @@ const setLastBlockNum = async function (blockNum) {
     }
 };
 
-const setParserStarted = async function (isStarted = 0) {
-    await tagsClient.setAsync('parser_is_started', isStarted);
-
-};
-
-module.exports = {addPostWithWobj, addAppendWobj, addWobjectToTag, setLastBlockNum, setParserStarted};
+module.exports = {addPostWithWobj, addAppendWobj, addWobjectToTag, setLastBlockNum};

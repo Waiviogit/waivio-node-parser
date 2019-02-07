@@ -15,9 +15,4 @@ const getLastBlockNum = async function () {
     return num ? parseInt(num) : process.env.START_FROM_BLOCK || 29937113
 };
 
-const getParserStarted = async function(){
-    const isStarted = await tagsClient.getAsync('parser_is_started');
-    return !!parseInt(isStarted);
-};
-
-module.exports = {getHashAll, getWobjectsByTag, getLastBlockNum, getParserStarted}
+module.exports = {getHashAll, getWobjectsByTag, getLastBlockNum}
