@@ -3,9 +3,11 @@ const {wobjRefsClient, tagsClient} = require('./redis');
 const _ = require('lodash');
 
 const restore = async function () {
+    await tagsClient.flushdbAsync();
+    await wobjRefsClient.flushdbAsync();
+    const {tagsCount} = await restoreWobjTags();
     const {fieldsCount, wobjectsCount} = await restoreAppendWobjects();
     const {postsCount} = await restorePostsWithWobjects();
-    const {tagsCount} = await restoreWobjTags();
     return {fieldsCount, wobjectsCount, postsCount, tagsCount}
 };
 
@@ -47,9 +49,12 @@ const restoreWobjTags = async function () {
     let tagsCount = 0;
     if (wobject_tags && Array.isArray(wobject_tags) && wobject_tags.length) {
         for (const item of wobject_tags) {
-            if (item && _.isString(item.tag) && _.isString(item.author_permlink)) {
-                await tagsClient.saddAsync(item.tag, item.author_permlink);
-                tagsCount++;
+            if (item && _.isString(item.author_permlink) && Array.isArray(item.tags)) {
+                item.tags = item.tags.slice(0,5);
+                for(const tag of item.tags){
+                    await tagsClient.saddAsync(tag, item.author_permlink);
+                    tagsCount++;
+                }
             }
         }
     }

@@ -163,7 +163,7 @@ const getFieldsRefs = async (author_permlink) => {
 
 const getWobjectTags = async () => {
     try {
-        const [{wobject_tags}] = await WObjectModel.aggregate([
+        const wobject_tags = await WObjectModel.aggregate([
             {
                 $unwind: '$fields'
             },
@@ -173,19 +173,19 @@ const getWobjectTags = async () => {
                 }
             },
             {
+                $sort:{'fields.weight': 1}
+            },
+            {
                 $group: {
-                    _id: null,
-                    wobject_tags: {
-                        $addToSet: {
-                            tag: '$fields.body',
-                            author_permlink: '$author_permlink'
-                        }
-                    }
+                    _id: '$author_permlink',
+                    tags:  {$addToSet: '$fields.body'}
                 }
-            }, {
+            },
+            {
                 $project: {
                     _id: 0,
-                    wobject_tags: 1
+                    author_permlink: '$_id',
+                    tags:1
                 }
             }
         ]);
