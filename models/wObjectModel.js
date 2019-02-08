@@ -117,12 +117,7 @@ const getWobjectsRefs = async () => {
     try {
         return {
             wobjects: await WObjectModel.aggregate([
-                {
-                    $project: {
-                        _id: 0,
-                        author_permlink: 1
-                    }
-                }
+                {$project: {_id: 0,author_permlink: 1}}
             ])
         }
     } catch (error) {
@@ -135,25 +130,10 @@ const getFieldsRefs = async (author_permlink) => {
     try {
         return {
             fields: await WObjectModel.aggregate([
-                {
-                    $match: {author_permlink: author_permlink}
-                },
-                {
-                    $unwind: '$fields'
-                },
-                {
-                    $addFields: {
-                        field_author: '$fields.author',
-                        field_permlink: '$fields.permlink'
-                    }
-                },
-                {
-                    $project: {
-                        _id: 0,
-                        field_author: 1,
-                        field_permlink: 1
-                    }
-                }
+                {$match: {author_permlink: author_permlink}},
+                {$unwind: '$fields'},
+                {$addFields: {field_author: '$fields.author',field_permlink: '$fields.permlink'}},
+                {$project: {_id: 0,field_author: 1,field_permlink: 1}}
             ])
         }
     } catch (error) {
@@ -161,35 +141,30 @@ const getFieldsRefs = async (author_permlink) => {
     }
 };
 
-const getWobjectTags = async () => {
+const getWobjectTags = async (author_permlink) => {
     try {
         const wobject_tags = await WObjectModel.aggregate([
-            {
-                $unwind: '$fields'
-            },
-            {
-                $match: {
-                    'fields.name': 'tag'
-                }
-            },
-            {
-                $sort:{'fields.weight': 1}
-            },
-            {
-                $group: {
-                    _id: '$author_permlink',
-                    tags:  {$addToSet: '$fields.body'}
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    author_permlink: '$_id',
-                    tags:1
-                }
-            }
+            {$match: {author_permlink: author_permlink || /.*?/}},
+            {$unwind: '$fields'},
+            {$match: {'fields.name': 'tag'}},
+            {$sort: {'fields.weight': 1}},
+            {$group: {_id: '$author_permlink', tags: {$addToSet: '$fields.body'}}},
+            {$project: {_id: 0, author_permlink: '$_id', tags: 1}}
         ]);
         return {wobject_tags};
+    } catch (error) {
+        return {error}
+    }
+};
+
+const getField = async (author, permlink) => {
+    try {
+        const field = await WObjectModel.aggregate([
+            {$unwind: '$fields'},
+            {$match: {'fields.author': 'q1w2c', 'fields.permlink': 'otve-7zvu4i2uix5'}},
+            {$replaceRoot: {newRoot: '$fields'}}
+        ]);
+        return {field}
     } catch (error) {
         return {error}
     }
@@ -206,5 +181,6 @@ module.exports = {
     addVote,
     getWobjectsRefs,
     getFieldsRefs,
-    getWobjectTags
+    getWobjectTags,
+    getField
 };

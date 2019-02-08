@@ -23,4 +23,16 @@ const setLastBlockNum = async function (blockNum) {
     }
 };
 
-module.exports = {addPostWithWobj, addAppendWobj, addWobjectToTag, setLastBlockNum};
+const updateTagsRefs = async (tags, author_permlink) => {
+    if(tags && Array.isArray(tags) && tags.length > 5 && author_permlink){
+        for(const tag of tags){
+            await tagsClient.sremAsync(tag,author_permlink);
+        }
+        tags = tags.slice(0,5);
+        for(const tag of tags){
+            await tagsClient.saddAsync(tag,author_permlink);
+        }
+    }
+};
+
+module.exports = {addPostWithWobj, addAppendWobj, addWobjectToTag, setLastBlockNum, updateTagsRefs};

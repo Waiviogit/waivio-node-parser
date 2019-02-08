@@ -1,6 +1,4 @@
 const {postsUtil} = require('../utilities/steemApi');
-const {Post} = require('../models');
-const {Wobj} = require('../models');
 const {User} = require('../models');
 const {voteFieldHelper} = require('../utilities/helpers');
 const {votePostHelper} = require('../utilities/helpers');
