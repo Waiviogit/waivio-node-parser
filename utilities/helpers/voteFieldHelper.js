@@ -9,8 +9,7 @@ const voteOnField = async (data) => {
         }
         await addVoteOnField(data);         //case for up-vote
     }
-    await handleTagField(data.author, data.permlink, data.author_permlink);
-
+    await handleSpecifiedField(data.author, data.permlink, data.author_permlink);
 };
 
 const findAndRemoveVote = async (data) => { //data include: author, permlink, author_permlink, voter
@@ -36,13 +35,23 @@ const addVoteOnField = async (data) => {
     });
 };
 
-const handleTagField = async (author, permlink, author_permlink) => {
-    const {field, error} = await Wobj.getField(author, permlink);
-    if (field && field.name === 'tag') {
-        const {fields: tags} = await Wobj.getSomeFields('tag', author_permlink);
-        if (tags && Array.isArray(tags)) {
-            await redisSetter.updateTagsRefs(tags, author_permlink);
-        }
+const handleSpecifiedField = async (author, permlink, author_permlink) => {
+    const {field, error} = await Wobj.getField(author, permlink, author_permlink);
+    if(error)
+        return;
+    switch (field.name) {
+        case 'tag':
+            const {fields: tags} = await Wobj.getSomeFields('tag', author_permlink);
+            if (tags && Array.isArray(tags) && tags[0].fields && Array.isArray(tags[0].fields))
+                await redisSetter.updateTagsRefs(tags[0].fields, author_permlink);
+            break;
+        case 'parent':
+            const {fields: parents} = await Wobj.getSomeFields('parent', author_permlink);
+            if (parents && Array.isArray(parents) && parents[0].fields && Array.inArray(parents[0].fields)) {
+                await Wobj.update({author_permlink}, {parents: parents[0].fields.slice(0, 5)})
+            }
+            break;
+
     }
 };
 

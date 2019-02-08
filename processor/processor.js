@@ -1,6 +1,7 @@
 const {api} = require('../api');
 const _ = require('lodash');
 const {restoreRedisHelper} = require('../utilities/redis');
+const {restoreHelper} = require('../utilities/helpers');
 
 const parseAllBlockChain = async (req, res) => {
     try {
@@ -17,6 +18,7 @@ const parseAllBlockChain = async (req, res) => {
 
 const runStream = async () => {
     try {
+        await restoreHelper.restore();
         const result = await restoreRedisHelper.restore();
         if (result) {
             console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.\nRestored ${result.tagsCount} tags in wobjects`);

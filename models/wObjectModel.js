@@ -9,6 +9,15 @@ const create = async function (data) {
     }
 };
 
+const update = async function (conditions, update) {
+    try {
+        const result = await WObjectModel.findOneAndUpdate(conditions, update);
+        return {result}
+    } catch (error) {
+        return {error}
+    }
+};
+
 const addField = async function (data) {
     try {
         await WObjectModel.updateOne({author_permlink: data.author_permlink},
@@ -117,7 +126,7 @@ const getWobjectsRefs = async () => {
     try {
         return {
             wobjects: await WObjectModel.aggregate([
-                {$project: {_id: 0,author_permlink: 1}}
+                {$project: {_id: 0, author_permlink: 1}}
             ])
         }
     } catch (error) {
@@ -132,8 +141,8 @@ const getFieldsRefs = async (author_permlink) => {
             fields: await WObjectModel.aggregate([
                 {$match: {author_permlink: author_permlink}},
                 {$unwind: '$fields'},
-                {$addFields: {field_author: '$fields.author',field_permlink: '$fields.permlink'}},
-                {$project: {_id: 0,field_author: 1,field_permlink: 1}}
+                {$addFields: {field_author: '$fields.author', field_permlink: '$fields.permlink'}},
+                {$project: {_id: 0, field_author: 1, field_permlink: 1}}
             ])
         }
     } catch (error) {
@@ -157,9 +166,10 @@ const getSomeFields = async (fieldName, author_permlink) => {
     }
 };
 
-const getField = async (author, permlink) => {
+const getField = async (author, permlink, author_permlink) => {
     try {
         const field = await WObjectModel.aggregate([
+            {$match: {author_permlink: author_permlink || /.*?/}},
             {$unwind: '$fields'},
             {$match: {'fields.author': author, 'fields.permlink': permlink}},
             {$replaceRoot: {newRoot: '$fields'}}
@@ -173,6 +183,7 @@ const getField = async (author, permlink) => {
 
 module.exports = {
     create,
+    update,
     addField,
     increaseFieldWeight,
     increaseWobjectWeight,
