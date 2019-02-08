@@ -38,9 +38,9 @@ const addVoteOnField = async (data) => {
 
 const handleTagField = async (author, permlink, author_permlink) => {
     const {field, error} = await Wobj.getField(author, permlink);
-    if(field && field.name === 'tag'){
-        const {tags} = await Wobj.getWobjectTags(author_permlink);
-        if(tags && Array.isArray(tags)){
+    if (field && field.name === 'tag') {
+        const {fields: tags} = await Wobj.getSomeFields('tag', author_permlink);
+        if (tags && Array.isArray(tags)) {
             await redisSetter.updateTagsRefs(tags, author_permlink);
         }
     }

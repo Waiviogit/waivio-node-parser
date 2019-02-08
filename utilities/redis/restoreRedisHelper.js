@@ -45,7 +45,7 @@ const restorePostsWithWobjects = async function () {
 };
 
 const restoreWobjTags = async function () {
-    const {wobject_tags, error} = await Wobj.getWobjectTags();
+    const {fields: wobject_tags, error} = await Wobj.getSomeFields('tag');
     let tagsCount = 0;
     if (wobject_tags && Array.isArray(wobject_tags) && wobject_tags.length) {
         for (const item of wobject_tags) {
