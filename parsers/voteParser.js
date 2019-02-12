@@ -5,14 +5,13 @@ const {votePostHelper} = require('../utilities/helpers');
 const redisGetter = require('../utilities/redis/redisGetter');
 const parse = async function (operation) {
     const redisResponse = await redisGetter.getHashAll(operation.author + '_' + operation.permlink);
-    if(!redisResponse || !redisResponse.type){
-        return{}
-    }
+    if(!redisResponse || !redisResponse.type) return;
+
 
     if(redisResponse.type==='post_with_wobj') {       //vote for post with wobjects
         const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
         if (err) {
-            return {};
+            return;
         }
         let metadata;
         try {                                                       //
@@ -22,6 +21,7 @@ const parse = async function (operation) {
         } catch (e) {                                               //
             console.log(e)                                          //
         }
+        if(!metadata) return;
         if(!metadata.wobj){
             metadata.wobj={wobjects:JSON.parse(redisResponse.wobjects)}
         }
