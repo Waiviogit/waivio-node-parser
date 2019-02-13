@@ -12,7 +12,7 @@ const addAppendWobj = async function (author_permlink, root_wobj) {
 };
 
 const addWobjectToTag = async function (tag, author_permlink) {
-    if (_.isString(tag) && !_.isEmpty(tag) && _.isString(author_permlink) && _.isEmpty(author_permlink)) {
+    if (_.isString(tag) && !_.isEmpty(tag) && _.isString(author_permlink) && !_.isEmpty(author_permlink)) {
         await tagsClient.saddAsync(tag, author_permlink);
     }
 };

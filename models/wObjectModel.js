@@ -168,7 +168,7 @@ const getSomeFields = async (fieldName, author_permlink) => {
 
 const getField = async (author, permlink, author_permlink) => {
     try {
-        const field = await WObjectModel.aggregate([
+        const [field] = await WObjectModel.aggregate([
             {$match: {author_permlink: author_permlink || /.*?/}},
             {$unwind: '$fields'},
             {$match: {'fields.author': author, 'fields.permlink': permlink}},
