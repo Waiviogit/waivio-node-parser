@@ -1,24 +1,20 @@
 const {Wobj} = require('../../models');
 const {User} = require('../../models');
 const {Post} = require('../../models');
+const {BLACK_LIST_BOTS} = require('../constants');
 
 const voteOnPost = async (data) => {
     //calculated value, for using in wobject environment
     const currentVote = data.post.active_votes.find((vote) => vote.voter === data.voter);
-    if(!currentVote){
-        return;
-    }
+    if (!currentVote) return;
     const weight = Math.round((data.post.active_votes.find((vote) => vote.voter === data.voter).rshares) * 1e-6);
-    if (data.percent === 0) {               //case for un-vote
+    if (!BLACK_LIST_BOTS.includes(data.voter)) {
         await unvoteOnPost(data);
-    } else {
-        if (data.percent < 0) {
-            await unvoteOnPost(data);       //if down-vote right after up-vote, need first undo all changes by up-vote
+        if (data.percent < 0)
             await downVoteOnPost(data, weight);     //case for down-vote
-        } else if (data.percent > 0) {
-            await unvoteOnPost(data);       //if up-vote right after down-vote, need first undo all changes by down-vote
+        else if (data.percent > 0)
             await upVoteOnPost(data, weight);       //case for up-vote
-        }
+
     }
     data.post.wobjects = data.metadata.wobj.wobjects;
     data.post.app = data.metadata.app;
@@ -60,8 +56,8 @@ const downVoteOnPost = async function (data, weight) {
 };
 
 const upVoteOnPost = async function (data, weight) {
-    for(const wObject of data.metadata.wobj.wobjects){
-    // data.metadata.wobj.wobjects.forEach(async (wObject) => {
+    for (const wObject of data.metadata.wobj.wobjects) {
+        // data.metadata.wobj.wobjects.forEach(async (wObject) => {
         const voteWeight = weight * (wObject.percent / 100);    //calculate vote weight for each wobject in post
         await Wobj.increaseWobjectWeight({
             author_permlink: wObject.author_permlink,           //increase wobject weight
@@ -70,15 +66,15 @@ const upVoteOnPost = async function (data, weight) {
         await User.increaseWobjectWeight({
             name: data.post.author,
             author_permlink: wObject.author_permlink,           //increase author weight in wobject
-            weight: voteWeight
+            weight: voteWeight * 0.75
         });
-        if (data.voter !== data.post.author) {
-            await User.increaseWobjectWeight({
-                name: data.voter,
-                author_permlink: wObject.author_permlink,       //increase voter weight in wobject if he isn't author
-                weight: voteWeight
-            });
-        }
+        // if (data.voter !== data.post.author) {
+        await User.increaseWobjectWeight({
+            name: data.voter,
+            author_permlink: wObject.author_permlink,       //increase voter weight in wobject if he isn't author
+            weight: voteWeight * 0.25
+        });
+        // }
     }
 };
 

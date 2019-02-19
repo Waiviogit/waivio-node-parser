@@ -26,11 +26,13 @@ const setLastBlockNum = async function (blockNum) {
 const updateTagsRefs = async (tags, author_permlink) => {
     if(tags && Array.isArray(tags) && tags.length > 5 && author_permlink){
         for(const tag of tags){
-            await tagsClient.sremAsync(tag,author_permlink);
+            const res = await tagsClient.sremAsync(tag,author_permlink);
+            console.log(`remove ${author_permlink} from ${tag}: ${res}`);
         }
         tags = tags.slice(0,5);
         for(const tag of tags){
-            await tagsClient.saddAsync(tag,author_permlink);
+            const res = await tagsClient.saddAsync(tag,author_permlink);
+            console.log(`add ${author_permlink} to ${tag}: ${res}`);
         }
     }
 };
