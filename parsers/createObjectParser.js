@@ -1,4 +1,4 @@
-const {Wobj} = require('../models');
+const {Wobj, User} = require('../models');
 const {wobjectValidator} = require('../validator');
 const {redisSetter} = require('../utilities/redis');
 
@@ -42,6 +42,7 @@ const createObject = async function (data) {
         if (error) {
             throw error;
         }
+        await User.increaseWobjectWeight({name:data.creator, author_permlink: data.author_permlink, weight: 0});
         return wObject._doc;
     } catch (error) {
         throw error;

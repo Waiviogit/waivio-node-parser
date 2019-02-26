@@ -6,6 +6,7 @@ const getHashAll = async function (author_permlink) {
 };
 
 const getWobjectsByTag = async function (tag) {
+    if (!tag) return;
     const wobjects = await tagsClient.smembersAsync(tag);
     return wobjects;
 };
