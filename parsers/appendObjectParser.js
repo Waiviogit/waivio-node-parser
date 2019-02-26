@@ -16,10 +16,11 @@ const parse = async function (operation, metadata) {
         data.field[fieldItem] = metadata.wobj.field[fieldItem];
     }
 
-    const res = await appendObject(data);
-    if (res) {
+    const {result, error} = await appendObject(data);
+    if (result) {
         console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject ${data.author_permlink}!\n`)
-    }
+    } else if(error)
+        console.error(error);
 };
 
 const appendObject = async function (data) {
@@ -38,10 +39,10 @@ const appendObject = async function (data) {
         if(data.field.name === 'tag' && data.field.body){
             await redisSetter.addWobjectToTag(data.field.body, data.author_permlink);
         }
-        return result;
+        return {result};
 
     } catch (error) {
-        throw error;
+        return{error};
     }
 };
 
