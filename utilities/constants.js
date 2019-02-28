@@ -3,7 +3,7 @@ const appsBots = ["partico", "dtube", "actifit", "steemhunt", "dragwars"];
 const serviceBots = ["steemitboard", "siditech", "booster", "bot-helper", "cheetah", "cleverbot", "discordia", "drdoogie-rb-vote-trail-script", "dr-otto-vote-bidding-bot",
     "freakazoid", "gentlebot", "helpbot", "lovejuice", "minnowsupport", "mrsquiggle", "promoted", "randowhale", "seraph", "steemprice", "steemvoter", "thing-2",
     "treeplanter", "trufflepig", "welcomebot", "morwhale", "remind.bot", "wang", "boxmining", "merej99", "samstonehill", "inertia", "somethingsubtle",
-    "stefen", "ropaga", "vmsolutionsltd", "stellabelle", "acidyo", "ethandsmith", "ura-soul", "crokkon", "eturnerx", "greer184"];
+    "stefen", "ropaga", "vmsolutionsltd", "stellabelle", "acidyo", "ethandsmith", "ura-soul", "crokkon", "eturnerx", "greer184", "mack-bot"];
 
 const bitBots = ["postpromoter", "buildawhale", "sneaky-ninja", "appreciator", "therising", "jerrybanfield", "boomerang", "upmyvote", "promobot", "minnowvotes",
     "smartsteem", "upmewhale", "inciter", "rocky1", "minnowbooster", "smartmarket", "tipu", "tipu", "bdvoter", "rewards-pool", "treeplanter", "originalworks",
