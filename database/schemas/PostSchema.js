@@ -57,7 +57,8 @@ const PostSchema = new Schema({
     },
     wobjects: [{
         author_permlink: {type: String, index: true},
-        percent: {type: Number}
+        percent: {type: Number},
+        tagged: {type: Boolean, default: false}
     }]
 }, {timestamps: true});
 

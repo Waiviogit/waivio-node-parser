@@ -23,7 +23,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             const wobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
             if (wobjects && wobjects.length) {
                 metadata.wobj = {
-                    wobjects: wobjects.map(item => ({author_permlink: item, percent: Math.round(100 / wobjects.length)}))
+                    wobjects: wobjects.map(item => ({author_permlink: item, percent: 100, tagged: true}))
                 };
                 await postWithObjectsParser.parse(operation, metadata);
             }
