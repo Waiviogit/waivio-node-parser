@@ -12,19 +12,23 @@ const parse = async function (operation) {  //data is operation[1] of transactio
     } catch (e) {
         console.log(e)
     }
-    if (operation.parent_author === '') {   //comment without parent_author is post
-        if (metadata && metadata.wobj) {
+    if (operation.parent_author === '' && metadata) {   //comment without parent_author is post
+        if (metadata.wobj) {        //case if user add wobjects when create post
             if (metadata.wobj.field) {
                 await createObjectParser.parse(operation, metadata);      //create wobject in database
             } else if (metadata.wobj.wobjects) {
+                if (metadata.tags) {
+                    const tagWobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
+                    if (tagWobjects && tagWobjects.length) {
+                        metadata.wobj.wobjects = [...metadata.wobj.wobjects, ...tagWobjects];
+                    }
+                }
                 await postWithObjectsParser.parse(operation, metadata);             //create post with wobjects in database
             }
-        } else if (metadata && metadata.tags) {
+        } else if (metadata.tags) { //case if post has wobjects from tags
             const wobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
             if (wobjects && wobjects.length) {
-                metadata.wobj = {
-                    wobjects: wobjects.map(item => ({author_permlink: item, percent: 100, tagged: true}))
-                };
+                metadata.wobj = {wobjects};
                 await postWithObjectsParser.parse(operation, metadata);
             }
         }
