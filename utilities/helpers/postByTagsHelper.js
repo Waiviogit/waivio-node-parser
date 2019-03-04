@@ -4,10 +4,10 @@ const _ = require('lodash');
 const wobjectsByTags = async (tags) => {
     const wobjects = [];
     if (tags && Array.isArray(tags)) {
-        for (const tag of tags) {
+        for (const tag of _.compact(tags)) {
             let tagWobjects = await redisGetter.getWobjectsByTag(tag);
             if (tagWobjects && Array.isArray(tagWobjects))
-                tagWobjects = tagWobjects.map(wobj =>{
+                tagWobjects = tagWobjects.map(wobj => {
                     return {tagged: tag, author_permlink: wobj, percent: 100}
                 });
             wobjects.push(...tagWobjects);
