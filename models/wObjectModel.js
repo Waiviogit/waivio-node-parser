@@ -9,19 +9,22 @@ const create = async function (data) {
     }
 };
 
+const update = async function (conditions, update) {
+    try {
+        const result = await WObjectModel.findOneAndUpdate(conditions, update);
+        return {result}
+    } catch (error) {
+        return {error}
+    }
+};
+
 const addField = async function (data) {
     try {
         await WObjectModel.updateOne({author_permlink: data.author_permlink},
             {
                 $push:
                     {
-                        fields: {
-                            name: data.name,
-                            body: data.body,
-                            locale: data.locale,
-                            author: data.author,
-                            permlink: data.permlink
-                        }
+                        fields: data.field
                     }
             });
         return {result: true};
@@ -67,7 +70,7 @@ const findVote = async function (data) {    //data include: author, permlink, au
         const wobject = await WObjectModel.findOne({'author_permlink': data.author_permlink})
             .select('fields')
             .lean();
-        if (wobject) {
+        if (wobject && wobject.fields) {
             const field = wobject.fields.find((field) => field.author === data.author && field.permlink === data.permlink);
             if (field) {
                 const vote = field.active_votes.find((vote) => vote.voter === data.voter);
@@ -76,6 +79,7 @@ const findVote = async function (data) {    //data include: author, permlink, au
                 }
             }
         }
+        return {error: {message: 'vote not found'}}
     } catch (error) {
         return {error}
     }
@@ -117,4 +121,77 @@ const addVote = async (data) => {   //data include: author, permlink, author_per
     }
 };
 
-module.exports = {create, addField, increaseFieldWeight, increaseWobjectWeight, findVote, removeVote, addVote};
+//method for redis restore wobjects author and author_permlink
+const getWobjectsRefs = async () => {
+    try {
+        return {
+            wobjects: await WObjectModel.aggregate([
+                {$project: {_id: 0, author_permlink: 1}}
+            ])
+        }
+    } catch (error) {
+        return {error}
+    }
+};
+
+//method for redis restore fields author and author_permlink
+const getFieldsRefs = async (author_permlink) => {
+    try {
+        return {
+            fields: await WObjectModel.aggregate([
+                {$match: {author_permlink: author_permlink}},
+                {$unwind: '$fields'},
+                {$addFields: {field_author: '$fields.author', field_permlink: '$fields.permlink'}},
+                {$project: {_id: 0, field_author: 1, field_permlink: 1}}
+            ])
+        }
+    } catch (error) {
+        return {error}
+    }
+};
+
+const getSomeFields = async (fieldName, author_permlink) => {
+    try {
+        const fields = await WObjectModel.aggregate([
+            {$match: {author_permlink: author_permlink || /.*?/}},
+            {$unwind: '$fields'},
+            {$match: {'fields.name': fieldName || /.*?/}},
+            {$sort: {'fields.weight': 1}},
+            {$group: {_id: '$author_permlink', fields: {$addToSet: '$fields.body'}}},
+            {$project: {_id: 0, author_permlink: '$_id', fields: 1}}
+        ]);
+        return {fields};
+    } catch (error) {
+        return {error}
+    }
+};
+
+const getField = async (author, permlink, author_permlink) => {
+    try {
+        const [field] = await WObjectModel.aggregate([
+            {$match: {author_permlink: author_permlink || /.*?/}},
+            {$unwind: '$fields'},
+            {$match: {'fields.author': author, 'fields.permlink': permlink}},
+            {$replaceRoot: {newRoot: '$fields'}}
+        ]);
+        return {field}
+    } catch (error) {
+        return {error}
+    }
+};
+
+
+module.exports = {
+    create,
+    update,
+    addField,
+    increaseFieldWeight,
+    increaseWobjectWeight,
+    findVote,
+    removeVote,
+    addVote,
+    getWobjectsRefs,
+    getFieldsRefs,
+    getSomeFields,
+    getField
+};

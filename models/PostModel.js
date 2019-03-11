@@ -53,4 +53,21 @@ const checkForExist = async function (author, permlink) {
     }
 };
 
-module.exports = {create, update, checkForExist, findOne};
+const getPostsRefs = async function(){
+    try{
+        return {
+            posts: await PostModel.aggregate([{
+                $project:{
+                    _id:0,
+                    author:1,
+                    permlink:1,
+                    wobjects:1
+                }
+            }])
+        }
+    }  catch (error) {
+        return{error}
+    }
+};
+
+module.exports = {create, update, checkForExist, findOne, getPostsRefs};

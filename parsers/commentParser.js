@@ -1,6 +1,7 @@
 const createObjectParser = require('./createObjectParser');
 const appendObjectParser = require('./appendObjectParser');
 const postWithObjectsParser = require('./postWithObjectParser');
+const {postByTagsHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {  //data is operation[1] of transaction in block
     let metadata;
@@ -11,18 +12,30 @@ const parse = async function (operation) {  //data is operation[1] of transactio
     } catch (e) {
         console.log(e)
     }
-    if (operation.parent_author === '') {   //comment without parent_author is post
-        if (metadata && metadata.wobj) {
+    if (operation.parent_author === '' && metadata) {   //comment without parent_author is post
+        if (metadata.wobj) {        //case if user add wobjects when create post
             if (metadata.wobj.field) {
-                createObjectParser.parse(operation, metadata);      //create wobject in database
+                await createObjectParser.parse(operation, metadata);      //create wobject in database
             } else if (metadata.wobj.wobjects) {
-                postWithObjectsParser.parse(operation, metadata);             //create post with wobjects in database
+                if (metadata.tags) {
+                    const tagWobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
+                    if (tagWobjects && tagWobjects.length) {
+                        metadata.wobj.wobjects = [...metadata.wobj.wobjects, ...tagWobjects];
+                    }
+                }
+                await postWithObjectsParser.parse(operation, metadata);             //create post with wobjects in database
+            }
+        } else if (metadata.tags) { //case if post has wobjects from tags
+            const wobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
+            if (wobjects && wobjects.length) {
+                metadata.wobj = {wobjects};
+                await postWithObjectsParser.parse(operation, metadata);
             }
         }
     } else {                                //comment with parent_author is reply to post
         if (metadata && metadata.wobj) {
             if (metadata.wobj.field) {
-                appendObjectParser.parse(operation, metadata);      //add field to wobject in database
+                await appendObjectParser.parse(operation, metadata);      //add field to wobject in database
             } else if (metadata.wobj.wobjects) {
                 // #parse reply to post with list wobjects
             }

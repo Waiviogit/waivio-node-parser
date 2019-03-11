@@ -1,53 +1,44 @@
 const {postsUtil} = require('../utilities/steemApi');
-const {Post} = require('../models');
-const {Wobj} = require('../models');
 const {User} = require('../models');
 const {voteFieldHelper} = require('../utilities/helpers');
 const {votePostHelper} = require('../utilities/helpers');
-
+const redisGetter = require('../utilities/redis/redisGetter');
 const parse = async function (operation) {
-    const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
-    if (err) {
-        return {};
-    }
-    let metadata;
-    try {                                                       //
-        if (post.json_metadata !== '') {                        //
-            metadata = JSON.parse(post.json_metadata)           //parse json_metadata from string to JSON
-        }                                                       //
-    } catch (e) {                                               //
-        console.log(e)                                          //
-    }                                                           //
-    if (post.parent_author === '' && metadata && metadata.wobj) {        //votes for post
-        if (metadata.wobj.field) {      //votes for createObject
-            await voteCreateAppendObject({
-                    author: operation.author,
-                    permlink: operation.permlink,
-                    voter: operation.voter,
-                    percent: operation.percent,
-                    author_permlink: operation.author + '_' + operation.permlink
-                });
-        } else if (metadata.wobj.wobjects) {        //vote for post with wobjects
-            await votePostWithObjects({
-                post,
-                metadata,
-                voter: operation.voter,
-                percent: operation.weight
-            });
+    const redisResponse = await redisGetter.getHashAll(operation.author + '_' + operation.permlink);
+    if(!redisResponse || !redisResponse.type) return;
+
+
+    if(redisResponse.type==='post_with_wobj') {       //vote for post with wobjects
+        const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
+        if (err) {
+            return;
         }
-    } else if (post.parent_author) {        //votes for comment
-        if (metadata && metadata.wobj && metadata.wobj.field) {     //votes for appendObject
-            await voteCreateAppendObject({
-                author: operation.author,                   //author and permlink - identity of field
-                permlink: operation.permlink,
-                voter: operation.voter,
-                percent: operation.weight,
-                author_permlink: post.root_author + '_' + post.root_permlink    //author_permlink - identity of wobject
-            })
-        } else if (await Post.checkForExist(post.root_author, post.root_permlink)) {
-            //vote for comment to post with wobjects
-            //not implemented
+        let metadata;
+        try {                                                       //
+            if (post.json_metadata !== '') {                        //
+                metadata = JSON.parse(post.json_metadata)           //parse json_metadata from string to JSON
+            }                                                       //
+        } catch (e) {                                               //
+            console.log(e)                                          //
         }
+        if(!metadata) return;
+        if(!metadata.wobj){
+            metadata.wobj={wobjects:JSON.parse(redisResponse.wobjects)}
+        }
+        await votePostWithObjects({
+            post,
+            metadata,
+            voter: operation.voter,
+            percent: operation.weight
+        });
+    } else if(redisResponse.type === 'append_wobj' && redisResponse.root_wobj){     //vote for field
+        await voteCreateAppendObject({
+            author: operation.author,                   //author and permlink - identity of field
+            permlink: operation.permlink,
+            voter: operation.voter,
+            percent: operation.weight,
+            author_permlink: redisResponse.root_wobj
+        })
     }
 };
 
@@ -59,7 +50,7 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
         author_permlink: data.author_permlink
     });
     if (weight === undefined || weight <= 0 || error) {     //ignore users with zero or negative weight in wobject
-        return {};                          //here will be method for checking 7-days expired and increase user weight
+        weight = 1;
     }
     data.weight = weight;
     await voteFieldHelper.voteOnField(data);
