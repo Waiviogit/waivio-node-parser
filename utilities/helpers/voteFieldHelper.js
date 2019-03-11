@@ -1,6 +1,7 @@
 const {Wobj} = require('../../models');
 const {redisSetter} = require('../redis');
 const {BLACK_LIST_BOTS} = require('../constants');
+const {voteOnRating} = require('./ratingHelper');
 
 const voteOnField = async (data) => {
     await findAndRemoveVote(data);          //case for un-vote
@@ -59,6 +60,9 @@ const handleSpecifiedField = async (author, permlink, author_permlink) => {
             if (wobjects && Array.isArray(wobjects) && wobjects[0].fields && Array.isArray(wobjects[0].fields)) {
                 await Wobj.update({author_permlink}, {child_objects: wobjects[0].fields.slice(0, 5)});
             }
+            break;
+        case 'rating-votes':
+            await voteOnRating(author, permlink, author_permlink, field.active_votes);
             break;
 
     }
