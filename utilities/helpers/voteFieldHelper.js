@@ -60,7 +60,6 @@ const handleSpecifiedField = async (author, permlink, author_permlink) => {
                 await Wobj.update({author_permlink}, {child_objects: wobjects[0].fields.slice(0, 5)});
             }
             break;
-
     }
 };
 
