@@ -26,11 +26,11 @@ const validateAppendObject = (data) => {
 };
 
 const validateRatingVote = data => {
-    let isValid = false;
+    let isValid = true;
     const requiredFieldsRatingVote = 'author,permlink,author_permlink,rate'.split(',');
     requiredFieldsRatingVote.forEach(field => {
         if (_.isNil(data[field]))
-            isValid = true;
+            isValid = false;
     });
     return isValid
 };

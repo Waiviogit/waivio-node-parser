@@ -1,10 +1,11 @@
 const {Wobj} = require('../../models');
 const {wobjectValidator} = require('../../validator');
+const _ = require('lodash');
 
 const parse = async (operation) => {
     let json;
     try {
-        json = JSON.parse(data.json);
+        json = JSON.parse(operation.json);
     } catch (error) {
         console.log(error);
         return;
