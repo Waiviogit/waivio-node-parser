@@ -1,8 +1,7 @@
-const _ = require('lodash');
 const {followObjectParser} = require('../parsers');
 const {commentParser} = require('../parsers');
 const {voteParser} = require('../parsers');
-const {postsUtil} = require('../utilities/steemApi');
+const {ratingHelper} = require('../utilities/helpers');
 
 const parseSwitcher = async transactions => {
     const votesOps = [];
@@ -17,8 +16,13 @@ const parseSwitcher = async transactions => {
                         votesOps.push(operation[1]);
                         break;
                     case 'custom_json':
-                        if (operation[1].id && operation[1].id === 'follow_wobject') {
-                            await followObjectParser.parse(operation[1]);
+                        switch (operation[1].id) {
+                            case 'follow_wobject':
+                                await followObjectParser.parse(operation[1]);
+                                break;
+                            case 'wobj_rating':
+                                await ratingHelper.parse(operation[1]);
+                                break;
                         }
                         break;
                 }
