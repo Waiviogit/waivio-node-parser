@@ -3,41 +3,38 @@ const {User} = require('../models');
 const {voteFieldHelper} = require('../utilities/helpers');
 const {votePostHelper} = require('../utilities/helpers');
 const redisGetter = require('../utilities/redis/redisGetter');
-const parse = async function (operation) {
-    const redisResponse = await redisGetter.getHashAll(operation.author + '_' + operation.permlink);
-    if(!redisResponse || !redisResponse.type) return;
+const _ = require('lodash');
 
+const parse = async function (votes) {
+    const votesOps = await votesFormat(votes);
+    const posts = await getPosts(
+        _.chain(votesOps)
+            .filter((v) => !!v.type)
+            .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
+            .value()
+    );
+    await Promise.all(votesOps.map(async voteOp => {
+        await parseVoteByType(voteOp, posts);
+    }));
+};
 
-    if(redisResponse.type==='post_with_wobj') {       //vote for post with wobjects
-        const {post, err} = await postsUtil.getPost(operation.author, operation.permlink);
-        if (err) {
-            return;
-        }
-        let metadata;
-        try {                                                       //
-            if (post.json_metadata !== '') {                        //
-                metadata = JSON.parse(post.json_metadata)           //parse json_metadata from string to JSON
-            }                                                       //
-        } catch (e) {                                               //
-            console.log(e)                                          //
-        }
-        if(!metadata) return;
-        if(!metadata.wobj){
-            metadata.wobj={wobjects:JSON.parse(redisResponse.wobjects)}
-        }
+const parseVoteByType = async (voteOp, posts) => {
+    if (voteOp.type === 'post_with_wobj') {
         await votePostWithObjects({
-            post,
-            metadata,
-            voter: operation.voter,
-            percent: operation.weight
+            author: voteOp.author,                   //author and permlink - identity of field
+            permlink: voteOp.permlink,
+            voter: voteOp.voter,
+            percent: voteOp.weight,
+            wobjects: voteOp.wobjects,
+            posts
         });
-    } else if(redisResponse.type === 'append_wobj' && redisResponse.root_wobj){     //vote for field
+    } else if (voteOp.type === 'append_wobj') {
         await voteCreateAppendObject({
-            author: operation.author,                   //author and permlink - identity of field
-            permlink: operation.permlink,
-            voter: operation.voter,
-            percent: operation.weight,
-            author_permlink: redisResponse.root_wobj
+            author: voteOp.author,                   //author and permlink - identity of field
+            permlink: voteOp.permlink,
+            voter: voteOp.voter,
+            percent: voteOp.weight,
+            author_permlink: voteOp.root_wobj
         })
     }
 };
@@ -63,6 +60,24 @@ const voteCreateAppendObject = async function (data) {  //data include: author, 
 };
 
 const votePostWithObjects = async function (data) {         //data include: post, metadata, voter, percent
+    data.post = data.posts.find(p => p.author === data.author && p.permlink === data.permlink);
+    if (!data.post) {
+        return;
+    }
+
+    let metadata;
+    try {                                                           //
+        if (data.post.json_metadata !== '') {                       //
+            metadata = JSON.parse(data.post.json_metadata)          //parse json_metadata from string to JSON
+        }                                                           //
+    } catch (e) {                                                   //
+        console.log(e)                                              //
+    }
+    if (!metadata) return;
+    if (!metadata.wobj) {
+        metadata.wobj = {wobjects: data.wobjects}
+    }
+    data.metadata = metadata;
 
     await votePostHelper.voteOnPost(data);
     if (data.percent === 0) {
@@ -74,5 +89,27 @@ const votePostWithObjects = async function (data) {         //data include: post
     }
 };
 
+const getPosts = async function (postsRefs) {
+    let posts = [];
+    await Promise.all(postsRefs.map(async postRef => {
+        const {post, error} = await postsUtil.getPost(postRef.author, postRef.permlink);
+        if (post) {
+            posts.push(post);
+        }
+    }));
+    return posts
+};
+
+const votesFormat = async (votesOps) => {
+    for (const voteOp of votesOps) {
+        const redisResponse = await redisGetter.getHashAll(voteOp.author + '_' + voteOp.permlink);
+        if (redisResponse && redisResponse.type) {
+            voteOp.type = redisResponse.type;
+            voteOp.root_wobj = redisResponse.root_wobj;
+            voteOp.wobjects = redisResponse.wobjects ? JSON.parse(redisResponse.wobjects) : [];
+        }
+    }
+    return votesOps;
+};
 
 module.exports = {parse};
