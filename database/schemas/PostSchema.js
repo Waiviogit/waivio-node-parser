@@ -60,7 +60,7 @@ const PostSchema = new Schema({
         percent: {type: Number},
         tagged: {type: String}
     }]
-}, {timestamps: true});
+}, {strict: false,timestamps: true});
 
 PostSchema.index({author: 1, permlink: 1}, {unique: true});
 
