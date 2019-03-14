@@ -24,15 +24,15 @@ const setLastBlockNum = async function (blockNum) {
 };
 
 const updateTagsRefs = async (tags, author_permlink) => {
-    if(tags && Array.isArray(tags) && tags.length > 5 && author_permlink){
+    if(tags && Array.isArray(tags) && tags.length > 100 && author_permlink){
         for(const tag of tags){
             const res = await tagsClient.sremAsync(tag,author_permlink);
-            console.log(`remove ${author_permlink} from ${tag}: ${res}`);
+            // console.log(`remove ${author_permlink} from ${tag}: ${res}`);
         }
-        tags = tags.slice(0,5);
+        tags = tags.slice(0,100);
         for(const tag of tags){
             const res = await tagsClient.saddAsync(tag,author_permlink);
-            console.log(`add ${author_permlink} to ${tag}: ${res}`);
+            // console.log(`add ${author_permlink} to ${tag}: ${res}`);
         }
     }
 };
