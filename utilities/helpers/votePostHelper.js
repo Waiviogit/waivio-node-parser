@@ -8,7 +8,7 @@ const voteOnPost = async (data) => {
     const currentVote = data.post.active_votes.find((vote) => vote.voter === data.voter);
     if (!currentVote) return;
     const weight = Math.round((data.post.active_votes.find((vote) => vote.voter === data.voter).rshares) * 1e-6);
-    if (!BLACK_LIST_BOTS.includes(data.voter)) {
+    if (!BLACK_LIST_BOTS.includes(data.voter) && data.post.author !== data.voter) {
         await unvoteOnPost(data);
         if (data.percent < 0)
             await downVoteOnPost(data, weight);     //case for down-vote
@@ -22,10 +22,12 @@ const voteOnPost = async (data) => {
         return {
             voter: vote.voter,
             weight: Math.round(vote.rshares * 1e-6),
-            percent: vote.percent
+            percent: vote.percent,
+            rshares: vote.rshares
         }
     });
     await Post.update(data.post);     //update post info in DB
+    return;
 };
 
 
