@@ -47,7 +47,7 @@ const loadBlock = async (block_num) => { //return true if block exist and parsed
     try {
         block = await steem.api.getBlockAsync(block_num);
     } catch (error) {
-        console.log(error.message);
+        console.error(error);
         return false;
     }
     if (block && block.transactions && block.transactions[0]) {
