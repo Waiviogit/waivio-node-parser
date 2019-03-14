@@ -15,7 +15,7 @@ const parse = async function (operation, metadata) {
 
     const {result, error} = await createOrUpdatePost(data);
     if (error) {
-        console.log(error);
+        console.error(error);
     }
     if (result) {
         console.log(`Post with wobjects created by ${operation.author}`)

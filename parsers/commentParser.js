@@ -10,7 +10,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             metadata = JSON.parse(operation.json_metadata)          //parse json_metadata from string to JSON
         }
     } catch (e) {
-        console.log(e)
+        console.error(e)
     }
     if (operation.parent_author === '' && metadata) {   //comment without parent_author is post
         if (metadata.wobj) {        //case if user add wobjects when create post

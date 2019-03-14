@@ -71,7 +71,7 @@ const votePostWithObjects = async function (data) {         //data include: post
             metadata = JSON.parse(data.post.json_metadata)          //parse json_metadata from string to JSON
         }                                                           //
     } catch (e) {                                                   //
-        console.log(e)                                              //
+        console.error(e)                                              //
     }
     if (!metadata) return;
     if (!metadata.wobj) {
