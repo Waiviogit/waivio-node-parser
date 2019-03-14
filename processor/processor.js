@@ -32,7 +32,7 @@ const runStream = async () => {
             console.log('Stream started!');
         }
     } catch (e) {
-        console.log(e.message);
+        console.error(e);
     }
 };
 const getCurrentBlock = async (req, res) => {

@@ -5,7 +5,7 @@ const parse = async function (data) {
     try {
         json = JSON.parse(data.json);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return;
     }
     if (json && json[0] === 'follow' && json[1] && json[1].user && json[1].author_permlink && json[1].what) {

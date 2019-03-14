@@ -7,7 +7,7 @@ const parse = async (operation) => {
     try {
         json = JSON.parse(operation.json);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return;
     }
     if (!wobjectValidator.validateRatingVote(json)) {

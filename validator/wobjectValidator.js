@@ -3,13 +3,8 @@ const _ = require('lodash');
 const validateCreateObject = (data) => {
     let isValid = true;
     const requiredFieldsCreateObject = 'author_permlink,author,creator,app,object_type,fields,default_name'.split(',');
-    const requiredFieldsAppendObject = 'name,body,locale,author,permlink,creator'.split(',');
     requiredFieldsCreateObject.forEach(field => {
         if (_.isNil(data[field]))
-            isValid = false
-    });
-    requiredFieldsAppendObject.forEach(field => {
-        if (_.isNil(data.fields[0][field]))
             isValid = false
     });
     return isValid;
