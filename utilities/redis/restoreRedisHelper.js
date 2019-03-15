@@ -50,7 +50,7 @@ const restoreWobjTags = async function () {
     if (wobject_tags && Array.isArray(wobject_tags) && wobject_tags.length) {
         for (const item of wobject_tags) {
             if (item && _.isString(item.author_permlink) && Array.isArray(item.fields)) {
-                item.fields = item.fields.slice(0,5);
+                item.fields = item.fields.slice(0,100);
                 for(const tag of item.fields){
                     await tagsClient.saddAsync(tag, item.author_permlink);
                     tagsCount++;
