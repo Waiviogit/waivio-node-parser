@@ -1,14 +1,14 @@
-const {wobjRefsClient, tagsClient} = require('./redis');
+const {postRefsClient, tagsClient} = require('./redis');
 const _ = require('lodash');
 
 const addPostWithWobj = async function (author_permlink, wobjects) {
-    await wobjRefsClient.hsetAsync(author_permlink, 'type', 'post_with_wobj');
-    await wobjRefsClient.hsetAsync(author_permlink, 'wobjects', JSON.stringify(wobjects));
+    await postRefsClient.hsetAsync(author_permlink, 'type', 'post_with_wobj');
+    await postRefsClient.hsetAsync(author_permlink, 'wobjects', JSON.stringify(wobjects));
 };
 
 const addAppendWobj = async function (author_permlink, root_wobj) {
-    await wobjRefsClient.hsetAsync(author_permlink, 'type', 'append_wobj');  //author_permlink is 'author' + '_' + 'permlink' of comment with appendWobject
-    await wobjRefsClient.hsetAsync(author_permlink, 'root_wobj', root_wobj); //root_wobj is author_permlink of wobject
+    await postRefsClient.hsetAsync(author_permlink, 'type', 'append_wobj');  //author_permlink is 'author' + '_' + 'permlink' of comment with appendWobject
+    await postRefsClient.hsetAsync(author_permlink, 'root_wobj', root_wobj); //root_wobj is author_permlink of wobject
 };
 
 const addWobjectToTag = async function (tag, author_permlink) {

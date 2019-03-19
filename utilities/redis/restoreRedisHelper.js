@@ -1,10 +1,10 @@
 const {Wobj, Post} = require('../../models');
-const {wobjRefsClient, tagsClient} = require('./redis');
+const {postRefsClient, tagsClient} = require('./redis');
 const _ = require('lodash');
 
 const restore = async function () {
     await tagsClient.flushdbAsync();
-    await wobjRefsClient.flushdbAsync();
+    await postRefsClient.flushdbAsync();
     const {tagsCount} = await restoreWobjTags();
     const {fieldsCount, wobjectsCount} = await restoreAppendWobjects();
     const {postsCount} = await restorePostsWithWobjects();
@@ -22,8 +22,8 @@ const restoreAppendWobjects = async function () {
             if (fields && fields.length) {
                 fieldsCount += fields.length;
                 for (const field of fields) {
-                    await wobjRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'type', 'append_wobj');
-                    await wobjRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'root_wobj', wobject.author_permlink);
+                    await postRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'type', 'append_wobj');
+                    await postRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'root_wobj', wobject.author_permlink);
                 }
             }
         }
@@ -37,8 +37,8 @@ const restorePostsWithWobjects = async function () {
     if (posts && posts.length) {
         postsCount += posts.length;
         for (const post of posts) {
-            await wobjRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'type', 'post_with_wobj');
-            await wobjRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'wobjects', JSON.stringify(post.wobjects));
+            await postRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'type', 'post_with_wobj');
+            await postRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'wobjects', JSON.stringify(post.wobjects));
         }
     }
     return {postsCount}

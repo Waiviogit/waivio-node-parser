@@ -3,9 +3,11 @@ const bluebird = require('bluebird');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
-const wobjRefsClient = redis.createClient(process.env.REDISCLOUD_URL);
+const postRefsClient = redis.createClient(process.env.REDISCLOUD_URL);
 const tagsClient = redis.createClient(process.env.REDISCLOUD_URL);
-wobjRefsClient.select(1);
+const commentRefsClient = redis.createClient(process.env.REDISCLOUD_URL);
+.select(1);
 tagsClient.select(2);
+commentRefsClient.select(3);
 
-module.exports = {wobjRefsClient, tagsClient};
+module.exports = {postRefsClient, tagsClient, commentRefsClient};
