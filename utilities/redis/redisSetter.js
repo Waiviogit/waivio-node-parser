@@ -8,7 +8,7 @@ const addPostWithWobj = async function (author_permlink, wobjects) {
 
 const addWobjRef = async function (author, author_permlink) {
     await postRefsClient.hsetAsync(author + '_' + author_permlink, 'type', 'create_wobj');
-    await postRefsClient.hsetAsync(author_permlink, 'root_wobj', author_permlink); //root_wobj is author_permlink of wobject
+    await postRefsClient.hsetAsync(author + '_' + author_permlink, 'root_wobj', author_permlink); //root_wobj is author_permlink of wobject
 };
 
 const addAppendWobj = async function (author_permlink, root_wobj) {
