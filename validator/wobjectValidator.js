@@ -22,8 +22,8 @@ const validateRatingVote = data => {
 
 const validateObjectType = data => {
     let isValid = true;
-    const requriedFieldsObjectType = 'author,permlink,name'.split(',');
-    requriedFieldsObjectType.forEach(field => {
+    const requiredFieldsObjectType = 'author,permlink,name'.split(',');
+    requiredFieldsObjectType.forEach(field => {
         if (_.isNil(data[field]))
             isValid = false;
     });
