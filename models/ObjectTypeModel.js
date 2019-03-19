@@ -2,10 +2,7 @@ const {ObjectType} = require('../database').models;
 
 const getAll = async ({limit, skip}) => {
     try {
-        const objectTypes = await ObjectType.aggregate([
-            {$skip: skip},
-            {$limit: limit}
-        ]);
+        const objectTypes = await ObjectType.find().lean();
         return {objectTypes}
     } catch (e) {
         return {error: e}

@@ -126,7 +126,7 @@ const getWobjectsRefs = async () => {
     try {
         return {
             wobjects: await WObjectModel.aggregate([
-                {$project: {_id: 0, author_permlink: 1}}
+                {$project: {_id: 0, author_permlink: 1, author: 1}}
             ])
         }
     } catch (error) {
