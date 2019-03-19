@@ -1,5 +1,5 @@
 const {Wobj} = require('../models');
-const {wobjectValidator} = require('../validator');
+const {appendObjectValidator} = require('../validator');
 const {redisSetter} = require('../utilities/redis');
 
 const parse = async function (operation, metadata) {
@@ -16,18 +16,16 @@ const parse = async function (operation, metadata) {
         data.field[fieldItem] = metadata.wobj.field[fieldItem];
     }
 
-    const {result, error} = await appendObject(data);
+    const {result, error} = await appendObject(data, operation);
     if (result) {
         console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject ${data.author_permlink}!\n`)
-    } else if(error)
+    } else if (error)
         console.error(error);
 };
 
-const appendObject = async function (data) {
+const appendObject = async function (data, operation) {
     try {
-        if (!wobjectValidator.validateAppendObject(data.field)) {
-            throw new Error('Data is not valid');
-        }
+        await appendObjectValidator.validate(data, operation);
         await redisSetter.addAppendWobj(
             data.field.author + '_' + data.field.permlink,
             data.author_permlink
@@ -36,13 +34,13 @@ const appendObject = async function (data) {
         if (error) {
             throw error;
         }
-        if(data.field.name === 'tag' && data.field.body){
+        if (data.field.name === 'tag' && data.field.body) {
             await redisSetter.addWobjectToTag(data.field.body, data.author_permlink);
         }
         return {result};
 
     } catch (error) {
-        return{error};
+        return {error};
     }
 };
 
