@@ -1,3 +1,4 @@
 module.exports = {
-    wobjectValidator: require('./wobjectValidator')
+    wobjectValidator: require('./wobjectValidator'),
+    createObjectValidator: require('./createObjectValidator')
 };

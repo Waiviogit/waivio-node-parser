@@ -183,7 +183,7 @@ const getField = async (author, permlink, author_permlink) => {
 const updateField = async (author, permlink, author_permlink, key, value) => {
     try {
         await WObjectModel.update(
-            {author_permlink, 'fields.author':author, 'fields.permlink':permlink},
+            {author_permlink, 'fields.author': author, 'fields.permlink': permlink},
             {$set: {[`fields.$.${key}`]: value}}
         );
     } catch (e) {
