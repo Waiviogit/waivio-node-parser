@@ -1,5 +1,6 @@
 const {Wobj, Post, ObjectType} = require('../../models');
 const {postRefsClient, tagsClient} = require('./redis');
+const redisSetter = require('./redisSetter');
 const _ = require('lodash');
 
 const restore = async function () {
@@ -20,15 +21,12 @@ const restoreWobjectsRefs = async function () {
     if (wobjects && wobjects.length) {
         wobjectsCount += wobjects.length;
         for (const wobject of wobjects) {
-            await postRefsClient.hsetAsync(`${wobject.author}_${wobject.author_permlink}`, 'type', 'create_wobj');
-            await postRefsClient.hsetAsync(`${wobject.author}_${wobject.author_permlink}`, 'root_wobj', wobject.author_permlink);
-
+            await redisSetter.addWobjRef(wobject.author, wobject.author_permlink);
             const {fields} = await Wobj.getFieldsRefs(wobject.author_permlink);   //get refs of all fields in wobj
             if (fields && fields.length) {
                 fieldsCount += fields.length;
                 for (const field of fields) {
-                    await postRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'type', 'append_wobj');
-                    await postRefsClient.hsetAsync(`${field.field_author}_${field.field_permlink}`, 'root_wobj', wobject.author_permlink);
+                    await redisSetter.addAppendWobj(`${field.field_author}_${field.field_permlink}`, wobject.author_permlink);
                 }
             }
         }
@@ -42,8 +40,7 @@ const restorePostsRefs = async function () {
     if (posts && posts.length) {
         postsCount += posts.length;
         for (const post of posts) {
-            await postRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'type', 'post_with_wobj');
-            await postRefsClient.hsetAsync(`${post.author}_${post.permlink}`, 'wobjects', JSON.stringify(post.wobjects));
+            await redisSetter.addPostWithWobj(`${post.author}_${post.permlink}`, JSON.stringify(post.wobjects));
         }
     }
     return {postsCount}
@@ -55,8 +52,7 @@ const restoreObjectTypesRefs = async () => {
     if (objectTypes && objectTypes.length) {
         objectTypesCount += objectTypes.length;
         for (const objType of objectTypes) {
-            await postRefsClient.hsetAsync(`${objType.author}_${objType.permlink}`, 'type', 'wobj_type');
-            await postRefsClient.hsetAsync(`${objType.author}_${objType.permlink}`, 'name', objType.name);
+            await redisSetter.addObjectType(objType.author, objType.permlink, objType.name);
         }
     }
     return {objectTypesCount}

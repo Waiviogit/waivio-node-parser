@@ -30,6 +30,16 @@ const validateRatingVote = data => {
     return isValid
 };
 
+const validateObjectType = data => {
+    let isValid = true;
+    const requriedFieldsObjectType = 'author,permlink,name'.split(',');
+    requriedFieldsObjectType.forEach(field => {
+        if (_.isNil(data[field]))
+            isValid = false;
+    });
+    return isValid;
+};
+
 module.exports = {
-    validateAppendObject, validateCreateObject, validateRatingVote
+    validateAppendObject, validateCreateObject, validateRatingVote, validateObjectType
 };
