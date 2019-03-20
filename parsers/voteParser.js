@@ -107,6 +107,7 @@ const votesFormat = async (votesOps) => {
             voteOp.type = redisResponse.type;
             voteOp.root_wobj = redisResponse.root_wobj;
             voteOp.wobjects = redisResponse.wobjects ? JSON.parse(redisResponse.wobjects) : [];
+            voteOp.name = redisResponse.name;
         }
     }
     return votesOps;
