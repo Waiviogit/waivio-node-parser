@@ -126,7 +126,7 @@ const getWobjectsRefs = async () => {
     try {
         return {
             wobjects: await WObjectModel.aggregate([
-                {$project: {_id: 0, author_permlink: 1}}
+                {$project: {_id: 0, author_permlink: 1, author: 1}}
             ])
         }
     } catch (error) {
@@ -183,7 +183,7 @@ const getField = async (author, permlink, author_permlink) => {
 const updateField = async (author, permlink, author_permlink, key, value) => {
     try {
         await WObjectModel.update(
-            {author_permlink, 'fields.author':author, 'fields.permlink':permlink},
+            {author_permlink, 'fields.author': author, 'fields.permlink': permlink},
             {$set: {[`fields.$.${key}`]: value}}
         );
     } catch (e) {

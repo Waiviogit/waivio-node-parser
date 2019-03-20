@@ -1,7 +1,9 @@
 const createObjectParser = require('./createObjectParser');
 const appendObjectParser = require('./appendObjectParser');
 const postWithObjectsParser = require('./postWithObjectParser');
+const objectTypeParser = require('./objectTypeParser');
 const {postByTagsHelper} = require('../utilities/helpers');
+const _ = require('lodash');
 
 const parse = async function (operation) {  //data is operation[1] of transaction in block
     let metadata;
@@ -12,18 +14,18 @@ const parse = async function (operation) {  //data is operation[1] of transactio
     } catch (e) {
         console.error(e)
     }
-    if (operation.parent_author === '' && metadata) {   //comment without parent_author is post
+    if (operation.parent_author === '' && metadata) {   //comment without parent_author is POST
         if (metadata.wobj) {        //case if user add wobjects when create post
-            if (metadata.wobj.field) {
-                await createObjectParser.parse(operation, metadata);      //create wobject in database
-            } else if (metadata.wobj.wobjects) {
+            if (_.get(metadata.wobj, 'action') === 'createObjectType') {
+                await objectTypeParser.parse(operation, metadata);      //create new Object Type
+            } else if (metadata.wobj.wobjects && Array.isArray(metadata.wobj.wobjects)) {
                 if (metadata.tags) {
                     const tagWobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
                     if (tagWobjects && tagWobjects.length) {
                         metadata.wobj.wobjects = [...metadata.wobj.wobjects, ...tagWobjects];
                     }
                 }
-                await postWithObjectsParser.parse(operation, metadata);             //create post with wobjects in database
+                await postWithObjectsParser.parse(operation, metadata);         //create post with wobjects in database
             }
         } else if (metadata.tags) { //case if post has wobjects from tags
             const wobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
@@ -32,12 +34,16 @@ const parse = async function (operation) {  //data is operation[1] of transactio
                 await postWithObjectsParser.parse(operation, metadata);
             }
         }
-    } else {                                //comment with parent_author is reply to post
+    } else if (operation.parent_author && operation.parent_permlink) {  //comment with parent_author is REPLY TO POST
         if (metadata && metadata.wobj) {
-            if (metadata.wobj.field) {
-                await appendObjectParser.parse(operation, metadata);      //add field to wobject in database
-            } else if (metadata.wobj.wobjects) {
-                // #parse reply to post with list wobjects
+            if (metadata.wobj.action) {
+                switch (metadata.wobj.action) {
+                    case 'createObject':
+                        await createObjectParser.parse(operation, metadata);
+                        break;
+                    case 'appendObject':
+                        await appendObjectParser.parse(operation, metadata);
+                }
             }
         }
     }

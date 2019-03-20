@@ -71,7 +71,7 @@ const votePostWithObjects = async function (data) {         //data include: post
             metadata = JSON.parse(data.post.json_metadata)          //parse json_metadata from string to JSON
         }                                                           //
     } catch (e) {                                                   //
-        console.error(e)                                              //
+        console.error(e)                                            //
     }
     if (!metadata) return;
     if (!metadata.wobj) {
@@ -98,7 +98,7 @@ const getPosts = async function (postsRefs) {
         }
     }));
     return posts
-};
+}; //get list of posts from steemit
 
 const votesFormat = async (votesOps) => {
     for (const voteOp of votesOps) {
@@ -107,6 +107,7 @@ const votesFormat = async (votesOps) => {
             voteOp.type = redisResponse.type;
             voteOp.root_wobj = redisResponse.root_wobj;
             voteOp.wobjects = redisResponse.wobjects ? JSON.parse(redisResponse.wobjects) : [];
+            voteOp.name = redisResponse.name;
         }
     }
     return votesOps;
