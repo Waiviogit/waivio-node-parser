@@ -9,7 +9,8 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "node ./bin/service.js"
+    "start": "node ./bin/service.js",
+    "test": "mocha"
   },
   "dependencies": {
     "bluebird": "^3.5.3",
@@ -26,6 +27,9 @@
     "util": "^0.11.1"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
+    "faker": "^4.1.0",
+    "mocha": "^6.0.2",
     "nodemon": "^1.11.0"
   },
   "homepage": "https://github.com/Waiviogit/waivio-node-parser#readme"

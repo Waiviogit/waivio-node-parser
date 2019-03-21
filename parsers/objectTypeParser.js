@@ -21,6 +21,8 @@ const createObjectType = async (data) => {
     if (wobjectValidator.validateObjectType(data)) {
         await ObjectType.create(data);
         await redisSetter.addObjectType(data.author, data.permlink, data.name);
+    } else {
+        throw new Error('Data is not valid');
     }
 };
 

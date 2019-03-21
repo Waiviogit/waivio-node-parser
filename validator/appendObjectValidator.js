@@ -9,7 +9,7 @@ const validate = async (data, operation) => {
 const validateFields = (data) => {
     const requiredFieldsAppendObject = 'name,body,locale,author,permlink,creator'.split(',');
     requiredFieldsAppendObject.forEach(field => {
-        if (_.isNil(data[field]))
+        if (_.isNil(data.field[field]))
             throw new Error("Can't append object, not all required fields is filling!")
     });
 };
