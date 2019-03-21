@@ -1,4 +1,4 @@
-const {WObject, faker, getRandomString} = require('../../testHelper');
+const {WObject, faker, getRandomString, redisSetter} = require('../../testHelper');
 const ObjectTypeFactory = require('../ObjectType/ObjectTypeFactory');
 
 const Create = async () => {
@@ -8,7 +8,7 @@ const Create = async () => {
     const is_extending_open = true;
     const creator = faker.name.firstName().toLowerCase();
     const author = faker.name.firstName().toLowerCase();
-    const author_permlink = `${getRandomString(3)}-${default_name}`;
+    const author_permlink = `${getRandomString(3)}-${default_name.replace(/ /g, '')}`;
     const object_type = objectType.name;
     const wobject = await WObject.create({
         author_permlink,
@@ -19,6 +19,7 @@ const Create = async () => {
         object_type,
         default_name
     });
+    await redisSetter.addWobjRef(author, author_permlink);
     return wobject
 };
 

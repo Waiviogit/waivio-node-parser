@@ -14,7 +14,7 @@ const parse = async function (operation, metadata) {
                 is_posting_open: metadata.wobj.is_posting_open,
                 is_extending_open: metadata.wobj.is_extending_open,
                 default_name: metadata.wobj.default_name,
-                object_type: metadata.wobj.object_type
+                object_type: metadata.wobj.object_type.toLowerCase()
             };
         const res = await createObject(data, operation);
         if (res && !res.error) {
