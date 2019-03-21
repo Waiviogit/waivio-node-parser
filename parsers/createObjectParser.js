@@ -1,5 +1,6 @@
 const {Wobj, User} = require('../models');
 const {createObjectValidator} = require('../validator');
+const {redisSetter} = require('../utilities/redis');
 
 const parse = async function (operation, metadata) {
     try {
@@ -15,9 +16,9 @@ const parse = async function (operation, metadata) {
                 default_name: metadata.wobj.default_name,
                 object_type: metadata.wobj.object_type
             };
-        const res = await createObject(data);
-        if (res) {
-            console.log(`Waivio object ${metadata.wobj.field.body} created!\n`)
+        const res = await createObject(data, operation);
+        if (res && !res.error) {
+            console.log(`Waivio object ${data.default_name} created!\n`)
         }
     } catch (error) {
         console.error(error);
@@ -26,12 +27,17 @@ const parse = async function (operation, metadata) {
 
 const createObject = async function (data, operation) {
     try {
-        await createObjectValidator(data, operation);
+        await createObjectValidator.validate(data, operation);
         const {wObject, error} = await Wobj.create(data);
         if (error) {
             return {error};
         }
-        await User.increaseWobjectWeight({name: data.creator, author_permlink: data.author_permlink, weight: 0});
+        await redisSetter.addWobjRef(data.author, data.author_permlink);
+        await User.increaseWobjectWeight({
+            name: data.creator,
+            author_permlink: data.author_permlink,
+            weight: 0
+        });
         return wObject._doc;
     } catch (error) {
         return {error};

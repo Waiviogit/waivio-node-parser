@@ -48,13 +48,15 @@ const removeObjectFollow = async function (data) {          //create user(if it 
     return {result: true}
 };
 
-const checkAndCreate = async function (data) {              //check for existing user and create if not exist
-    if (!(await UserModel.count({name: data.name}))) {
-        UserModel.create({name: data.name}, (err, user) => {
-            if (!err) {
-                console.log(`User ${data.name} created!`)
-            }
-        });
+const checkAndCreate = async function (data) {      //check for existing user and create if not exist
+    try {
+        if (!(await UserModel.countDocuments({name: data.name}))) {
+            const user = await UserModel.create({name: data.name});
+            console.log(`User ${data.name} created!`);
+            return {user}
+        }
+    } catch (error) {
+        return {error}
     }
 };
 
@@ -106,4 +108,11 @@ const checkForObjectShares = async function (data) {     //object shares - user 
 };
 
 
-module.exports = {create, addObjectFollow, removeObjectFollow, checkAndCreate, increaseWobjectWeight, checkForObjectShares};
+module.exports = {
+    create,
+    addObjectFollow,
+    removeObjectFollow,
+    checkAndCreate,
+    increaseWobjectWeight,
+    checkForObjectShares
+};
