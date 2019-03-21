@@ -111,6 +111,6 @@ const votesFormat = async (votesOps) => {
         }
     }
     return votesOps;
-};
+};  //format votes, add to each type of comment(post with wobj, append wobj etc.)
 
 module.exports = {parse};

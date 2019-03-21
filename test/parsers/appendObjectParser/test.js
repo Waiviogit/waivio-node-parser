@@ -1,5 +1,5 @@
 const {getMocksData} = require('./mocks');
-const {appendObjectParser, WObject, expect, redisGetter, User} = require('../../testHelper');
+const {appendObjectParser, WObject, expect, redisGetter} = require('../../testHelper');
 
 describe('Append object parser,', async () => {
     let mockData;

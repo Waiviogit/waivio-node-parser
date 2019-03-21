@@ -1,6 +1,6 @@
 const {Wobj, User} = require('../models');
 const {createObjectValidator} = require('../validator');
-const {redisSetter} = require('../utilities/redis');
+const {redisSetter, redisGetter} = require('../utilities/redis');
 
 const parse = async function (operation, metadata) {
     try {
@@ -14,7 +14,7 @@ const parse = async function (operation, metadata) {
                 is_posting_open: metadata.wobj.is_posting_open,
                 is_extending_open: metadata.wobj.is_extending_open,
                 default_name: metadata.wobj.default_name,
-                object_type: metadata.wobj.object_type.toLowerCase()
+                // object_type: metadata.wobj.object_type.toLowerCase()
             };
         const res = await createObject(data, operation);
         if (res && !res.error) {
@@ -28,6 +28,8 @@ const parse = async function (operation, metadata) {
 const createObject = async function (data, operation) {
     try {
         await createObjectValidator.validate(data, operation);
+        const redisObjectType = await redisGetter.getHashAll(operation.parent_author + '_' + operation.parent_permlink);
+        data.object_type = redisObjectType.name;
         const {wObject, error} = await Wobj.create(data);
         if (error) {
             return {error};

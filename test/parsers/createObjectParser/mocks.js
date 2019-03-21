@@ -19,7 +19,6 @@ const getMocksData = async () => {
             action: 'createObject',
             is_posting_open: true,
             is_extending_open: true,
-            object_type: objectType.name,
             default_name: faker.address.city()
         }
     };

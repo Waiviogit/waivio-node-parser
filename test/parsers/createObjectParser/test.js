@@ -12,7 +12,10 @@ describe('Object parser', async () => {
         });
         describe('wobject', async () => {
             it('should creating in database', async () => {
-                expect(wobject).to.not.be.null;
+                expect(wobject).to.exist;
+            });
+            it('should have object_type as in parent post with CreateObjectType', async () => {
+                expect(wobject.object_type).to.equal(mockData.objectType.name);
             });
         });
         describe('redis result', async () => {
@@ -29,7 +32,7 @@ describe('Object parser', async () => {
             it('should have type: "create_wobj"', async () => {
                 expect(redisResult.type).to.be.equal('create_wobj');
             });
-            it('should have corrent "root_wobj"', async () => {
+            it('should have correct "root_wobj"', async () => {
                 expect(redisResult.root_wobj).to.be.equal(wobject.author_permlink);
             });
         });
