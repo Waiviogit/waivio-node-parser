@@ -1,29 +1,38 @@
-const {Mongoose, objectTypeParser, ObjectType, expect} = require('../../testHelper');
-const {operation, metadata} = require('./mocks');
+const {objectTypeParser, ObjectType, expect, redisGetter} = require('../../testHelper');
+const {getMockData} = require('./mocks');
 
-describe('Object Type', async () => {
-    describe('parser', async () => {
-        beforeEach(async () => {
-            Mongoose.connection.dropDatabase();
+describe('Object Type parser', async () => {
+    describe('with valid data', async () => {
+        let mockData;
+        before(() => {
+            mockData = getMockData();
         });
-
         it('should create new ObjectType', async () => {
-            await objectTypeParser.parse(operation, metadata);
-            const createdObjectType = await ObjectType.findOne({name: metadata.wobj.name}).lean();
+            await objectTypeParser.parse(mockData.operation, mockData.metadata);
+            const createdObjectType = await ObjectType.findOne({name: mockData.metadata.wobj.name}).lean();
             expect(createdObjectType).to.not.be.undefined;
         });
 
-        it('should not create new ObjectType if metadata is missing', async () => {
-            await objectTypeParser.parse(operation);
-            const createdObjectType = await ObjectType.findOne({name: metadata.wobj.name}).lean();
-            expect(createdObjectType).to.be.null;
+        describe('redis', async () => {
+            let redisResult;
+            before(async () => {
+                redisResult = await redisGetter.getHashAll(mockData.operation.author + '_' + mockData.operation.permlink);
+            });
+            it('should exist redis reference on post', async () => {
+                expect(redisResult).to.exist;
+            });
+            it('should have keys type and name', async () => {
+                expect(redisResult).to.include.all.keys('type', 'name');
+            });
+            it('should have type: "obj_type"', async () => {
+                expect(redisResult.type).to.equal('wobj_type')
+            });
+            it('should have correct name', async () => {
+                expect(redisResult.name).to.equal(mockData.metadata.wobj.name)
+            });
         });
-
-        it('should not create new ObjectType if operation is missing', async () => {
-            await objectTypeParser.parse(metadata);
-            const createdObjectType = await ObjectType.findOne({name: metadata.wobj.name}).lean();
-            expect(createdObjectType).to.be.null;
-        });
-
-    })
+    });
+    describe('with invalid', async () => {
+        /////////////////
+    });
 });
