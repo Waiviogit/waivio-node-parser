@@ -3,5 +3,6 @@ module.exports = {
     votePostHelper: require('./votePostHelper'),
     postByTagsHelper: require('./postByTagsHelper'),
     restoreHelper: require('./restoreHelper'),
-    ratingHelper: require('./ratingHelper')
+    ratingHelper: require('./ratingHelper'),
+    investarenaForecastHelper: require('./investarenaForecastHelper')
 };
