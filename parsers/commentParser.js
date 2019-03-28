@@ -39,7 +39,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
                 forecast: metadata.wia
             });     //add forecast to post(for wtrade)
         }
-    } else {                                //comment with parent_author is reply to post
+    } else if(metadata) {                                //comment with parent_author is reply to post
         if (metadata && metadata.wobj) {
             if (metadata.wobj.field) {
                 await appendObjectParser.parse(operation, metadata);      //add field to wobject in database
