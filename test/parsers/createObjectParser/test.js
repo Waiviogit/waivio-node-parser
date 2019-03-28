@@ -45,11 +45,11 @@ describe('Object parser', async () => {
                 expect(creator).to.exist;
             });
             it('should have weight in wobject', async () => {
-                const wobjWeight = creator.w_objects.find((w)=>w.author_permlink === wobject.author_permlink);
+                const wobjWeight = creator.w_objects.find((w) => w.author_permlink === wobject.author_permlink);
                 expect(wobjWeight).to.exist;
             });
             it('should have weight 1 in wobject', async () => {
-                const wobjWeight = creator.w_objects.find((w)=>w.author_permlink === wobject.author_permlink);
+                const wobjWeight = creator.w_objects.find((w) => w.author_permlink === wobject.author_permlink);
                 expect(wobjWeight.weight).to.equal(1);
             });
 
