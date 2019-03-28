@@ -15,6 +15,9 @@ app.use(function (req, res, next) {
     next();
 });
 
-runStream();
+runStream().catch(err => {
+    console.log(err);
+    process.exit(1);
+});
 
 module.exports = app;

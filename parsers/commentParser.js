@@ -1,7 +1,7 @@
 const createObjectParser = require('./createObjectParser');
 const appendObjectParser = require('./appendObjectParser');
 const postWithObjectsParser = require('./postWithObjectParser');
-const {postByTagsHelper} = require('../utilities/helpers');
+const {postByTagsHelper, investarenaForecastHelper} = require('../utilities/helpers');
 
 const parse = async function (operation) {  //data is operation[1] of transaction in block
     let metadata;
@@ -32,6 +32,13 @@ const parse = async function (operation) {  //data is operation[1] of transactio
                 await postWithObjectsParser.parse(operation, metadata);
             }
         }
+        if (metadata.wia) {
+            await investarenaForecastHelper.updatePostWithForecast({
+                author: operation.author,
+                permlink: operation.permlink,
+                forecast: metadata.wia
+            });     //add forecast to post(for wtrade)
+        }
     } else {                                //comment with parent_author is reply to post
         if (metadata && metadata.wobj) {
             if (metadata.wobj.field) {
@@ -39,6 +46,15 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             } else if (metadata.wobj.wobjects) {
                 // #parse reply to post with list wobjects
             }
+        }
+
+        if (metadata.wia && metadata.wia.exp_forecast) {
+            await investarenaForecastHelper.updatePostWithExpForecast({
+                parent_author: operation.parent_author,
+                parent_permlink: operation.parent_permlink,
+                author: operation.author,
+                exp_forecast: metadata.wia.exp_forecast
+            });     //add expired forecast to post(for wtrade)
         }
     }
 };
