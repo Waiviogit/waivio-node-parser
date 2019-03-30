@@ -72,7 +72,7 @@ describe('InvestArena forecast helper', async () => {
                 stub.restore();
             });
 
-            it('should exist post after updating', async () => {
+            it('should create post after updating', async () => {
                 expect(updatedPost).to.exist;
             });
 
@@ -88,7 +88,7 @@ describe('InvestArena forecast helper', async () => {
                 expect(updatedPost.forecast).to.deep.equal(forecastData.wia)
             });
 
-            it('should be call "postsUtil.getPost"', async () => {
+            it('should be called "postsUtil.getPost"', async () => {
                 expect(stub.calledOnce).to.be.true;
             });
         });
@@ -117,7 +117,10 @@ describe('InvestArena forecast helper', async () => {
                     author: 'z1wo5',
                     exp_forecast: expForecastData.exp_forecast
                 });
-                updatedPost = await Post.findOne({author: postWithForecast.author, permlink: postWithForecast.permlink}).lean();
+                updatedPost = await Post.findOne({
+                    author: postWithForecast.author,
+                    permlink: postWithForecast.permlink
+                }).lean();
             });
 
             it('should return "true"', async () => {
@@ -145,7 +148,10 @@ describe('InvestArena forecast helper', async () => {
                         author: 'notsuppbotname',
                         exp_forecast: expForecastData.exp_forecast
                     });
-                    updatedPost = await Post.findOne({author: postWithForecast.author, permlink: postWithForecast.permlink}).lean();
+                    updatedPost = await Post.findOne({
+                        author: postWithForecast.author,
+                        permlink: postWithForecast.permlink
+                    }).lean();
                 });
 
                 it('should return "false"', async () => {
@@ -155,6 +161,35 @@ describe('InvestArena forecast helper', async () => {
                 it('should not add exp_forecast to post', async () => {
                     expect(updatePostRes.exp_forecast).to.be.undefined;
                 });
+            });
+        });
+
+        describe('when parent post without forecast', async () => {
+            let postWithoutForecast;
+            let expForecastData;
+            let postAfterUpdate;
+            let updatePostRes;
+            before(async () => {
+                const mocks = await getMocks();
+                expForecastData = mocks.expForecastData;
+                postWithoutForecast = await PostFactory.Create();
+                updatePostRes = await investarenaForecastHelper.updatePostWithExpForecast({
+                    parent_author: postWithoutForecast.author,
+                    parent_permlink: postWithoutForecast.permlink,
+                    exp_forecast: expForecastData.exp_forecast
+                });
+                postAfterUpdate = await Post.findOne({
+                    author: postWithoutForecast.author,
+                    permlink: postWithoutForecast.permlink
+                });
+            });
+
+            it('should return "false"', async () => {
+                expect(updatePostRes).to.be.false;
+            });
+
+            it('should not add "exp_forecast" to post', async () => {
+                expect(postAfterUpdate.exp_forecast).to.not.exist;
             });
         });
     });

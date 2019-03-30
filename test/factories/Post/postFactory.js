@@ -1,6 +1,6 @@
 const {faker, getRandomString, Post} = require('../../testHelper');
 
-const Create = async ({additionsForMetadata = {}, onlyData, parent_author, additionsForPost = {}}) => {    //additionsForMetadata(Post) must be an Object
+const Create = async ({additionsForMetadata = {}, onlyData, parent_author, additionsForPost = {}} = {}) => {    //additionsForMetadata(Post) must be an Object
     const json_metadata = {
         community: 'waiviodev',
         app: 'waiviodev',
