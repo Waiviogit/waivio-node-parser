@@ -61,18 +61,23 @@ const checkAndCreate = async function (data) {              //check for existing
 const increaseWobjectWeight = async function (data) {
     try {
         await checkAndCreate({name: data.name});                //check for existing user in DB
-        const user = await UserModel.findOne({name: data.name}).lean();      //get user data from db
-        const wobject = user.w_objects.find(wobject => wobject.author_permlink === data.author_permlink);   //find wobject
-        if (!wobject) {                     //if user have no any weight in current wobject, add wobject with initial weight
-            await UserModel.updateOne({name: data.name}, {
-                $addToSet: {
-                    w_objects: {
-                        weight: 1,
-                        author_permlink: data.author_permlink
+        await UserModel.updateOne({
+            name: data.name,
+            w_objects:{
+                $not:{
+                    $elemMatch:{
+                        author_permlink:data.author_permlink
                     }
                 }
-            });
-        }
+            }
+        },{
+            $addToSet: {
+                w_objects: {
+                    weight: 1,
+                    author_permlink: data.author_permlink
+                }
+            }
+        });
 
         await UserModel.updateOne({
             name: data.name,
