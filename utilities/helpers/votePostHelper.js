@@ -27,7 +27,6 @@ const voteOnPost = async (data) => {
         }
     });
     await Post.update(data.post);     //update post info in DB
-    return;
 };
 
 

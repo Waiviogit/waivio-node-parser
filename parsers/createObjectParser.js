@@ -1,5 +1,6 @@
 const {Wobj, User} = require('../models');
-const {wobjectValidator} = require('../validator');
+const {createObjectValidator} = require('../validator');
+const {redisSetter, redisGetter} = require('../utilities/redis');
 
 const parse = async function (operation, metadata) {
     try {
@@ -9,35 +10,39 @@ const parse = async function (operation, metadata) {
                 author: operation.author,
                 creator: metadata.wobj.creator,
                 app: metadata.app,
-                object_type: metadata.wobj.object_type,
                 community: metadata.community,
                 is_posting_open: metadata.wobj.is_posting_open,
                 is_extending_open: metadata.wobj.is_extending_open,
-                default_name: metadata.wobj.field.body,
-                fields: []
+                default_name: metadata.wobj.default_name,
+                // object_type: metadata.wobj.object_type.toLowerCase()
             };
-        const res = await createObject(data);
-        if (res) {
-            console.log(`Waivio object ${metadata.wobj.field.body} created!\n`)
+        const res = await createObject(data, operation);
+        if (res && !res.error) {
+            console.log(`Waivio object ${data.default_name} created!\n`)
         }
     } catch (error) {
         console.error(error);
     }
 };
 
-const createObject = async function (data) {
+const createObject = async function (data, operation) {
     try {
-        if (!wobjectValidator.validateCreateObject(data)) {
-            throw new Error('Data is not valid');
-        }
+        await createObjectValidator.validate(data, operation);
+        const redisObjectType = await redisGetter.getHashAll(operation.parent_author + '_' + operation.parent_permlink);
+        data.object_type = redisObjectType.name;
         const {wObject, error} = await Wobj.create(data);
         if (error) {
-            throw error;
+            return {error};
         }
-        await User.increaseWobjectWeight({name: data.creator, author_permlink: data.author_permlink, weight: 0});
+        await redisSetter.addWobjRef(data.author, data.author_permlink);
+        await User.increaseWobjectWeight({
+            name: data.creator,
+            author_permlink: data.author_permlink,
+            weight: 0
+        });
         return wObject._doc;
     } catch (error) {
-        throw error;
+        return {error};
     }
 };
 

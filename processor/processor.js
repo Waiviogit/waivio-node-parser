@@ -56,7 +56,9 @@ const getCurrentBlock = async (req, res) => {
 const restoreRedis = async (req, res) => {
     const result = await restoreRedisHelper.restore();
     if (result) {
-        const str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.\nRestored ${result.tagsCount} tags in wobjects`;
+        let str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.`;
+        str += `\\nRestored ${result.tagsCount} tags in wobjects`;
+        str += `\\nRestored ${result.objectTypesCount} Object Types`;
         console.log(str);
         res.status(200).json({message: str})
     }
