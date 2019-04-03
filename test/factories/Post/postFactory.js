@@ -1,4 +1,5 @@
 const {faker, getRandomString, Post} = require('../../testHelper');
+const _ = require('lodash');
 
 const Create = async ({additionsForMetadata = {}, onlyData, parent_author, additionsForPost = {}} = {}) => {    //additionsForMetadata(Post) must be an Object
     const json_metadata = {
@@ -10,7 +11,7 @@ const Create = async ({additionsForMetadata = {}, onlyData, parent_author, addit
         json_metadata[key] = additionsForMetadata[key];
     }
     const post = {
-        parent_author: parent_author || faker.name.firstName().toLowerCase(), //if it's post - parent_author not exists
+        parent_author: _.isNil(parent_author) ? faker.name.firstName().toLowerCase() : parent_author , //if it's post - parent_author not exists
         parent_permlink: getRandomString(20),
         author: faker.name.firstName().toLowerCase(),
         permlink: getRandomString(20),
