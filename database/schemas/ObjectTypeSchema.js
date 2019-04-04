@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ObjectTypeSchema = new Schema({
-        name: {type: String, index: {unique: true}, required: true},
+        name: {type: String, required: true},
         author: {type: String, require: true},
         permlink: {type: String, require: true}
     },
@@ -11,6 +11,7 @@ const ObjectTypeSchema = new Schema({
     });
 
 ObjectTypeSchema.index({author: 1, permlink: 1}, {unique: true});
+ObjectTypeSchema.index({name: 1}, {unique: true});
 
 const ObjectTypeModel = mongoose.model('ObjectType', ObjectTypeSchema);
 
