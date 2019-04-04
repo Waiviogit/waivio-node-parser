@@ -54,7 +54,7 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             }
         }
 
-        if (metadata.wia && metadata.wia.exp_forecast) {
+        if (metadata && metadata.wia && metadata.wia.exp_forecast) {
             await investarenaForecastHelper.updatePostWithExpForecast({
                 parent_author: operation.parent_author,
                 parent_permlink: operation.parent_permlink,
