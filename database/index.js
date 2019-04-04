@@ -1,7 +1,7 @@
 const config = require('../config');
 const mongoose = require('mongoose');
 const URI = `mongodb://${config.db.host}:${config.db.port}/${config.db.database}`;
-mongoose.connect(URI)
+mongoose.connect(URI, {useNewUrlParser: true})
     .then(() => console.log('connection successful!'))
     .catch((error) => console.error(error));
 
@@ -14,6 +14,7 @@ module.exports = {
     models: {
         WObject: require('./schemas/wObjectSchema'),
         User: require('./schemas/UserSchema'),
-        Post: require('./schemas/PostSchema')
+        Post: require('./schemas/PostSchema'),
+        ObjectType: require('./schemas/ObjectTypeSchema')
     }
 };
