@@ -13,6 +13,7 @@
     "test": "mocha"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "bluebird": "^3.5.3",
     "body-parser": "^1.15.2",
     "dsteem": "^0.8.7",
