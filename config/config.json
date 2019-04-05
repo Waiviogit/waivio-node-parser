@@ -7,7 +7,8 @@
     },
     "redis": {
       "wobjectsRefs": 1,
-      "tagsRefs": 2
+      "tagsRefs": 2,
+      "importQueue": 3
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -19,7 +20,8 @@
     },
     "redis": {
       "wobjectsRefs": 1,
-      "tagsRefs": 2
+      "tagsRefs": 2,
+      "importQueue": 3
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -31,7 +33,8 @@
     },
     "redis": {
       "wobjectsRefs": 5,
-      "tagsRefs": 6
+      "tagsRefs": 6,
+      "importQueue": 7
     },
     "nodeUrl": "https://api.steemit.com/"
   }
