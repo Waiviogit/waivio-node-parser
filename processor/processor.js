@@ -2,6 +2,7 @@ const {api} = require('../api');
 const _ = require('lodash');
 const {restoreRedisHelper} = require('../utilities/redis');
 const {restoreHelper} = require('../utilities/helpers');
+const {importObjectsService} = require('../utilities/services');
 
 const parseAllBlockChain = async (req, res) => {
     try {
@@ -64,6 +65,15 @@ const restoreRedis = async (req, res) => {
     }
 };
 
+const importWobjects = async (req, res) => {
+    const data = {
+        wobjects: req.body.wobjects
+    };
+    const result = await importObjectsService.createWobjects(data);
+    if(result){
+        //////////////////////////////////lalalallalalalallalalalallalalalalalala
+    }
+};
 
 module.exports = {
     parseAllBlockChain, runStream, getCurrentBlock, restoreRedis
