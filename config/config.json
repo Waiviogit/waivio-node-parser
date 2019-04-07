@@ -8,7 +8,8 @@
     "redis": {
       "wobjectsRefs": 1,
       "tagsRefs": 2,
-      "importQueue": 3
+      "importQueue": 3,
+      "importWobjData": 4
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -21,7 +22,8 @@
     "redis": {
       "wobjectsRefs": 1,
       "tagsRefs": 2,
-      "importQueue": 3
+      "importQueue": 3,
+      "importWobjData": 4
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -34,7 +36,8 @@
     "redis": {
       "wobjectsRefs": 5,
       "tagsRefs": 6,
-      "importQueue": 7
+      "importQueue": 7,
+      "importWobjData": 8
     },
     "nodeUrl": "https://api.steemit.com/"
   }

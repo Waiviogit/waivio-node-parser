@@ -1,7 +1,7 @@
 const {postRefsClient, tagsClient} = require('./redis');
 
-const getHashAll = async function (author_permlink) {
-    const res = await postRefsClient.hgetallAsync(author_permlink);
+const getHashAll = async function (key, client = postRefsClient) {
+    const res = await client.hgetallAsync(key);
     return res;
 };
 

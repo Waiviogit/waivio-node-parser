@@ -73,7 +73,9 @@ const importWobjects = async (req, res) => {
     if(result){
         //////////////////////////////////lalalallalalalallalalalallalalalalalala
     }
-};
+};  //add wobjects to queue for send it to objects-bot and write it to blockchain
+
+
 
 module.exports = {
     parseAllBlockChain, runStream, getCurrentBlock, restoreRedis
