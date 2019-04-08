@@ -101,5 +101,75 @@ describe('Import Wobjects to BlockChain', async () => {
                 })
             });
         });
+
+        describe('when get create "append" message', async () => {
+            let appendWobjStub;
+            before(async () => {
+                appendWobjStub = sinon.stub(appendObject, 'send').callsFake(async (data) => {
+                    return {
+                        transactionId: '123123',
+                        author: 'abcabcabc',
+                        permlink: 'abcdefghij',
+                        parentAuthor: 'lalaauthor',
+                        parentPermlink: 'lalapermlink'
+                    }
+                });
+                runImportWobjectsQueue();
+                await redisSetter.setImportWobjData('append:abc-testwobject_lalapermlink', {
+                    author: 'author',
+                    permlink: 'permlink',
+                    parentAuthor: 'someAuthor',
+                    parentPermlink: 'somePermlink',
+                    title: 'some title',
+                    body: 'some body',
+                    field: JSON.stringify({
+                        name: 'someName',
+                        body: 'someBody',
+                        locale: 'someLocale'
+                    })
+                });
+                await sendMessage({
+                    client: importRsmqClient,
+                    qname: 'import_wobjects',
+                    message: 'append:abc-testwobject_lalapermlink'
+                });
+                await new Promise(r => setTimeout(r, 1000));
+            });
+
+            after(async () => {
+                appendWobjStub.restore();
+            });
+
+            it('should call appendWobj once', async () => {
+                expect(appendWobjStub.calledOnce).to.be.true;
+            });
+
+            it('should delete from redis importWobjectsData data about append wobj', async () => {
+                await new Promise(r => setTimeout(r, 1000));
+                const redisWobjData = await redisGetter.getHashAll('append:abc-testwobject_lalapermlink', importWobjectsDataClient);
+                expect(redisWobjData).to.be.null;
+            });
+
+            it('should call append wobj with args', async () => {
+                const arg = appendWobjStub.getCall(0).args[0];
+                expect(arg).to.deep.equal({
+                    author: 'author',
+                    permlink:'permlink',
+                    parentAuthor: 'someAuthor',
+                    parentPermlink: 'somePermlink',
+                    title: 'some title',
+                    body: 'some body',
+                    field:{
+                        name: 'someName',
+                        body: 'someBody',
+                        locale: 'someLocale'
+                    }
+                })
+            });
+        });
+    });
+
+    describe('on step add new messages', async () => {
+        
     });
 });

@@ -36,6 +36,7 @@ const runStream = async () => {
         console.error(e);
     }
 };
+
 const getCurrentBlock = async (req, res) => {
     try {
         const currentBlockData = await api.getCurrentBlock();
@@ -69,14 +70,12 @@ const importWobjects = async (req, res) => {
     const data = {
         wobjects: req.body.wobjects
     };
-    // const result = await importObjectsService(data);
-    // if(result){
-        ////////////////////////////////lalalallalalalallalalalallalalalalalala
-    // }
+    await importObjectsService.addWobjectsToQueue(data);
+    res.status(200);
 };  //add wobjects to queue for send it to objects-bot and write it to blockchain
 
 
 
 module.exports = {
-    parseAllBlockChain, runStream, getCurrentBlock, restoreRedis
+    parseAllBlockChain, runStream, getCurrentBlock, restoreRedis, importWobjects
 };

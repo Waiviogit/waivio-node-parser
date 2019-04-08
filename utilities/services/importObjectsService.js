@@ -66,11 +66,7 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
                             parentAuthor: existWobj.author,
                             body: 'la',
                             title: 'la',
-                            field: {
-                                name: field.name,
-                                body: field.body,
-                                locale: 'en-US'
-                            }
+                            field: JSON.stringify({name: field.name,body: field.body,locale: 'en-US'})
                         };
                         await redisSetter.setImportWobjData(`append:${wobject.author_permlink}_${field.permlink}`, data);
                         const {error: sendMessError} = await sendMessage({
@@ -162,6 +158,7 @@ const runImportWobjectsQueue = async () => {
                                 }
                                 redisData.parentAuthor = existWobject.author;
                             }
+                            redisData.field = JSON.parse(redisData.field);
                             const {error: objBotAppendError} = await objectBotApi.appendObject.send(redisData);
                             if (objBotAppendError) {
                                 console.error(objBotAppendError);
