@@ -48,10 +48,16 @@ const updateTagsRefs = async (tags, author_permlink) => {
 };
 
 const setImportWobjData = async (key, data) => {
-    if(key && data){
-        for(const field in data){
+    if (key && data) {
+        for (const field in data) {
             await importWobjectsDataClient.hsetAsync(key, field, data[field]);
         }
+    }
+};
+
+const delImportWobjData = async (key) => {
+    if (key) {
+        await importWobjectsDataClient.del(key);
     }
 };
 
@@ -63,5 +69,6 @@ module.exports = {
     updateTagsRefs,
     addWobjRef,
     addObjectType,
-    setImportWobjData
+    setImportWobjData,
+    delImportWobjData
 };

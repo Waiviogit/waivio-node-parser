@@ -1,6 +1,6 @@
 const createQueue = async ({client, qname = 'queue'}) => {
-    if(!client){
-        return {error:{message: 'Client is required parameter'}}
+    if (!client) {
+        return {error: {message: 'Client is required parameter'}}
     }
     try {
         const res = await client.createQueueAsync({qname});
@@ -10,22 +10,19 @@ const createQueue = async ({client, qname = 'queue'}) => {
             return {result: false}
         }
     } catch (e) {
+        if(e.message && e.message === 'Queue exists'){
+            return {result: true, message: e.message}
+        }
         return {error: e}
     }
 };
 
-const sendMessage = async ({client, qname = 'queue', data}) => {
-    if(!client){
-        return {error:{message: 'Client is required parameter'}}
+const sendMessage = async ({client, qname = 'queue', message}) => {
+    if (!client) {
+        return {error: {message: 'Client is required parameter'}}
     }
-    if (data) {
-        let strData;
-        try {
-            strData = JSON.stringify(data);
-        } catch (error) {
-            return {error}
-        }
-        const res = await client.sendMessageAsync({qname, message: strData});
+    if (message) {
+        const res = await client.sendMessageAsync({qname, message});
         if (res) {
             console.log("Message sent. ID:", res);
             return {resId: res}
@@ -34,16 +31,15 @@ const sendMessage = async ({client, qname = 'queue', data}) => {
 };
 
 const receiveMessage = async ({client, qname = 'queue'}) => {
-    if(!client){
-        return {error:{message: 'Client is required parameter'}}
+    if (!client) {
+        return {error: {message: 'Client is required parameter'}}
     }
     const resp = await client.receiveMessageAsync({qname});
     if (resp && resp.id && resp.message) {
         console.log("Message received. ID:", resp);
         try {
-            const message = JSON.parse(resp.message);
-            if (message) {
-                return {message}
+            if (resp.message) {
+                return {message: resp.message, id: resp.id}
             }
         } catch (error) {
             return {error}
@@ -54,8 +50,8 @@ const receiveMessage = async ({client, qname = 'queue'}) => {
 };
 
 const deleteMessage = async ({client, qname = 'queue', id}) => {
-    if(!client){
-        return {error:{message: 'Client is required parameter'}}
+    if (!client) {
+        return {error: {message: 'Client is required parameter'}}
     }
     if (id) {
         const resp = await client.deleteMessageAsync({qname, id});
