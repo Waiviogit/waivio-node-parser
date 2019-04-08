@@ -24,7 +24,6 @@ const sendMessage = async ({client, qname = 'queue', message}) => {
     if (message) {
         const res = await client.sendMessageAsync({qname, message});
         if (res) {
-            console.log("Message sent. ID:", res);
             return {resId: res}
         }
     }
@@ -36,7 +35,6 @@ const receiveMessage = async ({client, qname = 'queue'}) => {
     }
     const resp = await client.receiveMessageAsync({qname});
     if (resp && resp.id && resp.message) {
-        console.log("Message received. ID:", resp);
         try {
             if (resp.message) {
                 return {message: resp.message, id: resp.id}

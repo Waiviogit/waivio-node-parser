@@ -1,8 +1,11 @@
-const {expect, sinon, importObjectsService, receiveMessage, sendMessage, deleteMessage, importRsmqClient, redisSetter, redisGetter, importWobjectsDataClient} = require('../testHelper');
+const {expect, sinon, importObjectsService, receiveMessage, sendMessage, deleteMessage, importRsmqClient, redisSetter, redisGetter, importWobjectsDataClient, createQueue} = require('../testHelper');
 const {createObjectType, createObject, appendObject} = require('../../utilities/objectBotApi');
 const {runImportWobjectsQueue} = require('../../utilities/services/importObjectsService');
 
 describe('Import Wobjects to BlockChain', async () => {
+    before(async () => {
+        await createQueue({client:importRsmqClient, qname:'import_wobjects'})
+    });
     describe('on step receive messages', async () => {
         describe('when get create "objectType" message', async () => {
             let createObjTypeStub;

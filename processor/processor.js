@@ -69,10 +69,10 @@ const importWobjects = async (req, res) => {
     const data = {
         wobjects: req.body.wobjects
     };
-    const result = await importObjectsService.createWobjects(data);
-    if(result){
-        //////////////////////////////////lalalallalalalallalalalallalalalalalala
-    }
+    // const result = await importObjectsService(data);
+    // if(result){
+        ////////////////////////////////lalalallalalalallalalalallalalalalalala
+    // }
 };  //add wobjects to queue for send it to objects-bot and write it to blockchain
 
 

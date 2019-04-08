@@ -15,8 +15,8 @@ routes.route('/get-current-block')
 routes.route('/restore-redis')
     .get(processor.restoreRedis);
 
-routes.route('import-wobjects')
-    .post(processor.importWobjects);
+// routes.route('import-wobjects')
+//     .post(processor.importWobjects);
 
 
 module.exports = routes;
