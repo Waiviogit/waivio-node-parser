@@ -15,6 +15,7 @@ const expect = chai.expect;
 const {Mongoose} = require('../database');
 const {redis, redisGetter, redisSetter} = require('../utilities/redis');
 const {importRsmqClient} = require('../utilities/redis/rsmq/index');
+const redisQueue = require('../utilities/redis/rsmq/redisQueue');
 const {importWobjectsDataClient} = require('../utilities/redis/redis');
 const {createQueue, sendMessage, deleteMessage, receiveMessage} = require('../utilities/redis/rsmq/redisQueue');
 const {importObjectsService} = require('../utilities/services');
@@ -55,5 +56,6 @@ module.exports =
         deleteMessage,
         receiveMessage,
         importRsmqClient,
-        importWobjectsDataClient
+        importWobjectsDataClient,
+        redisQueue
     };

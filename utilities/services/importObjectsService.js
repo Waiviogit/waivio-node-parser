@@ -2,7 +2,7 @@ const {importRsmqClient} = require('../redis/rsmq');            //redis queue cl
 const {redisGetter, redisSetter} = require('../redis');         //redis getter and setter for manage wobj data
 const {importWobjectsDataClient} = require('../redis').redis;   //client for redis db with wobj data
 const objectBotApi = require('../objectBotApi');
-const {sendMessage, receiveMessage, createQueue, deleteMessage} = require('../redis/rsmq/redisQueue');
+const redisQueue = require('../redis/rsmq/redisQueue');
 const {ObjectType, Wobj} = require('../../models');
 const IMPORT_WOBJECTS_QNAME = 'import_wobjects';
 
@@ -16,7 +16,7 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
                     `wobj-type:${wobject.object_type}`,
                     {objectType: wobject.object_type}
                 );
-                const {error: sendMessError} = await sendMessage({
+                const {error: sendMessError} = await redisQueue.sendMessage({
                     client: importRsmqClient,
                     qname: IMPORT_WOBJECTS_QNAME,
                     message: `wobj-type:${wobject.object_type}`
@@ -39,11 +39,11 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
                     locale: 'en-US',
                     isExtendingOpen: wobject.is_extending_open,
                     isPostingOpen: wobject.is_posting_open,
-                    parentAuthor: existObjType.author || '',
-                    parentPermlink: existObjType.permlink || ''
+                    parentAuthor: existObjType ? existObjType.author : '',
+                    parentPermlink: existObjType ? existObjType.permlink : ''
                 };
                 await redisSetter.setImportWobjData(`wobj:${wobject.author_permlink}`, data);
-                const {error: sendMessError} = await sendMessage({
+                const {error: sendMessError} = await redisQueue.sendMessage({
                     client: importRsmqClient,
                     qname: IMPORT_WOBJECTS_QNAME,
                     message: `wobj:${wobject.author_permlink}`
@@ -63,13 +63,13 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
                             author: field.creator,
                             permlink: field.permlink,
                             parentPermlink: wobject.author_permlink,
-                            parentAuthor: existWobj.author,
+                            parentAuthor: existObjType ? existObjType.author : '',
                             body: 'la',
                             title: 'la',
                             field: JSON.stringify({name: field.name,body: field.body,locale: 'en-US'})
                         };
                         await redisSetter.setImportWobjData(`append:${wobject.author_permlink}_${field.permlink}`, data);
-                        const {error: sendMessError} = await sendMessage({
+                        const {error: sendMessError} = await redisQueue.sendMessage({
                             client: importRsmqClient,
                             qname: IMPORT_WOBJECTS_QNAME,
                             message: `append:${wobject.author_permlink}_${field.permlink}`
@@ -86,12 +86,12 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
 };
 
 const runImportWobjectsQueue = async () => {
-    const {result, error: createError} = await createQueue({client: importRsmqClient, qname: IMPORT_WOBJECTS_QNAME});
+    const {result, error: createError} = await redisQueue.createQueue({client: importRsmqClient, qname: IMPORT_WOBJECTS_QNAME});
     if (createError) {
         console.error(createError);
     } else if (result) {
         while (true) {
-            const {message, id: messageId, error: receiveError} = await receiveMessage({
+            const {message, id: messageId, error: receiveError} = await redisQueue.receiveMessage({
                 client: importRsmqClient,
                 qname: IMPORT_WOBJECTS_QNAME
             });
@@ -114,7 +114,7 @@ const runImportWobjectsQueue = async () => {
                             if (objBotTypeError) {
                                 console.error(objBotTypeError);
                             } else {
-                                await deleteMessage({
+                                await redisQueue.deleteMessage({
                                     client: importRsmqClient,
                                     qname: IMPORT_WOBJECTS_QNAME,
                                     id: messageId
@@ -139,7 +139,7 @@ const runImportWobjectsQueue = async () => {
                             if (objBotWobjError) {
                                 console.error(objBotWobjError);
                             } else {
-                                await deleteMessage({
+                                await redisQueue.deleteMessage({
                                     client: importRsmqClient,
                                     qname: IMPORT_WOBJECTS_QNAME,
                                     id: messageId
@@ -163,7 +163,7 @@ const runImportWobjectsQueue = async () => {
                             if (objBotAppendError) {
                                 console.error(objBotAppendError);
                             } else {
-                                await deleteMessage({
+                                await redisQueue.deleteMessage({
                                     client: importRsmqClient,
                                     qname: IMPORT_WOBJECTS_QNAME,
                                     id: messageId
