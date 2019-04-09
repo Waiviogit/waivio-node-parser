@@ -7,7 +7,7 @@ const APPEND_OBJECT_REQUIRED_FIELD = 'author,permlink,parentAuthor,parentPermlin
 const createObjectTypeValidate = (data) => {
     for (const field of CREATE_OBJECT_TYPE_REQUIRED_FIELDS) {
         if (_.isNil(data[field])) {
-            return {error: {message: `Create Object Type data is not valid, ${field} field not found!`}}
+            return {error: {message: `Create Object Type data is not valid, "${field}" field not found!`}}
         }
     }
     return {isValid: true}
