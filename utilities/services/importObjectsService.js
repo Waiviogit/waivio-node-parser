@@ -1,6 +1,6 @@
 const {importRsmqClient} = require('../redis/rsmq');            //redis queue client
 const {redisGetter, redisSetter} = require('../redis');         //redis getter and setter for manage wobj data
-const {importWobjectsDataClient} = require('../redis').redis;   //client for redis db with wobj data
+const {importWobjectsDataClient, importWobjectsQueueClient} = require('../redis').redis;   //client for redis db with wobj data
 const objectBotApi = require('../objectBotApi');
 const redisQueue = require('../redis/rsmq/redisQueue');
 const {ObjectType, Wobj} = require('../../models');
@@ -31,6 +31,7 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
             const redisExistWobject = await redisGetter.getHashAll(`wobj:${wobject.author_permlink}`);
             if (!redisExistWobject) {
                 const data = {
+                    objectType: wobject.object_type,
                     permlink: wobject.author_permlink,
                     author: wobject.creator,
                     title: 'la',
@@ -86,6 +87,8 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
 };
 
 const runImportWobjectsQueue = async () => {
+    await importWobjectsDataClient.flushdbAsync();
+    await importWobjectsQueueClient.flushdbAsync();
     const {result, error: createError} = await redisQueue.createQueue({client: importRsmqClient, qname: IMPORT_WOBJECTS_QNAME});
     if (createError) {
         console.error(createError);

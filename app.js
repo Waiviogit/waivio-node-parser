@@ -2,6 +2,7 @@ const express = require('express');
 const logger = require('morgan');
 const {routes} = require('./routes');
 const {runStream} = require('./processor/processor');
+const {importObjectsService} = require('./utilities/services');
 const app = express();
 
 app.use(logger('dev'));
@@ -19,5 +20,7 @@ runStream().catch(err => {
     console.log(err);
     process.exit(1);
 });
+
+importObjectsService.runImportWobjectsQueue();
 
 module.exports = app;

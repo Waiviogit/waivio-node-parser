@@ -66,12 +66,13 @@ const restoreRedis = async (req, res) => {
     }
 };
 
-const importWobjects = async (req, res) => {
+const importWobjects = async (req, res, next) => {
     const data = {
-        wobjects: req.body.wobjects
+        wobjects: req.body.wobjects || []
     };
     await importObjectsService.addWobjectsToQueue(data);
-    res.status(200);
+    console.log("wobjects added to queue");
+    res.status(200).json({message:'Wobjects added to queue of creating!'});
 };  //add wobjects to queue for send it to objects-bot and write it to blockchain
 
 

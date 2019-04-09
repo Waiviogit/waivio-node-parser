@@ -42,7 +42,7 @@ describe('Import Wobjects to BlockChain', async () => {
                     expect(createObjTypeStub.calledOnce).to.be.true;
                 });
 
-                it('should delete from redis importWobjectsData data about wobj-typ', async () => {
+                it('should delete from redis importWobjectsData data about wobj-type', async () => {
                     expect(await redisGetter.getHashAll('wobj-type:testObjType', importWobjectsDataClient)).to.be.null;
                 });
 
@@ -71,6 +71,7 @@ describe('Import Wobjects to BlockChain', async () => {
                         message: 'wobj-type:testObjType'
                     });
                     await redisSetter.setImportWobjData('wobj-type:testObjType', {lala: 'lala'});
+                    await new Promise(r=>setTimeout(r,500));
                 });
 
                 after(function () {
@@ -130,7 +131,7 @@ describe('Import Wobjects to BlockChain', async () => {
                     expect(createWobjStub.calledOnce).to.be.true;
                 });
 
-                it('should delete from redis importWobjectsData data about wobj-typ', async () => {
+                it('should delete from redis importWobjectsData data about wobj', async () => {
                     await new Promise(r => setTimeout(r, 1000));
                     const redisWobjData = await redisGetter.getHashAll('wobj:abc-testwobject', importWobjectsDataClient);
                     expect(redisWobjData).to.be.null;
@@ -185,7 +186,7 @@ describe('Import Wobjects to BlockChain', async () => {
                         parentAuthor: 'lalalla',
                         parentPermlink: 'lalalla'
                     });
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 1500));
                 });
 
                 after(function () {
@@ -328,7 +329,7 @@ describe('Import Wobjects to BlockChain', async () => {
                     const redisResp = await redisGetter.getHashAll(key, importWobjectsDataClient);
                     expect(redisResp).to.exist;
                     expect(redisResp).to.have.all.keys("author", "body", "isExtendingOpen", "isPostingOpen", "locale",
-                        "objectName", "parentAuthor", "parentPermlink", "permlink", "title");
+                        "objectName", "parentAuthor", "parentPermlink", "permlink", "title", "objectType");
                 });
 
                 it('should add wobject data to redis with empty parentAuthor and ParentPermlink', async () => {
@@ -336,6 +337,12 @@ describe('Import Wobjects to BlockChain', async () => {
                     const redisResp = await redisGetter.getHashAll(key, importWobjectsDataClient);
                     expect(redisResp.parentAuthor).to.equal('');
                     expect(redisResp.parentPermlink).to.equal('');
+                });
+
+                it('should add wobject data to redis with objectType key', async () => {
+                    const key = `wobj:${mockWobject.author_permlink}`;
+                    const redisResp = await redisGetter.getHashAll(key, importWobjectsDataClient);
+                    expect(redisResp.objectType).to.equal(mockWobject.object_type);
                 });
 
                 it('should add appends data to redis', async () => {
@@ -440,7 +447,7 @@ describe('Import Wobjects to BlockChain', async () => {
                     const redisResp = await redisGetter.getHashAll(key, importWobjectsDataClient);
                     expect(redisResp).to.exist;
                     expect(redisResp).to.have.all.keys("author", "body", "isExtendingOpen", "isPostingOpen", "locale",
-                        "objectName", "parentAuthor", "parentPermlink", "permlink", "title");
+                        "objectName", "parentAuthor", "parentPermlink", "permlink", "title", "objectType");
                 });
 
                 it('should add wobject data to redis with valid parentAuthor and parentPermlink', async () => {
