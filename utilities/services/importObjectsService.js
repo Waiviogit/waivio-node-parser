@@ -64,10 +64,10 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
                             author: field.creator,
                             permlink: field.permlink,
                             parentPermlink: wobject.author_permlink,
-                            parentAuthor: existObjType ? existObjType.author : '',
+                            parentAuthor: existWobj ? existWobj.author : '',
                             body: 'la',
                             title: 'la',
-                            field: JSON.stringify({name: field.name,body: field.body,locale: 'en-US'})
+                            field: JSON.stringify({name: field.name, body: field.body, locale: 'en-US'})
                         };
                         await redisSetter.setImportWobjData(`append:${wobject.author_permlink}_${field.permlink}`, data);
                         const {error: sendMessError} = await redisQueue.sendMessage({
@@ -89,7 +89,10 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
 const runImportWobjectsQueue = async () => {
     await importWobjectsDataClient.flushdbAsync();
     await importWobjectsQueueClient.flushdbAsync();
-    const {result, error: createError} = await redisQueue.createQueue({client: importRsmqClient, qname: IMPORT_WOBJECTS_QNAME});
+    const {result, error: createError} = await redisQueue.createQueue({
+        client: importRsmqClient,
+        qname: IMPORT_WOBJECTS_QNAME
+    });
     if (createError) {
         console.error(createError);
     } else if (result) {
@@ -100,7 +103,7 @@ const runImportWobjectsQueue = async () => {
             });
             if (receiveError) {
                 if (receiveError.message === 'No messages') {
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 1000));
                     continue;
                 } else {
                     console.error(receiveError);
@@ -113,72 +116,106 @@ const runImportWobjectsQueue = async () => {
                     const type = message.split(':')[0];
                     switch (type) {
                         case 'wobj-type':
-                            const {error: objBotTypeError} = await objectBotApi.createObjectType.send(redisData);
-                            if (objBotTypeError) {
-                                console.error(objBotTypeError);
-                            } else {
-                                await redisQueue.deleteMessage({
-                                    client: importRsmqClient,
-                                    qname: IMPORT_WOBJECTS_QNAME,
-                                    id: messageId
-                                });
-                                await redisSetter.delImportWobjData(message);
-
-                            }
+                            await messageCreateWobjType({redisData, messageId});
                             break;
 
                         case 'wobj':
-                            //if parent author and permlink exist use it, else need get it from mongo
-                            if (!redisData.parentAuthor || !redisData.parentPermlink) {
-                                const {objectType} = await ObjectType.getOne({name: redisData.objectType});
-                                if (!objectType) {
-                                    console.error(`Object Type ${redisData.objectType} not exist!`);
-                                    break;
-                                }
-                                redisData.parentAuthor = objectType.author;
-                                redisData.parentPermlink = objectType.permlink;
-                            }
-                            const {error: objBotWobjError} = await objectBotApi.createObject.send(redisData);
-                            if (objBotWobjError) {
-                                console.error(objBotWobjError);
-                            } else {
-                                await redisQueue.deleteMessage({
-                                    client: importRsmqClient,
-                                    qname: IMPORT_WOBJECTS_QNAME,
-                                    id: messageId
-                                });
-                                await redisSetter.delImportWobjData(message);
-                                console.log();
-                            }
+                            await messageCreateWobj({redisData, messageId});
                             break;
 
                         case 'append':
-                            if (!redisData.parentAuthor) {
-                                const {wobject: existWobject} = await Wobj.getOne({author_permlink: redisData.parentPermlink});
-                                if (!existWobject) {
-                                    console.error(`Object ${redisData.parentPermlink} not exist!`);
-                                    break;
-                                }
-                                redisData.parentAuthor = existWobject.author;
-                            }
-                            redisData.field = JSON.parse(redisData.field);
-                            const {error: objBotAppendError} = await objectBotApi.appendObject.send(redisData);
-                            if (objBotAppendError) {
-                                console.error(objBotAppendError);
-                            } else {
-                                await redisQueue.deleteMessage({
-                                    client: importRsmqClient,
-                                    qname: IMPORT_WOBJECTS_QNAME,
-                                    id: messageId
-                                });
-                                await redisSetter.delImportWobjData(message);
-                            }
+                            await messageCreateAppendWobj({redisData, messageId});
                             break;
                     }
+                    await redisQueue.deleteMessage({
+                        client: importRsmqClient,
+                        qname: IMPORT_WOBJECTS_QNAME,
+                        id: messageId
+                    });
+                    await redisSetter.delImportWobjData(message);
                 }
             }
 
         }
+    }
+};
+
+const messageCreateWobjType = async ({redisData}) => {
+    const {error: objBotTypeError} = await objectBotApi.createObjectType.send(redisData);
+    if (objBotTypeError) {
+        console.error(objBotTypeError.response);
+        await redisSetter.setImportWobjData(
+            `errored:wobj-type:${redisData.objectType}`,
+            redisData
+        );
+    }
+};
+
+const messageCreateWobj = async ({redisData}) => {
+    //if parent author and permlink exist use it, else need get it from mongo
+    if (!redisData.parentAuthor || !redisData.parentPermlink) {
+        let objectType;
+        for (let i = 0; i <= 10; i++) {
+            let result = await ObjectType.getOne({name: redisData.objectType});
+            if (!result || !result.objectType) {
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                objectType = result.objectType;
+                i = 11; //break the loop
+            }
+        }
+        if (!objectType) {
+            console.error(`Object Type ${redisData.objectType} not exist!`);
+            await redisSetter.setImportWobjData(
+                `errored:wobj:${redisData.permlink}`,
+                redisData
+            );
+            return;
+        }
+
+        redisData.parentAuthor = objectType.author;
+        redisData.parentPermlink = objectType.permlink;
+    }
+    const {error: objBotWobjError} = await objectBotApi.createObject.send(redisData);
+    if (objBotWobjError) {
+        console.error(objBotWobjError);
+        await redisSetter.setImportWobjData(
+            `errored:append:${redisData.parentPermlink}_${redisData.permlink}`,
+            redisData
+        );
+    }
+};
+
+const messageCreateAppendWobj = async ({redisData}) => {
+    if (!redisData.parentAuthor) {
+        let existWobject;
+        for (let i = 0; i <= 10; i++) {
+            let result = await Wobj.getOne({author_permlink: redisData.parentPermlink});
+            if (!result || !result.wobject) {
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                existWobject = result.wobject;
+                i = 11; //break the loop
+            }
+        }
+        if (!existWobject) {
+            console.error(`Object ${redisData.parentPermlink} not exist!`);
+            await redisSetter.setImportWobjData(
+                `errored:append:${redisData.parentPermlink}_${redisData.permlink}`,
+                redisData
+            );
+            return;
+        }
+        redisData.parentAuthor = existWobject.author;
+    }
+    redisData.field = JSON.parse(redisData.field);
+    const {error: objBotAppendError} = await objectBotApi.appendObject.send(redisData);
+    if (objBotAppendError) {
+        console.error(objBotAppendError.response);
+        await redisSetter.setImportWobjData(
+            `errored:append:${redisData.parentPermlink}_${redisData.permlink}`,
+            redisData
+        );
     }
 };
 

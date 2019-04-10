@@ -9,17 +9,24 @@ const send = async (data) => {
         console.error(error);
         return {error};
     }
-    try {
-        const {data: response} = await axios.post(URL, data);
-        if (response && response.transactionId && response.parentAuthor && response.parentPermlink && response.author && response.permlink) {
-            return response;
-        } else {
-            return {error: {message: 'Not enough response data!'}}
+    while(true){
+        try {
+            const {data: response} = await axios.post(URL, data);
+            if (response && response.transactionId && response.parentAuthor && response.parentPermlink && response.author && response.permlink) {
+                return response;
+            } else {
+                return {error: {message: 'Not enough response data!'}}
+            }
+        } catch (err) {
+            if (err.statusCode === 503) {     //not enough mana or limit on creating post
+                await new Promise(r => setTimeout(r, 1000));
+                continue;
+            } else {
+                return {error: err};
+            }
         }
-    } catch (err) {
-        console.error(err);
-        return {error: err};
     }
+
 
 };
 

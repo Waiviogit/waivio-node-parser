@@ -17,7 +17,7 @@ const validateFields = (data) => {
 const validatePostLinks = async (data, operation) => {
     const result = await redisGetter.getHashAll(`${operation.parent_author}_${operation.parent_permlink}`);
     if (!result || !result.type || result.type !== 'create_wobj' || result.name !== data.object_type) {
-        throw new Error("Can't append object, parent comment isn't create Object post!");
+        throw new Error("Can't append object, parent comment isn't create Object comment!");
     }
 };
 
