@@ -28,8 +28,9 @@ describe('ObjectBotApi', async () => {
                 stubAxios.restore();
             });
 
-            it('should return transactionId, author, permlink', async () => {
-                expect(objBotResponse).to.include.all.keys('transactionId', 'author', 'permlink');
+            it('should return response with transactionId, author, permlink', async () => {
+                expect(objBotResponse).to.include.key('response');
+                expect(objBotResponse.response).to.include.all.keys('transactionId', 'author', 'permlink');
             });
 
             it('should not return error with valid data', async () => {
@@ -38,9 +39,11 @@ describe('ObjectBotApi', async () => {
 
             it('should return valid data', async () => {
                 expect(objBotResponse).to.deep.equal({
-                    transactionId: '12315',
-                    author: 'lalalala',
-                    permlink: 'lalalwerw'
+                    response: {
+                        transactionId: '12315',
+                        author: 'lalalala',
+                        permlink: 'lalalwerw'
+                    }
                 })
             });
         });
@@ -123,8 +126,9 @@ describe('ObjectBotApi', async () => {
                 stubAxios.restore();
             });
 
-            it('should return transactionId, author, permlink', async () => {
-                expect(objBotResponse).to.include.all.keys('transactionId', 'author', 'permlink', 'parentAuthor', 'parentPermlink');
+            it('should return response with transactionId, author, permlink', async () => {
+                expect(objBotResponse).to.include.key('response');
+                expect(objBotResponse.response).to.include.all.keys('transactionId','author','permlink');
             });
 
             it('should not return error with valid data', async () => {
@@ -133,11 +137,13 @@ describe('ObjectBotApi', async () => {
 
             it('should return valid data', async () => {
                 expect(objBotResponse).to.deep.equal({
-                    transactionId: "9d280697020ffddfaa910ec4c793ccf6af98fc1d",
-                    author: "guest123",
-                    permlink: "jucci-u43vzi5p9n",
-                    parentAuthor: "social",
-                    parentPermlink: "exf-a8d56fdf6"
+                    response: {
+                        transactionId: "9d280697020ffddfaa910ec4c793ccf6af98fc1d",
+                        author: "guest123",
+                        permlink: "jucci-u43vzi5p9n",
+                        parentAuthor: "social",
+                        parentPermlink: "exf-a8d56fdf6"
+                    }
                 })
             });
         });
