@@ -1,7 +1,7 @@
 const config = require('../config');
 const mongoose = require('mongoose');
 const URI = `mongodb://${config.db.host}:${config.db.port}/${config.db.database}`;
-mongoose.connect(URI, {useNewUrlParser: true})
+mongoose.connect(URI, {useNewUrlParser: true, useFindAndModify: false})
     .then(() => console.log('connection successful!'))
     .catch((error) => console.error(error));
 
