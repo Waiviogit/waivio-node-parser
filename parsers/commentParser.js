@@ -19,15 +19,9 @@ const parse = async function (operation) {  //data is operation[1] of transactio
             if (_.get(metadata.wobj, 'action') === 'createObjectType') {
                 await objectTypeParser.parse(operation, metadata);      //create new Object Type
             } else if (metadata.wobj.wobjects && Array.isArray(metadata.wobj.wobjects)) {
-                if (metadata.tags) {
-                    const tagWobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
-                    if (tagWobjects && tagWobjects.length) {
-                        metadata.wobj.wobjects = [...metadata.wobj.wobjects, ...tagWobjects];
-                    }
-                }
                 await postWithObjectsParser.parse(operation, metadata);         //create post with wobjects in database
             }
-        } else if (metadata.tags) { //case if post has wobjects from tags
+        } else if (metadata.tags) { //case if post has no wobjects, then need add wobjects by tags, or create if it not exist
             const wobjects = await postByTagsHelper.wobjectsByTags(metadata.tags);
             if (wobjects && wobjects.length) {
                 metadata.wobj = {wobjects};

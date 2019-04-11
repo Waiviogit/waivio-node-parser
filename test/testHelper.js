@@ -14,6 +14,11 @@ const chai = require('chai');
 const expect = chai.expect;
 const {Mongoose} = require('../database');
 const {redis, redisGetter, redisSetter} = require('../utilities/redis');
+const {importRsmqClient} = require('../utilities/redis/rsmq/index');
+const redisQueue = require('../utilities/redis/rsmq/redisQueue');
+const {importWobjectsDataClient} = require('../utilities/redis/redis');
+const {createQueue, sendMessage, deleteMessage, receiveMessage} = require('../utilities/redis/rsmq/redisQueue');
+const {importObjectsService} = require('../utilities/services');
 const faker = require('faker');
 const sinon = require('sinon');
 
@@ -44,5 +49,13 @@ module.exports =
         faker,
         getRandomString,
         sinon,
-        investarenaForecastHelper
+        investarenaForecastHelper,
+        importObjectsService,
+        createQueue,
+        sendMessage,
+        deleteMessage,
+        receiveMessage,
+        importRsmqClient,
+        importWobjectsDataClient,
+        redisQueue
     };

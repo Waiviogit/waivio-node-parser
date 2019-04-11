@@ -1,5 +1,4 @@
-
-const { processor } = require('../processor');
+const {processor} = require('../processor');
 
 const express = require('express');
 
@@ -15,6 +14,9 @@ routes.route('/get-current-block')
     .post(processor.getCurrentBlock);
 routes.route('/restore-redis')
     .get(processor.restoreRedis);
+
+routes.route('/import-wobjects')
+    .post(processor.importWobjects);
 
 
 module.exports = routes;
