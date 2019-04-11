@@ -15,15 +15,14 @@ const wobjectsByTags = async (tags) => {
                 });
             } else {
                 const wobject = {
-                    "author_permlink": "lala"+tag,
-                    "object_type": "testhashtag",
-                    "default_name": "lala"+tag,
+                    "author_permlink": tag,
+                    "object_type": "hashtag",
+                    "default_name": tag,
                     "is_extending_open": true,
                     "is_posting_open": true,
                     "creator": "wiv01",
                     "fields": []
                 };
-                // console.log("tag created--------------------" + tag);
                 await importObjectsService.addWobjectsToQueue({wobjects: [wobject]});
             }
         }
