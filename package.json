@@ -13,6 +13,7 @@
     "test": "mocha"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "bluebird": "^3.5.3",
     "body-parser": "^1.15.2",
     "dsteem": "^0.8.7",
@@ -23,6 +24,7 @@
     "mongoose": "^5.3.5",
     "morgan": "~1.9.0",
     "redis": "^2.8.0",
+    "rsmq": "^0.10.0",
     "steem": "^0.7.4",
     "util": "^0.11.1"
   },

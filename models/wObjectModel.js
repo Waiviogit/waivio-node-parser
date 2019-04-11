@@ -171,7 +171,7 @@ const getField = async (author, permlink, author_permlink) => {
         const [field] = await WObjectModel.aggregate([
             {$match: {author_permlink: author_permlink || /.*?/}},
             {$unwind: '$fields'},
-            {$match: {'fields.author': author, 'fields.permlink': permlink}},
+            {$match: {'fields.author': author || /.*?/, 'fields.permlink': permlink}},
             {$replaceRoot: {newRoot: '$fields'}}
         ]);
         return {field}
@@ -191,7 +191,20 @@ const updateField = async (author, permlink, author_permlink, key, value) => {
     }
 };
 
+const getOne = async ({author_permlink}) => {
+    try {
+        const wobject = await WObjectModel.findOne({author_permlink: author_permlink}).lean();
+        if (!wobject) {
+            throw {status: 404, message: 'Wobject not found!'}
+        }
+        return {wobject}
+    } catch (e) {
+        return {error: e}
+    }
+};
+
 module.exports = {
+    getOne,
     create,
     update,
     addField,

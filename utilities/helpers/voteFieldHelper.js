@@ -43,11 +43,11 @@ const handleSpecifiedField = async (author, permlink, author_permlink) => {
     if (error || !field)
         return;
     switch (field.name) {
-        case 'tag':
-            const {fields: tags} = await Wobj.getSomeFields('tag', author_permlink);
-            if (tags && Array.isArray(tags) && tags[0].fields && Array.isArray(tags[0].fields))
-                await redisSetter.updateTagsRefs(tags[0].fields, author_permlink);
-            break;
+        // case 'tag':
+        //     const {fields: tags} = await Wobj.getSomeFields('tag', author_permlink);
+        //     if (tags && Array.isArray(tags) && tags[0].fields && Array.isArray(tags[0].fields))
+        //         await redisSetter.updateTagsRefs(tags[0].fields, author_permlink);
+        //     break;
         case 'parent':
             const {fields: parents} = await Wobj.getSomeFields('parent', author_permlink);
             if (parents && Array.isArray(parents) && parents[0].fields && Array.isArray(parents[0].fields)) {

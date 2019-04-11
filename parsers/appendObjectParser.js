@@ -34,9 +34,9 @@ const appendObject = async function (data, operation) {
         if (error) {
             throw error;
         }
-        if (data.field.name === 'tag' && data.field.body) {
-            await redisSetter.addWobjectToTag(data.field.body, data.author_permlink);
-        }
+        // if (data.field.name === 'tag' && data.field.body) {
+        //     await redisSetter.addWobjectToTag(data.field.body, data.author_permlink);
+        // }
         return {result};
 
     } catch (error) {

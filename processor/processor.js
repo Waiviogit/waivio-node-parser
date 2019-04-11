@@ -2,6 +2,7 @@ const {api} = require('../api');
 const _ = require('lodash');
 const {restoreRedisHelper} = require('../utilities/redis');
 const {restoreHelper} = require('../utilities/helpers');
+const {importObjectsService} = require('../utilities/services');
 
 const parseAllBlockChain = async (req, res) => {
     try {
@@ -21,7 +22,7 @@ const runStream = async () => {
         await restoreHelper.restore();
         const result = await restoreRedisHelper.restore();
         if (result) {
-            console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.\nRestored ${result.tagsCount} tags in wobjects`);
+            console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.`);
         }
         const transactionStatus = await api.getBlockNumberStream({
             startFromCurrent: true
@@ -35,6 +36,7 @@ const runStream = async () => {
         console.error(e);
     }
 };
+
 const getCurrentBlock = async (req, res) => {
     try {
         const currentBlockData = await api.getCurrentBlock();
@@ -57,14 +59,23 @@ const restoreRedis = async (req, res) => {
     const result = await restoreRedisHelper.restore();
     if (result) {
         let str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.`;
-        str += `\\nRestored ${result.tagsCount} tags in wobjects`;
         str += `\\nRestored ${result.objectTypesCount} Object Types`;
         console.log(str);
         res.status(200).json({message: str})
     }
 };
 
+const importWobjects = async (req, res, next) => {
+    const data = {
+        wobjects: req.body.wobjects || []
+    };
+    await importObjectsService.addWobjectsToQueue(data);
+    console.log("wobjects added to queue");
+    res.status(200).json({message:'Wobjects added to queue of creating!'});
+};  //add wobjects to queue for send it to objects-bot and write it to blockchain
+
+
 
 module.exports = {
-    parseAllBlockChain, runStream, getCurrentBlock, restoreRedis
+    parseAllBlockChain, runStream, getCurrentBlock, restoreRedis, importWobjects
 };
