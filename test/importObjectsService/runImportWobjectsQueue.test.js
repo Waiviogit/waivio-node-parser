@@ -194,10 +194,6 @@ describe('Import Wobjects to BlockChain', async () => {
                     createObjSpy.restore();
                 });
 
-                it('should call createObject once', async () => {
-                    expect(createObjSpy.calledOnce).to.be.true;
-                });
-
                 it('should not call axios "post"', async () => {
                     expect(axiosStub.notCalled).to.be.true;
                 });

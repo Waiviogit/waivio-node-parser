@@ -22,7 +22,7 @@ const runStream = async () => {
         await restoreHelper.restore();
         const result = await restoreRedisHelper.restore();
         if (result) {
-            console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.\nRestored ${result.tagsCount} tags in wobjects`);
+            console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.`);
         }
         const transactionStatus = await api.getBlockNumberStream({
             startFromCurrent: true
@@ -59,7 +59,6 @@ const restoreRedis = async (req, res) => {
     const result = await restoreRedisHelper.restore();
     if (result) {
         let str = `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.`;
-        str += `\\nRestored ${result.tagsCount} tags in wobjects`;
         str += `\\nRestored ${result.objectTypesCount} Object Types`;
         console.log(str);
         res.status(200).json({message: str})

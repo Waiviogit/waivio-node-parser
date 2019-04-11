@@ -7,9 +7,9 @@
     },
     "redis": {
       "wobjectsRefs": 1,
-      "tagsRefs": 2,
+      "lastBlock": 2,
       "importQueue": 3,
-      "importWobjData": 4
+      "importWobjData": 5
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -21,9 +21,9 @@
     },
     "redis": {
       "wobjectsRefs": 1,
-      "tagsRefs": 2,
+      "lastBlock": 2,
       "importQueue": 3,
-      "importWobjData": 4
+      "importWobjData": 5
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -34,10 +34,10 @@
       "database": "waiviotest"
     },
     "redis": {
-      "wobjectsRefs": 5,
-      "tagsRefs": 6,
-      "importQueue": 7,
-      "importWobjData": 8
+      "wobjectsRefs": 6,
+      "lastBlock": 7,
+      "importQueue": 8,
+      "importWobjData": 9
     },
     "nodeUrl": "https://api.steemit.com/"
   }

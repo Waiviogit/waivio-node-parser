@@ -35,7 +35,7 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
                     permlink: wobject.author_permlink,
                     author: wobject.creator,
                     title: 'Waivio Object',
-                    body: `Waivio Object ${wobject.objectName} created!`,
+                    body: `Waivio Object ${wobject.default_name} created!`,
                     objectName: wobject.default_name,
                     locale: 'en-US',
                     isExtendingOpen: wobject.is_extending_open,
@@ -87,8 +87,8 @@ const addWobjectsToQueue = async ({wobjects = []} = {}) => {
 };
 
 const runImportWobjectsQueue = async () => {
-    await importWobjectsDataClient.flushdbAsync();
-    await importWobjectsQueueClient.flushdbAsync();
+    // await importWobjectsDataClient.flushdbAsync();
+    // await importWobjectsQueueClient.flushdbAsync();
     const {result, error: createError} = await redisQueue.createQueue({
         client: importRsmqClient,
         qname: IMPORT_WOBJECTS_QNAME

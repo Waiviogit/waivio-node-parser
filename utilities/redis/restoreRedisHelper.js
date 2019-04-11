@@ -1,17 +1,14 @@
 const {Wobj, Post, ObjectType} = require('../../models');
-const {postRefsClient, tagsClient} = require('./redis');
+const {postRefsClient} = require('./redis');
 const redisSetter = require('./redisSetter');
-const _ = require('lodash');
 
 const restore = async function () {
-    await tagsClient.flushdbAsync();
     await postRefsClient.flushdbAsync();
     const {postsCount} = await restorePostsRefs();
     const {objectTypesCount} = await restoreObjectTypesRefs();
-    const {tagsCount} = await restoreWobjTags();
     const {fieldsCount, wobjectsCount} = await restoreWobjectsRefs();
 
-    return {fieldsCount, wobjectsCount, postsCount, tagsCount, objectTypesCount}
+    return {fieldsCount, wobjectsCount, postsCount, objectTypesCount}
 };
 
 const restoreWobjectsRefs = async function () {
@@ -56,24 +53,6 @@ const restoreObjectTypesRefs = async () => {
         }
     }
     return {objectTypesCount}
-};
-
-
-const restoreWobjTags = async function () {
-    const {fields: wobject_tags, error} = await Wobj.getSomeFields('tag');
-    let tagsCount = 0;
-    if (wobject_tags && Array.isArray(wobject_tags) && wobject_tags.length) {
-        for (const item of wobject_tags) {
-            if (item && _.isString(item.author_permlink) && Array.isArray(item.fields)) {
-                item.fields = item.fields.slice(0, 5);
-                for (const tag of item.fields) {
-                    await tagsClient.saddAsync(tag, item.author_permlink);
-                    tagsCount++;
-                }
-            }
-        }
-    }
-    return {tagsCount}
 };
 
 module.exports = {restore}
