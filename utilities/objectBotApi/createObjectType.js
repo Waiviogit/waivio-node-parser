@@ -20,6 +20,7 @@ const send = async (data) => {
         } catch (err) {
             if (err.statusCode === 503) {     //not enough mana or limit on creating post
                 await new Promise(r => setTimeout(r, 1000));
+                continue;
             } else {
                 return {error: err};
             }
