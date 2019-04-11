@@ -18,7 +18,7 @@ const send = async (data) => {
                 return {error: {message: 'Not enough response data!'}}
             }
         } catch (err) {
-            if (err.statusCode === 503) {     //not enough mana or limit on creating post
+            if (err.response.status === 503 || err.statusCode === 503) {     //not enough mana or limit on creating post
                 await new Promise(r => setTimeout(r, 1000));
                 continue;
             } else {
