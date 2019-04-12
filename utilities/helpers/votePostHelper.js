@@ -46,14 +46,16 @@ const unvoteOnPost = async function (data) {    //method also using as undo prev
 };
 
 const downVoteOnPost = async function (data, weight) {
-    data.metadata.wobj.wobjects.forEach(async (wObject) => {
-        const voteWeight = weight * (wObject.percent / 100);      //calculate vote weight for each wobject in post
-        await User.increaseWobjectWeight({
-            name: data.post.author,
-            author_permlink: wObject.author_permlink,           //decrease author weight in wobject
-            weight: voteWeight
+    if (data && data.metadata && data.metadata.wobj && data.metadata.wobj.wobjects && Array.isArray(data.metadata.wobj.wobjects)) {
+        data.metadata.wobj.wobjects.forEach(async (wObject) => {
+            const voteWeight = weight * (wObject.percent / 100);      //calculate vote weight for each wobject in post
+            await User.increaseWobjectWeight({
+                name: data.post.author,
+                author_permlink: wObject.author_permlink,           //decrease author weight in wobject
+                weight: voteWeight
+            });
         });
-    });
+    }
 };
 
 const upVoteOnPost = async function (data, weight) {
