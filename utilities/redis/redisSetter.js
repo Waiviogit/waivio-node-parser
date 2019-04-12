@@ -1,4 +1,4 @@
-const {postRefsClient, importWobjectsDataClient, lastBlockClient} = require('./redis');
+const {postRefsClient, lastBlockClient} = require('./redis');
 const _ = require('lodash');
 
 const addPostWithWobj = async function (author_permlink, wobjects) {
@@ -47,20 +47,6 @@ const setLastBlockNum = async function (blockNum) {
 //     }
 // };
 
-const setImportWobjData = async (key, data) => {
-    if (key && data) {
-        for (const field in data) {
-            await importWobjectsDataClient.hsetAsync(key, field, data[field]);
-        }
-    }
-};
-
-const delImportWobjData = async (key) => {
-    if (key) {
-        await importWobjectsDataClient.del(key);
-    }
-};
-
 module.exports = {
     addPostWithWobj,
     addAppendWobj,
@@ -68,7 +54,5 @@ module.exports = {
     setLastBlockNum,
     // updateTagsRefs,
     addWobjRef,
-    addObjectType,
-    setImportWobjData,
-    delImportWobjData
+    addObjectType
 };

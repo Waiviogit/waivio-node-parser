@@ -5,13 +5,19 @@ const appData = {
     appendObjectTag: 'waivio-object'
 };
 
-const objectsBot = {
-    OBJECT_BOT_HOST_URL:  'http://waiviodev.com/objects-bot',
-    CREATE_OBJECT_TYPE_ROUTE: '/create-object-type',
-    CREATE_OBJECT_ROUTE: '/create-object',
-    APPEND_OBJECT_ROUTE: '/append-object'
+const objectImportService = {
+    development:{
+        IMPORT_OBJECTS_SERVICE_HOST_URL:  'http://localhost:8085/import-objects-service',
+        IMPORT_TAGS_ROUTE: '/import-tags'
+    },
+    production:{
+        IMPORT_OBJECTS_SERVICE_HOST_URL:  'http://waiviodev.com/import-objects-service',
+        IMPORT_TAGS_ROUTE: '/import-tags'
+    }
+
 };
 
 module.exports = {
-    appData, objectsBot
+    appData,
+    objectImportService: objectImportService[process.env.NODE_ENV || 'development']
 };
