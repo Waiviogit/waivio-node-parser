@@ -179,7 +179,7 @@ const messageCreateWobj = async ({redisData}) => {
     if (objBotWobjError) {
         console.error(objBotWobjError);
         await redisSetter.setImportWobjData(
-            `errored:append:${redisData.parentPermlink}_${redisData.permlink}`,
+            `errored:wobj:${redisData.parentPermlink}_${redisData.permlink}`,
             redisData
         );
     }
