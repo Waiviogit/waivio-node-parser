@@ -1,5 +1,5 @@
 const {getMocksData} = require('./mocks');
-const {createObjectParser, WObject, expect, redisGetter, User} = require('../../testHelper');
+const {createObjectParser, WObject, expect, redisGetter, User, UserWobjects} = require('../../testHelper');
 
 describe('Object parser', async () => {
     describe('when parse valid data', async () => {
@@ -45,11 +45,11 @@ describe('Object parser', async () => {
                 expect(creator).to.exist;
             });
             it('should have weight in wobject', async () => {
-                const wobjWeight = creator.w_objects.find((w) => w.author_permlink === wobject.author_permlink);
+                const wobjWeight = await UserWobjects.findOne({user_name:mockData.metadata.wobj.creator, author_permlink: wobject.author_permlink}).lean();
                 expect(wobjWeight).to.exist;
             });
             it('should have weight 1 in wobject', async () => {
-                const wobjWeight = creator.w_objects.find((w) => w.author_permlink === wobject.author_permlink);
+                const wobjWeight = await UserWobjects.findOne({user_name:mockData.metadata.wobj.creator, author_permlink: wobject.author_permlink}).lean();
                 expect(wobjWeight.weight).to.equal(1);
             });
 

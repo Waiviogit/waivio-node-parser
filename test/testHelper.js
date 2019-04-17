@@ -9,7 +9,7 @@ const {
     voteParser
 } = require('../parsers');
 const {investarenaForecastHelper} = require('../utilities/helpers');
-const {ObjectType, WObject, Post, User} = require('../database').models;
+const {ObjectType, WObject, Post, User, UserWobjects} = require('../database').models;
 const chai = require('chai');
 const expect = chai.expect;
 const {Mongoose} = require('../database');
@@ -35,6 +35,7 @@ module.exports =
         WObject,
         Post,
         User,
+        UserWobjects,
         chai,
         expect,
         Mongoose,

@@ -71,13 +71,11 @@ const upVoteOnPost = async function (data, weight) {
             author_permlink: wObject.author_permlink,           //increase author weight in wobject
             weight: voteWeight * 0.75
         });
-        // if (data.voter !== data.post.author) {
         await User.increaseWobjectWeight({
             name: data.voter,
             author_permlink: wObject.author_permlink,       //increase voter weight in wobject if he isn't author
             weight: voteWeight * 0.25
         });
-        // }
     }
 };
 

@@ -4,15 +4,6 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
     name: {type: String, index: true, unique: true},
     profile_image: {type: String},
-    w_objects:
-        {
-            type:
-                [{
-                    author_permlink: {type: String, index: true},
-                    weight: {type: Number, default: 1}  //Object Shares, value in STEEM(or WVIO) coin
-                }],
-            default: []
-        },
     read_locales: {type: [String], default: []},
     objects_follow: {type: [String], default: []} //arr of author_permlink of objects what user following
 }, {timestamps: true});

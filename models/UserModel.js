@@ -1,4 +1,5 @@
 const UserModel = require('../database').models.User;
+const UserWobjectsModel = require('../database').models.UserWobjects;
 
 const create = async function (data) {
     const newUser = new UserModel(data);
@@ -62,33 +63,21 @@ const checkAndCreate = async function (data) {      //check for existing user an
 
 const increaseWobjectWeight = async function (data) {
     try {
-        await checkAndCreate({name: data.name});                //check for existing user in DB
-        await UserModel.updateOne({
-            name: data.name,
-            w_objects:{
-                $not:{
-                    $elemMatch:{
-                        author_permlink:data.author_permlink
-                    }
+        await checkAndCreate({name: data.name});        //check for existing user in DB
+        await UserWobjectsModel.findOneAndUpdate(           //add weight in wobject to user, or create if it not exist
+            {
+                user_name: data.name,
+                author_permlink: data.author_permlink
+            },
+            {
+                $inc: {
+                    weight: data.weight
                 }
-            }
-        },{
-            $addToSet: {
-                w_objects: {
-                    weight: 1,
-                    author_permlink: data.author_permlink
-                }
-            }
-        });
-
-        await UserModel.updateOne({
-            name: data.name,
-            'w_objects.author_permlink': data.author_permlink
-        }, {
-            $inc: {
-                'w_objects.$.weight': data.weight
-            }
-        });
+            }, {
+                upsert: true,
+                new: true,
+                setDefaultsOnInsert: true
+            });
         return {result: true}
     } catch (error) {
         return {error}
@@ -97,21 +86,19 @@ const increaseWobjectWeight = async function (data) {
 
 const checkForObjectShares = async function (data) {     //object shares - user weight in specified wobject
     try {
-        const user = await UserModel.findOne({
-            name: data.name,
-            'w_objects.author_permlink': data.author_permlink
-        })
-        // .select('w_objects')
-            .lean();
-        if (!user) {
-            return {error: false}
+        const userWobject = await UserWobjectsModel.findOne({
+            user_name: data.name,
+            author_permlink: data.author_permlink
+        }).lean();
+        if (!userWobject) {
+            return {error: {message: 'User have no weight in current object!'}};
+        } else {
+            return {weight: userWobject.weight}
         }
-        return {weight: user.w_objects.find(wobject => wobject.author_permlink === data.author_permlink).weight}
     } catch (error) {
         return {error}
     }
 };
-
 
 module.exports = {
     create,

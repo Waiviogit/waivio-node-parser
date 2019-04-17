@@ -25,7 +25,7 @@ const wobjectsByTags = async (tags) => {
         }
     }
     if (tagsImport.length) {
-        await importTags.send(tagsImport);
+        // await importTags.send(tagsImport);
     }
     return wobjects;
 };

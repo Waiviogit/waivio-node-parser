@@ -38,7 +38,7 @@ const createObject = async function (data, operation) {
         await User.increaseWobjectWeight({
             name: data.creator,
             author_permlink: data.author_permlink,
-            weight: 0
+            weight: 1
         });
         return wObject._doc;
     } catch (error) {
