@@ -37,7 +37,7 @@ const restorePostsRefs = async function () {
     if (posts && posts.length) {
         postsCount += posts.length;
         for (const post of posts) {
-            await redisSetter.addPostWithWobj(`${post.author}_${post.permlink}`, JSON.stringify(post.wobjects));
+            await redisSetter.addPostWithWobj(`${post.author}_${post.permlink}`, post.wobjects);
         }
     }
     return {postsCount}
