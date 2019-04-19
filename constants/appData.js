@@ -6,16 +6,16 @@ const appData = {
 };
 
 const objectImportService = {
-    production:{
-        IMPORT_OBJECTS_SERVICE_HOST_URL:  'http://waiviodev.com/import-objects-service',
+    production: {
+        IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://waiviodev.com/import-objects-service',
         IMPORT_TAGS_ROUTE: '/import-tags'
     },
-    development:{
-        IMPORT_OBJECTS_SERVICE_HOST_URL:  'http://localhost:8085/import-objects-service',
+    development: {
+        IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://localhost:8085/import-objects-service' ,
         IMPORT_TAGS_ROUTE: '/import-tags'
     },
-    test:{
-        IMPORT_OBJECTS_SERVICE_HOST_URL:  'http://localhost:8085/import-objects-service',
+    test: {
+        IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://localhost:8085/import-objects-service',
         IMPORT_TAGS_ROUTE: '/import-tags'
     }
 
@@ -23,5 +23,5 @@ const objectImportService = {
 
 module.exports = {
     appData,
-    objectImportService: objectImportService[process.env.NODE_ENV || 'development']
+    objectImportService: objectImportService[ process.env.NODE_ENV || 'development' ]
 };
