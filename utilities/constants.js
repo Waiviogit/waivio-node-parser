@@ -6,16 +6,6 @@ const serviceBots = [ 'steemitboard', 'siditech', 'booster', 'bot-helper', 'chee
     'stefen', 'ropaga', 'vmsolutionsltd', 'stellabelle', 'acidyo', 'ethandsmith', 'ura-soul', 'crokkon', 'eturnerx', 'greer184', 'mack-bot',
     'z1wo5', 'et42k', 'suy38', 'x45ki', 'q13lp', 'j5gs7', 'q1w2c', 'no58s', 'mhg41', 'b23df', 'vp4g5', 'an98r', 'npo31', 'w1c6c', 'nn13b' ];
 
-const bitBots = [ 'postpromoter', 'buildawhale', 'sneaky-ninja', 'appreciator', 'therising', 'jerrybanfield', 'boomerang', 'upmyvote', 'promobot', 'minnowvotes',
-    'smartsteem', 'upmewhale', 'inciter', 'rocky1', 'minnowbooster', 'smartmarket', 'tipu', 'tipu', 'bdvoter', 'rewards-pool', 'treeplanter', 'originalworks',
-    'drotto', 'minnowpond', 'byresteem', 'siditech', 'blissfish', 'postdoctor', 'hottopic', 'steemvote', 'thundercurator', 'lays', 'bumper', 'promotedpost',
-    'upvotewhale', 'steemlike', 'followforupvotes', 'withsmn', 'botcoin', 'big-whale', 'friends-bot', 'morwhale', 'earthnation-bot', 'coolbot', 'tisko',
-    'crystalhuman', 'resteemable', 'microbot', 'steemvoter', 'upvotebank', 'echowhale', 'refresh', 'flagship', 'bidseption', 'resteemr', 'kiwibot', 'bubblebee',
-    'cleansingpoetry', 'moonbot', 'resteembot', 'hugewhale', 'resteemyou', 'schoolofminnows', 'zerotoherobot', 'superbot', 'queqtra', 'blockgators', 'steemthat',
-    'reblogit', 'earnmoresteem', 'frontrunner', 'photocontests', 'ottoman', 'fresteem', 'oceansbot', 'red-rose', 'otobot', 'postresteem', 'talhadogan', 'danzy',
-    'growingpower', 'giftbox', 'jeryalex', 'highvote', 'drewardsresteem', 'bestvote', 'bidbot', 'thehumanbot', 'mecurator', 'okankarol', 'astrobot', 'alphaprime',
-    'gangvote' ];
-
 const otherBots = [ 'voteme', 'raise-me-up', 'steeming-hot', 'steem-ua', 'vortac', 'steemchoose', 'photocircle',
     'a-bot', 'acehbot', 'actionbot', 'admiralbot', 'aldebot', 'altobot', 'altruisticbot', 'anonbot',
     'assbot', 'atombot', 'atomicfanbot', 'bangladeshbot', 'barbadossobot', 'bd-bot', 'bdbot', 'bdyabot1', 'beanbot', 'beerbot', 'bestbot', 'bidbotsarecoming', 'bigbot',
@@ -44,6 +34,19 @@ const otherBots = [ 'voteme', 'raise-me-up', 'steeming-hot', 'steem-ua', 'vortac
     'steevebot', 'stockholmebot', 'superbot', 'superbot777', 'swiftbot', 't-bot', 'talbot2alf', 'thebot', 'thebotfather', 'thehappybot', 'therebotlove', 'timbot606',
     'tonybot', 'transparencybot', 'travelbot', 'trustbot', 'truthbot', 'turtlebot', 'tweetbot', 'umvbot', 'upvote.bot', 'upvoting-bot', 'urobotics', 'vectorabbot', 'voteboter', 'votingbot', 'wbot01',
     'webbotreader', 'whalepromobot', 'winvotebot', 'witnessbot', 'xibot', 'yahoobot', 'zappl-bot', 'zapplbot', 'zenbot' ];
+
+const bitBots = [ 'postpromoter', 'buildawhale', 'sneaky-ninja', 'appreciator', 'therising', 'jerrybanfield', 'boomerang', 'upmyvote', 'promobot', 'minnowvotes',
+    'smartsteem', 'upmewhale', 'inciter', 'rocky1', 'minnowbooster', 'smartmarket', 'tipu', 'tipu', 'bdvoter', 'rewards-pool', 'treeplanter', 'originalworks',
+    'drotto', 'minnowpond', 'byresteem', 'siditech', 'blissfish', 'postdoctor', 'hottopic', 'steemvote', 'thundercurator', 'lays', 'bumper', 'promotedpost',
+    'upvotewhale', 'steemlike', 'followforupvotes', 'withsmn', 'botcoin', 'big-whale', 'friends-bot', 'morwhale', 'earthnation-bot', 'coolbot', 'tisko',
+    'crystalhuman', 'resteemable', 'microbot', 'steemvoter', 'upvotebank', 'echowhale', 'refresh', 'flagship', 'bidseption', 'resteemr', 'kiwibot', 'bubblebee',
+    'cleansingpoetry', 'moonbot', 'resteembot', 'hugewhale', 'resteemyou', 'schoolofminnows', 'zerotoherobot', 'superbot', 'queqtra', 'blockgators', 'steemthat',
+    'reblogit', 'earnmoresteem', 'frontrunner', 'photocontests', 'ottoman', 'fresteem', 'oceansbot', 'red-rose', 'otobot', 'postresteem', 'talhadogan', 'danzy',
+    'growingpower', 'giftbox', 'jeryalex', 'highvote', 'drewardsresteem', 'bestvote', 'bidbot', 'thehumanbot', 'mecurator', 'okankarol', 'astrobot', 'alphaprime', 'gangvote',
+    'buildawhale', 'booster', 'upmyvote', 'promobot', 'postpromoter', 'acidyo', 'reggaemuffin', 'gtg', 'inciter', 'top-exchanges', 'joeparys', 'a-bot', 'tipu', 'oceanwhale', 'alfanso', 'bue',
+    'brupvoter', 'cervantes', 'spydo', 'thebot', 'onlyprofitbot', 'newhope', 'jphamer1', 'bid4joy', 'wackou', 'steem-ambassador', 'emperorofnaps', 'howo', 'delegate.lafona', 'suesa', 'pgarcgo', 'chris4210',
+    'starkerz', 'fredrikaa', 'sorin.cristescu', 'heiditravels', 'chorock', 'project7', 'swapsteem', 'kenmelendez', 'gargon', 'llfarms', 'alexs1320', 'zephyraijunzo', 'nateaguila', 'jgcastrillo19', 'arv1',
+    'ashtv', 'wartrapa', 'beamentor', 'delabo', 'blewitt', 'smartvote', 'ivet', 's4s', 'firepower', 'ocdb', 'tarazkp', 'booster', 'oracle-d', 'appreciator', 'rocky1', 'byresteem' ];
 
 const BLACK_LIST_BOTS = [ ...appsBots, ...serviceBots, ...bitBots, ...otherBots ];
 

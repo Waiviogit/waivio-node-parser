@@ -1,34 +1,38 @@
 #!/usr/bin/env node
 
 /**
+ * Event listener for HTTP server "error" event.
+ */
+
+const onError = ( error ) => {
+    if ( error.syscall !== 'listen' ) {
+        throw error;
+    }
+
+    let bind = typeof port === 'string' ? `Pipe ${ port}` : `Port ${ port}`;
+
+    // handle specific listen errors with friendly messages
+    switch ( error.code ) {
+        case 'EACCES' :
+            console.error( `${bind } requires elevated privileges` );
+            process.exit( 1 );
+            break;
+        case 'EADDRINUSE' :
+            console.error( `${bind } is already in use` );
+            process.exit( 1 );
+            break;
+        default :
+            throw error;
+    }
+};
+
+/**
  * Module dependencies.
  */
 
 let app = require( '../app' );
 let debug = require( 'debug' )( 'waivio-node-parser:server' );
 let http = require( 'http' );
-
-/**
- * Get port from environment and store in Express.
- */
-
-let port = normalizePort( process.env.PORT || '3000' );
-
-app.set( 'port', port );
-
-/**
- * Create HTTP server.
- */
-
-let server = http.createServer( app );
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen( port );
-server.on( 'error', onError );
-server.on( 'listening', onListening );
 
 /**
  * Normalize a port into a number, string, or false.
@@ -51,30 +55,19 @@ const normalizePort = ( val ) => {
 };
 
 /**
- * Event listener for HTTP server "error" event.
+ * Get port from environment and store in Express.
  */
 
-const onError = ( error ) => {
-    if ( error.syscall !== 'listen' ) {
-        throw error;
-    }
+let port = normalizePort( process.env.PORT || '3000' );
 
-    let bind = typeof port === 'string' ? `Pipe ${ port}` : `Port ${ port}`;
+app.set( 'port', port );
 
-    // handle specific listen errors with friendly messages
-    switch ( error.code ) {
-    case 'EACCES':
-        console.error( `${bind } requires elevated privileges` );
-        process.exit( 1 );
-        break;
-    case 'EADDRINUSE':
-        console.error( `${bind } is already in use` );
-        process.exit( 1 );
-        break;
-    default:
-        throw error;
-    }
-};
+/**
+ * Create HTTP server.
+ */
+
+let server = http.createServer( app );
+
 
 /**
  * Event listener for HTTP server "listening" event.
@@ -86,3 +79,10 @@ const onListening = () => {
 
     debug( `Listening on ${ bind}` );
 };
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen( port );
+server.on( 'error', onError );
+server.on( 'listening', onListening );
