@@ -1,3 +1,3 @@
 module.exports = {
-    importTags: require('./importTags')
+    importTags: require( './importTags' )
 };

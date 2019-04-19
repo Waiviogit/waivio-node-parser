@@ -1,5 +1,5 @@
-const {ObjectTypeFactory} = require('../../factories');
-const {faker, getRandomString} = require('../../testHelper');
+const { ObjectTypeFactory } = require( '../../factories' );
+const { faker, getRandomString } = require( '../../testHelper' );
 
 const getMocksData = async () => {
     const objectType = await ObjectTypeFactory.Create();
@@ -8,7 +8,7 @@ const getMocksData = async () => {
         parent_author: objectType.author,
         parent_permlink: objectType.permlink,
         author: faker.name.firstName().toLowerCase(),
-        permlink: getRandomString(15),
+        permlink: getRandomString( 15 )
 
     };
     const metadata = {
@@ -22,7 +22,8 @@ const getMocksData = async () => {
             default_name: faker.address.city()
         }
     };
-    return {objectType, operation, metadata}
+
+    return { objectType, operation, metadata };
 };
 
-module.exports = {getMocksData}
+module.exports = { getMocksData };
