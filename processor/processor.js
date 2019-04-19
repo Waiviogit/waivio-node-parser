@@ -2,7 +2,6 @@ const {api} = require('../api');
 const _ = require('lodash');
 const {restoreRedisHelper} = require('../utilities/redis');
 const {restoreHelper} = require('../utilities/helpers');
-const {importObjectsService} = require('../utilities/services');
 
 const parseAllBlockChain = async (req, res) => {
     try {
@@ -65,17 +64,6 @@ const restoreRedis = async (req, res) => {
     }
 };
 
-const importWobjects = async (req, res, next) => {
-    const data = {
-        wobjects: req.body.wobjects || []
-    };
-    await importObjectsService.addWobjectsToQueue(data);
-    console.log("wobjects added to queue");
-    res.status(200).json({message:'Wobjects added to queue of creating!'});
-};  //add wobjects to queue for send it to objects-bot and write it to blockchain
-
-
-
 module.exports = {
-    parseAllBlockChain, runStream, getCurrentBlock, restoreRedis, importWobjects
+    parseAllBlockChain, runStream, getCurrentBlock, restoreRedis
 };

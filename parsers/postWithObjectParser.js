@@ -8,10 +8,10 @@ const parse = async function (operation, metadata) {
         author: operation.author,
         permlink: operation.permlink,
         wobjects: metadata.wobj.wobjects,
-        app: metadata.app
+        app: typeof metadata.app === 'string' ? metadata.app : ''
     };
 
-    User.checkAndCreate({name: operation.author});
+    await User.checkAndCreate({name: operation.author});
 
     const {result, error} = await createOrUpdatePost(data);
     if (error) {

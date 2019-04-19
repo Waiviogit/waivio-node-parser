@@ -1,13 +1,14 @@
 const {Wobj} = require('../../models');
-const {importObjectsService} = require('../services');
+const {importTags} = require('../objectImportServiceApi');
 const _ = require('lodash');
 
 const wobjectsByTags = async (tags) => {
     const wobjects = [];
+    const tagsImport = [];
     if (tags && Array.isArray(tags)) {
         for (const tag of _.compact(tags)) {
-            let notValidChars = tag.match(/[^a-z0-9\-!?]+/g);
-            if(!_.isEmpty(notValidChars)){
+            let notValidChars = tag.match(/[^a-z0-9\-!?]+/g);   //skip not valid tags
+            if (!_.isEmpty(notValidChars)) {
                 continue;
             }
 
@@ -19,18 +20,12 @@ const wobjectsByTags = async (tags) => {
                     tagged: tag
                 });
             } else {
-                const wobject = {
-                    "author_permlink": tag,
-                    "object_type": "hashtag",
-                    "default_name": tag,
-                    "is_extending_open": true,
-                    "is_posting_open": true,
-                    "creator": "monterey",
-                    "fields": []
-                };
-                await importObjectsService.addWobjectsToQueue({wobjects: [wobject]});
+                tagsImport.push(tag);
             }
         }
+    }
+    if (tagsImport.length) {
+        // await importTags.send(tagsImport);
     }
     return wobjects;
 };
