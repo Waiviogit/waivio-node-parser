@@ -157,7 +157,7 @@ const getFieldsRefs = async ( author_permlink ) => {
 
 const getSomeFields = async ( fieldName, author_permlink ) => {
     try {
-        const fields = await WObjectModel.aggregate( [
+        const wobjects = await WObjectModel.aggregate( [
             { $match: { author_permlink: author_permlink || /.*?/ } },
             { $unwind: '$fields' },
             { $match: { 'fields.name': fieldName || /.*?/ } },
@@ -166,11 +166,17 @@ const getSomeFields = async ( fieldName, author_permlink ) => {
             { $project: { _id: 0, author_permlink: '$_id', fields: 1 } }
         ] );
 
-        return { fields };
+        return { wobjects };
     } catch ( error ) {
         return { error };
     }
 };
+
+// ( async () => {
+//     const { fields } = await getSomeFields( 'name', 'life' );
+//
+//     console.log( fields );
+// } )();
 
 const getField = async ( author, permlink, author_permlink ) => {
     try {
