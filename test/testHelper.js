@@ -8,7 +8,8 @@ const {
     postWithObjectParser,
     voteParser
 } = require( '../parsers' );
-const { investarenaForecastHelper } = require( '../utilities/helpers' );
+const { investarenaForecastHelper, voteFieldHelper } = require( '../utilities/helpers' );
+const { postsUtil } = require( '../utilities/steemApi' );
 const { ObjectType, WObject, Post, User, UserWobjects } = require( '../database' ).models;
 const chai = require( 'chai' );
 const expect = chai.expect;
@@ -44,5 +45,7 @@ module.exports = {
     faker,
     getRandomString,
     sinon,
-    investarenaForecastHelper
+    investarenaForecastHelper,
+    voteFieldHelper,
+    postsUtil
 };
