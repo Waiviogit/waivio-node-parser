@@ -40,7 +40,7 @@ const updatePostWithExpForecast = async ( { parent_author, parent_permlink, auth
 const validateExpForecast = async ( { parent_author, parent_permlink, author, exp_forecast } ) => {
     const { post } = await Post.findOne( { author: parent_author, permlink: parent_permlink } );
 
-    if ( !post && !post.forecast ) {
+    if ( !post || !post.forecast ) {
         return false;
     }
     if ( !SUPPORTED_EXP_FORECAST_BOTS.includes( author ) ) {
