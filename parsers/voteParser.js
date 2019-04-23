@@ -30,7 +30,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
             posts
         } );
     } else if ( voteOp.type === 'append_wobj' ) {
-        await voteCreateAppendObject( {
+        await voteAppendObject( {
             author: voteOp.author, // author and permlink - identity of field
             permlink: voteOp.permlink,
             voter: voteOp.voter,
@@ -40,7 +40,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
     }
 };
 
-const voteCreateAppendObject = async function ( data ) {
+const voteAppendObject = async function ( data ) {
     // data include: author, permlink, percent, voter, author_permlink
     // author and permlink - identity of field
     // author_permlink - identity of wobject
