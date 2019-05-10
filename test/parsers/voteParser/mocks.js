@@ -8,7 +8,7 @@ const voteAppendObjectMocks = async () => {
     post.author = appendObject.author;
     post.permlink = appendObject.permlink;
 
-    return {vote, post};
+    return { vote, post };
 };
 
 module.exports = { voteAppendObjectMocks };

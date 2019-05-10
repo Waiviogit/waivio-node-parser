@@ -1,5 +1,6 @@
 const { Wobj } = require( '../../models' );
 const { BLACK_LIST_BOTS } = require( '../constants' );
+const updateSpecifiedFieldHelper = require( './updateSpecifiedFieldsHelper' );
 
 const voteOnField = async ( data ) => {
     await findAndRemoveVote( data ); // case for un-vote
@@ -46,15 +47,7 @@ const handleSpecifiedField = async ( author, permlink, author_permlink ) => {
     if ( error || !field ) {
         return;
     }
-    switch ( field.name ) {
-        case 'parent' :
-            const { wobjects } = await Wobj.getSomeFields( 'parent', author_permlink );
-
-            if ( wobjects && Array.isArray( wobjects ) && wobjects[ 0 ].fields && Array.isArray( wobjects[ 0 ].fields ) ) {
-                await Wobj.update( { author_permlink }, { parent: wobjects[ 0 ].fields[ 0 ] } );
-            }
-            break;
-    }
+    await updateSpecifiedFieldHelper.update( author, permlink, author_permlink );
 };
 
 module.exports = { voteOnField };
