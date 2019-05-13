@@ -1,9 +1,9 @@
 const { faker, getRandomString, redisSetter } = require( '../../testHelper' );
 
-const Create = async ( { creator, name, weight } = {} ) => {
+const Create = async ( { creator, name, weight, body } = {} ) => {
     const appendObject = {
         name: name || 'city',
-        body: faker.address.city(),
+        body: body || faker.address.city(),
         locale: 'en-US',
         weight: weight || faker.random.number( 1000 ),
         creator: creator || faker.name.firstName().toLowerCase(),

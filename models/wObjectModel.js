@@ -172,12 +172,6 @@ const getSomeFields = async ( fieldName, author_permlink ) => {
     }
 };
 
-// ( async () => {
-//     const { fields } = await getSomeFields( 'name', 'life' );
-//
-//     console.log( fields );
-// } )();
-
 const getField = async ( author, permlink, author_permlink ) => {
     try {
         const [ field ] = await WObjectModel.aggregate( [

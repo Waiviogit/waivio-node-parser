@@ -9,6 +9,7 @@ const {
     voteParser
 } = require( '../parsers' );
 const { investarenaForecastHelper, voteFieldHelper, updateSpecifiedFieldsHelper } = require( '../utilities/helpers' );
+const { specifiedFieldsValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { ObjectType, WObject, Post, User, UserWobjects } = require( '../database' ).models;
 const chai = require( 'chai' );
@@ -48,5 +49,6 @@ module.exports = {
     investarenaForecastHelper,
     voteFieldHelper,
     postsUtil,
-    updateSpecifiedFieldsHelper
+    updateSpecifiedFieldsHelper,
+    specifiedFieldsValidator
 };

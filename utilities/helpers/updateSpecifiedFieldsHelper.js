@@ -36,7 +36,15 @@ const update = async ( author, permlink, author_permlink ) => {
             const { wobjects: wobjNewsFilter } = await Wobj.getSomeFields( 'newsFilter', author_permlink );
 
             if( wobjNewsFilter && Array.isArray( wobjNewsFilter ) && wobjNewsFilter[ 0 ].fields && Array.isArray( wobjNewsFilter[ 0 ].fields ) ) {
-                await Wobj.update( { author_permlink }, { newsFilter: wobjNewsFilter[ 0 ].fields[ 0 ] } );
+                let newsFilter;
+
+                try{
+                    newsFilter = JSON.parse( wobjNewsFilter[ 0 ].fields[ 0 ] );
+                } catch ( newsFilterParseError ) {
+                    console.error( `Error on parse "newsFilter" field: ${ newsFilterParseError}` );
+                    break;
+                }
+                await Wobj.update( { author_permlink }, { newsFilter } );
             }
             break;
     }
