@@ -1,2 +1,5 @@
+test
+--recursive
+--env NODE_ENV=test
 --timeout 5000
---NODE_ENV test
+--exit
