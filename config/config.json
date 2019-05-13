@@ -7,9 +7,7 @@
     },
     "redis": {
       "wobjectsRefs": 1,
-      "lastBlock": 2,
-      "importQueue": 3,
-      "importWobjData": 5
+      "lastBlock": 2
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -21,9 +19,7 @@
     },
     "redis": {
       "wobjectsRefs": 1,
-      "lastBlock": 2,
-      "importQueue": 3,
-      "importWobjData": 5
+      "lastBlock": 2
     },
     "nodeUrl": "https://api.steemit.com/"
   },
@@ -35,9 +31,7 @@
     },
     "redis": {
       "wobjectsRefs": 6,
-      "lastBlock": 7,
-      "importQueue": 8,
-      "importWobjData": 9
+      "lastBlock": 7
     },
     "nodeUrl": "https://api.steemit.com/"
   }

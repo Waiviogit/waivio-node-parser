@@ -1,5 +1,5 @@
-const {PostFactory, ObjectFactory, ObjectTypeFactory} = require('../../factories');
-const {faker, getRandomString} = require('../../testHelper');
+const { PostFactory, ObjectTypeFactory } = require( '../../factories' );
+const { faker } = require( '../../testHelper' );
 
 const getCreateObjectTypeMocks = () => {
     const metadataWobj = {
@@ -8,7 +8,8 @@ const getCreateObjectTypeMocks = () => {
             name: faker.address.city().toLowerCase()
         }
     };
-    const op = PostFactory.Create({parent_author: '', additionsForMetadata: metadataWobj, onlyData: true});
+    const op = PostFactory.Create( { parent_author: '', additionsForMetadata: metadataWobj, onlyData: true } );
+
     return op;
 };
 
@@ -25,8 +26,9 @@ const getCreateObjectMocks = async () => {
             default_name: faker.address.city()
         }
     };
-    const op = PostFactory.Create({parent_author: objectType.author, parent_permlink: objectType.permlink, additionsForMetadata: metadataWobj, onlyData: true});
+    const op = PostFactory.Create( { parent_author: objectType.author, parent_permlink: objectType.permlink, additionsForMetadata: metadataWobj, onlyData: true } );
+
     return op;
 };
 
-module.exports = {getCreateObjectTypeMocks, getCreateObjectMocks}
+module.exports = { getCreateObjectTypeMocks, getCreateObjectMocks };

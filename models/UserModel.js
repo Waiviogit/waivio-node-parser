@@ -1,117 +1,109 @@
-const UserModel = require('../database').models.User;
+const UserModel = require( '../database' ).models.User;
+const UserWobjectsModel = require( '../database' ).models.UserWobjects;
 
-const create = async function (data) {
-    const newUser = new UserModel(data);
+const create = async function ( data ) {
+    const newUser = new UserModel( data );
+
     try {
-        return {user: await newUser.save()};
-    } catch (error) {
-        return {error}
+        return { user: await newUser.save() };
+    } catch ( error ) {
+        return { error };
     }
 };
 
-const addObjectFollow = async function (data) {                 //create user(if it doesn't exist) and update info
+const addObjectFollow = async function ( data ) { // create user(if it doesn't exist) and update info
     const res = await UserModel.findOneAndUpdate(
         {
-            name: data.user                                     //condition
+            name: data.user // condition
         }, {
             $addToSet: {
-                objects_follow: data.author_permlink            //update
+                objects_follow: data.author_permlink // update
             }
         }, {
             upsert: true,
-            new: true,                                          //options
+            new: true, // options
             setDefaultsOnInsert: true
-        });
-    if (!res) {
-        return {result: false}
+        } );
+
+    if ( !res ) {
+        return { result: false };
     }
-    return {result: true}
+    return { result: true };
 };
 
-const removeObjectFollow = async function (data) {          //create user(if it doesn't exist) and update info
+const removeObjectFollow = async function ( data ) { // create user(if it doesn't exist) and update info
     const res = await UserModel.findOneAndUpdate(
         {
-            name: data.user                                 //conditions
+            name: data.user // conditions
         }, {
             // name: data.user,
             $pull: {
-                objects_follow: data.author_permlink        //update data
+                objects_follow: data.author_permlink // update data
             }
         }, {
             upsert: true,
-            new: true,                                      //options
+            new: true, // options
             setDefaultsOnInsert: true
-        });
-    if (!res) {
-        return {result: false}
+        } );
+
+    if ( !res ) {
+        return { result: false };
     }
-    return {result: true}
+    return { result: true };
 };
 
-const checkAndCreate = async function (data) {      //check for existing user and create if not exist
+const checkAndCreate = async function ( data ) { // check for existing user and create if not exist
     try {
-        if (!(await UserModel.countDocuments({name: data.name}))) {
-            const user = await UserModel.create({name: data.name});
-            console.log(`User ${data.name} created!`);
-            return {user}
+        if ( !( await UserModel.countDocuments( { name: data.name } ) ) ) {
+            const user = await UserModel.create( { name: data.name } );
+
+            console.log( `User ${data.name} created!` );
+            return { user };
         }
-    } catch (error) {
-        return {error}
+    } catch ( error ) {
+        return { error };
     }
 };
 
-const increaseWobjectWeight = async function (data) {
+const increaseWobjectWeight = async function ( data ) {
     try {
-        await checkAndCreate({name: data.name});                //check for existing user in DB
-        await UserModel.updateOne({
-            name: data.name,
-            w_objects:{
-                $not:{
-                    $elemMatch:{
-                        author_permlink:data.author_permlink
-                    }
+        await checkAndCreate( { name: data.name } ); // check for existing user in DB
+        await UserWobjectsModel.findOneAndUpdate( // add weight in wobject to user, or create if it not exist
+            {
+                user_name: data.name,
+                author_permlink: data.author_permlink
+            },
+            {
+                $inc: {
+                    weight: data.weight
                 }
-            }
-        },{
-            $addToSet: {
-                w_objects: {
-                    weight: 1,
-                    author_permlink: data.author_permlink
-                }
-            }
-        });
-
-        await UserModel.updateOne({
-            name: data.name,
-            'w_objects.author_permlink': data.author_permlink
-        }, {
-            $inc: {
-                'w_objects.$.weight': data.weight
-            }
-        });
-        return {result: true}
-    } catch (error) {
-        return {error}
+            }, {
+                upsert: true,
+                new: true,
+                setDefaultsOnInsert: true
+            } );
+        return { result: true };
+    } catch ( error ) {
+        return { error };
     }
 };
 
-const checkForObjectShares = async function (data) {     //object shares - user weight in specified wobject
+const checkForObjectShares = async function ( data ) { // object shares - user weight in specified wobject
     try {
-        const user = await UserModel.findOne({
-            name: data.name,
-            'w_objects.author_permlink': data.author_permlink
-        })
-        // .select('w_objects')
-            .lean();
-        if (!user) {
-            return {error: false}
+        const userWobject = await UserWobjectsModel.findOne( {
+            user_name: data.name,
+            author_permlink: data.author_permlink
+        } ).lean();
+
+        if ( !userWobject ) {
+            return { error: { message: 'User have no weight in current object!' } };
         }
-        return {weight: user.w_objects.find(wobject => wobject.author_permlink === data.author_permlink).weight}
-    } catch (error) {
-        return {error}
+        return { weight: userWobject.weight };
+
+    } catch ( error ) {
+        return { error };
     }
 };
-
 
 module.exports = {
     create,

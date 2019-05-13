@@ -1,7 +1,8 @@
-const {postRefsClient, lastBlockClient} = require('./redis');
+const { postRefsClient, lastBlockClient } = require( './redis' );
 
-const getHashAll = async function (key, client = postRefsClient) {
-    const res = await client.hgetallAsync(key);
+const getHashAll = async function ( key, client = postRefsClient ) {
+    const res = await client.hgetallAsync( key );
+
     return res;
 };
 
@@ -12,8 +13,9 @@ const getHashAll = async function (key, client = postRefsClient) {
 // };
 
 const getLastBlockNum = async function () {
-    const num = await lastBlockClient.getAsync('last_block_num');
-    return num ? parseInt(num) : process.env.START_FROM_BLOCK || 29937113
+    const num = await lastBlockClient.getAsync( 'last_block_num' );
+
+    return num ? parseInt( num ) : process.env.START_FROM_BLOCK || 29937113;
 };
 
-module.exports = {getHashAll, getLastBlockNum}
+module.exports = { getHashAll, getLastBlockNum };

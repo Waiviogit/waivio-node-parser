@@ -1,4 +1,3 @@
-module.exports =
-    {
-        postsUtil: require('./postsUtil')
-    };
+module.exports = {
+    postsUtil: require( './postsUtil' )
+};

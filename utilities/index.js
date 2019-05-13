@@ -1,3 +1,3 @@
 module.exports = {
-    steemApi: require('./steemApi')
+    steemApi: require( './steemApi' )
 };
