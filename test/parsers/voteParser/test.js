@@ -18,7 +18,7 @@ describe( 'VoteParser', async () => {
                 await voteParser.parse( [ mocks.vote ] );
             } );
 
-            after( function () {
+            after( () => {
                 voteFieldHelperStub.restore();
                 postUtilStub.restore();
             } );
@@ -60,15 +60,14 @@ describe( 'VoteParser', async () => {
                     author_permlink: redisResp.root_wobj,
                     weight: 9999
                 } );
-                voteFieldHelperStub = sinon.stub( voteFieldHelper, 'voteOnField' ).callsFake( async () => {
-                } );
+                voteFieldHelperStub = sinon.stub( voteFieldHelper, 'voteOnField' ).callsFake( async () => {} );
                 postUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( async () => {
                     return [ mocks.post ];
                 } );
                 await voteParser.parse( [ mocks.vote ] );
             } );
 
-            after( function () {
+            after( () => {
                 voteFieldHelperStub.restore();
                 postUtilStub.restore();
             } );

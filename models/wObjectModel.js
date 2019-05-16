@@ -161,8 +161,8 @@ const getSomeFields = async ( fieldName, author_permlink ) => {
             { $match: { author_permlink: author_permlink || /.*?/ } },
             { $unwind: '$fields' },
             { $match: { 'fields.name': fieldName || /.*?/ } },
-            { $sort: { 'fields.weight': 1 } },
-            { $group: { _id: '$author_permlink', fields: { $addToSet: '$fields.body' } } },
+            { $sort: { 'fields.weight': -1 } },
+            { $group: { _id: '$author_permlink', fields: { $push: '$fields.body' } } },
             { $project: { _id: 0, author_permlink: '$_id', fields: 1 } }
         ] );
 
@@ -171,12 +171,6 @@ const getSomeFields = async ( fieldName, author_permlink ) => {
         return { error };
     }
 };
-
-// ( async () => {
-//     const { fields } = await getSomeFields( 'name', 'life' );
-//
-//     console.log( fields );
-// } )();
 
 const getField = async ( author, permlink, author_permlink ) => {
     try {
