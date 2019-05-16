@@ -22,6 +22,12 @@ const validatePostLinks = async ( data, operation ) => {
     if ( !result || !result.type || result.type !== 'create_wobj' || !result.root_wobj ) {
         throw new Error( "Can't append object, parent comment isn't create Object comment!" );
     }
+
+    const existResult = await redisGetter.getHashAll( `${operation.author}_${operation.permlink}` );
+
+    if( existResult ) {
+        throw new Error( "Can't append object, append is now exist!" );
+    }
 };
 
 module.exports = { validate };
