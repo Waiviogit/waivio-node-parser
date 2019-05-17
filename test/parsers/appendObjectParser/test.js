@@ -1,15 +1,33 @@
 const { getMocksData } = require( './mocks' );
-const { appendObjectParser, WObject, expect, redisGetter } = require( '../../testHelper' );
+const { appendObjectParser, WObject, expect, redisGetter, updateSpecifiedFieldsHelper, sinon } = require( '../../testHelper' );
 
 describe( 'Append object parser,', async () => {
     let mockData;
     let wobject;
+    let updateSpecifiedFieldHelperStub;
 
     before( async () => {
+        updateSpecifiedFieldHelperStub = sinon.stub( updateSpecifiedFieldsHelper, 'update' ).callsFake( () => {} );
         mockData = await getMocksData();
         await appendObjectParser.parse( mockData.operation, mockData.metadata );
         wobject = await WObject.findOne( { author_permlink: mockData.wobject.author_permlink } ).lean();
     } );
+
+    after( () => {
+        updateSpecifiedFieldHelperStub.restore();
+    } );
+
+    it( 'should call "updateSpecifiedFields" once', () => {
+        expect( updateSpecifiedFieldHelperStub.calledOnce ).to.be.true;
+    } );
+
+    it( 'should call "updateSpecifiedFieldHelper" with correct params', () => {
+        expect( updateSpecifiedFieldHelperStub.args[ 0 ][ 0 ] ).to.equal( mockData.operation.author );
+        expect( updateSpecifiedFieldHelperStub.args[ 0 ][ 1 ] ).to.equal( mockData.operation.permlink );
+        expect( updateSpecifiedFieldHelperStub.args[ 0 ][ 2 ] ).to.equal( mockData.operation.parent_permlink );
+    } );
+
+
     describe( 'field', async () => {
         it( 'should exist', async () => {
             const field = wobject.fields.find( ( f ) => f.author === mockData.operation.author && f.permlink === mockData.operation.permlink );

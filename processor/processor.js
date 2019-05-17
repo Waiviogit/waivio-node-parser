@@ -24,7 +24,8 @@ const runStream = async () => {
             console.log( `Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.` );
         }
         const transactionStatus = await api.getBlockNumberStream( {
-            startFromCurrent: true
+            // # param to start parse data from latest block in blockchain
+            startFromCurrent: false
         } );
 
         if ( !transactionStatus ) {

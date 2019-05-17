@@ -1,6 +1,6 @@
 const { faker, getRandomString, redisSetter } = require( '../../testHelper' );
 
-const Create = async ( { creator, name, weight, body } = {} ) => {
+const Create = async ( { creator, name, weight, body, root_wobj } = {} ) => {
     const appendObject = {
         name: name || 'city',
         body: body || faker.address.city(),
@@ -12,7 +12,7 @@ const Create = async ( { creator, name, weight, body } = {} ) => {
         active_votes: []
     };
 
-    await redisSetter.addAppendWobj( `${appendObject.author }_${ appendObject.permlink}`, getRandomString( 20 ) );
+    await redisSetter.addAppendWobj( `${appendObject.author }_${ appendObject.permlink}`, root_wobj || getRandomString( 20 ) );
     return { appendObject };
 };
 
