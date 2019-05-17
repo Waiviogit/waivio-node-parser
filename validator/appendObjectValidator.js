@@ -3,7 +3,7 @@ const { redisGetter } = require( '../utilities/redis' );
 
 const validate = async ( data, operation ) => {
     validateFields( data );
-    await validatePostLinks( data, operation );
+    await validatePostLinks( operation );
 };
 
 const validateFields = ( data ) => {
@@ -16,7 +16,7 @@ const validateFields = ( data ) => {
     } );
 };
 
-const validatePostLinks = async ( data, operation ) => {
+const validatePostLinks = async ( operation ) => {
     const result = await redisGetter.getHashAll( `${operation.parent_author}_${operation.parent_permlink}` );
 
     if ( !result || !result.type || result.type !== 'create_wobj' || !result.root_wobj ) {
@@ -30,4 +30,4 @@ const validatePostLinks = async ( data, operation ) => {
     }
 };
 
-module.exports = { validate };
+module.exports = { validate, validateFields, validatePostLinks };
