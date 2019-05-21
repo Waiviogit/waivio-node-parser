@@ -1,4 +1,4 @@
-const { expect, updateSpecifiedFieldsHelper, WObject, getRandomString } = require( '../../testHelper' );
+const { expect, updateSpecifiedFieldsHelper, WObject, getRandomString, faker } = require( '../../testHelper' );
 const { AppendObject, ObjectFactory } = require( '../../factories/' );
 const _ = require( 'lodash' );
 
@@ -140,5 +140,39 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
         } );
 
 
+    } );
+
+    describe( 'on "map" field', () => {
+        let fields;
+        let updWobj;
+
+        before( async () => {
+            let mockBody = () => {
+                // const kek = getRandomString(3);
+                return JSON.stringify( {
+                    longitude: faker.random.number( { min: -180, max: 180 } ),
+                    latitude: faker.random.number( { min: -90, max: 90 } )
+                } );
+            };
+            let { appendObject: field1 } = await AppendObject.Create( { name: 'map', body: ( mockBody() ), weight: 10 } );
+            let { appendObject: field2 } = await AppendObject.Create( { name: 'map', body: ( mockBody() ), weight: 1 } );
+            let { appendObject: field3 } = await AppendObject.Create( { name: 'map', body: ( mockBody() ), weight: -99 } );
+            let { appendObject: field4 } = await AppendObject.Create( { name: 'map', body: ( mockBody() ), weight: 80 } );
+
+            fields = [ field1, field2, field3, field4 ];
+            await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
+            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
+        } );
+
+        it( 'should add field "map" to wobject', async () => {
+            expect( updWobj.map ).to.exist;
+        } );
+
+        it( 'should write top field "map" to root of wobject', async () => {
+            const mockBody = JSON.parse( fields[ 3 ].body );
+
+            expect( updWobj.map ).to.deep.equal( { type: 'Point', coordinates: [ mockBody.longitude, mockBody.latitude ] } );
+        } );
     } );
 } );

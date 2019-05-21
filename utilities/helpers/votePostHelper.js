@@ -1,6 +1,4 @@
-const { Wobj } = require( '../../models' );
-const { User } = require( '../../models' );
-const { Post } = require( '../../models' );
+const { Wobj, User, Post } = require( '../../models' );
 const { BLACK_LIST_BOTS } = require( '../constants' );
 
 const voteOnPost = async ( data ) => {
@@ -15,11 +13,10 @@ const voteOnPost = async ( data ) => {
     if ( !BLACK_LIST_BOTS.includes( data.voter ) && data.post.author !== data.voter ) {
         await unvoteOnPost( data );
         if ( data.percent < 0 ) {
-            await downVoteOnPost( data, weight );
-        } // case for down-vote
-        else if ( data.percent > 0 ) {
-            await upVoteOnPost( data, weight );
-        } // case for up-vote
+            await downVoteOnPost( data, weight ); // case for down-vote
+        } else if ( data.percent > 0 ) {
+            await upVoteOnPost( data, weight ); // case for up-vote
+        }
 
     }
     data.post.wobjects = data.metadata.wobj.wobjects;

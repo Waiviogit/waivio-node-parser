@@ -30,4 +30,15 @@ const validateNewsFilter = ( newsFilter ) => {
     return isValid;
 };
 
-module.exports = { validateNewsFilter };
+const validateMap = ( map ) => {
+    if( _.isNil( map ) ) {
+        return false;
+    } else if( !map.longitude || map.longitude < -180 || map.longitude > 180 ) {
+        return false;
+    } else if( !map.latitude || map.latitude < -90 || map.latitude > 90 ) {
+        return false;
+    }
+    return true;
+};
+
+module.exports = { validateNewsFilter, validateMap };
