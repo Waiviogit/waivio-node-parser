@@ -25,6 +25,7 @@ const runStream = async () => {
         }
         const transactionStatus = await api.getBlockNumberStream( {
             // # param to start parse data from latest block in blockchain
+            // # if set to "false" - parsing started from last_block_num(key in redis)
             startFromCurrent: false
         } );
 

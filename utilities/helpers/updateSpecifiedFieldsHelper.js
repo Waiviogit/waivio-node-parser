@@ -1,4 +1,5 @@
 const { Wobj } = require( '../../models' );
+const { validateNewsFilter, validateMap } = require( '../../validator/specifiedFieldsValidator' );
 const TAG_CLOUDS_UPDATE_COUNT = 5;
 const RATINGS_UPDATE_COUNT = 4;
 
@@ -44,7 +45,27 @@ const update = async ( author, permlink, author_permlink ) => {
                     console.error( `Error on parse "newsFilter" field: ${ newsFilterParseError}` );
                     break;
                 }
-                await Wobj.update( { author_permlink }, { newsFilter } );
+                if( validateNewsFilter( newsFilter ) ) {
+                    await Wobj.update( { author_permlink }, { newsFilter } );
+                }
+            }
+            break;
+        case 'map' :
+            const { wobjects: wobjMap } = await Wobj.getSomeFields( 'map', author_permlink );
+
+            if( wobjMap && Array.isArray( wobjMap ) && Array.isArray( wobjMap[ 0 ].fields ) ) {
+                let map;
+
+                try{
+                    map = JSON.parse( wobjMap[ 0 ].fields[ 0 ] );
+                } catch ( mapParseError ) {
+                    console.error( `Error on parse "map" field: ${ mapParseError}` );
+                    break;
+                }
+                if( validateMap( map ) ) {
+                    await Wobj.update( { author_permlink }, { map: { type: 'Point', coordinates: [ map.longitude, map.latitude ] } } );
+                }
+
             }
             break;
     }
