@@ -51,6 +51,8 @@ const WObjectSchema = new Schema( {
     timestamps: true
 } );
 
+WObjectSchema.index( { map: '2dsphere' } );
+
 const wObjectModel = mongoose.model( 'wobject', WObjectSchema );
 
 module.exports = wObjectModel;
