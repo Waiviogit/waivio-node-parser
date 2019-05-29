@@ -52,6 +52,39 @@ const removeObjectFollow = async function ( data ) { // create user(if it doesn'
     return { result: true };
 };
 
+const addUserFollow = async function ( { follower, following } ) {
+    const res = await UserModel.findOneAndUpdate(
+        {
+            name: follower // condition
+        }, {
+            $addToSet: {
+                users_follow: following// update
+            }
+        } );
+
+    if ( !res ) {
+        return { result: false };
+    }
+    return { result: true };
+};
+
+const removeUserFollow = async function ( { follower, following } ) {
+    const res = await UserModel.findOneAndUpdate(
+        {
+            name: follower // conditions
+        }, {
+            // name: data.user,
+            $pull: {
+                users_follow: following // update data
+            }
+        } );
+
+    if ( !res ) {
+        return { result: false };
+    }
+    return { result: true };
+};
+
 const checkAndCreate = async function ( data ) { // check for existing user and create if not exist
     try {
         if ( !( await UserModel.countDocuments( { name: data.name } ) ) ) {
@@ -117,6 +150,8 @@ module.exports = {
     create,
     addObjectFollow,
     removeObjectFollow,
+    addUserFollow,
+    removeUserFollow,
     checkAndCreate,
     increaseWobjectWeight,
     checkForObjectShares,

@@ -22,6 +22,10 @@ const parseSwitcher = async ( transactions ) => {
                             case 'wobj_rating' :
                                 await ratingHelper.parse( operation[ 1 ] );
                                 break;
+
+                            case 'follow' :
+                                await userParsers.followUserParser( operation[ 1 ] );
+                                break;
                         }
                         break;
                     case 'account_update' :
