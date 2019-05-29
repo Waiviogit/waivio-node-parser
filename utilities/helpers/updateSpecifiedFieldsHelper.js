@@ -62,10 +62,13 @@ const update = async ( author, permlink, author_permlink ) => {
                     console.error( `Error on parse "map" field: ${ mapParseError}` );
                     break;
                 }
+                if( map.latitude && map.longitude ) {
+                    map.latitude = Number( map.latitude );
+                    map.longitude = Number( map.longitude );
+                }
                 if( validateMap( map ) ) {
                     await Wobj.update( { author_permlink }, { map: { type: 'Point', coordinates: [ map.longitude, map.latitude ] } } );
                 }
-
             }
             break;
     }

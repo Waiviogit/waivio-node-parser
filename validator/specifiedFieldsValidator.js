@@ -33,9 +33,9 @@ const validateNewsFilter = ( newsFilter ) => {
 const validateMap = ( map ) => {
     if( _.isNil( map ) ) {
         return false;
-    } else if( !map.longitude || map.longitude < -180 || map.longitude > 180 ) {
+    } else if( !map.longitude || typeof map.longitude !== 'number' || map.longitude < -180 || map.longitude > 180 ) {
         return false;
-    } else if( !map.latitude || map.latitude < -90 || map.latitude > 90 ) {
+    } else if( !map.latitude || typeof map.latitude !== 'number' || map.latitude < -90 || map.latitude > 90 ) {
         return false;
     }
     return true;
