@@ -6,7 +6,8 @@ const {
     followObjectParser,
     mainParser,
     postWithObjectParser,
-    voteParser
+    voteParser,
+    userParsers
 } = require( '../parsers' );
 const { investarenaForecastHelper, voteFieldHelper, updateSpecifiedFieldsHelper } = require( '../utilities/helpers' );
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
@@ -32,6 +33,7 @@ module.exports = {
     mainParser,
     postWithObjectParser,
     voteParser,
+    userParsers,
     ObjectType,
     WObject,
     Post,

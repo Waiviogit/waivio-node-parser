@@ -1,6 +1,4 @@
-const { followObjectParser } = require( '../parsers' );
-const { commentParser } = require( '../parsers' );
-const { voteParser } = require( '../parsers' );
+const { followObjectParser, commentParser, voteParser, userParsers } = require( '../parsers' );
 const { ratingHelper } = require( '../utilities/helpers' );
 
 const parseSwitcher = async ( transactions ) => {
@@ -26,6 +24,8 @@ const parseSwitcher = async ( transactions ) => {
                                 break;
                         }
                         break;
+                    case 'account_update' :
+                        await userParsers.updateAccountParser( operation[ 1 ] );
                 }
             }
         }

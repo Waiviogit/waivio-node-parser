@@ -105,11 +105,20 @@ const checkForObjectShares = async function ( data ) { // object shares - user w
     }
 };
 
+const update = async function ( condition, updateData ) {
+    try{
+        return { result: await UserModel.update( condition, updateData ) };
+    } catch ( error ) {
+        return { error };
+    }
+};
+
 module.exports = {
     create,
     addObjectFollow,
     removeObjectFollow,
     checkAndCreate,
     increaseWobjectWeight,
-    checkForObjectShares
+    checkForObjectShares,
+    update
 };
