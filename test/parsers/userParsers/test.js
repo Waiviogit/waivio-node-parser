@@ -1,4 +1,4 @@
-const { userParsers, User, expect, faker } = require( '../../testHelper' );
+const { userParsers, User, expect } = require( '../../testHelper' );
 const { UserFactory } = require( '../../factories' );
 
 describe( 'UserParsers', async () => {
@@ -35,13 +35,16 @@ describe( 'UserParsers', async () => {
     describe( 'on followUserParser', async () => {
         let usr;
         let usr2;
+        let usr3;
 
         before( async () => {
             const { user } = await UserFactory.Create();
             const { user: user2 } = await UserFactory.Create();
+            const { user: user3 } = await UserFactory.Create();
 
             usr = user;
             usr2 = user2;
+            usr3 = user3;
             await User.update( { name: user2.name }, { users_follow: [ 'tstusernamefllw' ] } );
             await userParsers.followUserParser( {
                 json: JSON.stringify( [
@@ -64,7 +67,16 @@ describe( 'UserParsers', async () => {
                     }
                 ] )
             } );
-            // updUser = await User.findOne( { name: user.name } ).lean();
+            await userParsers.followUserParser( {
+                json: JSON.stringify( [
+                    'follow',
+                    {
+                        follower: user2.name,
+                        following: 'tstusernamefllw',
+                        what: [ 'ignore' ]
+                    }
+                ] )
+            } );
         } );
         it( 'should add user to follow list', async () => {
             let user = await User.findOne( { name: usr.name } ).lean();
@@ -72,7 +84,14 @@ describe( 'UserParsers', async () => {
             expect( user.users_follow ).to.include( 'tstusernamefllw' );
         } );
         it( 'should remove user from follow list', async () => {
+            let user = await User.findOne( { name: usr2.name } ).lean();
 
+            expect( user.users_follow ).to.be.empty;
+        } );
+        it( 'should not follow if in "what" field key "ignore"', async () => {
+            let user = await User.findOne( { name: usr3.name } ).lean();
+
+            expect( user.users_follow ).to.be.empty;
         } );
 
     } );

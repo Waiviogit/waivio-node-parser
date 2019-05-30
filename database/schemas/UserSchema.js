@@ -7,7 +7,8 @@ const UserSchema = new Schema( {
     objects_follow: { type: [ String ], default: [] }, // arr of author_permlink of objects what user following
     users_follow: { type: [ String ], default: [] }, // arr of users which user follow
     json_metadata: { type: String, default: '' },
-    app_settings: { type: Object, default: [] } // custom settings like night_mode, default percent of vote etc.
+    app_settings: { type: Object, default: [] }, // custom settings like night_mode, default percent of vote etc.
+    drafts: { type: [ Object ] }
 }, { timestamps: true } );
 
 const UserModel = mongoose.model( 'User', UserSchema );
