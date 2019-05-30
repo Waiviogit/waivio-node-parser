@@ -16,7 +16,7 @@ const WObjectSchema = new Schema( {
     children: { type: [ String ], default: [] },
     fields: [ {
         name: { type: String, index: true },
-        body: { type: String, index: true },
+        body: { type: String },
         weight: { type: Number, default: 1 },
         locale: { type: String, default: 'en-US' },
         creator: { type: String },
@@ -49,6 +49,13 @@ const WObjectSchema = new Schema( {
         virtuals: true
     },
     timestamps: true
+} );
+
+WObjectSchema.pre( 'save', function ( next ) {
+    if( this.map && !this.map.type ) {
+        this.map = null;
+    }
+    next();
 } );
 
 WObjectSchema.index( { map: '2dsphere' } );
