@@ -51,6 +51,13 @@ const WObjectSchema = new Schema( {
     timestamps: true
 } );
 
+WObjectSchema.pre( 'save', function ( next ) {
+    if( this.map && !this.map.type ) {
+        this.map = null;
+    }
+    next();
+} );
+
 WObjectSchema.index( { map: '2dsphere' } );
 
 const wObjectModel = mongoose.model( 'wobject', WObjectSchema );
