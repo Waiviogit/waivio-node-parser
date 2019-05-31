@@ -33,7 +33,7 @@ const otherBots = [ 'voteme', 'raise-me-up', 'steeming-hot', 'steem-ua', 'vortac
     'steembot-colonel', 'steembot-general', 'steembot-soldier', 'steemboter', 'steemeditor.bot', 'steemersbot', 'steeminfobot', 'steemit-bot', 'steemitbotfree', 'steemplus-bot', 'steemus-bot', 'steemybot',
     'steevebot', 'stockholmebot', 'superbot', 'superbot777', 'swiftbot', 't-bot', 'talbot2alf', 'thebot', 'thebotfather', 'thehappybot', 'therebotlove', 'timbot606',
     'tonybot', 'transparencybot', 'travelbot', 'trustbot', 'truthbot', 'turtlebot', 'tweetbot', 'umvbot', 'upvote.bot', 'upvoting-bot', 'urobotics', 'vectorabbot', 'voteboter', 'votingbot', 'wbot01',
-    'webbotreader', 'whalepromobot', 'winvotebot', 'witnessbot', 'xibot', 'yahoobot', 'zappl-bot', 'zapplbot', 'zenbot', 'haejin' ];
+    'webbotreader', 'whalepromobot', 'winvotebot', 'witnessbot', 'xibot', 'yahoobot', 'zappl-bot', 'zapplbot', 'zenbot', 'haejin', 'sigizzang', 'happybelly' ];
 
 const bitBots = [ 'postpromoter', 'buildawhale', 'sneaky-ninja', 'appreciator', 'therising', 'jerrybanfield', 'boomerang', 'upmyvote', 'promobot', 'minnowvotes',
     'smartsteem', 'upmewhale', 'inciter', 'rocky1', 'minnowbooster', 'smartmarket', 'tipu', 'tipu', 'bdvoter', 'rewards-pool', 'treeplanter', 'originalworks',

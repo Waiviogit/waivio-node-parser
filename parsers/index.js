@@ -6,5 +6,6 @@ module.exports = {
     commentParser: require( './commentParser' ),
     voteParser: require( './voteParser' ),
     objectTypeParser: require( './objectTypeParser' ),
-    postWithObjectParser: require( './postWithObjectParser' )
+    postWithObjectParser: require( './postWithObjectParser' ),
+    userParsers: require( './userParsers' )
 };
