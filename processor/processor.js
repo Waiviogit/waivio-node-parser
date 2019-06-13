@@ -20,7 +20,7 @@ const parseAllBlockChain = async ( req, res ) => {
 
 const runStream = async () => {
     try {
-        console.log( `RESTORE_REDIS${ RESTORE_REDIS}` );
+        console.log( `RESTORE_REDIS: ${ RESTORE_REDIS}` );
         if( RESTORE_REDIS ) {
             const result = await restoreRedisHelper.restore();
 

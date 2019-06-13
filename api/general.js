@@ -8,11 +8,11 @@ steem.api.setOptions( { url: 'https://api.steemit.com' } );
 
 const getBlockNumberStream = async ( { startFromBlock, startFromCurrent } ) => {
     if ( startFromCurrent ) {
-        loadNextBlock( ( await steem.api.getDynamicGlobalPropertiesAsync() ).head_block_number );
+        await loadNextBlock( ( await steem.api.getDynamicGlobalPropertiesAsync() ).head_block_number );
     } else if ( startFromBlock && Number.isInteger( startFromBlock ) ) {
-        loadNextBlock( startFromBlock );
+        await loadNextBlock( startFromBlock );
     } else {
-        loadNextBlock();
+        await loadNextBlock();
     }
     return true;
 };
@@ -42,9 +42,9 @@ const loadNextBlock = async ( startBlock ) => {
 
     if ( loadResult ) {
         await redisSetter.setLastBlockNum( lastBlockNum + 1 );
-        await loadNextBlock();
+        await loadNextBlock( lastBlockNum + 1 );
     } else {
-        await setTimeout( async () => await loadNextBlock(), 2000 );
+        await setTimeout( async () => await loadNextBlock( lastBlockNum ), 2000 );
     }
 
 };

@@ -41,11 +41,11 @@ const parse = async function ( operation ) { // data is operation[1] of transact
         if ( metadata && metadata.wobj ) {
             if ( metadata.wobj.action ) {
                 switch ( metadata.wobj.action ) {
-                case 'createObject':
-                    await createObjectParser.parse( operation, metadata );
-                    break;
-                case 'appendObject':
-                    await appendObjectParser.parse( operation, metadata );
+                    case 'createObject' :
+                        await createObjectParser.parse( operation, metadata );
+                        break;
+                    case 'appendObject' :
+                        await appendObjectParser.parse( operation, metadata );
                 }
             }
         }

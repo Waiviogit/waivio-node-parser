@@ -17,7 +17,10 @@ const parse = async function ( operation, metadata ) {
         };
         const res = await createObject( data, operation );
 
-        if ( res && !res.error ) {
+        if( res.error ) {
+            console.error( res.error );
+        }
+        if ( res ) {
             console.log( `Waivio object ${data.default_name} created!\n` );
         }
     } catch ( error ) {
