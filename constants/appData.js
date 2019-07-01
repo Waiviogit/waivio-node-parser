@@ -25,7 +25,10 @@ const objectImportService = {
 
 };
 
+const nodeUrls = [ 'https://anyx.io', 'https://api.steemit.com' ];
+
 module.exports = {
     appData,
-    objectImportService: objectImportService[ process.env.NODE_ENV || 'development' ]
+    objectImportService: objectImportService[ process.env.NODE_ENV || 'development' ],
+    nodeUrls
 };
