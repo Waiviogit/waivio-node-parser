@@ -8,8 +8,7 @@
     "redis": {
       "wobjectsRefs": 1,
       "lastBlock": 2
-    },
-    "nodeUrl": "https://api.steemit.com/"
+    }
   },
   "staging": {
     "db": {
@@ -20,8 +19,7 @@
     "redis": {
       "wobjectsRefs": 1,
       "lastBlock": 2
-    },
-    "nodeUrl": "https://api.steemit.com/"
+    }
   },
   "development": {
     "db": {
@@ -32,8 +30,7 @@
     "redis": {
       "wobjectsRefs": 1,
       "lastBlock": 2
-    },
-    "nodeUrl": "https://api.steemit.com/"
+    }
   },
   "test": {
     "db": {
@@ -44,7 +41,6 @@
     "redis": {
       "wobjectsRefs": 6,
       "lastBlock": 7
-    },
-    "nodeUrl": "https://api.steemit.com/"
+    }
   }
 }

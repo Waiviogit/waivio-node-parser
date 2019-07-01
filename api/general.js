@@ -1,10 +1,11 @@
+const { nodeUrls } = require( '../constants/appData' );
 const steem = require( 'steem' );
 const { parseSwitcher } = require( '../parsers/mainParser' );
 const bluebird = require( 'bluebird' );
 const { redisGetter, redisSetter } = require( '../utilities/redis' );
 
 bluebird.promisifyAll( steem.api );
-steem.api.setOptions( { url: 'https://api.steemit.com' } );
+steem.api.setOptions( { url: nodeUrls[ 0 ] } );
 
 const getBlockNumberStream = async ( { startFromBlock, startFromCurrent } ) => {
     if ( startFromCurrent ) {
@@ -15,19 +16,6 @@ const getBlockNumberStream = async ( { startFromBlock, startFromCurrent } ) => {
         await loadNextBlock();
     }
     return true;
-};
-
-const getBlockNumbers = async () => {
-    const returnData = await blockChain.getBlockNumbers();
-
-    console.log( returnData );
-    return returnData;
-};
-
-const getCurrentBlock = async () => {
-    const returnData = await blockChain.getCurrentBlock();
-
-    return returnData;
 };
 
 const loadNextBlock = async ( startBlock ) => {
@@ -44,7 +32,9 @@ const loadNextBlock = async ( startBlock ) => {
         await redisSetter.setLastBlockNum( lastBlockNum + 1 );
         await loadNextBlock( lastBlockNum + 1 );
     } else {
-        await setTimeout( async () => await loadNextBlock( lastBlockNum ), 2000 );
+        // await setTimeout( async () => await loadNextBlock( lastBlockNum ), 2000 );
+        await new Promise( ( resolve ) => setTimeout( resolve, 2000 ) );
+        await loadNextBlock( lastBlockNum );
     }
 
 };
@@ -56,16 +46,25 @@ const loadBlock = async ( block_num ) => { // return true if block exist and par
         block = await steem.api.getBlockAsync( block_num );
     } catch ( error ) {
         console.error( error );
+        changeNodeUrl();
         return false;
     }
-    if ( block && block.transactions && block.transactions[ 0 ] ) {
-        console.time( block.transactions[ 0 ].block_num );
-        await parseSwitcher( block.transactions );
-        console.timeEnd( block.transactions[ 0 ].block_num );
-        return true;
-    } return false;
+    if ( !block || !block.transactions || !block.transactions[ 0 ] ) {
+        return false;
+    }
+    console.time( block.transactions[ 0 ].block_num );
+    await parseSwitcher( block.transactions );
+    console.timeEnd( block.transactions[ 0 ].block_num );
+    return true;
+};
+
+const changeNodeUrl = () => {
+    const index = nodeUrls.indexOf( steem.config.url );
+
+    steem.config.url = index === nodeUrls.length - 1 ? nodeUrls[ 0 ] : nodeUrls[ index + 1 ];
+    console.error( 'Node URL was changed to ' + steem.config.url );
 };
 
 module.exports = {
-    getBlockNumberStream, getBlockNumbers, getCurrentBlock
+    getBlockNumberStream
 };
