@@ -7,11 +7,15 @@ const appData = {
 
 const objectImportService = {
     production: {
-        IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://waiviodev.com/import-objects-service',
+        IMPORT_OBJECTS_SERVICE_HOST_URL: 'https://waivio.com/import-objects-service',
+        IMPORT_TAGS_ROUTE: '/import-tags'
+    },
+    staging: {
+        IMPORT_OBJECTS_SERVICE_HOST_URL: 'https://waiviodev.com/import-objects-service',
         IMPORT_TAGS_ROUTE: '/import-tags'
     },
     development: {
-        IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://localhost:8085/import-objects-service' ,
+        IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://localhost:8085/import-objects-service',
         IMPORT_TAGS_ROUTE: '/import-tags'
     },
     test: {

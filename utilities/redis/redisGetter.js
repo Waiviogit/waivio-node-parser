@@ -13,7 +13,8 @@ const getHashAll = async function ( key, client = postRefsClient ) {
 // };
 
 const getLastBlockNum = async function () {
-    const num = await lastBlockClient.getAsync( 'last_block_num' );
+    const key = process.env.PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
+    const num = await lastBlockClient.getAsync( key );
 
     return num ? parseInt( num ) : process.env.START_FROM_BLOCK || 29937113;
 };

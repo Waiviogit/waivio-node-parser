@@ -1,6 +1,7 @@
 const { Wobj } = require( '../../models' );
 const { importTags } = require( '../objectImportServiceApi' );
 const _ = require( 'lodash' );
+const DYNAMIC_HASHTAGS = process.env.DYNAMIC_HASHTAGS === 'true';
 
 const wobjectsByTags = async ( tags ) => {
     const wobjects = [];
@@ -27,8 +28,8 @@ const wobjectsByTags = async ( tags ) => {
             }
         }
     }
-    if ( tagsImport.length ) {
-        // await importTags.send(tagsImport);
+    if ( tagsImport.length && DYNAMIC_HASHTAGS ) {
+        await importTags.send( tagsImport );
     }
     return wobjects;
 };

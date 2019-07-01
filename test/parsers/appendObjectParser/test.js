@@ -22,9 +22,7 @@ describe( 'Append object parser,', async () => {
     } );
 
     it( 'should call "updateSpecifiedFieldHelper" with correct params', () => {
-        expect( updateSpecifiedFieldHelperStub.args[ 0 ][ 0 ] ).to.equal( mockData.operation.author );
-        expect( updateSpecifiedFieldHelperStub.args[ 0 ][ 1 ] ).to.equal( mockData.operation.permlink );
-        expect( updateSpecifiedFieldHelperStub.args[ 0 ][ 2 ] ).to.equal( mockData.operation.parent_permlink );
+        expect( Object.values( mockData.operation ) ).to.include( ...updateSpecifiedFieldHelperStub.args[ 0 ] );
     } );
 
 

@@ -20,38 +20,18 @@ const addObjectType = async function ( author, permlink, name ) {
     await postRefsClient.hsetAsync( `${author }_${ permlink}`, 'name', name );
 };
 
-// const addWobjectToTag = async function (tag, author_permlink) {
-//     if (_.isString(tag) && !_.isEmpty(tag) && _.isString(author_permlink) && !_.isEmpty(author_permlink)) {
-//         await tagsClient.saddAsync(tag, author_permlink);
-//     }
-// };
-
 const setLastBlockNum = async function ( blockNum ) {
     if ( blockNum ) {
-        await lastBlockClient.setAsync( 'last_block_num', blockNum );
+        const key = process.env.PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
+
+        await lastBlockClient.setAsync( key, blockNum );
     }
 };
-
-// const updateTagsRefs = async (tags, author_permlink) => {
-//     if (tags && Array.isArray(tags) && tags.length > 5 && author_permlink) {
-//         for (const tag of tags) {
-//             const res = await tagsClient.sremAsync(tag, author_permlink);
-//             // console.log(`remove ${author_permlink} from ${tag}: ${res}`);
-//         }
-//         tags = tags.slice(0, 5);
-//         for (const tag of tags) {
-//             const res = await tagsClient.saddAsync(tag, author_permlink);
-//             // console.log(`add ${author_permlink} to ${tag}: ${res}`);
-//         }
-//     }
-// };
 
 module.exports = {
     addPostWithWobj,
     addAppendWobj,
-    // addWobjectToTag,
     setLastBlockNum,
-    // updateTagsRefs,
     addWobjRef,
     addObjectType
 };
