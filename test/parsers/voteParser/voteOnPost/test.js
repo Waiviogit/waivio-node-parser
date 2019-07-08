@@ -1,16 +1,15 @@
-const { expect, sinon, postsUtil, votePostHelper, UserWobjects, User, WObject } = require( '../../../testHelper' );
+const { expect, votePostHelper, UserWobjects, User, WObject } = require( '../../../testHelper' );
 const votePostMocks = require( './mocks' );
 
 describe( 'Vote On Post helper', async () => {
     let mocks;
-    let upd_author, upd_voter, upd_wobjects;
+    let upd_author, upd_voter;
 
     before( async () => {
         mocks = await votePostMocks();
         await votePostHelper.voteOnPost( { post: mocks.post, voter: mocks.user_voter.name, metadata: mocks.metadata, percent: 10000 } );
         upd_author = await User.findOne( { name: mocks.user_author.name } ).lean();
         upd_voter = await User.findOne( { name: mocks.user_voter.name } ).lean();
-        upd_wobjects = await WObject.find( { author_permlink: { $in: [ mocks.wobjects.map( ( w ) => w.author_permlink ) ] } } ).lean();
     } );
 
     it( 'should create user_wobjects docs for author', async () => {
@@ -60,6 +59,14 @@ describe( 'Vote On Post helper', async () => {
             sum += user_wobj_author.weight;
         }
         expect( upd_author.wobjects_weight ).to.eq( sum );
+    } );
+    it( 'should correctly update all wobjects weights', async () => {
+        for( const wobject of mocks.wobjects ) {
+            const upd_wobject = await WObject.findOne( { author_permlink: wobject.author_permlink } );
+            const weight_diff = upd_wobject.weight - wobject.weight;
+
+            expect( weight_diff ).to.eq( Math.round( mocks.vote.rshares * 1e-6 ) * 0.5 );
+        }
     } );
 
 } );
