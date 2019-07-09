@@ -115,6 +115,26 @@ const increaseWobjectWeight = async function ( data ) {
                 new: true,
                 setDefaultsOnInsert: true
             } );
+        await increaseUserWobjectsWeight( { name: data.name, weight: data.weight } );
+        return { result: true };
+    } catch ( error ) {
+        return { error };
+    }
+};
+
+const increaseUserWobjectsWeight = async function ( data ) {
+    try {
+        await UserModel.findOneAndUpdate( {
+            name: data.name
+        }, {
+            $inc: {
+                wobjects_weight: data.weight
+            }
+        }, {
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true
+        } );
         return { result: true };
     } catch ( error ) {
         return { error };

@@ -47,6 +47,12 @@ describe( 'Object parser', async () => {
             it( 'should exist', async () => {
                 expect( creator ).to.exist;
             } );
+            it( 'should have field "wobjects_weight"', () => {
+                expect( creator.wobjects_weight ).to.exist;
+            } );
+            it( 'should have "wobjects_weight" with value 1', () => {
+                expect( creator.wobjects_weight ).to.be.eq( 1 );
+            } );
             it( 'should have weight in wobject', async () => {
                 const wobjWeight = await UserWobjects.findOne( { user_name: mockData.metadata.wobj.creator, author_permlink: wobject.author_permlink } ).lean();
 

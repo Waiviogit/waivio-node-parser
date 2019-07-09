@@ -33,7 +33,7 @@ const Create = async ( { onlyData } = {} ) => {
     } );
 
     await redisSetter.addWobjRef( author, author_permlink );
-    return wobject;
+    return wobject._doc;
 };
 
 module.exports = { Create };

@@ -7,7 +7,7 @@ const appData = {
 
 const objectImportService = {
     production: {
-        IMPORT_OBJECTS_SERVICE_HOST_URL: 'https://waivio.com/import-objects-service',
+        IMPORT_OBJECTS_SERVICE_HOST_URL: 'https://www.waivio.com/import-objects-service',
         IMPORT_TAGS_ROUTE: '/import-tags'
     },
     staging: {
