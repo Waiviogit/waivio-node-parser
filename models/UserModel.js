@@ -166,11 +166,16 @@ const update = async function ( condition, updateData ) {
     }
 };
 
-const increaseCountPosts = ( author ) => {
-    UserModel.updateOne(
-        { name: author },
-        { $inc: { count_posts: 1 } }
-    );
+const increaseCountPosts = async ( author ) => {
+    try{
+        await UserModel.updateOne(
+            { name: author },
+            { $inc: { count_posts: 1 } }
+        );
+        return { result: true };
+    } catch( error ) {
+        return { error };
+    }
 };
 
 module.exports = {
