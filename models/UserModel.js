@@ -166,6 +166,13 @@ const update = async function ( condition, updateData ) {
     }
 };
 
+const increaseCountPosts = ( author ) => {
+    UserModel.updateOne(
+        { name: author },
+        { $inc: { count_posts: 1 } }
+    );
+};
+
 module.exports = {
     create,
     addObjectFollow,
@@ -175,5 +182,6 @@ module.exports = {
     checkAndCreate,
     increaseWobjectWeight,
     checkForObjectShares,
-    update
+    update,
+    increaseCountPosts
 };
