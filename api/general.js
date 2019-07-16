@@ -49,7 +49,6 @@ const loadBlock = async ( block_num ) => { // return true if block exist and par
         return false;
     }
     if ( !block ) {
-        console.error( `BROKEN BLOCK: ${ block_num}` );
         return false;
     }
     if( !block.transactions || !block.transactions[ 0 ] ) {
