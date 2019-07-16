@@ -32,7 +32,6 @@ const loadNextBlock = async ( startBlock ) => {
         await redisSetter.setLastBlockNum( lastBlockNum + 1 );
         await loadNextBlock( lastBlockNum + 1 );
     } else {
-        // await setTimeout( async () => await loadNextBlock( lastBlockNum ), 2000 );
         await new Promise( ( resolve ) => setTimeout( resolve, 2000 ) );
         await loadNextBlock( lastBlockNum );
     }
@@ -49,8 +48,13 @@ const loadBlock = async ( block_num ) => { // return true if block exist and par
         changeNodeUrl();
         return false;
     }
-    if ( !block || !block.transactions || !block.transactions[ 0 ] ) {
+    if ( !block ) {
+        console.error( `BROKEN BLOCK: ${ block_num}` );
         return false;
+    }
+    if( !block.transactions || !block.transactions[ 0 ] ) {
+        console.error( `EMPTY BLOCK: ${ block_num}` );
+        return true;
     }
     console.time( block.transactions[ 0 ].block_num );
     await parseSwitcher( block.transactions );
@@ -62,7 +66,7 @@ const changeNodeUrl = () => {
     const index = nodeUrls.indexOf( steem.config.url );
 
     steem.config.url = index === nodeUrls.length - 1 ? nodeUrls[ 0 ] : nodeUrls[ index + 1 ];
-    console.error( 'Node URL was changed to ' + steem.config.url );
+    console.error( `Node URL was changed to ${ steem.config.url}` );
 };
 
 module.exports = {
