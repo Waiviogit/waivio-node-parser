@@ -67,15 +67,14 @@ const votePostWithObjects = async function ( data ) { // data include: post, met
     if ( !data.post ) {
         return;
     }
-
     let metadata;
 
-    try { //
-        if ( data.post.json_metadata !== '' ) { //
+    try {
+        if ( data.post.json_metadata !== '' ) {
             metadata = JSON.parse( data.post.json_metadata ); // parse json_metadata from string to JSON
-        } //
-    } catch ( e ) { //
-        console.error( e ); //
+        }
+    } catch ( e ) {
+        console.error( e );
     }
     if ( !metadata ) {
         return;
