@@ -20,7 +20,7 @@ const voteOnPost = async ( data ) => {
         }
 
     }
-    data.post.wobjects = data.metadata.wobj.wobjects;
+    data.post.wobjects = _.get( data, 'metadata.wobj.wobjects' );
     data.post.app = data.metadata.app;
     data.post.active_votes = data.post.active_votes.map( ( vote ) => {
         return {
