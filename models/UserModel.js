@@ -115,6 +115,26 @@ const increaseWobjectWeight = async function ( data ) {
                 new: true,
                 setDefaultsOnInsert: true
             } );
+        await increaseUserWobjectsWeight( { name: data.name, weight: data.weight } );
+        return { result: true };
+    } catch ( error ) {
+        return { error };
+    }
+};
+
+const increaseUserWobjectsWeight = async function ( data ) {
+    try {
+        await UserModel.findOneAndUpdate( {
+            name: data.name
+        }, {
+            $inc: {
+                wobjects_weight: data.weight
+            }
+        }, {
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true
+        } );
         return { result: true };
     } catch ( error ) {
         return { error };
@@ -146,6 +166,18 @@ const update = async function ( condition, updateData ) {
     }
 };
 
+const increaseCountPosts = async ( author ) => {
+    try{
+        await UserModel.updateOne(
+            { name: author },
+            { $inc: { count_posts: 1 } }
+        );
+        return { result: true };
+    } catch( error ) {
+        return { error };
+    }
+};
+
 module.exports = {
     create,
     addObjectFollow,
@@ -155,5 +187,6 @@ module.exports = {
     checkAndCreate,
     increaseWobjectWeight,
     checkForObjectShares,
-    update
+    update,
+    increaseCountPosts
 };

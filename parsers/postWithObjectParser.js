@@ -45,6 +45,7 @@ const createOrUpdatePost = async function ( data ) {
         } );
     }
     await redisSetter.addPostWithWobj( `${data.author }_${ data.permlink}`, data.wobjects );
+    await User.increaseCountPosts( data.author );
     const { result, error } = await Post.update( post );
 
     if ( error ) {

@@ -1,5 +1,6 @@
 const { Wobj, User, Post } = require( '../../models' );
 const { BLACK_LIST_BOTS } = require( '../constants' );
+const _ = require( 'lodash' );
 
 const voteOnPost = async ( data ) => {
     // calculated value, for using in wobject environment
@@ -65,7 +66,7 @@ const downVoteOnPost = async function ( data, weight ) {
 };
 
 const upVoteOnPost = async function ( data, weight ) {
-    for ( const wObject of data.metadata.wobj.wobjects ) {
+    for ( const wObject of _.get( data, 'metadata.wobj.wobjects' ) || [] ) {
         // data.metadata.wobj.wobjects.forEach(async (wObject) => {
         const voteWeight = weight * ( wObject.percent / 100 ); // calculate vote weight for each wobject in post
 
