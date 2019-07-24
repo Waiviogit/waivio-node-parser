@@ -9,6 +9,9 @@ const wobjectsByTags = async ( tags ) => {
 
     if ( tags && Array.isArray( tags ) ) {
         for ( const tag of _.compact( tags ) ) {
+            if( typeof tag !== 'string' ) {
+                continue;
+            }
             let notValidChars = tag.match( /[^a-z0-9\-!?]+/g ); // skip not valid tags
 
             if ( !_.isEmpty( notValidChars ) ) {
