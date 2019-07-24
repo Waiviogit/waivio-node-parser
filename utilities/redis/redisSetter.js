@@ -1,5 +1,7 @@
 const { postRefsClient, lastBlockClient } = require( './redis' );
 
+const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
+
 const addPostWithWobj = async function ( author_permlink, wobjects ) {
     await postRefsClient.hsetAsync( author_permlink, 'type', 'post_with_wobj' );
     await postRefsClient.hsetAsync( author_permlink, 'wobjects', JSON.stringify( wobjects ) );
@@ -22,7 +24,7 @@ const addObjectType = async function ( author, permlink, name ) {
 
 const setLastBlockNum = async function ( blockNum ) {
     if ( blockNum ) {
-        const key = process.env.PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
+        const key = PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
 
         await lastBlockClient.setAsync( key, blockNum );
     }
