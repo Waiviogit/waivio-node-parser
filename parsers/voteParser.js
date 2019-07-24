@@ -109,7 +109,7 @@ const getPosts = async function ( postsRefs ) {
 
 const votesFormat = async ( votesOps ) => {
     for ( const voteOp of votesOps ) {
-        const redisResponse = await redisGetter.getHashAll( `${voteOp.author }_${ voteOp.permlink}` );
+        const redisResponse = await redisGetter.getHashAll( `${voteOp.author}_${voteOp.permlink}` );
 
         if ( redisResponse && redisResponse.type ) {
             voteOp.type = redisResponse.type;
