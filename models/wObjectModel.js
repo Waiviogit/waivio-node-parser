@@ -67,28 +67,28 @@ const increaseWobjectWeight = async function ( data ) {
     }
 };
 
-const findVote = async function ( data ) { // data include: author, permlink, author_permlink, voter
-    try {
-        const wobject = await WObjectModel.findOne( { 'author_permlink': data.author_permlink } )
-            .select( 'fields' )
-            .lean();
-
-        if ( wobject && wobject.fields ) {
-            const field = wobject.fields.find( ( f ) => f.author === data.author && f.permlink === data.permlink );
-
-            if ( field ) {
-                const vote = field.active_votes.find( ( v ) => v.voter === data.voter );
-
-                if ( vote ) {
-                    return { weight: vote.weight };
-                }
-            }
-        }
-        return { error: { message: 'vote not found' } };
-    } catch ( error ) {
-        return { error };
-    }
-};
+// const findVote = async function ( data ) { // data include: author, permlink, author_permlink, voter
+//     try {
+//         const wobject = await WObjectModel.findOne( { 'author_permlink': data.author_permlink } )
+//             .select( 'fields' )
+//             .lean();
+//
+//         if ( wobject && wobject.fields ) {
+//             const field = wobject.fields.find( ( f ) => f.author === data.author && f.permlink === data.permlink );
+//
+//             if ( field ) {
+//                 const vote = field.active_votes.find( ( v ) => v.voter === data.voter );
+//
+//                 if ( vote ) {
+//                     return { weight: vote.weight };
+//                 }
+//             }
+//         }
+//         return { error: { message: 'vote not found' } };
+//     } catch ( error ) {
+//         return { error };
+//     }
+// };
 
 const removeVote = async ( data ) => { // data include: author, permlink, author_permlink, voter
     try {
@@ -218,7 +218,7 @@ module.exports = {
     addField,
     increaseFieldWeight,
     increaseWobjectWeight,
-    findVote,
+    // findVote,
     removeVote,
     addVote,
     getWobjectsRefs,

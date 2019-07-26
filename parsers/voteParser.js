@@ -25,7 +25,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
             author: voteOp.author, // author and permlink - identity of field
             permlink: voteOp.permlink,
             voter: voteOp.voter,
-            percent: voteOp.weight,
+            percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
             wobjects: voteOp.wobjects,
             posts
         } );
@@ -34,7 +34,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
             author: voteOp.author, // author and permlink - identity of field
             permlink: voteOp.permlink,
             voter: voteOp.voter,
-            percent: voteOp.weight,
+            percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
             author_permlink: voteOp.root_wobj
         } );
     }
@@ -49,7 +49,7 @@ const voteAppendObject = async function ( data ) {
         author_permlink: data.author_permlink
     } );
 
-    if ( weight === undefined || weight <= 0 || error ) { // ignore users with zero or negative weight in wobject
+    if ( !weight || weight <= 0 || error ) { // ignore users with zero or negative weight in wobject
         weight = 1;
     }
     data.weight = weight;
