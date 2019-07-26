@@ -3,6 +3,7 @@ const steem = require( 'steem' );
 const { parseSwitcher } = require( '../parsers/mainParser' );
 const bluebird = require( 'bluebird' );
 const { redisGetter, redisSetter } = require( '../utilities/redis' );
+const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 bluebird.promisifyAll( steem.api );
 steem.api.setOptions( { url: nodeUrls[ 0 ] } );
@@ -41,6 +42,15 @@ const loadNextBlock = async ( startBlock ) => {
 const loadBlock = async ( block_num ) => { // return true if block exist and parsed, else - false
     let block;
 
+    /*
+    To prevent situation when vote parser went further than the main parser,
+    check the current block less than last handled on main parser
+     */
+    if( PARSE_ONLY_VOTES ) {
+        let lastBlockNumMainParse = await redisGetter.getLastBlockNum( 'last_block_num' );
+
+        if( block_num >= lastBlockNumMainParse ) return false;
+    }
     try {
         block = await steem.api.getBlockAsync( block_num );
     } catch ( error ) {
