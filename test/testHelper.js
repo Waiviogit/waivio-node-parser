@@ -13,6 +13,7 @@ const { investarenaForecastHelper, voteFieldHelper, updateSpecifiedFieldsHelper,
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { ObjectType, WObject, Post, User, UserWobjects } = require( '../database' ).models;
+const { Wobj: WobjModel } = require( '../models' );
 const chai = require( 'chai' );
 const expect = chai.expect;
 const { Mongoose } = require( '../database' );
@@ -54,5 +55,6 @@ module.exports = {
     postsUtil,
     updateSpecifiedFieldsHelper,
     specifiedFieldsValidator,
-    appendObjectValidator
+    appendObjectValidator,
+    WobjModel
 };
