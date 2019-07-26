@@ -1,4 +1,4 @@
-const { Post } = require( '../models' );
+const { Post, Wobj } = require( '../models' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { User } = require( '../models' );
 const { redisSetter } = require( '../utilities/redis' );
@@ -45,11 +45,12 @@ const createOrUpdatePost = async function ( data ) {
         } );
     }
     await redisSetter.addPostWithWobj( `${data.author }_${ data.permlink}`, data.wobjects );
-    await User.increaseCountPosts( data.author );
     const { result, error } = await Post.update( post );
 
-    if ( error ) {
-        return { error };
+    if ( error ) return { error };
+    await User.increaseCountPosts( data.author );
+    for( const author_permlink of data.wobjects.map( ( w ) => w.author_permlink ) ) {
+        await Wobj.update( { author_permlink }, { $inc: { count_posts: 1 } } );
     }
     return { result };
 };
