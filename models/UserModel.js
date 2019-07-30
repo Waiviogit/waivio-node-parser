@@ -166,6 +166,14 @@ const update = async function ( condition, updateData ) {
     }
 };
 
+const updateOne = async function ( condition, updateData ) {
+    try{
+        return { result: await UserModel.updateOne( condition, updateData ) };
+    } catch ( error ) {
+        return { error };
+    }
+};
+
 const increaseCountPosts = async ( author ) => {
     try{
         await UserModel.updateOne(
@@ -188,5 +196,6 @@ module.exports = {
     increaseWobjectWeight,
     checkForObjectShares,
     update,
+    updateOne,
     increaseCountPosts
 };
