@@ -4,7 +4,17 @@ const _ = require( 'lodash' );
 
 const updateAccountParser = async ( operation ) => {
     if( operation.account && operation.json_metadata ) {
-        const { result, error } = await User.update( { name: operation.account }, { json_metadata: operation.json_metadata } );
+        let parsed_metadata;
+
+        try {
+            parsed_metadata = JSON.parse( operation.json_metadata );
+        } catch ( err ) {
+            console.error( `Not valid metadata on user ${operation.account}` );
+        }
+        const { result, error } = await User.updateOne(
+            { name: operation.account },
+            { json_metadata: operation.json_metadata, alias: _.get( parsed_metadata, 'profile.name', null ) }
+        );
 
         if( error ) {
             console.error( error );

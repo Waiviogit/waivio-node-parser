@@ -4,13 +4,14 @@ const { UserFactory } = require( '../../factories' );
 describe( 'UserParsers', async () => {
     describe( 'on updateAccountParse', async () => {
         let updUser;
+        const mock_metadata = { profile: { name: 'Alias Name' } };
 
         before( async () => {
             const { user: mockUser } = await UserFactory.Create();
 
             await userParsers.updateAccountParser( {
                 account: mockUser.name,
-                json_metadata: '{hello: world}'
+                json_metadata: JSON.stringify( mock_metadata )
             } );
             updUser = await User.findOne( { name: mockUser.name } ).lean();
         } );
@@ -19,7 +20,13 @@ describe( 'UserParsers', async () => {
             expect( updUser ).to.include.key( 'json_metadata' );
         } );
         it( 'should update json_metadata correct', () => {
-            expect( updUser.json_metadata ).to.equal( '{hello: world}' );
+            expect( updUser.json_metadata ).to.equal( JSON.stringify( mock_metadata ) );
+        } );
+        it( 'should update existing account and add alias key', () => {
+            expect( updUser ).to.include.key( 'alias' );
+        } );
+        it( 'should update alias name correct', () => {
+            expect( updUser.alias ).to.equal( 'Alias Name' );
         } );
         it( 'should not create user if update was on non exist user', async () => {
             await userParsers.updateAccountParser( {
