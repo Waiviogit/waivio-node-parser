@@ -14,12 +14,12 @@ const parse = async function ( operation, metadata ) {
 
     await User.checkAndCreate( { name: operation.author } );
 
-    const { result, error } = await createOrUpdatePost( data );
+    const { updPost, error } = await createOrUpdatePost( data );
 
     if ( error ) {
         console.error( error );
     }
-    if ( result ) {
+    if ( updPost ) {
         console.log( `Post with wobjects created by ${operation.author}` );
     }
 };
@@ -46,7 +46,7 @@ const createOrUpdatePost = async function ( data ) {
         } );
     }
     await redisSetter.addPostWithWobj( `${data.author }_${ data.permlink}`, data.wobjects );
-    const { result, error } = await Post.update( post );
+    const { result: updPost, error } = await Post.update( post );
 
     if ( error ) return { error };
     await User.increaseCountPosts( data.author );
@@ -54,7 +54,7 @@ const createOrUpdatePost = async function ( data ) {
         await Wobj.update( { author_permlink }, {
             $push: {
                 latest_posts: {
-                    $each: [ `${data.author}_${data.permlink}` ],
+                    $each: [ updPost._id ],
                     $position: 0,
                     $slice: WOBJECT_LATEST_POSTS_COUNT
                 }
@@ -63,7 +63,7 @@ const createOrUpdatePost = async function ( data ) {
         } );
         console.log( author_permlink );
     }
-    return { result };
+    return { updPost };
 };
 
 module.exports = { parse };
