@@ -91,3 +91,4 @@ exports.LANGUAGES = [ 'en-US',
     'zh-CN',
     'auto'
 ];
+exports.WOBJECT_LATEST_POSTS_COUNT = 30;
