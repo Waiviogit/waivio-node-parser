@@ -61,7 +61,6 @@ const createOrUpdatePost = async function ( data ) {
             },
             $inc: { count_posts: 1 }
         } );
-        console.log( author_permlink );
     }
     return { updPost };
 };
