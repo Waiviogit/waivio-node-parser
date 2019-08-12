@@ -28,7 +28,7 @@ const findOne = async function ( data ) {
 
 const update = async function ( data ) {
     try {
-        const res = await PostModel.findOneAndUpdate(
+        const result = await PostModel.findOneAndUpdate(
             {
                 author: data.author,
                 permlink: data.permlink
@@ -41,7 +41,7 @@ const update = async function ( data ) {
             }
         );
 
-        return { result: !!res };
+        return { result };
     } catch ( error ) {
         return { error };
     }
