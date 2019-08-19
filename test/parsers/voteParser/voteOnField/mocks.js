@@ -1,4 +1,4 @@
-const { VoteFactory, AppendObject, PostFactory, UserFactory } = require( '../../../factories' );
+const { VoteFactory, AppendObject, UserFactory } = require( '../../../factories' );
 
 const voteAppendObjectMocks = async () => {
     const { user: creator } = await UserFactory.Create();

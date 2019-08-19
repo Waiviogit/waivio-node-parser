@@ -1,4 +1,5 @@
 const WObjectModel = require( '../database' ).models.WObject;
+const ObjectTypes = require( '../database' ).models.ObjectType;
 
 const create = async function ( data ) {
     const newWObject = new WObjectModel( data );
@@ -54,13 +55,16 @@ const increaseFieldWeight = async function ( data ) { // data include: author, p
 
 const increaseWobjectWeight = async function ( data ) {
     try {
-        await WObjectModel.updateOne( {
-            author_permlink: data.author_permlink
-        }, {
-            $inc: {
-                weight: data.weight
-            }
-        } );
+        const wobj = await WObjectModel.findOneAndUpdate(
+            { author_permlink: data.author_permlink },
+            { $inc: { weight: data.weight } },
+            { new: true } );
+
+        if( wobj && wobj.object_type )
+            await ObjectTypes.updateOne(
+                { name: wobj.object_type },
+                { $inc: { weight: data.weight } } );
+
         return { result: true };
     } catch ( error ) {
         return { error };
