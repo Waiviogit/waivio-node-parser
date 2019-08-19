@@ -1,4 +1,4 @@
-const { expect, sinon, voteFieldHelper, postsUtil, voteParser, UserWobjects, redisGetter, User } = require( '../../testHelper' );
+const { expect, sinon, voteFieldHelper, postsUtil, voteParser, UserWobjects, redisGetter, ObjectType } = require( '../../testHelper' );
 const { voteAppendObjectMocks } = require( './mocks' );
 
 describe( 'VoteParser', async () => {
