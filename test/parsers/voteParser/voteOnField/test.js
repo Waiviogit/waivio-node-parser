@@ -1,5 +1,6 @@
-const { expect, voteFieldHelper, UserWobjects, User, WObject, WobjModel } = require( '../../../testHelper' );
+const { expect, voteFieldHelper, UserWobjects, ObjectType, WobjModel } = require( '../../../testHelper' );
 const { voteAppendObjectMocks } = require( './mocks' );
+
 
 describe( 'Vote On Field', async () => {
     describe( 'when user haven`t weight in wobject', async () => {
@@ -20,10 +21,7 @@ describe( 'Vote On Field', async () => {
                     author_permlink: mocks.author_permlink,
                     weight: 1
                 } );
-
-                const { field: new_field } = await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink );
-
-                upd_field = new_field;
+                upd_field = ( await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink ) ).field;
             } );
             it( 'should increase field weight by one', async () => {
                 const diff = upd_field.weight - exst_field.weight;

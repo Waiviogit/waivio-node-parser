@@ -14,17 +14,14 @@ const Create = async ( { creator, name, weight, body, root_wobj } = {} ) => {
     };
 
     root_wobj = root_wobj || `${getRandomString( 3 )}-${faker.address.city().replace( / /g, '' )}`;
-    const existWobject = await WObject.countDocuments( { author_permlink: root_wobj } );
+    let wobject = await WObject.findOne( { author_permlink: root_wobj } );
 
-    if( !existWobject ) {
-        await ObjectFactory.Create( {
-            author_permlink: root_wobj,
-            fields: [ appendObject ]
-        } );
+    if( !wobject ) {
+        wobject = await ObjectFactory.Create( { author_permlink: root_wobj, fields: [ appendObject ] } );
     }
     await WObject.updateOne( { author_permlink: root_wobj }, { $addToSet: { fields: appendObject } } );
     await redisSetter.addAppendWobj( `${appendObject.author }_${ appendObject.permlink}`, root_wobj || getRandomString( 20 ) );
-    return { appendObject, root_wobj };
+    return { appendObject, root_wobj, wobject };
 };
 
 module.exports = { Create };

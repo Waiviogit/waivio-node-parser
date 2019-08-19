@@ -1,20 +1,24 @@
-const { VoteFactory, PostFactory, ObjectFactory, UserFactory } = require( '../../../factories' );
-const { faker } = require( '../../../testHelper' );
+const { PostFactory, ObjectFactory, UserFactory } = require( '../../../factories' );
+const { faker, ObjectType } = require( '../../../testHelper' );
 
 const votePostMocks = async() => {
-    const wobject1 = await ObjectFactory.Create();
-    const wobject2 = await ObjectFactory.Create();
+    let wobjectsCount = 5;
+    let wobjects = [];
+    let object_types = [];
+
+    for( let i = 0;i < wobjectsCount;i++ ) {
+        const wobject = await ObjectFactory.Create();
+        const object_type = await ObjectType.findOne( { name: wobject.object_type } ).lean();
+
+        wobjects.push( wobject );
+        object_types.push( object_type );
+    }
+
     const { user: user_author } = await UserFactory.Create();
     const { user: user_voter } = await UserFactory.Create();
     const metadata = {
         wobj: {
-            wobjects: [ {
-                author_permlink: wobject1.author_permlink,
-                percent: 50
-            }, {
-                author_permlink: wobject2.author_permlink,
-                percent: 50
-            } ]
+            wobjects: wobjects.map( ( w ) => ( { percent: 100 / wobjectsCount, author_permlink: w.author_permlink } ) )
         }
     };
     const vote = {
@@ -31,7 +35,7 @@ const votePostMocks = async() => {
 
     post.active_votes = [ vote ];
 
-    return { wobjects: [ wobject1, wobject2 ], user_author, user_voter, post, metadata, vote };
+    return { wobjects, object_types, user_author, user_voter, post, metadata, vote };
 };
 
 module.exports = votePostMocks;
