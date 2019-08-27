@@ -17,6 +17,7 @@ module.exports = {
         User: require( './schemas/UserSchema' ),
         Post: require( './schemas/PostSchema' ),
         ObjectType: require( './schemas/ObjectTypeSchema' ),
-        UserWobjects: require( './schemas/UserWobjectsSchema' )
+        UserWobjects: require( './schemas/UserWobjectsSchema' ),
+        App: require( './schemas/AppSchema' )
     }
 };

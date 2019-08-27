@@ -1,8 +1,5 @@
 const appData = {
-    appName: 'busy',
-    version: '2.5.6',
-    appAccName: 'monterey',
-    appendObjectTag: 'waivio-object'
+    appName: process.env.APP_NAME || 'waiviodev'
 };
 
 const objectImportService = {
