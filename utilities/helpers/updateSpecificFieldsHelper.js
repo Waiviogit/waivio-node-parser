@@ -87,7 +87,7 @@ const update = async ( author, permlink, author_permlink ) => {
                 } ).first()
                 .value();
 
-            if( status ) await Wobj.update( { author_permlink }, { status } );
+            if( status ) await Wobj.update( { author_permlink }, { status: JSON.parse( status ) } );
             break;
     }
 };
