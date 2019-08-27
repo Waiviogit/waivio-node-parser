@@ -44,9 +44,7 @@ describe( 'VoteParser', () => {
                     let sum = 0;
 
                     for( const wobj of mocks.wobjects ) {
-                        const voter = await UserWobjects.findOne( { user_name: upd_voter.name, author_permlink: wobj.author_permlink } ).lean();
-
-                        sum += voter.weight;
+                        sum += ( await UserWobjects.findOne( { user_name: upd_voter.name, author_permlink: wobj.author_permlink } ).lean() ).weight;
                     }
                     expect( upd_voter.wobjects_weight ).to.eq( sum );
                 } );
@@ -55,9 +53,7 @@ describe( 'VoteParser', () => {
                     let sum = 0;
 
                     for( const wobj of mocks.wobjects ) {
-                        const author = await UserWobjects.findOne( { user_name: upd_author.name, author_permlink: wobj.author_permlink } ).lean();
-
-                        sum += author.weight;
+                        sum += ( await UserWobjects.findOne( { user_name: upd_author.name, author_permlink: wobj.author_permlink } ).lean() ).weight;
                     }
                     expect( upd_author.wobjects_weight ).to.eq( sum );
                 } );
@@ -72,8 +68,9 @@ describe( 'VoteParser', () => {
                 it( 'should correctly update ObjectTypes weights', async () => {
                     const upd_type = await ObjectType.findOne( { name: wobject.object_type } ).lean();
                     const weight_diff = upd_type.weight - object_type.weight;
+                    const expected = Number( ( Math.round( mocks.vote.rshares * 1e-6 ) / 5 ).toFixed( 3 ) );
 
-                    expect( weight_diff ).to.eq( Number( ( Math.round( mocks.vote.rshares * 1e-6 ) / 5 ).toFixed( 3 ) ) );
+                    expect( weight_diff ).to.eq( expected );
                 } );
             } );
         } );

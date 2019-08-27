@@ -9,7 +9,7 @@ const {
     voteParser,
     userParsers
 } = require( '../parsers' );
-const { investarenaForecastHelper, voteFieldHelper, updateSpecifiedFieldsHelper, votePostHelper } = require( '../utilities/helpers' );
+const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, votePostHelper } = require( '../utilities/helpers' );
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { ObjectType, WObject, Post, User, UserWobjects } = require( '../database' ).models;
@@ -53,7 +53,7 @@ module.exports = {
     voteFieldHelper,
     votePostHelper,
     postsUtil,
-    updateSpecifiedFieldsHelper,
+    updateSpecificFieldsHelper,
     specifiedFieldsValidator,
     appendObjectValidator,
     WobjModel

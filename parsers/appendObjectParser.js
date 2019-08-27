@@ -1,7 +1,7 @@
 const { Wobj } = require( '../models' );
 const { appendObjectValidator } = require( '../validator' );
 const { redisSetter } = require( '../utilities/redis' );
-const { updateSpecifiedFieldsHelper } = require( '../utilities/helpers' );
+const { updateSpecificFieldsHelper } = require( '../utilities/helpers' );
 
 const parse = async function ( operation, metadata ) {
     const data = {
@@ -38,7 +38,7 @@ const appendObject = async function ( data, operation ) {
         if ( error ) {
             throw error;
         }
-        await updateSpecifiedFieldsHelper.update( data.field.author, data.field.permlink, data.author_permlink );
+        await updateSpecificFieldsHelper.update( data.field.author, data.field.permlink, data.author_permlink );
 
         return { result };
 

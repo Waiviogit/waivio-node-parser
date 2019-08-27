@@ -1,28 +1,28 @@
 const { getMocksData } = require( './mocks' );
-const { appendObjectParser, WObject, expect, redisGetter, updateSpecifiedFieldsHelper, sinon } = require( '../../testHelper' );
+const { appendObjectParser, WObject, expect, redisGetter, updateSpecificFieldsHelper, sinon } = require( '../../testHelper' );
 
 describe( 'Append object parser,', async () => {
     let mockData;
     let wobject;
-    let updateSpecifiedFieldHelperStub;
+    let updateSpecificFieldsHelperStub;
 
     before( async () => {
-        updateSpecifiedFieldHelperStub = sinon.stub( updateSpecifiedFieldsHelper, 'update' ).callsFake( () => {} );
+        updateSpecificFieldsHelperStub = sinon.stub( updateSpecificFieldsHelper, 'update' ).callsFake( () => {} );
         mockData = await getMocksData();
         await appendObjectParser.parse( mockData.operation, mockData.metadata );
         wobject = await WObject.findOne( { author_permlink: mockData.wobject.author_permlink } ).lean();
     } );
 
     after( () => {
-        updateSpecifiedFieldHelperStub.restore();
+        updateSpecificFieldsHelperStub.restore();
     } );
 
     it( 'should call "updateSpecifiedFields" once', () => {
-        expect( updateSpecifiedFieldHelperStub.calledOnce ).to.be.true;
+        expect( updateSpecificFieldsHelperStub.calledOnce ).to.be.true;
     } );
 
     it( 'should call "updateSpecifiedFieldHelper" with correct params', () => {
-        expect( Object.values( mockData.operation ) ).to.include( ...updateSpecifiedFieldHelperStub.args[ 0 ] );
+        expect( Object.values( mockData.operation ) ).to.include( ...updateSpecificFieldsHelperStub.args[ 0 ] );
     } );
 
 

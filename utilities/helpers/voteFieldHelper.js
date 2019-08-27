@@ -1,6 +1,6 @@
 const { Wobj, User } = require( '../../models' );
 const { BLACK_LIST_BOTS } = require( '../constants' );
-const updateSpecifiedFieldHelper = require( './updateSpecifiedFieldsHelper' );
+const updateSpecificFieldHelper = require( './updateSpecificFieldsHelper' );
 /**
  * Handle votes on append objects.
  * DownVotes do not use in app(just "UnVote" if vote already exist)
@@ -98,7 +98,7 @@ const handleSpecifiedField = async ( author, permlink, author_permlink ) => {
     const { field, error } = await Wobj.getField( author, permlink, author_permlink );
 
     if ( error || !field ) return;
-    await updateSpecifiedFieldHelper.update( author, permlink, author_permlink );
+    await updateSpecificFieldHelper.update( author, permlink, author_permlink );
 };
 
 module.exports = { voteOnField };
