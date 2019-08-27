@@ -14,6 +14,7 @@ const voteOnField = async ( data ) => {
     const { field, error: fieldError } = await Wobj.getField( data.author, data.permlink, data.author_permlink );
 
     if( fieldError ) return { error: fieldError };
+    if( !field ) return{ error: { status: 404, message: 'Field not found!' } };
 
     if ( field && field.active_votes ) data.existingVote = field.active_votes.find( ( v ) => v.voter === data.voter );
     data.creator = field.creator;
