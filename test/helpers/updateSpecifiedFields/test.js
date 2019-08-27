@@ -1,8 +1,8 @@
-const { expect, updateSpecifiedFieldsHelper, WObject, getRandomString, faker } = require( '../../testHelper' );
+const { expect, updateSpecificFieldsHelper, WObject, getRandomString, faker } = require( '../../testHelper' );
 const { AppendObject, ObjectFactory } = require( '../../factories/' );
 const _ = require( 'lodash' );
 
-describe( 'UpdateSpecifiedFieldsHelper', async () => {
+describe( 'UpdateSpecificFieldsHelper', async () => {
     let wobject;
 
     before( async () => {
@@ -20,7 +20,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
 
             fields = [ field1, field2, field3, field4 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -55,7 +55,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
 
             fields = [ field1, field2, field3, field4 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -87,7 +87,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
             fields = [ field1, field2, field3, field4, field5, field6, field7 ];
             topFields = [ field1, field2, field4, field5, field6 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -123,7 +123,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
             fields = [ field1, field2, field3, field4, field5, field6, field7 ];
             topFields = [ field1, field4, field5, field6 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -161,7 +161,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
 
             fields = [ field1, field2, field3, field4 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
