@@ -16,7 +16,8 @@ const parse = async function ( operation ) { // data is operation[1] of transact
     } catch ( e ) {
         console.error( e );
     }
-    if( !( await checkAppBlacklistValidity ) ) return;
+    // const isValidApp = await checkAppBlacklistValidity()
+    if( !( await checkAppBlacklistValidity( metadata ) ) ) return;
 
     if ( operation.parent_author === '' && metadata ) { // comment without parent_author is POST
         if ( metadata.wobj ) { // case if user add wobjects when create post
