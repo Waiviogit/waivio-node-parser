@@ -1,8 +1,8 @@
-const { expect, updateSpecifiedFieldsHelper, WObject, getRandomString, faker } = require( '../../testHelper' );
+const { expect, updateSpecificFieldsHelper, WObject, getRandomString, faker } = require( '../../testHelper' );
 const { AppendObject, ObjectFactory } = require( '../../factories/' );
 const _ = require( 'lodash' );
 
-describe( 'UpdateSpecifiedFieldsHelper', async () => {
+describe( 'UpdateSpecificFieldsHelper', async () => {
     let wobject;
 
     before( async () => {
@@ -20,7 +20,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
 
             fields = [ field1, field2, field3, field4 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -31,8 +31,6 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
         it( 'should write first field "parent"', async () => {
             expect( updWobj.parent ).to.eq( fields[ 0 ].body );
         } );
-
-
     } );
 
     describe( 'on "newsFilter" field', () => {
@@ -55,7 +53,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
 
             fields = [ field1, field2, field3, field4 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -66,8 +64,6 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
         it( 'should write first field "newsFilter"', async () => {
             expect( updWobj.newsFilter ).to.deep.equal( JSON.parse( fields[ 0 ].body ) );
         } );
-
-
     } );
 
     describe( 'on "tagCloud" field', () => {
@@ -87,7 +83,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
             fields = [ field1, field2, field3, field4, field5, field6, field7 ];
             topFields = [ field1, field2, field4, field5, field6 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -102,8 +98,6 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
                 _.pick( item, [ 'author', 'permlink' ] );
             } ) );
         } );
-
-
     } );
 
     describe( 'on "rating" field', () => {
@@ -123,7 +117,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
             fields = [ field1, field2, field3, field4, field5, field6, field7 ];
             topFields = [ field1, field4, field5, field6 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -138,8 +132,6 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
                 _.pick( item, [ 'author', 'permlink' ] );
             } ) );
         } );
-
-
     } );
 
     describe( 'on "map" field', () => {
@@ -148,7 +140,6 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
 
         before( async () => {
             let mockBody = () => {
-                // const kek = getRandomString(3);
                 return JSON.stringify( {
                     longitude: faker.random.number( { min: -180, max: 180 } ),
                     latitude: faker.random.number( { min: -90, max: 90 } )
@@ -161,7 +152,7 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
 
             fields = [ field1, field2, field3, field4 ];
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
-            await updateSpecifiedFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
 
@@ -173,6 +164,34 @@ describe( 'UpdateSpecifiedFieldsHelper', async () => {
             const mockBody = JSON.parse( fields[ 3 ].body );
 
             expect( updWobj.map ).to.deep.equal( { type: 'Point', coordinates: [ mockBody.longitude, mockBody.latitude ] } );
+        } );
+    } );
+
+    describe( 'on "status" field', () => {
+        let fields;
+        let updWobj;
+
+        before( async () => {
+            let mockBody = () => {
+                return JSON.stringify( { title: 'Unavailable', link: '' } );
+            };
+            let { appendObject: field1 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: 10 } );
+            let { appendObject: field2 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: 1 } );
+            let { appendObject: field3 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: -99 } );
+            let { appendObject: field4 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: 80 } );
+
+            fields = [ field1, field2, field3, field4 ];
+            await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
+            await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
+            updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
+        } );
+
+        it( 'should add field "status" to wobject', async () => {
+            expect( updWobj.status ).to.exist;
+        } );
+
+        it( 'should write top field "status" to root of wobject', async () => {
+            expect( updWobj.status ).to.deep.equal( { title: 'Unavailable', link: '' } );
         } );
     } );
 } );

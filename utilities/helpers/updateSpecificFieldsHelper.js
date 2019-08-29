@@ -2,6 +2,7 @@ const { Wobj } = require( '../../models' );
 const { validateNewsFilter, validateMap } = require( '../../validator/specifiedFieldsValidator' );
 const TAG_CLOUDS_UPDATE_COUNT = 5;
 const RATINGS_UPDATE_COUNT = 4;
+const _ = require( 'lodash' );
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -70,6 +71,23 @@ const update = async ( author, permlink, author_permlink ) => {
                     await Wobj.update( { author_permlink }, { map: { type: 'Point', coordinates: [ map.longitude, map.latitude ] } } );
                 }
             }
+            break;
+        case 'status' :
+            const { wobjects: [ { fields } = {} ] } = await Wobj.getSomeFields( 'status', author_permlink );
+
+            const status = _.chain( fields )
+                .filter( ( f ) => {
+                    try {
+                        const parsed = JSON.parse( f );
+
+                        if( parsed.title ) return true;
+                    } catch ( e ) {
+                        return false;
+                    }
+                } ).first()
+                .value();
+
+            if( status ) await Wobj.update( { author_permlink }, { status: JSON.parse( status ) } );
             break;
     }
 };

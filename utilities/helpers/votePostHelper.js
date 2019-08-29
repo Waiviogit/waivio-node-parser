@@ -53,22 +53,21 @@ const unvoteOnPost = async function ( data ) { // method also using as undo prev
 
 const downVoteOnPost = async function ( data, weight ) {
     if ( data && data.metadata && data.metadata.wobj && data.metadata.wobj.wobjects && Array.isArray( data.metadata.wobj.wobjects ) ) {
-        data.metadata.wobj.wobjects.forEach( async ( wObject ) => {
-            const voteWeight = weight * ( wObject.percent / 100 ); // calculate vote weight for each wobject in post
+        for( const wObject of _.get( data, 'metadata.wobj.wobjects', [] ) ) {
+            const voteWeight = Number( weight * ( wObject.percent / 100 ).toFixed( 3 ) ); // calculate vote weight for each wobject in post
 
             await User.increaseWobjectWeight( {
                 name: data.post.author,
                 author_permlink: wObject.author_permlink, // decrease author weight in wobject
                 weight: voteWeight
             } );
-        } );
+        }
     }
 };
 
 const upVoteOnPost = async function ( data, weight ) {
     for ( const wObject of _.get( data, 'metadata.wobj.wobjects' ) || [] ) {
-        // data.metadata.wobj.wobjects.forEach(async (wObject) => {
-        const voteWeight = weight * ( wObject.percent / 100 ); // calculate vote weight for each wobject in post
+        const voteWeight = Number( ( weight * ( wObject.percent / 100 ) ).toFixed( 3 ) ); // calculate vote weight for each wobject in post
 
         await Wobj.increaseWobjectWeight( {
             author_permlink: wObject.author_permlink, // increase wobject weight
@@ -77,12 +76,12 @@ const upVoteOnPost = async function ( data, weight ) {
         await User.increaseWobjectWeight( {
             name: data.post.author,
             author_permlink: wObject.author_permlink, // increase author weight in wobject
-            weight: voteWeight * 0.75
+            weight: Number( ( voteWeight * 0.75 ).toFixed( 3 ) )
         } );
         await User.increaseWobjectWeight( {
             name: data.voter,
             author_permlink: wObject.author_permlink, // increase voter weight in wobject if he isn't author
-            weight: voteWeight * 0.25
+            weight: Number( ( voteWeight * 0.25 ).toFixed( 3 ) )
         } );
     }
 };

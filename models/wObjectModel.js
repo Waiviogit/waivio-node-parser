@@ -1,4 +1,5 @@
 const WObjectModel = require( '../database' ).models.WObject;
+const ObjectTypes = require( '../database' ).models.ObjectType;
 
 const create = async function ( data ) {
     const newWObject = new WObjectModel( data );
@@ -54,37 +55,17 @@ const increaseFieldWeight = async function ( data ) { // data include: author, p
 
 const increaseWobjectWeight = async function ( data ) {
     try {
-        await WObjectModel.updateOne( {
-            author_permlink: data.author_permlink
-        }, {
-            $inc: {
-                weight: data.weight
-            }
-        } );
+        const wobj = await WObjectModel.findOneAndUpdate(
+            { author_permlink: data.author_permlink },
+            { $inc: { weight: data.weight } },
+            { new: true } );
+
+        if( wobj && wobj.object_type )
+            await ObjectTypes.updateOne(
+                { name: wobj.object_type },
+                { $inc: { weight: data.weight } } );
+
         return { result: true };
-    } catch ( error ) {
-        return { error };
-    }
-};
-
-const findVote = async function ( data ) { // data include: author, permlink, author_permlink, voter
-    try {
-        const wobject = await WObjectModel.findOne( { 'author_permlink': data.author_permlink } )
-            .select( 'fields' )
-            .lean();
-
-        if ( wobject && wobject.fields ) {
-            const field = wobject.fields.find( ( f ) => f.author === data.author && f.permlink === data.permlink );
-
-            if ( field ) {
-                const vote = field.active_votes.find( ( v ) => v.voter === data.voter );
-
-                if ( vote ) {
-                    return { weight: vote.weight };
-                }
-            }
-        }
-        return { error: { message: 'vote not found' } };
     } catch ( error ) {
         return { error };
     }
@@ -203,7 +184,7 @@ const getOne = async ( { author_permlink } ) => {
         const wobject = await WObjectModel.findOne( { author_permlink: author_permlink } ).lean();
 
         if ( !wobject ) {
-            throw { status: 404, message: 'Wobject not found!' };
+            return { error: { status: 404, message: 'Wobject not found!' } };
         }
         return { wobject };
     } catch ( e ) {
@@ -218,7 +199,6 @@ module.exports = {
     addField,
     increaseFieldWeight,
     increaseWobjectWeight,
-    findVote,
     removeVote,
     addVote,
     getWobjectsRefs,

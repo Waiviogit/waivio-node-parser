@@ -1,4 +1,4 @@
-const { expect, sinon, voteFieldHelper, postsUtil, voteParser, UserWobjects, redisGetter, User } = require( '../../testHelper' );
+const { expect, sinon, voteFieldHelper, postsUtil, voteParser, UserWobjects, redisGetter, ObjectType } = require( '../../testHelper' );
 const { voteAppendObjectMocks } = require( './mocks' );
 
 describe( 'VoteParser', async () => {
@@ -23,7 +23,7 @@ describe( 'VoteParser', async () => {
                 postUtilStub.restore();
             } );
 
-            it( 'should call "voteField" once', async () => {
+            it( 'should call "voteOnField" once', async () => {
                 expect( voteFieldHelperStub.calledOnce ).to.be.true;
             } );
 
@@ -31,7 +31,7 @@ describe( 'VoteParser', async () => {
                 expect( postUtilStub.calledOnce ).to.be.true;
             } );
 
-            it( 'should call "voteField" with params', async () => {
+            it( 'should call "voteOnField" with params', async () => {
                 const resp = await redisGetter.getHashAll( `${mocks.vote.author}_${mocks.vote.permlink}` );
                 const data = {
                     author: mocks.post.author,
