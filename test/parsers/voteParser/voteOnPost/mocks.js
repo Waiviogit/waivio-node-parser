@@ -1,7 +1,7 @@
 const { PostFactory, ObjectFactory, UserFactory } = require( '../../../factories' );
 const { faker, ObjectType } = require( '../../../testHelper' );
 
-const votePostMocks = async() => {
+module.exports = async() => {
     let wobjectsCount = 5;
     let wobjects = [];
     let object_types = [];
@@ -37,5 +37,3 @@ const votePostMocks = async() => {
 
     return { wobjects, object_types, user_author, user_voter, post, metadata, vote };
 };
-
-module.exports = votePostMocks;
