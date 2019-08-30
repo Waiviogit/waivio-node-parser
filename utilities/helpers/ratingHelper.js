@@ -7,12 +7,12 @@ const parse = async ( operation ) => {
 
     try {
         json = JSON.parse( operation.json );
-    } catch ( error ) {
-        console.error( error );
+    } catch ( err ) {
+        console.error( err );
         return;
     }
     if ( !wobjectValidator.validateRatingVote( json ) ) {
-        console.log( 'Rating vote data is not valid!' );
+        console.error( 'Rating vote data is not valid!' );
         return;
     }
     const voter = operation.required_posting_auths[ 0 ];
@@ -23,11 +23,9 @@ const parse = async ( operation ) => {
 
     const { field, error } = await Wobj.getField( author, permlink, author_permlink );
 
-    if ( error || !field || field.name !== 'rating' ) {
-        return;
-    }
+    if ( error || !field || field.name !== 'rating' ) return;
     let rating_votes = field.rating_votes || [];
-
+    // remove existing vote for current user and push new (replace vote)
     _.remove( rating_votes, ( v ) => v.voter === voter );
     rating_votes.push( { voter, rate } );
     await Wobj.updateField( author, permlink, author_permlink, 'rating_votes', rating_votes );

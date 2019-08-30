@@ -1,7 +1,7 @@
 const { faker, getRandomString, redisSetter, WObject } = require( '../../testHelper' );
 const ObjectFactory = require( '../../factories/Object/ObjectFactory' );
 
-const Create = async ( { creator, name, weight, body, root_wobj } = {} ) => {
+const Create = async ( { creator, name, weight, body, root_wobj, additionalFields = {} } = {} ) => {
     const appendObject = {
         name: name || 'city',
         body: body || faker.address.city(),
@@ -12,6 +12,7 @@ const Create = async ( { creator, name, weight, body, root_wobj } = {} ) => {
         permlink: getRandomString( 20 ),
         active_votes: []
     };
+    for( let key in additionalFields ) appendObject[ key ] = additionalFields[ key ];
 
     root_wobj = root_wobj || `${getRandomString( 3 )}-${faker.address.city().replace( / /g, '' )}`;
     let wobject = await WObject.findOne( { author_permlink: root_wobj } );
