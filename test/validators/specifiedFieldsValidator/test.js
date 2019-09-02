@@ -89,7 +89,7 @@ describe( 'Specified Fields Validator', () => {
 
         longitudeTests.forEach( ( test ) => {
             it( `should return ${test.expected} with coordinates: ${test.args}`, () => {
-                expect( specifiedFieldsValidator.validateMap( { longitude: test.args[ 0 ], latitude: test.args[ 1 ] } ) );
+                expect( specifiedFieldsValidator.validateMap( { longitude: test.args[ 0 ], latitude: test.args[ 1 ] } ) ).to.be.eq( test.expected );
             } );
         } );
 
@@ -102,7 +102,7 @@ describe( 'Specified Fields Validator', () => {
 
         latitudeTests.forEach( ( test ) => {
             it( `should return ${test.expected} with coordinates: ${test.args}`, () => {
-                expect( specifiedFieldsValidator.validateMap( { longitude: test.args[ 0 ], latitude: test.args[ 1 ] } ) );
+                expect( specifiedFieldsValidator.validateMap( { longitude: test.args[ 0 ], latitude: test.args[ 1 ] } ) ).to.be.eq( test.expected );
             } );
         } );
 

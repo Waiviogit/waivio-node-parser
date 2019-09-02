@@ -3,6 +3,7 @@ const appendObjectParser = require( './appendObjectParser' );
 const postWithObjectsParser = require( './postWithObjectParser' );
 const objectTypeParser = require( './objectTypeParser' );
 const { postByTagsHelper, investarenaForecastHelper } = require( '../utilities/helpers' );
+const { checkAppBlacklistValidity } = require( '../utilities/helpers' ).appHelper;
 const _ = require( 'lodash' );
 
 const parse = async function ( operation ) { // data is operation[1] of transaction in block
@@ -15,6 +16,9 @@ const parse = async function ( operation ) { // data is operation[1] of transact
     } catch ( e ) {
         console.error( e );
     }
+    // const isValidApp = await checkAppBlacklistValidity()
+    if( !( await checkAppBlacklistValidity( metadata ) ) ) return;
+
     if ( operation.parent_author === '' && metadata ) { // comment without parent_author is POST
         if ( metadata.wobj ) { // case if user add wobjects when create post
             if ( _.get( metadata.wobj, 'action' ) === 'createObjectType' ) {
