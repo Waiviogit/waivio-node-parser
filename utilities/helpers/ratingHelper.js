@@ -29,6 +29,7 @@ const parse = async ( operation ) => {
     _.remove( rating_votes, ( v ) => v.voter === voter );
     rating_votes.push( { voter, rate } );
     await Wobj.updateField( author, permlink, author_permlink, 'rating_votes', rating_votes );
+    await Wobj.updateField( author, permlink, author_permlink, 'average_rating_weight', _.meanBy( rating_votes, 'rate' ) );
 };
 
 module.exports = { parse };

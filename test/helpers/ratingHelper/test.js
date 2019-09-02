@@ -31,6 +31,12 @@ describe( 'ratingHelper', async () => {
             it( 'should add field rating_votes to "rating" field', () => {
                 expect( updField ).to.include.key( 'rating_votes' );
             } );
+            it( 'should add field "average_rating_weight" to "rating" field', () => {
+                expect( updField ).to.include.key( 'average_rating_weight' );
+            } );
+            it( 'should add correct averate rating weight', () => {
+                expect( updField.average_rating_weight ).to.eq( 10 );
+            } );
             it( 'should add non empty array rating_votes to "rating" field', () => {
                 expect( updField.rating_votes ).to.not.be.empty;
             } );
@@ -38,7 +44,51 @@ describe( 'ratingHelper', async () => {
                 expect( WobjModel.getField ).to.be.calledOnce;
             } );
             it( 'should call "updateField" on wobject model once', () => {
-                expect( WobjModel.updateField ).to.be.calledOnce;
+                expect( WobjModel.updateField ).to.be.calledTwice;
+            } );
+        } );
+        describe( 'on adding second vote to rating field', async () => {
+            let mockOp, wobject, field, voter, updField;
+            before( async () => {
+                voter = ( await UserFactory.Create() ).user;
+                const { appendObject, wobject: wobj } = await AppendObject.Create(
+                    {
+                        name: 'rating',
+                        body: getRandomString( 10 ),
+                        additionalFields: { rating_votes: [ { voter: getRandomString( 15 ), rate: 8 } ], average_rating_weight: 8 }
+                    }
+                );
+                wobject = wobj;
+                field = appendObject;
+                mockOp = {
+                    json: JSON.stringify( {
+                        author: field.author,
+                        permlink: field.permlink,
+                        author_permlink: wobject.author_permlink,
+                        rate: 10
+                    } ),
+                    required_posting_auths: [ voter.name ]
+                };
+                sinon.spy( WobjModel, 'getField' );
+                sinon.spy( WobjModel, 'updateField' );
+                await ratingHelper.parse( mockOp );
+                updField = ( await WObject.findOne( wobject._id ).lean() ).fields[ 0 ];
+            } );
+            after( () => {
+                WobjModel.getField.restore();
+                WobjModel.updateField.restore();
+            } );
+            it( 'should call "getField" on wobject model once', () => {
+                expect( WobjModel.getField ).to.be.calledOnce;
+            } );
+            it( 'should call "updateField" on wobject model once', () => {
+                expect( WobjModel.updateField ).to.be.calledTwice;
+            } );
+            it( 'should add new rating vote to "rating_votes"', () => {
+                expect( updField.rating_votes.length ).to.eq( 2 );
+            } );
+            it( 'should correct change average raging weight value', () => {
+                expect( updField.average_rating_weight ).to.eq( 9 );
             } );
         } );
         describe( 'on update existing rating vote', async () => {
@@ -80,7 +130,7 @@ describe( 'ratingHelper', async () => {
                 expect( WobjModel.getField ).to.be.calledOnce;
             } );
             it( 'should call "updateField" on wobject model once', () => {
-                expect( WobjModel.updateField ).to.be.calledOnce;
+                expect( WobjModel.updateField ).to.be.calledTwice;
             } );
         } );
         describe( 'on not valid operation data', async () => {
