@@ -1,8 +1,7 @@
-const appData = {
-    appName: 'busy',
-    version: '2.5.6',
-    appAccName: 'monterey',
-    appendObjectTag: 'waivio-object'
+const getAppData = () => {
+    return{
+        appName: process.env.APP_NAME || 'waiviodev'
+    };
 };
 
 const objectImportService = {
@@ -28,7 +27,7 @@ const objectImportService = {
 const nodeUrls = [ 'https://anyx.io', 'https://api.steemit.com', 'https://api.steem.house' ];
 
 module.exports = {
-    appData,
+    getAppData,
     objectImportService: objectImportService[ process.env.NODE_ENV || 'development' ],
     nodeUrls
 };

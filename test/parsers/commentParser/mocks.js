@@ -1,14 +1,14 @@
 const { PostFactory, ObjectTypeFactory } = require( '../../factories' );
 const { faker } = require( '../../testHelper' );
 
-const getCreateObjectTypeMocks = () => {
+const getCreateObjectTypeMocks = ( app ) => {
     const metadataWobj = {
         wobj: {
             action: 'createObjectType',
             name: faker.address.city().toLowerCase()
         }
     };
-    const op = PostFactory.Create( { parent_author: '', additionsForMetadata: metadataWobj, onlyData: true } );
+    const op = PostFactory.Create( { parent_author: '', additionsForMetadata: metadataWobj, onlyData: true, app } );
 
     return op;
 };

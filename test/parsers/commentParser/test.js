@@ -1,5 +1,6 @@
 const { getCreateObjectTypeMocks, getCreateObjectMocks } = require( './mocks' );
 const { objectTypeParser, commentParser, createObjectParser, expect, sinon } = require( '../../testHelper' );
+const { AppFactory } = require( '../../factories' );
 
 describe( 'comment parser', async () => {
     describe( 'when get operation with "parent_author"', async () => {
@@ -34,6 +35,27 @@ describe( 'comment parser', async () => {
                     const expectedArg = JSON.parse( mockOp.json_metadata );
 
                     expect( secondArg ).to.deep.equal( expectedArg );
+                } );
+            } );
+
+            describe( 'createObjectType from app at blacklist', () => {
+                let mockOp, app, stub;
+
+                before( async () => {
+                    app = await AppFactory.Create( { blacklists: { apps: [ 'apptest', 'lala', 'kek' ] } } );
+                    mockOp = await getCreateObjectTypeMocks( 'apptest' );
+                    stub = sinon.stub( objectTypeParser, 'parse' ).callsFake( async () => {
+                        return {};
+                    } );
+                    process.env.APP_NAME = app.name;
+                    await commentParser.parse( mockOp );
+                } );
+                after( () => {
+                    stub.restore();
+                    delete process.env.APP_NAME;
+                } );
+                it( 'should NOT call objectTypeParser.parse', () => {
+                    expect( stub.called ).to.be.false;
                 } );
             } );
         } );

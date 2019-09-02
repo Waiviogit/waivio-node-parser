@@ -1,15 +1,15 @@
 const { WObject, faker, getRandomString, redisSetter } = require( '../../testHelper' );
 const ObjectTypeFactory = require( '../ObjectType/ObjectTypeFactory' );
 
-const Create = async ( { onlyData, appends = [], author_permlink: root_permlink } = {} ) => {
-    const objectType = await ObjectTypeFactory.Create();
+const Create = async ( { onlyData, appends = [], author_permlink: root_permlink, object_type } = {} ) => {
+    const created_object_type = await ObjectTypeFactory.Create( { name: object_type } );
     const default_name = faker.address.city().toLowerCase();
     const is_posting_open = true;
     const is_extending_open = true;
     const creator = faker.name.firstName().toLowerCase();
     const author = faker.name.firstName().toLowerCase();
     const author_permlink = root_permlink || `${getRandomString( 3 )}-${default_name.replace( / /g, '' )}`;
-    const object_type = objectType.name;
+    object_type = created_object_type.name;
 
     if ( onlyData ) {
         return {

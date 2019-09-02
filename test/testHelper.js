@@ -9,17 +9,20 @@ const {
     voteParser,
     userParsers
 } = require( '../parsers' );
-const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, votePostHelper } = require( '../utilities/helpers' );
+const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, votePostHelper, appHelper, postByTagsHelper, ratingHelper } = require( '../utilities/helpers' );
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
-const { ObjectType, WObject, Post, User, UserWobjects } = require( '../database' ).models;
+const { importTags } = require( '../utilities/objectImportServiceApi' );
+const { ObjectType, WObject, Post, User, UserWobjects, App } = require( '../database' ).models;
 const { Wobj: WobjModel } = require( '../models' );
+const sinon = require( 'sinon' );
 const chai = require( 'chai' );
+const sinonChai = require( 'sinon-chai' );
+chai.use( sinonChai );
 const expect = chai.expect;
 const { Mongoose } = require( '../database' );
 const { redis, redisGetter, redisSetter } = require( '../utilities/redis' );
 const faker = require( 'faker' );
-const sinon = require( 'sinon' );
 
 const getRandomString = ( length = 5 ) => {
     return faker.internet.password( length, false, /[a-z]/ );
@@ -56,5 +59,10 @@ module.exports = {
     updateSpecificFieldsHelper,
     specifiedFieldsValidator,
     appendObjectValidator,
-    WobjModel
+    WobjModel,
+    App,
+    appHelper,
+    importTags,
+    postByTagsHelper,
+    ratingHelper
 };

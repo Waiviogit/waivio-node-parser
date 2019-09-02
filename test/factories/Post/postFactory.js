@@ -1,10 +1,10 @@
 const { faker, getRandomString, Post } = require( '../../testHelper' );
 const _ = require( 'lodash' );
 
-const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_author, parent_permlink, additionsForPost = {}, active_votes = [] } = {} ) => { // additionsForMetadata(Post) must be an Object
+const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_author, parent_permlink, additionsForPost = {}, active_votes = [], app } = {} ) => { // additionsForMetadata(Post) must be an Object
     const json_metadata = {
-        community: 'waiviodev',
-        app: 'waiviodev',
+        community: 'waiviotest',
+        app: app || 'waiviotest',
         tags: [ 'testtag1', 'testtag2' ]
     };
 
