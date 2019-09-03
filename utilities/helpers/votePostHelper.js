@@ -9,7 +9,7 @@ const voteOnPost = async ( data ) => {
     if ( !currentVote ) {
         return;
     }
-    const weight = Math.round( ( data.post.active_votes.find( ( vote ) => vote.voter === data.voter ).rshares ) * 1e-6 );
+    const weight = Math.round( currentVote.rshares * 1e-6 );
 
     if ( !BLACK_LIST_BOTS.includes( data.voter ) && data.post.author !== data.voter ) {
         await unvoteOnPost( data );
