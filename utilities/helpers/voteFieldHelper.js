@@ -10,7 +10,7 @@ const updateSpecificFieldHelper = require( './updateSpecificFieldsHelper' );
  * @returns return nothing (or error)
  */
 const voteOnField = async ( data ) => {
-    // data : {author, permlink, voter, percent, author_permlink, weight}
+    // data : {author, permlink, voter, percent, author_permlink, weight, rshares_weight}
     const { field, error: fieldError } = await Wobj.getField( data.author, data.permlink, data.author_permlink );
 
     if( fieldError ) return { error: fieldError };
@@ -79,9 +79,10 @@ const upVoteOnAppend = async ( data ) => {
 };
 
 const addVoteOnField = async ( data ) => {
-    data.weight = data.weight * ( calculateVotePercent( data.percent ) / 100 );
-    if( data.weight > 0 ) await upVoteOnAppend( data );
-    else if ( data.weight < 0 ) await downVoteOnAppend( data );
+    if( data.weight > 0 ) {
+        data.weight = ( data.weight + data.rshares_weight ) * ( calculateVotePercent( data.percent ) / 100 );
+        await upVoteOnAppend( data );
+    } else if ( data.weight < 0 ) await downVoteOnAppend( data );
     await Wobj.addVote( data );
 };
 

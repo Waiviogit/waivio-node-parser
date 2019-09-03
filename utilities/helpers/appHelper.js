@@ -5,7 +5,7 @@ const _ = require( 'lodash' );
 const checkAppBlacklistValidity = async ( metadata ) => {
     // get current app (app from comment)
     let checkApp = _.get( metadata, 'app' );
-    if( !checkApp ) return true;
+    if( !checkApp || typeof checkApp !== 'string' ) return true;
     checkApp = checkApp.split( '/' )[ 0 ];
 
     // get current "Running" app
