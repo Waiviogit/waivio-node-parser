@@ -9,7 +9,7 @@ const {
     voteParser,
     userParsers
 } = require( '../parsers' );
-const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, votePostHelper, appHelper, postByTagsHelper, ratingHelper } = require( '../utilities/helpers' );
+const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, votePostHelper, appHelper, postByTagsHelper, ratingHelper, detectPostLanguageHelper } = require( '../utilities/helpers' );
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { importTags } = require( '../utilities/objectImportServiceApi' );
@@ -64,5 +64,6 @@ module.exports = {
     appHelper,
     importTags,
     postByTagsHelper,
-    ratingHelper
+    ratingHelper,
+    detectPostLanguageHelper
 };

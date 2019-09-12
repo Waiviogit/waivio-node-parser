@@ -20,6 +20,7 @@
     "eslint": "^5.16.0",
     "event-stream": "^4.0.1",
     "express": "^4.14.0",
+    "franc-min": "^4.1.0",
     "http-errors": "~1.6.2",
     "lodash": "^4.17.5",
     "mongoose": "^5.3.5",
