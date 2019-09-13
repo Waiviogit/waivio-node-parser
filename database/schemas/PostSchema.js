@@ -59,7 +59,8 @@ const PostSchema = new Schema( {
         author_permlink: { type: String, index: true },
         percent: { type: Number },
         tagged: { type: String }
-    } ]
+    } ],
+    language: { type: String, default: 'en-US' }
 }, { strict: false, timestamps: true } );
 
 PostSchema.index( { author: 1, permlink: 1 }, { unique: true } );
