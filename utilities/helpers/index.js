@@ -5,5 +5,6 @@ module.exports = {
     ratingHelper: require( './ratingHelper' ),
     investarenaForecastHelper: require( './investarenaForecastHelper' ),
     updateSpecificFieldsHelper: require( './updateSpecificFieldsHelper' ),
-    appHelper: require( './appHelper' )
+    appHelper: require( './appHelper' ),
+    detectPostLanguageHelper: require( './detectPostLanguageHelper' )
 };
