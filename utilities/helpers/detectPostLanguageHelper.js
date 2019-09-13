@@ -62,7 +62,7 @@ module.exports = async ( { title = '', body = '', author } = {} ) => {
     // if lib didn't match any language ¯\_(ツ)_/¯
     if ( _.isEmpty( existLanguages ) ) {
         // chose language from author language, english has priority
-        if ( _.isEmpty( userLanguages ) || ( userLanguages.length === 1 && _.get( userLanguages, '[0]' === 'auto' ) ) ) {
+        if ( _.isEmpty( userLanguages ) || ( userLanguages.length === 1 && _.get( userLanguages, '[0]' ) === 'auto' ) ) {
             return 'en-US';
         }
         if ( userLanguages.includes( 'en-US' ) ) {
