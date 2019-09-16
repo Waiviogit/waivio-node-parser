@@ -50,7 +50,6 @@ const downVoteOnAppend = async ( data ) => {
         author_permlink: data.author_permlink,
         weight: data.weight * 0.75
     } );
-    await Wobj.addVote( data );
 };
 
 // data includes: author, permlink, author_permlink, weight, creator, voter
@@ -74,8 +73,6 @@ const upVoteOnAppend = async ( data ) => {
         author_permlink: data.author_permlink,
         weight: data.weight * 0.75
     } );
-    await Wobj.addVote( data );
-
 };
 
 const addVoteOnField = async ( data ) => {
