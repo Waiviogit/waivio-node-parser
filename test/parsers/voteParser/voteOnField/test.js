@@ -39,6 +39,11 @@ describe( 'Vote On Field', async () => {
 
                 expect( voter_weight.weight ).to.eq( 11 * 0.25 );
             } );
+            it( 'should not create duplicates on active_votes', async () => {
+                const count_votes_by_voter = upd_field.active_votes.filter( ( vote ) => vote.voter === mocks.voter.name ).length;
+                expect( count_votes_by_voter ).to.eq( 1 );
+            } );
+
         } );
         describe( 'on downVote', async () => {
             /*
@@ -78,6 +83,10 @@ describe( 'Vote On Field', async () => {
                 const creator_weight = await UserWobjects.findOne( { user_name: mocks.creator.name, author_permlink: mocks.author_permlink } );
 
                 expect( creator_weight.weight ).to.eq( -11 * 0.75 );
+            } );
+            it( 'should not create duplicates on active_votes', async () => {
+                const count_votes_by_voter = upd_field.active_votes.filter( ( vote ) => vote.voter === mocks.voter.name ).length;
+                expect( count_votes_by_voter ).to.eq( 1 );
             } );
         } );
         describe( 'on unVote after upVote', async () => {
