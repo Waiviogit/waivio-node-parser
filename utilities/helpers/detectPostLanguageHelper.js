@@ -52,8 +52,8 @@ const languageList = {
  */
 module.exports = async ( { title = '', body = '', author } = {} ) => {
     const userLanguages = await getUserLanguages( author );
-    let text = `${title.replace( /<\/?[^>]+(>|$)/g, '' ) }\n`;
-    text = body.replace( /<\/?[^>]+(>|$)/g, '' );
+    let text = `${title.replace( /(?:!?\[(.*?)\]\((.*?)\))|(<\/?[^>]+(>|$))/g, '' ) }\n`;
+    text += body.replace( /(?:!?\[(.*?)\]\((.*?)\))|(<\/?[^>]+(>|$))/g, '' );
     let existLanguages = franc.all( text, { only: Object.values( languageList ) } );
     existLanguages = existLanguages.map( ( item ) => ( {
         language: findCorrectLanguageFormat( item[ 0 ] ),
