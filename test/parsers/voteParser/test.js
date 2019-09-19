@@ -13,7 +13,7 @@ describe( 'VoteParser', async () => {
                 voteFieldHelperStub = sinon.stub( voteFieldHelper, 'voteOnField' ).callsFake( async () => {
                 } );
                 postUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( async () => {
-                    return [ mocks.post ];
+                    return { post: mocks.post };
                 } );
                 await voteParser.parse( [ mocks.vote ] );
             } );
@@ -39,10 +39,12 @@ describe( 'VoteParser', async () => {
                     author_permlink: resp.root_wobj,
                     percent: mocks.vote.weight,
                     voter: mocks.vote.voter,
-                    weight: 1
+                    weight: 1,
+                    posts: [ mocks.post ],
+                    rshares_weight: mocks.post.active_votes[ 0 ].rshares * 1e-6
                 };
 
-                expect( voteFieldHelperStub.args[ 0 ][ 0 ] ).to.deep.equal( data );
+                expect( voteFieldHelperStub.args[ 0 ][ 0 ] ).to.deep.eq( data );
             } );
         } );
 
@@ -62,7 +64,7 @@ describe( 'VoteParser', async () => {
                 } );
                 voteFieldHelperStub = sinon.stub( voteFieldHelper, 'voteOnField' ).callsFake( async () => {} );
                 postUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( async () => {
-                    return [ mocks.post ];
+                    return { post: mocks.post };
                 } );
                 await voteParser.parse( [ mocks.vote ] );
             } );
@@ -87,10 +89,12 @@ describe( 'VoteParser', async () => {
                     author_permlink: redisResp.root_wobj,
                     percent: mocks.vote.weight,
                     voter: mocks.vote.voter,
-                    weight: 9999
+                    weight: 9999,
+                    posts: [ mocks.post ],
+                    rshares_weight: mocks.post.active_votes[ 0 ].rshares * 1e-6
                 };
 
-                expect( voteFieldHelperStub.args[ 0 ][ 0 ] ).to.deep.equal( data );
+                expect( voteFieldHelperStub.args[ 0 ][ 0 ] ).to.deep.eq( data );
             } );
         } );
     } );

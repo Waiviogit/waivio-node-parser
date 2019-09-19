@@ -1,7 +1,7 @@
 const { Wobj } = require( '../../models' );
 const { importTags } = require( '../objectImportServiceApi' );
 const _ = require( 'lodash' );
-const DYNAMIC_HASHTAGS = process.env.DYNAMIC_HASHTAGS === 'true';
+const DYNAMIC_HASHTAGS = () => process.env.DYNAMIC_HASHTAGS === 'true';
 
 const wobjectsByTags = async ( tags ) => {
     const wobjects = [];
@@ -12,7 +12,7 @@ const wobjectsByTags = async ( tags ) => {
             if( typeof tag !== 'string' ) {
                 continue;
             }
-            let notValidChars = tag.match( /[^a-z0-9\-!?]+/g ); // skip not valid tags
+            let notValidChars = tag.match( /[^a-z0-9\-]+/g ); // skip not valid tags
 
             if ( !_.isEmpty( notValidChars ) ) {
                 continue;
@@ -31,7 +31,7 @@ const wobjectsByTags = async ( tags ) => {
             }
         }
     }
-    if ( tagsImport.length && DYNAMIC_HASHTAGS ) {
+    if ( tagsImport.length && DYNAMIC_HASHTAGS() ) {
         await importTags.send( tagsImport );
     }
     return wobjects;

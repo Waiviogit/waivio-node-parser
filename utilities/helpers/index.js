@@ -4,5 +4,7 @@ module.exports = {
     votePostHelper: require( './votePostHelper' ),
     ratingHelper: require( './ratingHelper' ),
     investarenaForecastHelper: require( './investarenaForecastHelper' ),
-    updateSpecificFieldsHelper: require( './updateSpecificFieldsHelper' )
+    updateSpecificFieldsHelper: require( './updateSpecificFieldsHelper' ),
+    appHelper: require( './appHelper' ),
+    detectPostLanguageHelper: require( './detectPostLanguageHelper' )
 };

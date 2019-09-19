@@ -35,7 +35,8 @@ const parseVoteByType = async ( voteOp, posts ) => {
             permlink: voteOp.permlink,
             voter: voteOp.voter,
             percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
-            author_permlink: voteOp.root_wobj
+            author_permlink: voteOp.root_wobj,
+            posts
         } );
     }
 };
@@ -48,11 +49,17 @@ const voteAppendObject = async function ( data ) {
         name: data.voter,
         author_permlink: data.author_permlink
     } );
+    if ( !weight || weight <= 0 || error ) weight = 1; // ignore users with zero or negative weight in wobject
 
-    if ( !weight || weight <= 0 || error ) { // ignore users with zero or negative weight in wobject
-        weight = 1;
-    }
+    const currentVote = _.chain( data.posts )
+        .find( { author: data.author, permlink: data.permlink } )
+        .get( 'active_votes', [] )
+        .find( { voter: data.voter } )
+        .value();
+
     data.weight = weight;
+    data.rshares_weight = Math.round( Number( currentVote.rshares ) * 1e-6 );
+
     await voteFieldHelper.voteOnField( data );
 
     if ( data.percent === 0 ) {

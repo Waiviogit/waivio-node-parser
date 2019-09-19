@@ -4,5 +4,6 @@ module.exports = {
     UserFactory: require( './User/UserFactory' ),
     PostFactory: require( './Post/postFactory' ),
     VoteFactory: require( './Vote/VoteFactory' ),
-    AppendObject: require( './AppendObject/AppendObjectFactory' )
+    AppendObject: require( './AppendObject/AppendObjectFactory' ),
+    AppFactory: require( './App/AppFactory' )
 };
