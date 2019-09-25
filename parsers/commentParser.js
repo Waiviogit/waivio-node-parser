@@ -16,7 +16,7 @@ const parse = async function ( operation ) { // data is operation[1] of transact
     } catch ( e ) {
         console.error( e );
     }
-    // const isValidApp = await checkAppBlacklistValidity()
+
     if( !( await checkAppBlacklistValidity( metadata ) ) ) return;
 
     if ( operation.parent_author === '' && metadata ) { // comment without parent_author is POST
