@@ -85,14 +85,20 @@ const removeUserFollow = async function ( { follower, following } ) {
     return { result: true };
 };
 
+/**
+ * Return user if it exist, or create new user and return
+ * @param data Include user "name"
+ * @returns {Promise<{user: *}|{error: *}>}
+ */
 const checkAndCreate = async function ( data ) { // check for existing user and create if not exist
     try {
-        if ( !( await UserModel.countDocuments( { name: data.name } ) ) ) {
-            const user = await UserModel.create( { name: data.name } );
+        let user = await UserModel.find( { name: data.name } );
+        if( user ) return { user };
 
-            console.log( `User ${data.name} created!` );
-            return { user };
-        }
+        user = await UserModel.create( { name: data.name } );
+        console.log( `User ${data.name} created!` );
+        return { user };
+
     } catch ( error ) {
         return { error };
     }
