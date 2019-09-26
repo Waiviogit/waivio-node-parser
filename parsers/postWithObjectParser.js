@@ -7,7 +7,7 @@ const { WOBJECT_LATEST_POSTS_COUNT } = require( '../utilities/constants' );
 
 const parse = async function ( operation, metadata ) {
     const { user, error: userError } = await User.checkAndCreate( { name: operation.author } );
-    if( error ) console.log( userError );
+    if( userError ) console.log( userError );
 
     const data = {
         author: operation.author,
