@@ -6,14 +6,16 @@ const { redisSetter } = require( '../utilities/redis' );
 const { WOBJECT_LATEST_POSTS_COUNT } = require( '../utilities/constants' );
 
 const parse = async function ( operation, metadata ) {
+    const { user, error: userError } = await User.checkAndCreate( { name: operation.author } );
+    if( userError ) console.log( userError );
+
     const data = {
         author: operation.author,
         permlink: operation.permlink,
         wobjects: metadata.wobj.wobjects,
-        app: typeof metadata.app === 'string' ? metadata.app : ''
+        app: typeof metadata.app === 'string' ? metadata.app : '',
+        author_weight: user.wobjects_weight
     };
-
-    await User.checkAndCreate( { name: operation.author } );
 
     const { updPost, error } = await createOrUpdatePost( data );
 

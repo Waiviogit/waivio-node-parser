@@ -4,7 +4,8 @@ const Schema = mongoose.Schema;
 const PostSchema = new Schema( {
     id: { type: Number, required: true },
     author: { type: String },
-    author_reputation: { type: Number },
+    author_reputation: { type: Number }, // rate author in steem
+    author_weight: { type: Number }, // rate author in waivio
     permlink: { type: String },
     parent_author: { type: String, default: '' },
     parent_permlink: { type: String, required: true },
