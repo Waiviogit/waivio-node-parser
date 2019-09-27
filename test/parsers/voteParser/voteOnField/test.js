@@ -3,7 +3,7 @@ const { voteAppendObjectMocks } = require( './mocks' );
 
 
 describe( 'Vote On Field', async () => {
-    describe( 'when user haven`t weight in wobject', async () => {
+    describe( 'when user have weight in wobject', async () => {
         describe( 'on upVote', async () => {
             let mocks;
             let upd_field, exst_field;
@@ -17,27 +17,26 @@ describe( 'Vote On Field', async () => {
                     author: mocks.appendObject.author,
                     permlink: mocks.appendObject.permlink,
                     voter: mocks.voter.name,
-                    percent: mocks.vote.percent,
+                    percent: 10000,
                     author_permlink: mocks.author_permlink,
-                    weight: 1,
-                    rshares_weight: 10
+                    weight: 100,
+                    rshares_weight: 1000
                 } );
                 upd_field = ( await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink ) ).field;
             } );
-            it( 'should increase field weight by one', async () => {
+            it( 'should increase field weight by correct value', async () => {
                 const diff = upd_field.weight - exst_field.weight;
-
-                expect( diff ).to.eq( 11 );
+                expect( diff ).to.eq( 100 + ( 1000 * 0.25 ) );
             } );
-            it( 'should increase creator weight by 0.75', async () => {
-                const creator_weight = await UserWobjects.findOne( { user_name: mocks.creator.name, author_permlink: mocks.author_permlink } );
-
-                expect( creator_weight.weight ).to.eq( 11 * 0.75 );
+            it( 'should increase creator weight by correct value', async () => {
+                const creator_weight = await UserWobjects
+                    .findOne( { user_name: mocks.creator.name, author_permlink: mocks.author_permlink } );
+                expect( creator_weight.weight ).to.eq( 1000 * 0.75 );
             } );
-            it( 'should increase voter weight by 0.25', async () => {
+            it( 'should increase voter weight by correct value', async () => {
                 const voter_weight = await UserWobjects.findOne( { user_name: mocks.voter.name, author_permlink: mocks.author_permlink } );
 
-                expect( voter_weight.weight ).to.eq( 11 * 0.25 );
+                expect( voter_weight.weight ).to.eq( 1000 * 0.25 );
             } );
             it( 'should not create duplicates on active_votes', async () => {
                 const count_votes_by_voter = upd_field.active_votes.filter( ( vote ) => vote.voter === mocks.voter.name ).length;
@@ -66,23 +65,22 @@ describe( 'Vote On Field', async () => {
                     voter: mocks.voter.name,
                     percent: 9950, // should be rounded to - 100 percent
                     author_permlink: mocks.author_permlink,
-                    weight: 1,
-                    rshares_weight: 10
+                    weight: 100,
+                    rshares_weight: 1000
                 } );
 
                 const { field: new_field } = await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink );
 
                 upd_field = new_field;
             } );
-            it( 'should decrease field weight by 1', async () => {
+            it( 'should decrease field weight by correct value', async () => {
                 const diff = upd_field.weight - exst_field.weight;
-
-                expect( diff ).to.eq( -11 );
+                expect( diff ).to.eq( -100 );
             } );
-            it( 'should decrease creator weight by 0.75', async () => {
+            it( 'should decrease creator weight by correcta value', async () => {
                 const creator_weight = await UserWobjects.findOne( { user_name: mocks.creator.name, author_permlink: mocks.author_permlink } );
 
-                expect( creator_weight.weight ).to.eq( -11 * 0.75 );
+                expect( creator_weight.weight ).to.eq( 1000 * 0.75 * -1 );
             } );
             it( 'should not create duplicates on active_votes', async () => {
                 const count_votes_by_voter = upd_field.active_votes.filter( ( vote ) => vote.voter === mocks.voter.name ).length;
@@ -107,8 +105,8 @@ describe( 'Vote On Field', async () => {
                     voter: mocks.voter.name,
                     percent: mocks.vote.percent, // should be rounded to - 100 percent
                     author_permlink: mocks.author_permlink,
-                    weight: 1,
-                    rshares_weight: 10
+                    weight: 100,
+                    rshares_weight: 1000
                 } );
                 const { field } = await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink );
 
@@ -123,15 +121,15 @@ describe( 'Vote On Field', async () => {
                 } );
                 upd_field = ( await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink ) ).field;
             } );
-            it( 'should decrease field weight by 1', async () => {
+            it( 'should decrease field weight by correct value', async () => {
                 const diff = upd_field.weight - exst_field.weight;
-                expect( diff ).to.eq( -11 );
+                expect( diff ).to.eq( -( 100 + ( 1000 * 0.25 ) ) );
             } );
-            it( 'should decrease creator weight by 0.75 and became 0', async () => {
+            it( 'should decrease creator weight by correct value', async () => {
                 const creator_weight = await UserWobjects.findOne( { user_name: mocks.creator.name, author_permlink: mocks.author_permlink } );
                 expect( creator_weight.weight ).to.eq( 0 );
             } );
-            it( 'should decrease voter weight by 0.25 and become 0', async () => {
+            it( 'should decrease voter weight by correct value', async () => {
                 const voter_weight = await UserWobjects.findOne( { user_name: mocks.voter.name, author_permlink: mocks.author_permlink } );
                 expect( voter_weight.weight ).to.eq( 0 );
             } );
@@ -154,8 +152,8 @@ describe( 'Vote On Field', async () => {
                     voter: mocks.voter.name,
                     percent: 9950, // should be rounded to - 100 percent
                     author_permlink: mocks.author_permlink,
-                    weight: 1,
-                    rshares_weight: 10
+                    weight: 100,
+                    rshares_weight: 1000
                 } );
                 const { field } = await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink );
 
@@ -172,12 +170,12 @@ describe( 'Vote On Field', async () => {
 
                 upd_field = new_field;
             } );
-            it( 'should increase field weight by 1', async () => {
+            it( 'should increase field weight by 100', async () => {
                 const diff = upd_field.weight - exst_field.weight;
 
-                expect( diff ).to.eq( 11 );
+                expect( diff ).to.eq( 100 );
             } );
-            it( 'should increase creator weight by 0.75 and became 0', async () => {
+            it( 'should increase creator weight and became 0', async () => {
                 const creator_weight = await UserWobjects.findOne( { user_name: mocks.creator.name, author_permlink: mocks.author_permlink } );
 
                 expect( creator_weight.weight ).to.eq( 0 );
