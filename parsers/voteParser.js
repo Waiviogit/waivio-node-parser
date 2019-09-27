@@ -56,7 +56,7 @@ const voteAppendObject = async function ( data ) {
         .get( 'active_votes', [] )
         .find( { voter: data.voter } )
         .value();
-
+    // voters weight in wobject
     data.weight = weight;
     data.rshares_weight = Math.round( Number( currentVote.rshares ) * 1e-6 );
 

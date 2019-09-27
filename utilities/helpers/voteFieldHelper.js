@@ -1,6 +1,7 @@
 const { Wobj, User } = require( '../../models' );
 const { BLACK_LIST_BOTS } = require( '../constants' );
 const updateSpecificFieldHelper = require( './updateSpecificFieldsHelper' );
+const _ = require( 'lodash' );
 /**
  * Handle votes on append objects.
  * DownVotes do not use in app(just "UnVote" if vote already exist)
@@ -10,13 +11,15 @@ const updateSpecificFieldHelper = require( './updateSpecificFieldsHelper' );
  * @returns return nothing (or error)
  */
 const voteOnField = async ( data ) => {
-    // data : {author, permlink, voter, percent, author_permlink, weight, rshares_weight}
+    // data : {author_permlink, author, permlink, voter, percent, weight, rshares_weight} (weight it's weight voter in current wobject)
     const { field, error: fieldError } = await Wobj.getField( data.author, data.permlink, data.author_permlink );
 
     if( fieldError ) return { error: fieldError };
     if( !field ) return{ error: { status: 404, message: 'Field not found!' } };
 
-    if ( field && field.active_votes ) data.existingVote = field.active_votes.find( ( v ) => v.voter === data.voter );
+    if ( field && field.active_votes ) {
+        data.existingVote = field.active_votes.find( ( v ) => v.voter === data.voter );
+    }
     data.creator = field.creator;
 
     await unVoteOnAppend( data );
@@ -26,13 +29,42 @@ const voteOnField = async ( data ) => {
     await handleSpecifiedField( data.author, data.permlink, data.author_permlink );
 };
 
-// data includes: author, permlink, author_permlink, weight, creator, existingVote
+// data includes: author, permlink, author_permlink, weight, creator, existingVote(voter, rshares_weight, weight, percent)
 const unVoteOnAppend = async ( data ) => {
-    if( data.existingVote && data.existingVote.weight ) {
-        if ( data.existingVote.weight > 0 ) await upVoteOnAppend( { ...data, weight: -data.existingVote.weight } );
-        else if ( data.existingVote.weight < 0 ) await downVoteOnAppend( { ...data, weight: -data.existingVote.weight } );
-        await Wobj.removeVote( data );
+    if( _.get( data, 'existingVote.percent' ) && _.get( data, 'existingVote.rshares_weight' ) && _.get( data, 'existingVote.weight' ) ) {
+        if ( data.existingVote.percent > 0 ) {
+            await upVoteOnAppend( {
+                ...data,
+                weight: -data.existingVote.weight,
+                percent: data.existingVote.percent,
+                rshares_weight: -data.existingVote.rshares_weight
+            } );
+        } else if ( data.existingVote.percent < 0 ) {
+            await downVoteOnAppend( {
+                ...data,
+                weight: -data.existingVote.weight,
+                percent: data.existingVote.percent,
+                rshares_weight: -data.existingVote.rshares_weight
+            } );
+        }
     }
+    await Wobj.removeVote( data );
+};
+
+// data includes: author, permlink, author_permlink, weight, creator, existingVote(voter, rshares_weight, weight, percent)
+const addVoteOnField = async ( data ) => {
+    data.percent = calculateVotePercent( data.percent );
+    if( data.percent > 0 ) {
+        data.weight = ( data.weight + data.rshares_weight * 0.25 ) * ( data.percent / 100 );
+        await upVoteOnAppend( data );
+    } else if ( data.percent < 0 ) {
+        data.weight = data.weight * ( data.percent / 100 );
+        await downVoteOnAppend( data );
+    }
+    await Wobj.addVote( {
+        ...data,
+        vote: { voter: data.voter, percent: data.percent, rshares_weight: data.rshares_weight, weight: data.weight }
+    } );
 };
 
 // data includes: author, permlink, author_permlink, weight, creator
@@ -48,12 +80,27 @@ const downVoteOnAppend = async ( data ) => {
     await User.increaseWobjectWeight( {
         name: data.creator,
         author_permlink: data.author_permlink,
-        weight: data.weight * 0.75
+        weight: data.rshares_weight * 0.75 * ( data.percent / 100 )
     } );
+    // ///////////////////////////// //
+    // here can be incr. voter weight//
+    // ///////////////////////////// //
 };
 
 // data includes: author, permlink, author_permlink, weight, creator, voter
 const upVoteOnAppend = async ( data ) => {
+    // increase weight of voter
+    await User.increaseWobjectWeight( {
+        name: data.voter,
+        author_permlink: data.author_permlink,
+        weight: data.rshares_weight * 0.25 * ( data.percent / 100 )
+    } );
+    // increase weight of append author
+    await User.increaseWobjectWeight( {
+        name: data.creator,
+        author_permlink: data.author_permlink,
+        weight: data.rshares_weight * 0.75 * ( data.percent / 100 )
+    } );
     // increase weight of append
     await Wobj.increaseFieldWeight( {
         author: data.author,
@@ -61,32 +108,12 @@ const upVoteOnAppend = async ( data ) => {
         author_permlink: data.author_permlink,
         weight: data.weight
     } );
-    // increase weight of voter
-    await User.increaseWobjectWeight( {
-        name: data.voter,
-        author_permlink: data.author_permlink,
-        weight: data.weight * 0.25
-    } );
-    // increase weight of append author
-    await User.increaseWobjectWeight( {
-        name: data.creator,
-        author_permlink: data.author_permlink,
-        weight: data.weight * 0.75
-    } );
-};
-
-const addVoteOnField = async ( data ) => {
-    if( data.weight > 0 ) {
-        data.weight = ( data.weight + data.rshares_weight ) * ( calculateVotePercent( data.percent ) / 100 );
-        await upVoteOnAppend( data );
-    } else if ( data.weight < 0 ) await downVoteOnAppend( data );
-    await Wobj.addVote( data );
 };
 
 /**
  * Get real percent of vote on append and return virtual percent inside app waivio, in usual format (for ex: 55.5)
- * @param {Number} percent Number from 1 to 100 00
- * @returns {Number} Number from 1 to 100, can be not integer
+ * @param {Number} percent Number from 1 to 10000
+ * @returns {Number} Number from 1 to 100
  */
 const calculateVotePercent = ( percent ) => {
     if ( percent % 100 === 0 ) return percent / 100 ;
