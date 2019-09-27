@@ -93,14 +93,8 @@ const addVote = async ( data ) => { // data include: author, permlink, author_pe
             author_permlink: data.author_permlink,
             'fields.author': data.author,
             'fields.permlink': data.permlink
-        }, {
-            $push: {
-                'fields.$.active_votes': {
-                    voter: data.voter,
-                    weight: data.weight
-                }
-            }
-        }
+        },
+        { $push: { 'fields.$.active_votes': { ...data.vote } } }
         );
     } catch ( error ) {
         return { error };
