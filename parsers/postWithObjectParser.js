@@ -56,16 +56,7 @@ const createOrUpdatePost = async function ( data ) {
     if ( error ) return { error };
     await User.increaseCountPosts( data.author );
     for( const author_permlink of data.wobjects.map( ( w ) => w.author_permlink ) ) {
-        await Wobj.update( { author_permlink }, {
-            $push: {
-                latest_posts: {
-                    $each: [ updPost._id ],
-                    $position: 0,
-                    $slice: WOBJECT_LATEST_POSTS_COUNT
-                }
-            },
-            $inc: { count_posts: 1 }
-        } );
+        await Wobj.pushNewPost( { author_permlink, post_id: updPost._id } );
     }
     return { updPost };
 };

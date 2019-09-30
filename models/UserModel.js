@@ -184,7 +184,7 @@ const increaseCountPosts = async ( author ) => {
     try{
         await UserModel.updateOne(
             { name: author },
-            { $inc: { count_posts: 1 } }
+            { $inc: { count_posts: 1, last_posts_count: 1 } }
         );
         return { result: true };
     } catch( error ) {
