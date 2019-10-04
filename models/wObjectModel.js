@@ -1,5 +1,6 @@
 const WObjectModel = require( '../database' ).models.WObject;
 const ObjectTypes = require( '../database' ).models.ObjectType;
+const { WOBJECT_LATEST_POSTS_COUNT } = require( '../utilities/constants' );
 
 const create = async function ( data ) {
     const newWObject = new WObjectModel( data );
@@ -14,7 +15,6 @@ const create = async function ( data ) {
 const update = async function ( conditions, updateData ) {
     try {
         const result = await WObjectModel.findOneAndUpdate( conditions, updateData );
-
         return { result };
     } catch ( error ) {
         return { error };
@@ -186,6 +186,24 @@ const getOne = async ( { author_permlink } ) => {
     }
 };
 
+const pushNewPost = async ( { author_permlink, post_id } ) => {
+    try {
+        const result = await WObjectModel.update( { author_permlink }, {
+            $push: {
+                latest_posts: {
+                    $each: [ post_id ],
+                    $position: 0,
+                    $slice: WOBJECT_LATEST_POSTS_COUNT
+                }
+            },
+            $inc: { count_posts: 1, last_posts_count: 1 }
+        } );
+        return { result };
+    } catch ( e ) {
+        return { error: e };
+    }
+};
+
 module.exports = {
     getOne,
     create,
@@ -199,5 +217,6 @@ module.exports = {
     getFieldsRefs,
     getSomeFields,
     getField,
-    updateField
+    updateField,
+    pushNewPost
 };
