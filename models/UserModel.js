@@ -92,7 +92,7 @@ const removeUserFollow = async function ( { follower, following } ) {
  */
 const checkAndCreate = async function ( data ) { // check for existing user and create if not exist
     try {
-        let user = await UserModel.find( { name: data.name } );
+        let user = await UserModel.findOne( { name: data.name } ).lean();
         if( user ) return { user };
 
         user = await UserModel.create( { name: data.name } );
