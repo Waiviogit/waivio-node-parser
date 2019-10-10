@@ -17,6 +17,7 @@ const parse = async function ( votes ) {
     await Promise.all( votesOps.map( async ( voteOp ) => {
         await parseVoteByType( voteOp, posts );
     } ) );
+    console.log( `Parsed votes: ${ votesOps.length }` );
 };
 
 const parseVoteByType = async ( voteOp, posts ) => {
@@ -61,12 +62,6 @@ const voteAppendObject = async function ( data ) {
     data.rshares_weight = Math.round( Number( currentVote.rshares ) * 1e-6 );
 
     await voteFieldHelper.voteOnField( data );
-
-    if ( data.percent === 0 ) {
-        console.log( `${data.voter} unvote from field in ${data.author_permlink} wobject\n` );
-    } else {
-        console.log( `${data.voter} vote for field in ${data.author_permlink} wobject with weight ${data.percent > 0 ? weight : -weight}\n` );
-    }
 };
 
 const votePostWithObjects = async function ( data ) { // data include: post, metadata, voter, percent
@@ -92,13 +87,6 @@ const votePostWithObjects = async function ( data ) { // data include: post, met
     data.metadata = metadata;
 
     await votePostHelper.voteOnPost( data );
-    if ( data.percent === 0 ) {
-        console.log( `${data.voter} unvote from post @${data.post.author}/${data.post.permlink}\n` );
-    } else if ( data.percent > 0 ) {
-        console.log( `${data.voter} upvote for post @${data.post.author}/${data.post.permlink}\n` );
-    } else if ( data.percent < 0 ) {
-        console.log( `${data.voter} downvote on post @${data.post.author}/${data.post.permlink}\n` );
-    }
 };
 
 const getPosts = async function ( postsRefs ) {
