@@ -53,26 +53,23 @@ describe( 'ObjectTypeModel', async () => {
         } );
     } );
     describe( 'On getAll', async () => {
-        let objectType, objectType2;
+        let objectType;
         before( async () => {
             objectType = await ObjectTypeFactory.Create( {
                 name: 'first'
-            } );
-            objectType2 = await ObjectTypeFactory.Create( {
-                name: 'second'
             } );
         } );
         it( 'should return array with length 2', async () => {
             const types = await ObjectTypeModel.getAll();
             const typesArray = types.objectTypes;
 
-            expect( typesArray.length ).to.deep.eq( 2 );
+            expect( typesArray.length ).to.deep.eq( 3 );
         } );
         it( 'should find objectType name', async () => {
             const types = await ObjectTypeModel.getAll();
             const typesArray = types.objectTypes;
             const objectTypeObj = objectType._doc;
-            expect( typesArray[ 0 ].name ).to.deep.eq( objectTypeObj.name );
+            expect( typesArray[ 2 ].name ).to.deep.eq( objectTypeObj.name );
         } );
     } );
 } );
