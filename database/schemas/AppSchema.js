@@ -22,6 +22,16 @@ const AppSchema = new Schema( {
         } ],
         users: { type: [], default: [] },
         apps: { type: [], default: [] }
+    },
+    daily_chosen_post: {
+        author: { type: String },
+        permlink: { type: String },
+        title: { type: String }
+    },
+    weekly_chosen_post: {
+        author: { type: String },
+        permlink: { type: String },
+        title: { type: String }
     }
 }, { timestamps: true } );
 
