@@ -6,5 +6,6 @@ module.exports = {
     investarenaForecastHelper: require( './investarenaForecastHelper' ),
     updateSpecificFieldsHelper: require( './updateSpecificFieldsHelper' ),
     appHelper: require( './appHelper' ),
-    detectPostLanguageHelper: require( './detectPostLanguageHelper' )
+    detectPostLanguageHelper: require( './detectPostLanguageHelper' ),
+    chosenPostHelper: require( './chosenPostHelper' )
 };
