@@ -14,7 +14,7 @@ const { specifiedFieldsValidator, appendObjectValidator } = require( '../validat
 const { postsUtil } = require( '../utilities/steemApi' );
 const { importTags } = require( '../utilities/objectImportServiceApi' );
 const { ObjectType, WObject, Post, User, UserWobjects, App } = require( '../database' ).models;
-const { Wobj: WobjModel } = require( '../models' );
+const { Wobj: WobjModel, App: AppModel } = require( '../models' );
 const sinon = require( 'sinon' );
 const chai = require( 'chai' );
 const sinonChai = require( 'sinon-chai' );
@@ -60,6 +60,7 @@ module.exports = {
     specifiedFieldsValidator,
     appendObjectValidator,
     WobjModel,
+    AppModel,
     App,
     appHelper,
     importTags,
