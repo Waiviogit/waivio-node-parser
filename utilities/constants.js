@@ -43,10 +43,12 @@ const bitBots = [ 'postpromoter', 'buildawhale', 'sneaky-ninja', 'appreciator', 
     'cleansingpoetry', 'moonbot', 'resteembot', 'hugewhale', 'resteemyou', 'schoolofminnows', 'zerotoherobot', 'superbot', 'queqtra', 'blockgators', 'steemthat',
     'reblogit', 'earnmoresteem', 'frontrunner', 'photocontests', 'ottoman', 'fresteem', 'oceansbot', 'red-rose', 'otobot', 'postresteem', 'talhadogan', 'danzy',
     'growingpower', 'giftbox', 'jeryalex', 'highvote', 'drewardsresteem', 'bestvote', 'bidbot', 'thehumanbot', 'mecurator', 'okankarol', 'astrobot', 'alphaprime', 'gangvote',
-    'buildawhale', 'booster', 'upmyvote', 'promobot', 'postpromoter', 'acidyo', 'reggaemuffin', 'gtg', 'inciter', 'top-exchanges', 'joeparys', 'a-bot', 'tipu', 'oceanwhale', 'alfanso', 'bue',
-    'brupvoter', 'cervantes', 'spydo', 'thebot', 'onlyprofitbot', 'newhope', 'jphamer1', 'bid4joy', 'wackou', 'steem-ambassador', 'emperorofnaps', 'howo', 'delegate.lafona', 'suesa', 'pgarcgo', 'chris4210',
-    'starkerz', 'fredrikaa', 'sorin.cristescu', 'heiditravels', 'chorock', 'project7', 'swapsteem', 'kenmelendez', 'gargon', 'llfarms', 'alexs1320', 'zephyraijunzo', 'nateaguila', 'jgcastrillo19', 'arv1',
-    'ashtv', 'wartrapa', 'beamentor', 'delabo', 'blewitt', 'smartvote', 'ivet', 's4s', 'firepower', 'ocdb', 'tarazkp', 'booster', 'oracle-d', 'appreciator', 'rocky1', 'byresteem' ];
+    'buildawhale', 'booster', 'upmyvote', 'promobot', 'postpromoter', 'acidyo', 'reggaemuffin', 'gtg', 'inciter', 'top-exchanges', 'joeparys', 'a-bot', 'tipu', 'oceanwhale',
+    'alfanso', 'bue', 'brupvoter', 'cervantes', 'spydo', 'thebot', 'onlyprofitbot', 'newhope', 'jphamer1', 'bid4joy', 'wackou', 'steem-ambassador',
+    'emperorofnaps', 'howo', 'delegate.lafona', 'suesa', 'pgarcgo', 'chris4210', 'starkerz', 'fredrikaa', 'sorin.cristescu', 'heiditravels',
+    'chorock', 'project7', 'swapsteem', 'kenmelendez', 'gargon', 'llfarms', 'alexs1320', 'zephyraijunzo', 'nateaguila', 'jgcastrillo19', 'arv1',
+    'ashtv', 'wartrapa', 'beamentor', 'delabo', 'blewitt', 'smartvote', 'ivet', 's4s', 'firepower', 'ocdb', 'tarazkp', 'booster', 'oracle-d',
+    'appreciator', 'rocky1', 'byresteem', 'gangstalking', 'steemcleaners' ];
 
 exports.BLACK_LIST_BOTS = [ ...appsBots, ...serviceBots, ...bitBots, ...otherBots ];
 exports.LANGUAGES = [ 'en-US',
