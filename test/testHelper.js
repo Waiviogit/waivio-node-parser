@@ -14,7 +14,7 @@ const { specifiedFieldsValidator, appendObjectValidator } = require( '../validat
 const { postsUtil } = require( '../utilities/steemApi' );
 const { importTags } = require( '../utilities/objectImportServiceApi' );
 const { ObjectType, WObject, Post, User, UserWobjects, App } = require( '../database' ).models;
-const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel } = require( '../models' );
+const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel } = require( '../models' );
 const sinon = require( 'sinon' );
 const chai = require( 'chai' );
 const sinonChai = require( 'sinon-chai' );
@@ -67,5 +67,7 @@ module.exports = {
     ratingHelper,
     detectPostLanguageHelper,
     AppModel,
-    ObjectTypeModel
+    ObjectTypeModel,
+    PostModel,
+    UserModel
 };
