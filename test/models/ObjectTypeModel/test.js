@@ -53,23 +53,24 @@ describe( 'ObjectTypeModel', async () => {
         } );
     } );
     describe( 'On getAll', async () => {
-        let objectType;
+        let objectType, count;
         before( async () => {
             objectType = await ObjectTypeFactory.Create( {
                 name: 'first'
             } );
+            count = await ObjectType.countDocuments();
         } );
-        it( 'should return array with length 2', async () => {
+        it( 'should return array with length ', async () => {
             const types = await ObjectTypeModel.getAll();
             const typesArray = types.objectTypes;
 
-            expect( typesArray.length ).to.deep.eq( 3 );
+            expect( typesArray.length ).to.deep.eq( count );
         } );
         it( 'should find objectType name', async () => {
             const types = await ObjectTypeModel.getAll();
             const typesArray = types.objectTypes;
             const objectTypeObj = objectType._doc;
-            expect( typesArray[ 2 ].name ).to.deep.eq( objectTypeObj.name );
+            expect( typesArray[ count - 1 ].name ).to.deep.eq( objectTypeObj.name );
         } );
     } );
 } );

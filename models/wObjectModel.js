@@ -14,7 +14,8 @@ const create = async function ( data ) {
 
 const update = async function ( conditions, updateData ) {
     try {
-        const result = await WObjectModel.findOneAndUpdate( conditions, updateData );
+
+        const result = await WObjectModel.findOneAndUpdate( conditions, updateData, { upsert: true, new: true } );
         return { result };
     } catch ( error ) {
         return { error };

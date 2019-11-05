@@ -26,6 +26,7 @@ const findOne = async function ( data ) {
     }
 };
 
+
 const update = async function ( data ) {
     try {
         const result = await PostModel.findOneAndUpdate(

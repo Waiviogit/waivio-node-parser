@@ -21,6 +21,8 @@ describe( 'Append Object Validator', async () => {
 
     } );
 
+    it
+
     it( 'should not throw error if all fields is exist', () => {
         const tempMockAppendData = {
             field: {

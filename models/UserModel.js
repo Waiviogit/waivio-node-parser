@@ -166,7 +166,7 @@ const checkForObjectShares = async function ( data ) { // object shares - user w
 
 const update = async function ( condition, updateData ) {
     try{
-        return { result: await UserModel.update( condition, updateData ) };
+        return { result: await UserModel.updateMany( condition, updateData ) };
     } catch ( error ) {
         return { error };
     }
