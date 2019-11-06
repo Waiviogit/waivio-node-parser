@@ -77,7 +77,7 @@ describe( 'Wobject Model', async () => {
                 }
             };
         } );
-        it( 'should update field', async() => {
+        it( 'should update field', async () => {
             result = await WobjModel.update( condition, updateData );
 
             expect( result.result.count_posts ).to.deep.eq( updateData.$set.count_posts );
@@ -94,10 +94,64 @@ describe( 'Wobject Model', async () => {
         } );
     } );
     describe( 'On addField', async () => {
+        let result, data, permlink;
+        before( async () => {
+            permlink = getRandomString();
+            await ObjectFactory.Create( { author_permlink: permlink } );
+            data = {
+                author_permlink: permlink,
+                field: {
+                    data: getRandomString()
+                }
+            };
+        } );
+        it( 'should success return true', async () => {
+            result = await WobjModel.addField( data );
+            expect( result.result ).is.true;
+        } );
+        it( 'should success return false', async () => {
+            result = await WobjModel.addField( { author_permlink: getRandomString() } );
 
+            expect( result.result ).is.false;
+        } );
+        it( 'should success addField to wobject', async () => {
+            await WobjModel.addField( data );
+            result = await WObjectModel.findOne( { author_permlink: permlink } );
+
+            expect( result._doc.fields[ 0 ]._doc.data ).to.deep.eq( data.field.data );
+        } );
+        it( 'should return error without author permlink', async () => {
+            result = await WobjModel.addField();
+
+            expect( result.error.message ).is.exist;
+        } );
+        it( 'should return error with not valid field', async () => {
+            result = await WobjModel.addField( { author_permlink: permlink, field: getRandomString() } );
+            let res = await WObjectModel.findOne( { author_permlink: permlink } );
+            expect( result.error.name ).to.deep.eq( 'ObjectParameterError' );
+        } );
     } );
     describe( 'On increaseFieldWeight', async () => {
+        let result, data, field;
+        before( async () => {
+            field = {
+                author: getRandomString(),
+                permlink: getRandomString(),
+                weight: 0
+            };
+            data = {
+                author: field.author,
+                permlink: field.permlink,
+                author_permlink: getRandomString(),
+                weight: 1111
+            };
+            await ObjectFactory.Create( { appends: [ field ], author_permlink: data.author_permlink } );
+        } );
+        it( 'should success increase weight', async () => {
+            result = await WobjModel.increaseFieldWeight( data );
 
+            expect( result.result ).is.true;
+        } );
     } );
     describe( 'On increseWobjectWeight', async () => {
 

@@ -24,14 +24,14 @@ const update = async function ( conditions, updateData ) {
 
 const addField = async function ( data ) {
     try {
-        await WObjectModel.updateOne( { author_permlink: data.author_permlink },
+        const result = await WObjectModel.updateOne( { author_permlink: data.author_permlink },
             {
                 $push:
                     {
                         fields: data.field
                     }
             } );
-        return { result: true };
+        return result.nModified === 1 ? { result: true } : ( { result: false } );
     } catch ( error ) {
         return { error };
     }
