@@ -1,18 +1,22 @@
-const { expect, ObjectTypeModel, ObjectType } = require( '../../testHelper' );
+const { expect, ObjectTypeModel, ObjectType, getRandomString } = require( '../../testHelper' );
 const { ObjectTypeFactory } = require( '../../factories' );
 
 describe( 'ObjectTypeModel', async () => {
     describe( 'On getOne', async () => {
-        let objectType2;
+        let objectType2, name;
         before( async () => {
+            name = getRandomString();
             objectType2 = await ObjectTypeFactory.Create( {
-                name: 'second'
+                name: name
             } );
         } );
+        it( 'should success return error', async () => {
+            const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
+            expect( res.error ).is.exist;
+        } );
+       
         it( 'should successful eq object types', async () => {
-            const res = await ObjectTypeModel.getOne( { name: 'objectType.name' } );
-            // const res2 = await ObjectTypeModel.getOne( { name: objectType2.name } );
-
+            const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
             expect( res ).to.deep.eq( {
                 'error': {
                     'message': 'Object Type not found!',
@@ -20,36 +24,46 @@ describe( 'ObjectTypeModel', async () => {
                 }
             } );
         } );
-        it( 'should return ', async () => {
-            const res = await ObjectTypeModel.getOne( { name: 'second' } );
+        it( 'should success getOne ', async () => {
+            const res = await ObjectTypeModel.getOne( { name: name } );
+
+            expect( res.objectType ).is.exist;
+        } );
+        it( 'should success getOne object type', async () => {
+            const res = await ObjectTypeModel.getOne( { name: name } );
 
             expect( res.objectType ).to.deep.eq( objectType2._doc );
         } );
     } );
     describe( 'On create', async () => {
-        let objectType;
-        before( async () => {
-            const res = await ObjectTypeModel.create( {
-                name: 'author',
-                author: 'name',
-                permlink: 'database'
+        let object, result;
+        beforeEach( async () => {
+            object = await ObjectTypeModel.create( { name: getRandomString(), author: getRandomString(),
+                author_permlink: getRandomString()
             } );
-            objectType = res.objectType._doc;
         } );
         it( 'should successful create object in base', async () => {
-            const res = await ObjectType.findOne( { name: 'author' } );
-
-            expect( res ).not.empty;
+            result = await ObjectType.findOne( { name: object.objectType.name } );
+            expect( result ).not.empty;
         } );
-        it( 'should successful equal names', async () => {
-            const res = await ObjectType.findOne( { name: 'author' } );
+        it( 'should successful equal permlink', async () => {
+            result = await ObjectType.findOne( { name: object.objectType.name } );
 
-            expect( objectType.permlink ).to.deep.eq( res.permlink );
+            expect( object.objectType.permlink ).to.deep.eq( result.permlink );
         } );
         it( 'should equal id', async () => {
-            const res = await ObjectType.findOne( { name: 'author' } );
-
-            expect( objectType._id ).to.deep.eq( res._doc._id );
+            result = await ObjectType.findOne( { name: objectType.name } );
+            expect( object.objectType._id ).to.deep.eq( result._id );
+        } );
+        it( 'should success return error', async () => {
+            object = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
+                author_permlink: getRandomString() } );
+            expect( object.error ).is.exist;
+        } );
+        it( 'should success return Validation error', async () => {
+            object = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
+                author_permlink: getRandomString() } );
+            expect( object.error.name ).to.deep.eq( 'ValidationError' );
         } );
     } );
     describe( 'On getAll', async () => {

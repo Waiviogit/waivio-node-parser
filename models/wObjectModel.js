@@ -175,10 +175,11 @@ const getField = async ( author, permlink, author_permlink ) => {
 
 const updateField = async ( author, permlink, author_permlink, key, value ) => {
     try {
-        await WObjectModel.update(
+        let result = await WObjectModel.updateOne(
             { author_permlink, 'fields.author': author, 'fields.permlink': permlink },
             { $set: { [ `fields.$.${key}` ]: value } }
         );
+        return { result: result.nModified === 1 };
     } catch ( e ) {
         return { error: e };
     }
@@ -199,7 +200,7 @@ const getOne = async ( { author_permlink } ) => {
 
 const pushNewPost = async ( { author_permlink, post_id } ) => {
     try {
-        const result = await WObjectModel.update( { author_permlink }, {
+        const result = await WObjectModel.updateOne( { author_permlink }, {
             $push: {
                 latest_posts: {
                     $each: [ post_id ],
@@ -209,7 +210,7 @@ const pushNewPost = async ( { author_permlink, post_id } ) => {
             },
             $inc: { count_posts: 1, last_posts_count: 1 }
         } );
-        return { result };
+        return { result: result.nModified === 1 };
     } catch ( e ) {
         return { error: e };
     }

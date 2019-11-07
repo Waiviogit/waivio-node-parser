@@ -1,6 +1,6 @@
 const { expect, WobjModel, getRandomString, Mongoose } = require( '../../testHelper' );
 const WObjectModel = require( '../../../database' ).models.WObject;
-const { ObjectFactory } = require( '../../factories' );
+const { ObjectFactory, PostFactory } = require( '../../factories' );
 const _ = require( 'lodash' );
 /*
 Tests for some methods of WobjectModel:
@@ -161,7 +161,7 @@ describe( 'Wobject model', async () => {
         } );
         it( 'should ', async () => {
             let res = await WObjectModel.findOne( { author_permlink: permlink } );
-            result = await WobjModel.getSomeFields(author,permlink);
+            result = await WobjModel.getSomeFields( author, permlink );
             expect( result ).is.exist;
         } );
     } );
@@ -190,9 +190,73 @@ describe( 'Wobject model', async () => {
         } );
     } );
     describe( 'On updateField', async () => {
-
+        let result, author_permlink, key, value, field;
+        author_permlink = getRandomString();
+        key = 'weight';
+        value = 550;
+        beforeEach( async () => {
+            field = {
+                author: getRandomString(),
+                permlink: getRandomString(),
+                weight: 0
+            };
+            await ObjectFactory.Create( { appends: [ field ], author_permlink: author_permlink } );
+        } );
+        afterEach( async () => {
+            await Mongoose.connection.dropDatabase();
+        } );
+        it( 'should success update field return true', async () => {
+            result = await WobjModel.updateField( field.author, field.permlink, author_permlink, key, value );
+            let res = WObjectModel.findOne( { author_permlink: author_permlink } );
+            expect( result.result ).is.true;
+        } );
+        it( 'should success update field return false with incorrect data', async () => {
+            result = await WobjModel.updateField( field.author, field.permlink, getRandomString(), key, value );
+            expect( result.result ).is.false;
+        } );
+        it( 'should success update field ', async () => {
+            await WobjModel.updateField( field.author, field.permlink, author_permlink, key, value );
+            result = await WObjectModel.findOne( { author_permlink: author_permlink } );
+            expect( value ).to.deep.eq( result.fields[ 0 ].weight );
+        } );
+        it( 'should return error', async () => {
+            result = await WobjModel.updateField( { author: { some: getRandomString() } } );
+            expect( result.error.name ).to.deep.eq( 'CastError' );
+        } );
     } );
     describe( 'On pushNewPost', async () => {
-
+        let author_permlink, result, post;
+        beforeEach( async () => {
+            await Mongoose.connection.dropDatabase();
+            post = await PostFactory.Create();
+            author_permlink = getRandomString();
+            await ObjectFactory.Create( { author_permlink: author_permlink } );
+        } );
+        it( 'should success push new post return true', async () => {
+            result = await WobjModel.pushNewPost( { author_permlink: author_permlink, post_id: post._id } );
+            expect( result.result ).is.true;
+        } );
+        it( 'should success push new post return false ', async () => {
+            result = await WobjModel.pushNewPost( { author_permlink: getRandomString(), post_id: post._id } );
+            expect( result.result ).is.false;
+        } );
+        it( 'should success push needed post to wobject', async () => {
+            await WobjModel.pushNewPost( { author_permlink: author_permlink, post_id: post._id } );
+            result = await WObjectModel.findOne( { author_permlink: author_permlink } );
+            expect( result.latest_posts[ 0 ]._id ).to.deep.eq( post._id );
+        } );
+        it( 'should success increase last post count by 1', async () => {
+            await WobjModel.pushNewPost( { author_permlink: author_permlink, post_id: post._id } );
+            result = await WObjectModel.findOne( { author_permlink: author_permlink } );
+            expect( result.last_posts_count ).to.deep.eq( 1 );
+        } );
+        it( 'should success return cast error', async () => {
+            result = await WobjModel.pushNewPost( { author_permlink: author_permlink, post_id: post.id } );
+            expect( result.error.name ).to.deep.eq( 'CastError' );
+        } );
+        it( 'should success return error with uncorrect data', async () => {
+            result = await WobjModel.pushNewPost( { author_permlink: { deta: getRandomString() } } );
+            expect( result.error ).is.exist;
+        } );
     } );
 } );
