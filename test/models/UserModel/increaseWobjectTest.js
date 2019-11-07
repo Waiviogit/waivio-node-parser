@@ -28,6 +28,7 @@ describe( 'User Model', async () => {
                 author_permlink: 'TestPermlink2',
                 weight: 1000
             };
+            const tmp = await User.findOneAndUpdate( { name: 'Test2' }, { count_posts: 123 }, { upsert: false } );
             weightIncrease = await UserModel.increaseWobjectWeight( data );
         } );
         it( 'should return true', async () => {
@@ -54,7 +55,7 @@ describe( 'User Model', async () => {
         } );
 
     } );
-    describe( 'On checkForObjectShares????', async () => {
+    describe( 'On checkForObjectShares', async () => {
         let data, user, wobject;
         before( async () => {
             wobject = await AppendObject.Create();
