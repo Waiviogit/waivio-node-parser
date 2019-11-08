@@ -139,35 +139,36 @@ describe( 'Wobject model', async () => {
             await Mongoose.connection.dropDatabase();
             permlink = getRandomString();
             author = getRandomString();
-            await ObjectFactory.Create( { author_permlink: permlink } );
-            await ObjectFactory.Create( { author_permlink: 'permlink' } );
             data = {
-                author_permlink: permlink,
-                field: {
-                    name: author,
-                    author: getRandomString(),
-                    permlink: getRandomString()
-                }
+                name: author,
+                author: getRandomString(),
+                permlink: getRandomString()
             };
-
-            await WobjModel.addField( data );
-            await WobjModel.addField( { author_permlink: 'permlink',
-                field: {
-                    name: 'author',
-                    author: getRandomString(),
-                    permlink: getRandomString()
-                } } );
-
+            temp = {
+                name: getRandomString(),
+                author: getRandomString(),
+                permlink: getRandomString()
+            };
+            await ObjectFactory.Create( { appends: [ data, temp ], author_permlink: permlink } );
+            await ObjectFactory.Create( { appends: [ data, temp ], author_permlink: getRandomString() } );
         } );
-        it( 'should ', async () => {
-            let res = await WObjectModel.findOne( { author_permlink: permlink } );
-            result = await WobjModel.getSomeFields( author, permlink );
-            expect( result ).is.exist;
+        it( 'should success compare array length', async () => {
+            result = await WobjModel.getSomeFields( );
+            expect( result.wobjects.length ).to.deep.eq( 2 );
+        } );
+        it( 'should success compare array data', async () => {
+            result = await WobjModel.getSomeFields();
+            expect( permlink ).to.deep.eq( result.wobjects[ 1 ].author_permlink );
+        } );
+        it( 'should dont get error with incorrect data', async () => {
+            result = await WobjModel.getSomeFields( { some: { field: getRandomString() } }, { field: { data: getRandomString() } } );
+            expect( result.error ).not.exist;
         } );
     } );
     describe( 'On getField', async () => {
         let result, data, field;
         beforeEach( async () => {
+            await Mongoose.connection.dropDatabase();
             field = {
                 author: getRandomString(),
                 permlink: getRandomString(),
@@ -179,9 +180,6 @@ describe( 'Wobject model', async () => {
                 author_permlink: getRandomString()
             };
             await ObjectFactory.Create( { appends: [ field ], author_permlink: data.author_permlink } );
-        } );
-        afterEach( async() => {
-            await WObjectModel.deleteOne( { author_permlink: data.author_permlink } );
         } );
         it( 'should ', async () => {
             result = await WobjModel.getField( data.author, data.permlink, data.author_permlink );
@@ -207,7 +205,6 @@ describe( 'Wobject model', async () => {
         } );
         it( 'should success update field return true', async () => {
             result = await WobjModel.updateField( field.author, field.permlink, author_permlink, key, value );
-            let res = WObjectModel.findOne( { author_permlink: author_permlink } );
             expect( result.result ).is.true;
         } );
         it( 'should success update field return false with incorrect data', async () => {

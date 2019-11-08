@@ -1,10 +1,11 @@
-const { expect, PostModel, Post } = require( '../../testHelper' );
+const { expect, PostModel, Post, Mongoose, getRandomString } = require( '../../testHelper' );
 const { PostFactory } = require( '../../factories' );
 
 describe( 'PostModel', async () => {
     describe( 'On getPostsRefs', async () => {
         let postModel, postModel2;
-        before( async () => {
+        beforeEach( async () => {
+            await Mongoose.connection.dropDatabase( );
             postModel = await PostFactory.Create();
             postModel2 = await PostFactory.Create();
         } );

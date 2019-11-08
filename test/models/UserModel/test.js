@@ -1,4 +1,4 @@
-const { expect, UserModel, User } = require( '../../testHelper' );
+const { expect, UserModel, User, getRandomString } = require( '../../testHelper' );
 const { UserFactory } = require( '../../factories' );
 /*
 Tests for some methods of UserModel:
@@ -13,8 +13,8 @@ describe( 'User Model', async () => {
         let createdUserModel, user, data;
         before( async () => {
             data = {
-                name: 'testUser',
-                alias: 'testAlias'
+                name: getRandomString(),
+                alias: getRandomString()
             };
             createdUserModel = await UserModel.create( data );
             user = createdUserModel.user;
@@ -28,6 +28,14 @@ describe( 'User Model', async () => {
         it( 'should success find created user in database', async () => {
             let findUser = await User.findOne( data );
             expect( findUser._doc.name ).to.deep.eq( user._doc.name );
+        } );
+        it( 'should get error', async () => {
+            let result = await UserModel.create( { name: { some: getRandomString() } }, { alias: { some: getRandomString() } } );
+            expect( result.error ).exist;
+        } );
+        it( 'should get validation error', async () => {
+            let result = await UserModel.create( { name: { some: getRandomString() } }, { alias: { some: getRandomString() } } );
+            expect( result.error.name ).to.deep.eq( 'ValidationError' );
         } );
     } );
     describe( 'On update', async () => {
@@ -57,6 +65,14 @@ describe( 'User Model', async () => {
         it( 'should update second user success', async () => {
             expect( user2.user.wobjects_weight ).to.not.eq( updatedUser2._doc.wobjects_weight );
         } );
+        it( 'should get error with incorrect data', async () => {
+            let res = await UserModel.update( 55, { get: { data: getRandomString() } } );
+            expect( res.error ).exist;
+        } );
+        it( 'should get parameter error', async () => {
+            let res = await UserModel.update( 55, { get: { data: getRandomString() } } );
+            expect( res.error.name ).to.deep.eq( 'ObjectParameterError' );
+        } );
     } );
     describe( 'On update one', async () => {
         let firstUser, updateData, condition, updatedUser;
@@ -77,19 +93,28 @@ describe( 'User Model', async () => {
         it( 'should success update user by updateData', async () => {
             expect( updatedUser._doc.wobjects_weight ).to.deep.eq( updateData.wobjects_weight );
         } );
+        it( 'should success get error ', async () => {
+            let res = await UserModel.updateOne( 55, { get: { data: getRandomString() } } );
+            expect( res.error ).exist;
+        } );
+        it( 'should get parameter error', async () => {
+            let res = await UserModel.updateOne( 55, { get: { data: getRandomString() } } );
+            expect( res.error.name ).to.deep.eq( 'ObjectParameterError' );
+        } );
     } );
     describe( 'On check and create', async () => {
-        let user, checkedUser, foundedUser, data;
+        let user, checkedUser, foundedUser, data, name;
         before( async () => {
+            name = getRandomString();
             data = {
-                name: 'testUser'
+                name: getRandomString()
             };
-            user = await UserFactory.Create( { name: 'Test' } );
+            user = await UserFactory.Create( { name: name } );
             checkedUser = await UserModel.checkAndCreate( data );
             foundedUser = await User.findOne( data );
         } );
         it( 'should return user', async () => {
-            let checkedExistUser = await UserModel.checkAndCreate( { name: 'Test' } );
+            let checkedExistUser = await UserModel.checkAndCreate( { name: name } );
 
             expect( user.user._id ).to.deep.eq( checkedExistUser.user._id );
         } );
@@ -103,7 +128,11 @@ describe( 'User Model', async () => {
         } );
         it( 'should eq checkedUser and database findOne user', async () => {
 
-            expect( checkedUser.user._id ).to.deep.eq( foundedUser._doc._id );
+            expect( checkedUser.user._id ).to.deep.eq( foundedUser._id );
+        } );
+        it( 'should get error with incorrect data', async () => {
+            let result = await UserModel.checkAndCreate( );
+            expect( result.error.message ).to.deep.eq( 'Cannot read property \'name\' of undefined' );
         } );
     } );
     describe( 'On increaseCountPosts', async () => {
@@ -122,7 +151,10 @@ describe( 'User Model', async () => {
         it( 'should success update count posts by 1', async () => {
             expect( author.user.count_posts + 1 ).to.deep.eq( updatedAuthor._doc.count_posts );
         } );
-
+        it( 'should get error with incorrect data', async () => {
+            let res = await UserModel.increaseCountPosts( { author: { incorrect: getRandomString() } } );
+            expect( res.error ).is.exist;
+        } );
     } );
 } );
 

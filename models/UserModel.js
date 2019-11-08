@@ -107,7 +107,7 @@ const checkAndCreate = async function ( data ) { // check for existing user and 
 const increaseWobjectWeight = async function ( data ) {
     try {
         await checkAndCreate( { name: data.name } ); // check for existing user in DB
-        await UserWobjectsModel.findOneAndUpdate( // add weight in wobject to user, or create if it not exist
+        await UserWobjectsModel.updateOne( // add weight in wobject to user, or create if it not exist
             {
                 user_name: data.name,
                 author_permlink: data.author_permlink
@@ -130,7 +130,7 @@ const increaseWobjectWeight = async function ( data ) {
 
 const increaseUserWobjectsWeight = async function ( data ) {
     try {
-        await UserModel.findOneAndUpdate( {
+        await UserModel.updateOne( {
             name: data.name
         }, {
             $inc: {
@@ -182,11 +182,11 @@ const updateOne = async function ( condition, updateData ) {
 
 const increaseCountPosts = async ( author ) => {
     try{
-        await UserModel.updateOne(
+        let result = await UserModel.updateOne(
             { name: author },
             { $inc: { count_posts: 1, last_posts_count: 1 } }
         );
-        return { result: true };
+        return { result: result.nModified === 1 };
     } catch( error ) {
         return { error };
     }

@@ -1,4 +1,4 @@
-const { expect, UserModel, User } = require( '../../testHelper' );
+const { expect, UserModel, User, getRandomString, Mongoose } = require( '../../testHelper' );
 const { UserFactory, ObjectFactory, AppendObject } = require( '../../factories' );
 /*
 Tests for some methods of UserModel:
@@ -13,47 +13,51 @@ Tests for some methods of UserModel:
 
 describe( 'User Model', async () => {
     describe( 'On increaseWobjectsWeight', async () => {
-        let data, data2, weightIncrease;
+        let data, data2, weightIncrease, name;
         before( async() => {
-            await UserFactory.Create( { name: 'Test' } );
+            await Mongoose.connection.dropDatabase();
+            name = getRandomString();
+            await UserFactory.Create( { name: name } );
             data = {
-                name: 'Test',
-                author: 'TestAuthor',
-                author_permlink: 'TestPermlink',
+                name: name,
+                author: getRandomString(),
+                author_permlink: getRandomString(),
                 weight: 50
             };
             data2 = {
-                name: 'Test2',
-                author: 'TestAuthor2',
-                author_permlink: 'TestPermlink2',
+                name: getRandomString(),
+                author: getRandomString(),
+                author_permlink: getRandomString(),
                 weight: 1000
             };
-            const tmp = await User.findOneAndUpdate( { name: 'Test2' }, { count_posts: 123 }, { upsert: false } );
+            await User.updateOne( { name: data2.name }, { count_posts: 123 } );
             weightIncrease = await UserModel.increaseWobjectWeight( data );
         } );
         it( 'should return true', async () => {
-
             expect( weightIncrease.result ).is.true;
         } );
         it( 'should increaseWeight', async () => {
             let foundedUser = await User.findOne( { name: data.name } );
-
             expect( foundedUser._doc.wobjects_weight ).to.deep.eq( data.weight );
         } );
         it( 'should create new user if it not exist', async () => {
 
             weightIncrease = await UserModel.increaseWobjectWeight( data2 );
             let foundedUser = await User.findOne( { name: data2.name } );
-
             expect( foundedUser ).is.exist;
         } );
-
         it( 'should increase weight after create new user', async () => {
             let foundedUser = await User.findOne( { name: data2.name } );
-
             expect( foundedUser._doc.wobjects_weight ).to.deep.eq( data2.weight );
         } );
-
+        it( 'should get error without data', async() => {
+            let res = await UserModel.increaseWobjectWeight();
+            expect( res.error ).is.exist;
+        } );
+        it( 'should get error with incorrect data', async () => {
+            let res = await UserModel.increaseWobjectWeight( { data: { some: getRandomString() } } );
+            expect( res.error ).is.exist;
+        } );
     } );
     describe( 'On checkForObjectShares', async () => {
         let data, user, wobject;

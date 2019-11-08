@@ -1,5 +1,7 @@
-const { expect, ObjectTypeModel, ObjectType, getRandomString } = require( '../../testHelper' );
+const { expect, ObjectTypeModel, ObjectType, getRandomString, Mongoose } = require( '../../testHelper' );
 const { ObjectTypeFactory } = require( '../../factories' );
+const _ = require( 'lodash' );
+
 
 describe( 'ObjectTypeModel', async () => {
     describe( 'On getOne', async () => {
@@ -14,7 +16,7 @@ describe( 'ObjectTypeModel', async () => {
             const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
             expect( res.error ).is.exist;
         } );
-       
+
         it( 'should successful eq object types', async () => {
             const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
             expect( res ).to.deep.eq( {
@@ -52,7 +54,7 @@ describe( 'ObjectTypeModel', async () => {
             expect( object.objectType.permlink ).to.deep.eq( result.permlink );
         } );
         it( 'should equal id', async () => {
-            result = await ObjectType.findOne( { name: objectType.name } );
+            result = await ObjectType.findOne( { name: object.objectType.name } );
             expect( object.objectType._id ).to.deep.eq( result._id );
         } );
         it( 'should success return error', async () => {
@@ -67,24 +69,25 @@ describe( 'ObjectTypeModel', async () => {
         } );
     } );
     describe( 'On getAll', async () => {
-        let objectType, count;
-        before( async () => {
-            objectType = await ObjectTypeFactory.Create( {
-                name: 'first'
-            } );
-            count = await ObjectType.countDocuments();
+        let rnd, name;
+        beforeEach( async () => {
+            await Mongoose.connection.dropDatabase();
+            name = getRandomString();
+            await ObjectTypeFactory.Create( { name: name } );
+            rnd = _.random( 5, 10, false );
+            for ( let tmp = 0; tmp < rnd; tmp++ ) {
+                await ObjectTypeFactory.Create( {
+                    name: getRandomString()
+                } );
+            }
         } );
         it( 'should return array with length ', async () => {
             const types = await ObjectTypeModel.getAll();
-            const typesArray = types.objectTypes;
-
-            expect( typesArray.length ).to.deep.eq( count );
+            expect( types.objectTypes.length ).to.deep.eq( rnd + 1 );
         } );
         it( 'should find objectType name', async () => {
             const types = await ObjectTypeModel.getAll();
-            const typesArray = types.objectTypes;
-            const objectTypeObj = objectType._doc;
-            expect( typesArray[ count - 1 ].name ).to.deep.eq( objectTypeObj.name );
+            expect( types.objectTypes[ 0 ].name ).to.deep.eq( name );
         } );
     } );
 } );
