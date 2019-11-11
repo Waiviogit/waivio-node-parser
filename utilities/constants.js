@@ -94,3 +94,9 @@ exports.LANGUAGES = [ 'en-US',
     'auto'
 ];
 exports.WOBJECT_LATEST_POSTS_COUNT = 30;
+exports.COMMENT_REF_TYPES = {
+    postWithWobjects: 'post_with_wobj',
+    createWobj: 'create_wobj',
+    appendWobj: 'append_wobj',
+    wobjType: 'wobj_type'
+};
