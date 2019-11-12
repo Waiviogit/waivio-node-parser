@@ -1,5 +1,6 @@
 const { ObjectType } = require( '../models' );
-const { redisSetter } = require( '../utilities/redis' );
+// const { redisSetter } = require( '../utilities/redis' );
+const { commentRefSetter } = require( '../utilities/commentRefService' );
 const { wobjectValidator } = require( '../validator' );
 const _ = require( 'lodash' );
 
@@ -21,7 +22,7 @@ const parse = async ( operation, metadata ) => {
 const createObjectType = async ( data ) => {
     if ( wobjectValidator.validateObjectType( data ) ) {
         await ObjectType.create( data );
-        await redisSetter.addObjectType( data.author, data.permlink, data.name );
+        await commentRefSetter.addWobjTypeRef( `${data.author}_${data.permlink}`, data.name );
     } else {
         throw new Error( 'Data is not valid' );
     }

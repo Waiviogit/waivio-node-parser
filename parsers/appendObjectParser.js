@@ -1,6 +1,6 @@
 const { Wobj } = require( '../models' );
 const { appendObjectValidator } = require( '../validator' );
-const { redisSetter } = require( '../utilities/redis' );
+const { commentRefSetter } = require( '../utilities/commentRefService' );
 const { updateSpecificFieldsHelper } = require( '../utilities/helpers' );
 
 const parse = async function ( operation, metadata ) {
@@ -29,7 +29,7 @@ const parse = async function ( operation, metadata ) {
 const appendObject = async function ( data, operation ) {
     try {
         await appendObjectValidator.validate( data, operation );
-        await redisSetter.addAppendWobj(
+        await commentRefSetter.addAppendWobj(
             `${data.field.author }_${ data.field.permlink}`,
             data.author_permlink
         );

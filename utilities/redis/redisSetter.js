@@ -8,9 +8,9 @@ const addPostWithWobj = async function ( author_permlink, wobjects ) {
     await postRefsClient.hsetAsync( author_permlink, 'wobjects', JSON.stringify( wobjects ) );
 };
 
-const addWobjRef = async function ( author, author_permlink ) {
-    await postRefsClient.hsetAsync( `${author }_${ author_permlink}`, 'type', COMMENT_REF_TYPES.createWobj );
-    await postRefsClient.hsetAsync( `${author }_${ author_permlink}`, 'root_wobj', author_permlink ); // root_wobj is author_permlink of wobject
+const addWobjRef = async function ( path, root_wobj ) {
+    await postRefsClient.hsetAsync( path, 'type', COMMENT_REF_TYPES.createWobj );
+    await postRefsClient.hsetAsync( path, 'root_wobj', root_wobj ); // root_wobj is author_permlink of wobject(just permlink)
 };
 
 const addAppendWobj = async function ( author_permlink, root_wobj ) {
@@ -18,9 +18,9 @@ const addAppendWobj = async function ( author_permlink, root_wobj ) {
     await postRefsClient.hsetAsync( author_permlink, 'root_wobj', root_wobj ); // root_wobj is author_permlink of wobject
 };
 
-const addObjectType = async function ( author, permlink, name ) {
-    await postRefsClient.hsetAsync( `${author }_${ permlink}`, 'type', COMMENT_REF_TYPES.wobjType );
-    await postRefsClient.hsetAsync( `${author }_${ permlink}`, 'name', name );
+const addObjectType = async function ( author_permlink, name ) {
+    await postRefsClient.hsetAsync( author_permlink, 'type', COMMENT_REF_TYPES.wobjType );
+    await postRefsClient.hsetAsync( author_permlink, 'name', name );
 };
 
 const setLastBlockNum = async function ( blockNum ) {
