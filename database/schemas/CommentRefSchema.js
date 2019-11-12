@@ -4,7 +4,7 @@ const { COMMENT_REF_TYPES } = require( '../../utilities/constants' );
 
 const CommentRefSchema = new Schema( {
     comment_path: { type: String, required: true },
-    type: { type: String, require: true, enum: [ ...Object.values( COMMENT_REF_TYPES ) ] },
+    type: { type: String, required: true, enum: [ ...Object.values( COMMENT_REF_TYPES ) ] },
     wobjects: { type: String, required: function() {
         return this.type === COMMENT_REF_TYPES.postWithWobjects;
     } },
@@ -12,7 +12,7 @@ const CommentRefSchema = new Schema( {
         return this.type === COMMENT_REF_TYPES.wobjType;
     } },
     root_wobj: { type: String, required: function() {
-        return this.type === COMMENT_REF_TYPES.appendWobj;
+        return this.type === COMMENT_REF_TYPES.appendWobj || this.type === COMMENT_REF_TYPES.createWobj;
     } }
 },
 {
