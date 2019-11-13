@@ -2,12 +2,12 @@ const { expect, AppModel, getRandomString } = require( '../../testHelper' );
 const { AppFactory } = require( '../../factories' );
 
 describe( 'App model', async () => {
-    describe( 'Check app on get one', () => {
+    describe( 'On getOne', () => {
         let app, result;
 
         before( async () => {
             app = await AppFactory.Create( {
-                name: 'empty'
+                name: getRandomString()
             } );
         } );
         it( 'Should successful to eq names', async () => {
@@ -20,7 +20,7 @@ describe( 'App model', async () => {
             expect( result.error ).is.exist;
         } );
         it( ' Should return error message', async () => {
-            result = await AppModel.getOne( { name: 'notfound' } );
+            result = await AppModel.getOne( { name: getRandomString() } );
             expect( result.error.message ).to.deep.eq( 'App not found!' );
         } );
     } );

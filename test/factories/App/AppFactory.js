@@ -6,7 +6,9 @@ const Create = async ( { blacklists, name, admin, moderators, topUsers } ) => {
         admin: admin || faker.name.firstName().toLowerCase(),
         moderators: moderators || [],
         topUsers: topUsers || [],
-        blacklists: blacklists || { users: [], wobjects: [], posts: [], apps: [] }
+        blacklists: blacklists || { users: [], wobjects: [], posts: [], apps: []
+
+        }
     };
 
     return App.create( data );

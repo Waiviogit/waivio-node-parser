@@ -24,14 +24,19 @@ const AppSchema = new Schema( {
         apps: { type: [], default: [] }
     },
     daily_chosen_post: {
-        author: { type: String },
-        permlink: { type: String },
-        title: { type: String }
+        type: {
+            author: { type: String },
+            permlink: { type: String },
+            title: { type: String }
+        },
+        default: null
     },
     weekly_chosen_post: {
-        author: { type: String },
-        permlink: { type: String },
-        title: { type: String }
+        type: {
+            author: { type: String },
+            permlink: { type: String },
+            title: { type: String } },
+        default: null
     }
 }, { timestamps: true } );
 
