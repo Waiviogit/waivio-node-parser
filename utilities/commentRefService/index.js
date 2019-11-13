@@ -1,3 +1,4 @@
 module.exports = {
-    commentRefSetter: require( './commentRefSetter' )
+    commentRefSetter: require( './commentRefSetter' ),
+    commentRefGetter: require( './commentRefGetter' )
 };

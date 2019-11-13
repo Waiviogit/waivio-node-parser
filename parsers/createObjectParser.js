@@ -1,7 +1,6 @@
 const { Wobj, User } = require( '../models' );
 const { createObjectValidator } = require( '../validator' );
-const { redisGetter } = require( '../utilities/redis' );
-const { commentRefSetter } = require( '../utilities/commentRefService' );
+const { commentRefSetter, commentRefGetter } = require( '../utilities/commentRefService' );
 
 const parse = async function ( operation, metadata ) {
     try {
@@ -29,18 +28,20 @@ const parse = async function ( operation, metadata ) {
 const createObject = async function ( data, operation ) {
     try {
         await createObjectValidator.validate( data, operation );
-        const redisObjectType = await redisGetter.getHashAll( `${operation.parent_author }_${ operation.parent_permlink}` );
 
-        data.object_type = redisObjectType.name;
+        const objectTypeRef = await commentRefGetter.getCommentRef( `${operation.parent_author }_${ operation.parent_permlink}` );
+        data.object_type = objectTypeRef.name;
+
         const { wObject, error } = await Wobj.create( data );
-
         if ( error ) return { error };
+
         await commentRefSetter.addWobjRef( `${data.author }_${ data.author_permlink}`, data.author_permlink );
         await User.increaseWobjectWeight( {
             name: data.creator,
             author_permlink: data.author_permlink,
             weight: 1
         } );
+
         return wObject._doc;
     } catch ( error ) {
         return { error };

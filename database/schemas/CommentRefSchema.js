@@ -14,13 +14,10 @@ const CommentRefSchema = new Schema( {
     root_wobj: { type: String, required: function() {
         return this.type === COMMENT_REF_TYPES.appendWobj || this.type === COMMENT_REF_TYPES.createWobj;
     } }
-},
-{
-    toObject: { virtuals: true }, timestamps: false
-} );
+}, { timestamps: false } );
 
 CommentRefSchema.index( { comment_path: 1 }, { unique: true } );
 
 const CommentRefModel = mongoose.model( 'CommentRef', CommentRefSchema );
-exports = CommentRefModel;
-// exports = mongoose.model( 'CommentRef', CommentRefSchema );
+
+module.exports = CommentRefModel;

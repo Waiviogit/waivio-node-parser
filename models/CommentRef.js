@@ -32,21 +32,11 @@ exports.addWobjTypeRef = async ( { comment_path, name } ) => {
 
 exports.getRef = async ( comment_path ) => {
     try {
-        const commentRef = await CommentRef.findOne( { comment_path } );
+        const commentRef = await CommentRef.findOne( { comment_path } ).lean();
         return{ commentRef };
     } catch ( error ) {
         return { error };
     }
 };
-( async () => {
-
-    try {
-        const commentRef = await CommentRef.findOne( { comment_path: 'aaa_123' } );
-        return{ commentRef };
-    } catch ( error ) {
-        return { error };
-    }
-
-} )();
 
 exports.create = create;

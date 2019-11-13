@@ -1,5 +1,4 @@
 const { ObjectType } = require( '../models' );
-// const { redisSetter } = require( '../utilities/redis' );
 const { commentRefSetter } = require( '../utilities/commentRefService' );
 const { wobjectValidator } = require( '../validator' );
 const _ = require( 'lodash' );
