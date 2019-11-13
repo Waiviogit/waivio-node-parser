@@ -1,7 +1,7 @@
 const { CommentRef } = require( '../database' ).models;
 const { COMMENT_REF_TYPES } = require( '../utilities/constants' );
 
-const create = async function ( data ) {
+const create = async ( data ) => {
     const newCommentRef = new CommentRef( data );
     try {
         return { commentRef: await newCommentRef.save() };
@@ -29,3 +29,24 @@ exports.addWobjTypeRef = async ( { comment_path, name } ) => {
     return await create( {
         comment_path, name, type: COMMENT_REF_TYPES.wobjType } );
 };
+
+exports.getRef = async ( comment_path ) => {
+    try {
+        const commentRef = await CommentRef.findOne( { comment_path } );
+        return{ commentRef };
+    } catch ( error ) {
+        return { error };
+    }
+};
+( async () => {
+
+    try {
+        const commentRef = await CommentRef.findOne( { comment_path: 'aaa_123' } );
+        return{ commentRef };
+    } catch ( error ) {
+        return { error };
+    }
+
+} )();
+
+exports.create = create;

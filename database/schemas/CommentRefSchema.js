@@ -21,4 +21,6 @@ const CommentRefSchema = new Schema( {
 
 CommentRefSchema.index( { comment_path: 1 }, { unique: true } );
 
-module.exports = mongoose.model( 'CommentRef', CommentRefSchema );
+const CommentRefModel = mongoose.model( 'CommentRef', CommentRefSchema );
+exports = CommentRefModel;
+// exports = mongoose.model( 'CommentRef', CommentRefSchema );

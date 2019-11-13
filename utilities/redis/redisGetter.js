@@ -2,9 +2,7 @@ const { postRefsClient, lastBlockClient } = require( './redis' );
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 const getHashAll = async function ( key, client = postRefsClient ) {
-    const res = await client.hgetallAsync( key );
-
-    return res;
+    return await client.hgetallAsync( key );
 };
 
 const getLastBlockNum = async function ( key ) {
