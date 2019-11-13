@@ -37,4 +37,12 @@ const wobjectsByTags = async ( tags ) => {
     return wobjects;
 };
 
-module.exports = { wobjectsByTags };
+const getWobjectsFromMetadata = async ( { metadata } = {} ) => {
+    let wobjects = _.get( metadata, 'wobj.wobjects' );
+    if( _.isEmpty( wobjects ) ) {
+        wobjects = await wobjectsByTags( _.get( metadata, 'tags' ) );
+    }
+    return wobjects;
+};
+
+module.exports = { wobjectsByTags, getWobjectsFromMetadata };

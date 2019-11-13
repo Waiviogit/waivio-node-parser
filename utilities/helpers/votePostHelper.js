@@ -1,5 +1,6 @@
 const { Wobj, User, Post } = require( '../../models' );
 const { BLACK_LIST_BOTS } = require( '../constants' );
+const { getWobjectsFromMetadata } = require( './postByTagsHelper' );
 const _ = require( 'lodash' );
 
 const voteOnPost = async ( data ) => {
@@ -20,8 +21,8 @@ const voteOnPost = async ( data ) => {
         }
 
     }
-    data.post.wobjects = _.get( data, 'metadata.wobj.wobjects' );
-    data.post.app = data.metadata.app;
+    data.post.wobjects = await getWobjectsFromMetadata( data );
+    data.post.app = _.get( data, 'metadata.app', '' );
     data.post.active_votes = data.post.active_votes.map( ( vote ) => {
         return {
             voter: vote.voter,

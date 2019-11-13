@@ -4,7 +4,7 @@
   "description": "node parser for waivio",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Waiviogit/objects-bot.git"
+    "url": "git+https://github.com/Waiviogit/waivio-node-parser.git"
   },
   "author": "",
   "license": "ISC",
