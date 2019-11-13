@@ -2,6 +2,7 @@ const express = require( 'express' );
 const logger = require( 'morgan' );
 const { routes } = require( './routes' );
 const { runStream } = require( './processor/processor' );
+const jobs = require( './utilities/jobs' );
 const app = express();
 
 app.use( logger( 'dev' ) );
