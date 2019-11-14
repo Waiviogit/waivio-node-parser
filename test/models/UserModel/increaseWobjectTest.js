@@ -1,5 +1,5 @@
-const { expect, UserModel, User, getRandomString, Mongoose } = require( '../../testHelper' );
-const { UserFactory, ObjectFactory, AppendObject } = require( '../../factories' );
+const { expect, UserModel, User, getRandomString, Mongoose, faker } = require( '../../testHelper' );
+const { UserFactory, ObjectFactory, userWobjectFactory } = require( '../../factories' );
 /*
 Tests for some methods of UserModel:
    increaseWobjectWeight,
@@ -60,22 +60,29 @@ describe( 'User Model', async () => {
         } );
     } );
     describe( 'On checkForObjectShares', async () => {
-        let data, user, wobject;
+        let data, weight, result;
         before( async () => {
-            wobject = await AppendObject.Create();
+            weight = faker.random.number();
             data = {
-                name: wobject.wobject.author,
-                author_permlink: wobject.wobject.author_permlink
+                name: faker.name.firstName(),
+                author_permlink: getRandomString( 10 )
             };
-
-            user = await UserModel.create(
-
-            );
+            await userWobjectFactory.Create( { user_name: data.name, author_permlink: data.author_permlink, weight: weight } );
         } );
 
-        it( 'should ', async () => {
-            let result = await UserModel.checkForObjectShares( data );
+        it( 'should success eq weight', async () => {
+            result = await UserModel.checkForObjectShares( data );
+            expect( result.weight ).to.deep.eq( weight );
         } );
+        it( 'should success not found user wobject', async () => {
+            result = await UserModel.checkForObjectShares( { name: faker.name.firstName(), author_permlink: getRandomString() } );
+            expect( result.error ).is.exist;
+        } );
+        it( 'should success return error without data', async () => {
+            result = await UserModel.checkForObjectShares( );
+            expect( result.error ).is.exist;
+        } );
+
     } );
     describe( 'On addUserFollow', async () => {
         let follower, following, result;
