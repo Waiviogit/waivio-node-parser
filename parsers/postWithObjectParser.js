@@ -2,8 +2,7 @@ const { Post, Wobj } = require( '../models' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { detectPostLanguageHelper } = require( '../utilities/helpers' );
 const { User } = require( '../models' );
-const { redisSetter } = require( '../utilities/redis' );
-const { WOBJECT_LATEST_POSTS_COUNT } = require( '../utilities/constants' );
+const { commentRefSetter } = require( '../utilities/commentRefService' );
 
 const parse = async function ( operation, metadata ) {
     const { user, error: userError } = await User.checkAndCreate( { name: operation.author } );
@@ -48,7 +47,7 @@ const createOrUpdatePost = async function ( data ) {
             };
         } );
     }
-    await redisSetter.addPostWithWobj( `${data.author }_${ data.permlink}`, data.wobjects );
+    await commentRefSetter.addPostWithWobj( `${data.author }_${ data.permlink}`, data.wobjects );
     // add language to post
     post.language = await detectPostLanguageHelper( post );
     const { result: updPost, error } = await Post.update( post );
