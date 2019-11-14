@@ -47,7 +47,7 @@ const createOrUpdatePost = async function ( data ) {
             };
         } );
     }
-    await commentRefSetter.addPostWithWobj( `${data.author }_${ data.permlink}`, data.wobjects );
+    await commentRefSetter.addPostRef( `${data.author }_${ data.permlink}`, data.wobjects );
     // add language to post
     post.language = await detectPostLanguageHelper( post );
     const { result: updPost, error } = await Post.update( post );
