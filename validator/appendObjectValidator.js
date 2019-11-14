@@ -1,5 +1,5 @@
 const _ = require( 'lodash' );
-const { redisGetter } = require( '../utilities/redis' );
+const { commentRefGetter } = require( '../utilities/commentRefService' );
 
 const validate = async ( data, operation ) => {
     validateFields( data );
@@ -17,13 +17,13 @@ const validateFields = ( data ) => {
 };
 
 const validatePostLinks = async ( operation ) => {
-    const result = await redisGetter.getHashAll( `${operation.parent_author}_${operation.parent_permlink}` );
+    const result = await commentRefGetter.getCommentRef( `${operation.parent_author}_${operation.parent_permlink}` );
 
     if ( !result || !result.type || result.type !== 'create_wobj' || !result.root_wobj ) {
         throw new Error( "Can't append object, parent comment isn't create Object comment!" );
     }
 
-    const existResult = await redisGetter.getHashAll( `${operation.author}_${operation.permlink}` );
+    const existResult = await commentRefGetter.getCommentRef( `${operation.author}_${operation.permlink}` );
 
     if( existResult ) {
         throw new Error( "Can't append object, append is now exist!" );
