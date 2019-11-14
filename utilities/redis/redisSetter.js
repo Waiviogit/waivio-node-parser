@@ -1,25 +1,51 @@
 const { postRefsClient, lastBlockClient } = require( './redis' );
+const { COMMENT_REF_TYPES } = require( '../constants' );
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
-const addPostWithWobj = async function ( author_permlink, wobjects ) {
-    await postRefsClient.hsetAsync( author_permlink, 'type', 'post_with_wobj' );
-    await postRefsClient.hsetAsync( author_permlink, 'wobjects', JSON.stringify( wobjects ) );
+/**
+ * Set ref to post to redis
+ * @param path {String} author and permlink joined with underline
+ * @param wobjects {String} Stringified array of wobjects on post
+ * @returns {Promise<void>}
+ */
+const addPostWithWobj = async function ( path, wobjects ) {
+    let wobjectsStr = typeof wobjects === 'string' ? wobjects : JSON.stringify( wobjects );
+    await postRefsClient.hsetAsync( path, 'type', COMMENT_REF_TYPES.postWithWobjects );
+    await postRefsClient.hsetAsync( path, 'wobjects', wobjectsStr );
 };
 
-const addWobjRef = async function ( author, author_permlink ) {
-    await postRefsClient.hsetAsync( `${author }_${ author_permlink}`, 'type', 'create_wobj' );
-    await postRefsClient.hsetAsync( `${author }_${ author_permlink}`, 'root_wobj', author_permlink ); // root_wobj is author_permlink of wobject
+/**
+ * Set ref to create wobj comment to redis
+ * @param path {String} author and permlink joined with underline
+ * @param root_wobj {String} author_permlink of wobject (actually permlink of comment)
+ * @returns {Promise<void>}
+ */
+const addWobjRef = async function ( path, root_wobj ) {
+    await postRefsClient.hsetAsync( path, 'type', COMMENT_REF_TYPES.createWobj );
+    await postRefsClient.hsetAsync( path, 'root_wobj', root_wobj ); // root_wobj is author_permlink of wobject(just permlink)
 };
 
-const addAppendWobj = async function ( author_permlink, root_wobj ) {
-    await postRefsClient.hsetAsync( author_permlink, 'type', 'append_wobj' ); // author_permlink is 'author' + '_' + 'permlink' of comment with appendWobject
-    await postRefsClient.hsetAsync( author_permlink, 'root_wobj', root_wobj ); // root_wobj is author_permlink of wobject
+/**
+ * Set ref to comment with append on wobj to redis
+ * @param path {String} author and permlink joined with underline
+ * @param root_wobj {String} author_permlink of parent "Wobject"
+ * @returns {Promise<void>}
+ */
+const addAppendWobj = async function ( path, root_wobj ) {
+    await postRefsClient.hsetAsync( path, 'type', COMMENT_REF_TYPES.appendWobj ); // author_permlink is 'author' + '_' + 'permlink' of comment with appendWobject
+    await postRefsClient.hsetAsync( path, 'root_wobj', root_wobj ); // root_wobj is author_permlink of wobject
 };
 
-const addObjectType = async function ( author, permlink, name ) {
-    await postRefsClient.hsetAsync( `${author }_${ permlink}`, 'type', 'wobj_type' );
-    await postRefsClient.hsetAsync( `${author }_${ permlink}`, 'name', name );
+/**
+ * Set ref to comment with create Object Type redis
+ * @param path {String} author and permlink joined with underline
+ * @param name {String} "name" of created Object Type
+ * @returns {Promise<void>}
+ */
+const addObjectType = async function ( path, name ) {
+    await postRefsClient.hsetAsync( path, 'type', COMMENT_REF_TYPES.wobjType );
+    await postRefsClient.hsetAsync( path, 'name', name );
 };
 
 const setLastBlockNum = async function ( blockNum ) {

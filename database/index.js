@@ -18,6 +18,7 @@ module.exports = {
         Post: require( './schemas/PostSchema' ),
         ObjectType: require( './schemas/ObjectTypeSchema' ),
         UserWobjects: require( './schemas/UserWobjectsSchema' ),
-        App: require( './schemas/AppSchema' )
+        App: require( './schemas/AppSchema' ),
+        CommentRef: require( './schemas/CommentRefSchema' )
     }
 };

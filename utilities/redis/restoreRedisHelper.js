@@ -19,7 +19,7 @@ const restoreWobjectsRefs = async function () {
     if ( wobjects && wobjects.length ) {
         wobjectsCount += wobjects.length;
         for ( const wobject of wobjects ) {
-            await redisSetter.addWobjRef( wobject.author, wobject.author_permlink );
+            await redisSetter.addWobjRef( `${wobject.author}_${wobject.author_permlink}`, wobject.author_permlink );
             const { fields } = await Wobj.getFieldsRefs( wobject.author_permlink ); // get refs of all fields in wobj
 
             if ( fields && fields.length ) {

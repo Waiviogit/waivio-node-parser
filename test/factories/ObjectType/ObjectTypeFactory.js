@@ -6,7 +6,7 @@ const Create = async ( { name } = {} ) => {
     const permlink = getRandomString( 15 );
     const objectType = await ObjectType.create( { name, author, permlink } );
 
-    await redisSetter.addObjectType( author, permlink, name );
+    await redisSetter.addObjectType( `${author}_${ permlink}`, name );
     return objectType;
 };
 

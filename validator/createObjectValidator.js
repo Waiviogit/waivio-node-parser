@@ -1,5 +1,5 @@
 const _ = require( 'lodash' );
-const { redisGetter } = require( '../utilities/redis' );
+const { commentRefGetter } = require( '../utilities/commentRefService' );
 
 const validate = async ( data, operation ) => {
     validateFields( data );
@@ -17,7 +17,7 @@ const validateFields = ( data ) => {
 };
 
 const validatePostLinks = async ( data, operation ) => {
-    const result = await redisGetter.getHashAll( `${operation.parent_author}_${operation.parent_permlink}` );
+    const result = await commentRefGetter.getCommentRef( `${operation.parent_author}_${operation.parent_permlink}` );
 
     if ( !result || !result.type || result.type !== 'wobj_type' ) {
         throw new Error( "Can't create object, parent post isn't create Object Type post or wrong object type!" );
