@@ -14,7 +14,8 @@ exports.deleteUnusedCommentRefs = () => {
         port: 6379,
         db: config.redis.wobjectsRefs || 1,
         pattern: '*_*',
-        minIdle: MIN_REDIS_REFS_IDLE_TIME_IN_SEC
+        minIdle: MIN_REDIS_REFS_IDLE_TIME_IN_SEC,
+        limit: 1000000
     } );
     let deletedCount = 0;
     unusedRefsScanner.on( 'data', ( data ) => {
