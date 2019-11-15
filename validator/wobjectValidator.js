@@ -9,6 +9,7 @@ const validateRatingVote = ( data ) => {
             isValid = false;
         }
     } );
+    if( _.get( data, 'rate' ) > 10 ) isValid = false;
     return isValid;
 };
 
