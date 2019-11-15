@@ -1,8 +1,8 @@
-const { User } = require( '../models' );
+const { User, Post } = require( '../models' );
 const _ = require( 'lodash' );
 
 
-const updateAccountParser = async ( operation ) => {
+exports.updateAccountParser = async ( operation ) => {
     if( operation.account && operation.json_metadata ) {
         let parsed_metadata;
 
@@ -24,7 +24,7 @@ const updateAccountParser = async ( operation ) => {
     }
 };
 
-const followUserParser = async ( operation ) => {
+exports.followUserParser = async ( operation ) => {
     let json;
 
     try {
@@ -33,24 +33,33 @@ const followUserParser = async ( operation ) => {
         console.error( error );
         return;
     }
+    if( _.get( json, '[0]' ) === 'reblog' ) {
+        await this.reblogPostParser( json );
+    }
     // if ( json && Array.isArray( json ) && json[ 0 ] === 'follow' && json[ 1 ] && json[ 1 ].user && json[ 1 ].author_permlink && json[ 1 ].what ) {
     if ( _.get( json, '[0]' ) === 'follow' && _.get( json, '[1].follower' ) && _.get( json, '[1].following' ) && _.get( json, '[1].what' ) ) {
         if ( !_.isEmpty( json[ 1 ].what ) && json[ 1 ].what[ 0 ] === 'blog' ) { // if field what present - it's follow on user
             const { result } = await User.addUserFollow( json[ 1 ] );
 
             if ( result ) {
-                console.log( `User ${json[ 1 ].follower} now following user ${json[ 1 ].following}!\n` );
+                console.log( `User ${json[ 1 ].follower} now following user ${json[ 1 ].following}!` );
             }
         } else { // else if missing - unfollow
             const { result } = await User.removeUserFollow( json[ 1 ] );
 
             if ( result ) {
-                console.log( `User ${json[ 1 ].follower} now unfollow user ${json[ 1 ].following} !\n` );
+                console.log( `User ${json[ 1 ].follower} now unfollow user ${json[ 1 ].following} !` );
             }
         }
     }
 };
 
-module.exports = {
-    updateAccountParser, followUserParser
+exports.reblogPostParser = async ( json ) => {
+    if( _.get( json, '[1].account' ) && _.get( json, '[1].author' ) && _.get( json, '[1].permlink' ) ) {
+        const { result, error } = await Post.addReblog( { ...json[ 1 ] } );
+        if( _.get( result, 'ok' ) )
+            console.log( `User ${json[ 1 ].account} reblog user ${json[ 1 ].author}!` );
+        else if( error )
+            console.error( error );
+    }
 };

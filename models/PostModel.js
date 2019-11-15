@@ -64,4 +64,14 @@ const getPostsRefs = async function() {
     }
 };
 
-module.exports = { create, update, findOne, getPostsRefs };
+const addReblog = async ( { account, author, permlink } ) => {
+    try {
+        return{
+            result: await PostModel.updateOne( { author, permlink }, { $addToSet: { reblogged_by: account } } )
+        };
+    } catch ( error ) {
+        return { error };
+    }
+};
+
+module.exports = { create, update, findOne, getPostsRefs, addReblog };

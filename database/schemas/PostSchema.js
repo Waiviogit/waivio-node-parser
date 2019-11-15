@@ -61,7 +61,8 @@ const PostSchema = new Schema( {
         percent: { type: Number },
         tagged: { type: String }
     } ],
-    language: { type: String, default: 'en-US' }
+    language: { type: String, default: 'en-US' },
+    reblogged_by: { type: [ String ], default: [] }
 }, { strict: false, timestamps: true } );
 
 PostSchema.index( { author: 1, permlink: 1 }, { unique: true } );
