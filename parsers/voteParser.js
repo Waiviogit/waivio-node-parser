@@ -1,8 +1,8 @@
 const { postsUtil } = require( '../utilities/steemApi' );
 const { User } = require( '../models' );
-const { voteFieldHelper } = require( '../utilities/helpers' );
-const { votePostHelper } = require( '../utilities/helpers' );
-const redisGetter = require( '../utilities/redis/redisGetter' );
+const { voteFieldHelper, votePostHelper } = require( '../utilities/helpers' );
+// const redisGetter = require( '../utilities/redis/redisGetter' );
+const { commentRefGetter } = require( '../utilities/commentRefService' );
 const _ = require( 'lodash' );
 
 const parse = async function ( votes ) {
@@ -104,7 +104,7 @@ const getPosts = async function ( postsRefs ) {
 
 const votesFormat = async ( votesOps ) => {
     for ( const voteOp of votesOps ) {
-        const redisResponse = await redisGetter.getHashAll( `${voteOp.author}_${voteOp.permlink}` );
+        const redisResponse = await commentRefGetter.getCommentRef( `${voteOp.author}_${voteOp.permlink}` );
 
         if ( redisResponse && redisResponse.type ) {
             voteOp.type = redisResponse.type;

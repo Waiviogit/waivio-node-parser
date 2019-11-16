@@ -1,6 +1,6 @@
 const { Wobj, User } = require( '../models' );
 const { createObjectValidator } = require( '../validator' );
-const { redisSetter, redisGetter } = require( '../utilities/redis' );
+const { commentRefSetter, commentRefGetter } = require( '../utilities/commentRefService' );
 
 const parse = async function ( operation, metadata ) {
     try {
@@ -16,10 +16,7 @@ const parse = async function ( operation, metadata ) {
             // object_type: metadata.wobj.object_type.toLowerCase()
         };
         const res = await createObject( data, operation );
-
-        if( res.error ) {
-            console.error( res.error );
-        }
+        if( res.error ) console.error( res.error );
         if ( res ) {
             console.log( `Waivio object ${data.default_name} created!\n` );
         }
@@ -31,20 +28,20 @@ const parse = async function ( operation, metadata ) {
 const createObject = async function ( data, operation ) {
     try {
         await createObjectValidator.validate( data, operation );
-        const redisObjectType = await redisGetter.getHashAll( `${operation.parent_author }_${ operation.parent_permlink}` );
 
-        data.object_type = redisObjectType.name;
+        const objectTypeRef = await commentRefGetter.getCommentRef( `${operation.parent_author }_${ operation.parent_permlink}` );
+        data.object_type = objectTypeRef.name;
+
         const { wObject, error } = await Wobj.create( data );
+        if ( error ) return { error };
 
-        if ( error ) {
-            return { error };
-        }
-        await redisSetter.addWobjRef( data.author, data.author_permlink );
+        await commentRefSetter.addWobjRef( `${data.author }_${ data.author_permlink}`, data.author_permlink );
         await User.increaseWobjectWeight( {
             name: data.creator,
             author_permlink: data.author_permlink,
             weight: 1
         } );
+
         return wObject._doc;
     } catch ( error ) {
         return { error };

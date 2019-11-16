@@ -33,7 +33,7 @@ const Create = async ( { onlyData, appends = [], author_permlink: root_permlink,
         fields: [ ...appends ]
     } );
 
-    await redisSetter.addWobjRef( author, author_permlink );
+    await redisSetter.addWobjRef( `${author}_${author_permlink}`, author_permlink );
     return wobject._doc;
 };
 
