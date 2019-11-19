@@ -20,7 +20,7 @@ describe( 'User Model', async () => {
             weightIncrease = await UserModel.increaseWobjectWeight( data );
             expect( weightIncrease.result ).is.true;
         } );
-        it( 'should success increase weight by data weight', async () => {
+        it( 'should increase weight by data weight', async () => {
             weightIncrease = await UserModel.increaseWobjectWeight( data );
             userAfterIncrease = await User.findOne( { name: name } );
             expect( userAfterIncrease.wobjects_weight - userBeforeIncrease.wobjects_weight ).is.eq( data.weight );
@@ -124,21 +124,20 @@ describe( 'User Model', async () => {
         } );
     } );
     describe( 'On addObjectFollow', async () => {
-        let data, fakeObject, result, follower;
+        let fakeObject, result, follower;
         before( async () => {
             follower = await UserFactory.Create();
             fakeObject = await ObjectFactory.Create();
-            data = {
+            await UserModel.addObjectFollow( {
                 user: follower.user.name,
                 author_permlink: fakeObject.author_permlink
-            };
-            await UserModel.addObjectFollow( data );
+            } );
             result = await User.findOne( { name: follower.user.name } );
         } );
         it( 'should follower object_follow is not empty', async () => {
             expect( result._doc.objects_follow ).not.empty;
         } );
-        it( 'should follower object_follow contains fakeObject', async () => {
+        it( 'should object_follow contains fakeObject', async () => {
             expect( result._doc.objects_follow ).to.contain( fakeObject.author_permlink );
         } );
         it( 'should get error with incorrect data', async () => {
@@ -161,7 +160,7 @@ describe( 'User Model', async () => {
             };
             await UserModel.addObjectFollow( data );
         } );
-        it( 'should follower object_follow contains fakeObject', async () => {
+        it( 'should object_follow contains fakeObject', async () => {
             result = await User.findOne( { name: follower.user.name } );
             expect( result._doc.objects_follow ).not.empty;
         } );
@@ -170,7 +169,7 @@ describe( 'User Model', async () => {
             result = await User.findOne( { name: follower.user.name } );
             expect( result._doc.objects_follow ).to.not.contain( fakeObject.author_permlink );
         } );
-        it( 'should success empty objects_follow array', async () => {
+        it( 'should return empty objects_follow array', async () => {
             await UserModel.removeObjectFollow( data );
             result = await User.findOne( { name: follower.user.name } );
             expect( result._doc.objects_follow ).is.empty;

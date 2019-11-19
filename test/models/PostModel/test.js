@@ -87,7 +87,7 @@ describe( 'PostModel', async () => {
             result_update = await PostModel.update( data );
             upd_post = await Post.findOne( { author: post.author, permlink: post.permlink } );
         } );
-        it( 'should success result update', async () => {
+        it( 'should result update successfully', async () => {
             expect( result_update ).is.exist;
         } );
         it( 'should compare fields so they are the same ', async () => {
@@ -99,16 +99,12 @@ describe( 'PostModel', async () => {
 
             expect( 'Cannot read property \'author\' of undefined' ).to.deep.eq( postModel.error.message );
         } );
-        it( 'should eq data properties and upd_post properties after update', async () => {
+        it( 'should compare data properties and upd_post properties after update', async () => {
             expect( data ).to.deep.eq( {
                 author: upd_post.author,
                 permlink: upd_post.permlink,
                 total_vote_weight: upd_post.total_vote_weight,
                 net_votes: upd_post.net_votes } );
-        } );
-        it( 'should eq author and permlink of post and upd_post', async () => {
-            expect( { author: post.author, permlink: post.permlink } ).to.deep.eq( { author: upd_post.author,
-                permlink: upd_post.permlink } );
         } );
     } );
 } );
