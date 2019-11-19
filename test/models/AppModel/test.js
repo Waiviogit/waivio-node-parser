@@ -6,22 +6,20 @@ describe( 'App model', async () => {
         let app, result;
 
         before( async () => {
-            app = await AppFactory.Create( {
-                name: getRandomString()
-            } );
+            app = await AppFactory.Create( );
         } );
-        it( 'Should successful to eq names', async () => {
+        it( 'Should check names for identity', async () => {
             result = await AppModel.getOne( { name: app.name } );
             expect( result.app ).to.deep.eq( app._doc );
         } );
 
-        it( ' Should success return error', async () => {
+        it( ' Should check that the error exists', async () => {
             result = await AppModel.getOne( { name: getRandomString() } );
             expect( result.error ).is.exist;
         } );
         it( ' Should return error message', async () => {
             result = await AppModel.getOne( { name: getRandomString() } );
-            expect( result.error.message ).to.deep.eq( 'App not found!' );
+            expect( result.error.message ).to.eq( 'App not found!' );
         } );
     } );
     describe( 'On updateChosenPost', async () => {
@@ -33,17 +31,17 @@ describe( 'App model', async () => {
             name = faker.name.firstName();
             app = await AppFactory.Create( { name: name } );
         } );
-        it( 'should success update daily post', async () => {
+        it( 'should update daily post', async () => {
             result = await AppModel.updateChosenPost( { name: name, author: author, permlink: permlink, title: title } );
-            expect( app.daily_chosen_post ).not.deep.eq( result.app.daily_chosen_post );
+            expect( app.daily_chosen_post ).not.eq( result.app.daily_chosen_post );
         } );
         it( 'should not update weekly post', async () => {
             result = await AppModel.updateChosenPost( { name: name, author: author, permlink: permlink, title: title } );
-            expect( app.weekly_chosen_post ).deep.eq( result.app.weekly_chosen_post );
+            expect( app.weekly_chosen_post ).to.deep.eq( result.app.weekly_chosen_post );
         } );
-        it( 'should success update weekly post', async () => {
+        it( 'should update weekly post', async () => {
             result = await AppModel.updateChosenPost( { name: name, author: author, permlink: permlink, title: title, period: 'weekly' } );
-            expect( app.weekly_chosen_post ).not.deep.eq( result.app.weekly_chosen_post );
+            expect( app.weekly_chosen_post ).not.eq( result.app.weekly_chosen_post );
         } );
         it( 'should not update app with not full data', async () => {
             result = await AppModel.updateChosenPost( { name: name, permlink: permlink, title: title, period: 'weekly' } );

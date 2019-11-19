@@ -13,14 +13,11 @@ const create = async function ( data ) {
 };
 
 const update = async function ( conditions, updateData ) {
-    if ( typeof conditions !== 'object' || typeof updateData !== 'object' ) {
-        return ( { error: { message: 'Conditions and updateData must be an object' } } );
-    }
     try {
         const result = await WObjectModel.updateOne( conditions, updateData );
         return { result: result.nModified === 1 };
     } catch ( error ) {
-        return { result: error };
+        return { error };
     }
 };
 
@@ -40,9 +37,6 @@ const addField = async function ( data ) {
 };
 
 const increaseFieldWeight = async function ( data ) { // data include: author, permlink, author_permlink, weight
-    if ( !data || !data.author || !data.author_permlink ) {
-        return( { error: { message: 'data didnt contains author or author permlink' } } );
-    }
     try {
         let result = await WObjectModel.updateOne( {
             author_permlink: data.author_permlink,
@@ -60,9 +54,6 @@ const increaseFieldWeight = async function ( data ) { // data include: author, p
 };
 
 const increaseWobjectWeight = async function ( data ) {
-    if ( !data || !data.author_permlink ) {
-        return( { error: { message: 'Data dont contains author permlink' } } );
-    }
     try {
         const wobj = await WObjectModel.findOne( { author_permlink: data.author_permlink } );
 

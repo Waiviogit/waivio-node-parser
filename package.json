@@ -26,7 +26,6 @@
     "lodash": "^4.17.5",
     "mongoose": "^5.3.5",
     "morgan": "~1.9.0",
-    "read": "^1.0.7",
     "redis": "^2.8.0",
     "redis-key-scanner": "^0.2.3",
     "rsmq": "^0.10.0",

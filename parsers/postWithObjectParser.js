@@ -5,7 +5,7 @@ const { User } = require( '../models' );
 const { commentRefSetter } = require( '../utilities/commentRefService' );
 
 const parse = async function ( operation, metadata ) {
-    const { user, error: userError } = await User.checkAndCreate( { name: operation.author } );
+    const { user, error: userError } = await User.checkAndCreate( operation.author );
     if( userError ) console.log( userError );
 
     const data = {

@@ -85,15 +85,10 @@ describe( 'Wobject Model', async () => {
             result = await WObject.findOne( { author_permlink: permlink } );
             expect( result._doc.count_posts ).to.deep.eq( updateData.$set.count_posts );
         } );
-        it( 'should return error', async () => {
-            result = await WobjModel.update( 'hello', 'world' );
-
-            expect( result.error ).is.exist;
-        } );
         it( 'should return current error', async () => {
             result = await WobjModel.update( 'hello', 'world' );
 
-            expect( result.error.message ).to.deep.eq( 'Conditions and updateData must be an object' );
+            expect( result.error ).is.exist;
         } );
         it( 'should didnt update with not valid data ', async () => {
             result = await WobjModel.update( 'hello', 'world' );
@@ -187,17 +182,17 @@ describe( 'Wobject Model', async () => {
 
             expect( result.error ).is.exist;
         } );
-        it( 'should return error without author permlink', async () => {
+        it( 'should return false without author permlink', async () => {
             result = await WobjModel.increaseFieldWeight( { author: getRandomString(),
                 permlink: getRandomString(),
                 weight: 1111 } );
-            expect( result.error ).is.exist;
+            expect( result.result ).is.false;
         } );
-        it( 'should return error without author', async () => {
+        it( 'should return false without author', async () => {
             result = await WobjModel.increaseFieldWeight( { author_permlink: getRandomString(),
                 permlink: getRandomString(),
                 weight: 1111 } );
-            expect( result.error ).is.exist;
+            expect( result.result ).is.false;
         } );
     } );
     describe( 'On increseWobjectWeight', async () => {
@@ -232,7 +227,7 @@ describe( 'Wobject Model', async () => {
         } );
         it( 'should return error without data', async () => {
             result = await WobjModel.increaseWobjectWeight();
-            expect( result.error.message ).to.deep.eq( 'Data dont contains author permlink' );
+            expect( result.error.message ).to.deep.eq( 'Cannot read property \'author_permlink\' of undefined' );
         } );
         it( 'should return result false with incorrect data', async () => {
             result = await WobjModel.increaseWobjectWeight( { author_permlink: getRandomString(),

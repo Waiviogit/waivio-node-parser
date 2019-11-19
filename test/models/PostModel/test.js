@@ -1,22 +1,23 @@
 const { expect, PostModel, Post, Mongoose, getRandomString } = require( '../../testHelper' );
 const { PostFactory } = require( '../../factories' );
+const _ = require( 'lodash' );
 
 describe( 'PostModel', async () => {
     describe( 'On getPostsRefs', async () => {
-        let postModel, postModel2;
+        let firstPostModel, secondPostModel;
         beforeEach( async () => {
             await Mongoose.connection.dropDatabase( );
-            postModel = await PostFactory.Create();
-            postModel2 = await PostFactory.Create();
+            firstPostModel = await PostFactory.Create();
+            secondPostModel = await PostFactory.Create();
         } );
-        it( 'should get length of posts 2', async () => {
+        it( 'should get correct length of posts', async () => {
             let postsRefs = await PostModel.getPostsRefs() ;
 
             expect( postsRefs.posts.length ).to.deep.eq( 2 );
         } );
-        it( 'should eq posts authors', async () => {
-            let firstResult = postModel.author;
-            let secondResult = postModel2.author;
+        it( 'should check the identity authors of the posts', async () => {
+            let firstResult = firstPostModel.author;
+            let secondResult = secondPostModel.author;
             let postsRefs = await PostModel.getPostsRefs() ;
 
             expect( firstResult, secondResult ).to.deep.eq( postsRefs.posts[ 0 ].author, postsRefs.posts[ 1 ].author );
@@ -27,23 +28,24 @@ describe( 'PostModel', async () => {
         beforeEach( async () => {
             data = await PostFactory.Create( { onlyData: true } );
         } );
-        it( 'should success post parent_author is eq', async () => {
+        it( 'should get correct post author ', async () => {
             const post = await PostModel.create( data );
-            let postAuthor = post.post._doc.author;
-
-            expect( postAuthor ).to.deep.eq( data.author );
+            const postAuthor = post.post._doc.author;
+            expect( postAuthor ).to.eq( data.author );
         } );
-        it( 'should success user created', async () => {
+        it( 'should user created successfully', async () => {
+            await PostModel.create( data );
+            const user = await Post.findOne( { permlink: data.permlink } );
+            expect( user.author ).to.eq( data.author );
+        } );
+        it( 'should get error with incorrect params', async () => {
+            const result = await PostModel.create( { some: { date: { to: 'test' } } } );
+            expect( result.error ).is.exist;
+        } );
+        it( 'should get error with duplicate post by author+permlink', async () => {
+            await PostModel.create( data );
             const result = await PostModel.create( data );
-            let user = result.post._doc.author;
-
-            expect( user ).to.deep.eq( data.author );
-        } );
-        it( 'should success post create', async () => {
-            const post = await PostModel.create( data );
-            let res = post.post._doc.title;
-
-            expect( res ).to.deep.eq( data.title );
+            expect( result.error ).exist;
         } );
     } );
     describe( 'On findOne', async () => {
@@ -51,23 +53,22 @@ describe( 'PostModel', async () => {
         before( async () => {
             post = await PostFactory.Create();
         } );
-        it( 'should success findOne post exist', async () => {
+        it( 'should findOne post', async () => {
             const foundedPost = await PostModel.findOne( { author: post.author, permlink: post.permlink } );
 
             expect( foundedPost.post ).to.exist;
         } );
-        it( 'should success findOne post is null', async () => {
-            const foundedPost = await PostModel.findOne( { author: 'some author', permlink: 'some permlink' } );
-
-            expect( foundedPost.post ).is.null;
+        it( 'should not find not exist post', async () => {
+            const result = await PostModel.findOne( { author: getRandomString(), permlink: getRandomString() } );
+            expect( result.post ).not.exist;
         } );
-        it( 'should success findOne post author, permlink, title is eq ', async () => {
+        it( 'should compare found post with created post', async () => {
             const foundedPost = await PostModel.findOne( { author: post.author, permlink: post.permlink } );
-            const expectedValues = ( ( { author, permlink, title } ) => ( { author, permlink, title } ) )( foundedPost.post );
-            const actualValues = ( ( { author, permlink, title } ) => ( { author, permlink, title } ) )( post );
+            const expectedValues = _.pick( foundedPost.post, [ 'author', 'permlink', 'title' ] );
+            const actualValues = _.pick( post, [ 'author', 'permlink', 'title' ] );
             expect( expectedValues ).to.deep.eq( actualValues );
         } );
-        it( 'should error expected', async () => {
+        it( 'should get error', async () => {
             const result = await PostModel.findOne();
 
             expect( result.error.message ).to.deep.eq( 'Cannot read property \'author\' of undefined' );
@@ -89,14 +90,14 @@ describe( 'PostModel', async () => {
         it( 'should success result update', async () => {
             expect( result_update ).is.exist;
         } );
-        it( 'should equal  ', async () => {
+        it( 'should compare fields so they are the same ', async () => {
             expect( { net_votes: upd_post._doc.net_votes, total_vote_weight: upd_post.total_vote_weight
-            } ).to.not.deep.eq( { net_votes: post.net_votes, total_vote_weight: post.total_vote_weight } );
+            } ).to.not.eq( { net_votes: post.net_votes, total_vote_weight: post.total_vote_weight } );
         } );
         it( 'should return error', async () => {
-            let postModel2 = await PostModel.update();
+            let postModel = await PostModel.update();
 
-            expect( 'Cannot read property \'author\' of undefined' ).to.deep.eq( postModel2.error.message );
+            expect( 'Cannot read property \'author\' of undefined' ).to.deep.eq( postModel.error.message );
         } );
         it( 'should eq data properties and upd_post properties after update', async () => {
             expect( data ).to.deep.eq( {

@@ -13,11 +13,11 @@ describe( 'followObjectParser', async () => {
         } );
         it( 'should success follow to wobject', async () => {
             result = await followObjectParser.parse( data );
-            expect( result ).to.deep.eq( `User ${name} now following wobject ${author_permlink}!\\n` );
+            expect( result ).to.eq( `User ${name} now following wobject ${author_permlink}!\\n` );
         } );
         it( 'should get error with incorrect data', async () => {
             result = await followObjectParser.parse( getRandomString( 20 ) );
-            expect( result.message ).to.deep.eq( 'Unexpected token u in JSON at position 0' );
+            expect( result.message ).to.eq( 'Unexpected token u in JSON at position 0' );
         } );
         it( 'should not work without author_permlink', async () => {
             result = await followObjectParser.parse( { json: '["follow",{"user": "name","what":[]}]' } );
@@ -33,7 +33,7 @@ describe( 'followObjectParser', async () => {
         } );
         it( 'should trying to follow to not exist wobject', async () => {
             result = await followObjectParser.parse( { json: '["follow",{"user": "name","author_permlink": "name","what":[{"some":"test"}]}]' } );
-            expect( result.status ).to.deep.eq( 404 );
+            expect( result.status ).to.eq( 404 );
         } );
     } );
     describe( 'On unfollowObjectParse', async () => {

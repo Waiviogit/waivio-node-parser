@@ -2,7 +2,7 @@ const PostModel = require( '../database' ).models.Post;
 const User = require( './UserModel' );
 
 const create = async function ( data ) {
-    await User.checkAndCreate( { name: data.author } ); // create user in DB if it doesn't exist
+    await User.checkAndCreate( data.author ); // create user in DB if it doesn't exist
 
     const newPost = new PostModel( data );
 

@@ -5,19 +5,16 @@ const _ = require( 'lodash' );
 
 describe( 'ObjectTypeModel', async () => {
     describe( 'On getOne', async () => {
-        let objectType2, name;
+        let objectType;
         before( async () => {
-            name = getRandomString();
-            objectType2 = await ObjectTypeFactory.Create( {
-                name: name
-            } );
+            objectType = await ObjectTypeFactory.Create( );
         } );
-        it( 'should success return error', async () => {
+        it( 'should return error', async () => {
             const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
             expect( res.error ).is.exist;
         } );
 
-        it( 'should successful eq object types', async () => {
+        it( 'should not found Object type', async () => {
             const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
             expect( res ).to.deep.eq( {
                 'error': {
@@ -26,68 +23,54 @@ describe( 'ObjectTypeModel', async () => {
                 }
             } );
         } );
-        it( 'should success getOne ', async () => {
-            const res = await ObjectTypeModel.getOne( { name: name } );
-
+        it( 'should return objectType on valid input data ', async () => {
+            const res = await ObjectTypeModel.getOne( { name: objectType.name } );
             expect( res.objectType ).is.exist;
         } );
-        it( 'should success getOne object type', async () => {
-            const res = await ObjectTypeModel.getOne( { name: name } );
-
-            expect( res.objectType ).to.deep.eq( objectType2._doc );
+        it( 'should check objectTypes for identity', async () => {
+            const res = await ObjectTypeModel.getOne( { name: objectType.name } );
+            expect( res.objectType ).to.deep.eq( objectType._doc );
         } );
     } );
     describe( 'On create', async () => {
-        let object, result;
+        let objectType;
         beforeEach( async () => {
-            object = await ObjectTypeModel.create( { name: getRandomString(), author: getRandomString(),
+            objectType = await ObjectTypeModel.create( { name: getRandomString(), author: getRandomString(),
                 author_permlink: getRandomString()
             } );
         } );
-        it( 'should successful create object in base', async () => {
-            result = await ObjectType.findOne( { name: object.objectType.name } );
-            expect( result ).not.empty;
-        } );
-        it( 'should successful equal permlink', async () => {
-            result = await ObjectType.findOne( { name: object.objectType.name } );
+        it( 'should return objectType with correct permlink', async () => {
+            const result = await ObjectType.findOne( { name: objectType.objectType.name } );
 
-            expect( object.objectType.permlink ).to.deep.eq( result.permlink );
+            expect( objectType.objectType.permlink ).to.eq( result.permlink );
         } );
-        it( 'should equal id', async () => {
-            result = await ObjectType.findOne( { name: object.objectType.name } );
-            expect( object.objectType._id ).to.deep.eq( result._id );
+        it( 'should check created id and found for identity', async () => {
+            const result = await ObjectType.findOne( { name: objectType.objectType.name } );
+            expect( objectType.objectType._id ).to.deep.eq( result._id );
         } );
-        it( 'should success return error', async () => {
-            object = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
+        it( 'should return error with incorrect params', async () => {
+            objectType = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
                 author_permlink: getRandomString() } );
-            expect( object.error ).is.exist;
+            expect( objectType.error ).is.exist;
         } );
-        it( 'should success return Validation error', async () => {
-            object = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
+        it( 'should return Validation error', async () => {
+            objectType = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
                 author_permlink: getRandomString() } );
-            expect( object.error.name ).to.deep.eq( 'ValidationError' );
+            expect( objectType.error.name ).to.eq( 'ValidationError' );
         } );
     } );
     describe( 'On getAll', async () => {
-        let rnd, name;
+        let objTypesCount;
         beforeEach( async () => {
             await Mongoose.connection.dropDatabase();
-            name = getRandomString();
-            await ObjectTypeFactory.Create( { name: name } );
-            rnd = _.random( 5, 10, false );
-            for ( let tmp = 0; tmp < rnd; tmp++ ) {
-                await ObjectTypeFactory.Create( {
-                    name: getRandomString()
-                } );
+            objTypesCount = _.random( 5, 10, false );
+            for ( let tmp = 0; tmp < objTypesCount; tmp++ ) {
+                await ObjectTypeFactory.Create( );
             }
         } );
-        it( 'should return array with length ', async () => {
+        it( 'should return array with correct length ', async () => {
             const types = await ObjectTypeModel.getAll();
-            expect( types.objectTypes.length ).to.deep.eq( rnd + 1 );
-        } );
-        it( 'should find objectType name', async () => {
-            const types = await ObjectTypeModel.getAll();
-            expect( types.objectTypes[ 0 ].name ).to.deep.eq( name );
+            expect( types.objectTypes.length ).to.eq( objTypesCount );
         } );
     } );
 } );
