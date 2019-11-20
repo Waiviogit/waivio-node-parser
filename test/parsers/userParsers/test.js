@@ -1,5 +1,6 @@
 const { userParsers, User, expect, sinon, Post, getRandomString, faker } = require( '../../testHelper' );
 const { UserFactory, PostFactory } = require( '../../factories' );
+const { User: UserModel } = require( '../../../models' );
 
 describe( 'UserParsers', async () => {
     describe( 'on updateAccountParse', async () => {
@@ -100,14 +101,18 @@ describe( 'UserParsers', async () => {
         } );
 
         describe( 'if first param in JSON is "reblog"', async () => {
-            let mockJson, reblogParserStub;
+            let mockJson, reblogParserStub, addUserFollowStub, removeUserFollowStub;
             before( async () => {
                 reblogParserStub = sinon.stub( userParsers, 'reblogPostParser' ).returns( 0 );
+                addUserFollowStub = sinon.stub( UserModel, 'addUserFollow' ).returns( {} );
+                removeUserFollowStub = sinon.stub( UserModel, 'removeUserFollow' ).returns( {} );
                 mockJson = [ 'reblog', { account: faker.name.firstName(), author: faker.name.firstName(), permlink: getRandomString( 15 ) } ];
                 await userParsers.followUserParser( { json: JSON.stringify( mockJson ) } );
             } );
             after( () => {
                 reblogParserStub.restore();
+                addUserFollowStub.restore();
+                removeUserFollowStub.restore();
             } );
 
             it( 'should call "reblogPostParser" once', () => {
@@ -117,14 +122,20 @@ describe( 'UserParsers', async () => {
             it( 'should call "reblogPostParser" with correct params', () => {
                 expect( reblogParserStub ).to.be.calledWith( mockJson );
             } );
+
+            it( 'should not call addUserFollow on user model', () => {
+                expect( addUserFollowStub ).to.be.not.called;
+            } );
+
+            it( 'should not call removeUserFollow on user model', () => {
+                expect( removeUserFollowStub ).to.be.not.called;
+            } );
         } );
-
-
     } );
 
     describe( 'on reblogPostParser', async () => {
         describe( 'on valid json', async () => {
-            let post, user, upd_post;
+            let post, user, reblog_post;
             beforeEach( async () => {
                 post = await PostFactory.Create();
                 const { user: userMock } = await UserFactory.Create();
@@ -133,17 +144,17 @@ describe( 'UserParsers', async () => {
                     'reblog',
                     { account: user.name, author: post.author, permlink: post.permlink }
                 ] );
-                upd_post = await Post.findOne( { _id: post._id } );
+                reblog_post = await Post.findOne( { author: post.author, permlink: post.permlink, reblog_by: user.name } );
             } );
-            it( 'should add user to reblogged_by array', () => {
-                expect( upd_post.reblogged_by ).to.include( user.name );
+            it( 'should create new post with field reblog_by not null', () => {
+                expect( reblog_post.reblog_by ).to.not.null;
             } );
-            it( 'should not add duplicates', async () => {
-                await userParsers.reblogPostParser( [
-                    'reblog',
-                    { account: user.name, author: post.author, permlink: post.permlink }
-                ] );
-                expect( upd_post.reblogged_by ).to.deep.eq( [ user.name ] );
+            it( 'should create new post with correct field reblog_by', () => {
+                expect( reblog_post.reblog_by ).to.be.eq( user.name );
+            } );
+            it( 'should not edit source post', async () => {
+                const sourcePost = await Post.findOne( { _id: post._id } );
+                expect( post ).to.deep.eq( sourcePost._doc );
             } );
         } );
     } );

@@ -38,15 +38,13 @@ exports.followUserParser = async ( operation ) => {
     }
     // if ( json && Array.isArray( json ) && json[ 0 ] === 'follow' && json[ 1 ] && json[ 1 ].user && json[ 1 ].author_permlink && json[ 1 ].what ) {
     if ( _.get( json, '[0]' ) === 'follow' && _.get( json, '[1].follower' ) && _.get( json, '[1].following' ) && _.get( json, '[1].what' ) ) {
-        if ( !_.isEmpty( json[ 1 ].what ) && json[ 1 ].what[ 0 ] === 'blog' ) { // if field what present - it's follow on user
+        if ( _.get( json, '[1].what[0]' ) === 'blog' ) { // if field "what" present - it's follow on user
             const { result } = await User.addUserFollow( json[ 1 ] );
-
             if ( result ) {
                 console.log( `User ${json[ 1 ].follower} now following user ${json[ 1 ].following}!` );
             }
         } else { // else if missing - unfollow
             const { result } = await User.removeUserFollow( json[ 1 ] );
-
             if ( result ) {
                 console.log( `User ${json[ 1 ].follower} now unfollow user ${json[ 1 ].following} !` );
             }
@@ -56,10 +54,17 @@ exports.followUserParser = async ( operation ) => {
 
 exports.reblogPostParser = async ( json ) => {
     if( _.get( json, '[1].account' ) && _.get( json, '[1].author' ) && _.get( json, '[1].permlink' ) ) {
-        const { result, error } = await Post.addReblog( { ...json[ 1 ] } );
-        if( _.get( result, 'ok' ) )
-            console.log( `User ${json[ 1 ].account} reblog user ${json[ 1 ].author}!` );
-        else if( error )
-            console.error( error );
+        const { post, error } = await Post.findOne( {
+            author: _.get( json, '[1].author' ),
+            permlink: _.get( json, '[1].permlink' )
+        } );
+        if( error )return { error };
+
+        const { post: createdPost, error: createPostError } = await Post
+            .create( { ..._.omit( post, [ '_id' ] ), reblog_by: _.get( json, '[1].account' ) } );
+
+        if( createPostError ) return { error: createPostError };
+        if( createdPost )
+            console.log( `User ${json[ 1 ].account} reblog post @${json[ 1 ].author}/${json[ 1 ].permlink}!` );
     }
 };

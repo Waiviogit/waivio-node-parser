@@ -13,13 +13,9 @@ const create = async function ( data ) {
     }
 };
 
-const findOne = async function ( data ) {
+const findOne = async function ( { author, permlink, reblog_by = null } ) {
     try {
-        const post = await PostModel.findOne( {
-            author: data.author,
-            permlink: data.permlink
-        } ).lean();
-
+        const post = await PostModel.findOne( { author, permlink, reblog_by } ).lean();
         return { post };
     } catch ( error ) {
         return { error };
@@ -64,14 +60,4 @@ const getPostsRefs = async function() {
     }
 };
 
-const addReblog = async ( { account, author, permlink } ) => {
-    try {
-        return{
-            result: await PostModel.updateOne( { author, permlink }, { $addToSet: { reblogged_by: account } } )
-        };
-    } catch ( error ) {
-        return { error };
-    }
-};
-
-module.exports = { create, update, findOne, getPostsRefs, addReblog };
+module.exports = { create, update, findOne, getPostsRefs };

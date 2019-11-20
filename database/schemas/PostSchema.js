@@ -62,10 +62,10 @@ const PostSchema = new Schema( {
         tagged: { type: String }
     } ],
     language: { type: String, default: 'en-US' },
-    reblogged_by: { type: [ String ], default: [] }
+    reblog_by: { type: String, default: null }
 }, { strict: false, timestamps: true } );
 
-PostSchema.index( { author: 1, permlink: 1 }, { unique: true } );
+PostSchema.index( { author: 1, permlink: 1, reblog_by: 1 }, { unique: true } );
 
 const PostModel = mongoose.model( 'Post', PostSchema );
 
