@@ -1,4 +1,4 @@
-const { expect, PostModel, Post, Mongoose, getRandomString } = require( '../../testHelper' );
+const { expect, PostModel, Post, getRandomString, dropDatabase } = require( '../../testHelper' );
 const { PostFactory } = require( '../../factories' );
 const _ = require( 'lodash' );
 
@@ -6,7 +6,7 @@ describe( 'PostModel', async () => {
     describe( 'On getPostsRefs', async () => {
         let firstPostModel, secondPostModel;
         beforeEach( async () => {
-            await Mongoose.connection.dropDatabase( );
+            await dropDatabase( );
             firstPostModel = await PostFactory.Create();
             secondPostModel = await PostFactory.Create();
         } );
@@ -24,28 +24,28 @@ describe( 'PostModel', async () => {
         } );
     } );
     describe( 'On Create', async () => {
-        let data;
+        let data, post;
         beforeEach( async () => {
+            await dropDatabase();
             data = await PostFactory.Create( { onlyData: true } );
+            const { post: createdPost } = await PostModel.create( data );
+            post = createdPost;
+        } );
+        it( 'should get error with duplicate post by author+permlink', async () => {
+            const result = await PostModel.create( data );
+            expect( result.error ).exist;
         } );
         it( 'should get correct post author ', async () => {
-            const post = await PostModel.create( data );
-            const postAuthor = post.post._doc.author;
+            const postAuthor = post.author;
             expect( postAuthor ).to.eq( data.author );
         } );
         it( 'should user created successfully', async () => {
-            await PostModel.create( data );
             const user = await Post.findOne( { permlink: data.permlink } );
             expect( user.author ).to.eq( data.author );
         } );
         it( 'should get error with incorrect params', async () => {
             const result = await PostModel.create( { some: { date: { to: 'test' } } } );
             expect( result.error ).is.exist;
-        } );
-        it( 'should get error with duplicate post by author+permlink', async () => {
-            await PostModel.create( data );
-            const result = await PostModel.create( data );
-            expect( result.error ).exist;
         } );
     } );
     describe( 'On findOne', async () => {
@@ -68,9 +68,8 @@ describe( 'PostModel', async () => {
             const actualValues = _.pick( post, [ 'author', 'permlink', 'title' ] );
             expect( expectedValues ).to.deep.eq( actualValues );
         } );
-        it( 'should get error', async () => {
+        it( 'should get error without params', async () => {
             const result = await PostModel.findOne();
-
             expect( result.error.message ).to.deep.eq( 'Cannot read property \'author\' of undefined' );
         } );
     } );

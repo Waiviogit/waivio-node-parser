@@ -1,19 +1,25 @@
-const { Mongoose, expect, getRandomString, faker } = require( '../../testHelper' );
+const { dropDatabase, expect, getRandomString, faker, sinon } = require( '../../testHelper' );
 const { followObjectParser } = require( '../../../parsers' );
 const mock = require( './mock' );
+const { User, Wobj } = require( '../../../models' );
 
 describe( 'followObjectParser', async () => {
     describe( 'On followObjectParse and errors', async () => {
         let data, result, name, author_permlink;
         beforeEach( async () => {
-            await Mongoose.connection.dropDatabase();
+            sinon.stub( User, 'addObjectFollow' ).callsFake( () => ( { result: true } ) );
+            sinon.stub( Wobj, 'getOne' ).callsFake( () => ( { wobject: true } ) );
+            await dropDatabase();
             name = faker.name.firstName();
             author_permlink = getRandomString( 10 );
             data = await mock.dataForFollow( { follow: true, auth_permlink: author_permlink, userName: name } );
         } );
+        afterEach( () => {
+            sinon.restore();
+        } );
         it( 'should success follow to wobject', async () => {
             result = await followObjectParser.parse( data );
-            expect( result ).to.eq( `User ${name} now following wobject ${author_permlink}!\\n` );
+            expect( result ).to.eq( `User ${name} now following wobject ${author_permlink}!\n` );
         } );
         it( 'should get error with incorrect data', async () => {
             result = await followObjectParser.parse( getRandomString( 20 ) );
@@ -32,6 +38,8 @@ describe( 'followObjectParser', async () => {
             expect( result ).is.undefined;
         } );
         it( 'should trying to follow to not exist wobject', async () => {
+            sinon.restore();
+            sinon.stub( Wobj, 'getOne' ).callsFake( () => ( { error: { status: 404, message: 'Wobject not found!' } } ) );
             result = await followObjectParser.parse( { json: '["follow",{"user": "name","author_permlink": "name","what":[{"some":"test"}]}]' } );
             expect( result.status ).to.eq( 404 );
         } );
@@ -39,10 +47,16 @@ describe( 'followObjectParser', async () => {
     describe( 'On unfollowObjectParse', async () => {
         let data, result, name, author_permlink;
         before( async () => {
-            await Mongoose.connection.dropDatabase();
+            await dropDatabase();
+            sinon.stub( User, 'removeObjectFollow' ).callsFake( () => {
+                return { result: true };
+            } );
             name = faker.name.firstName();
             author_permlink = getRandomString( 10 );
             data = await mock.dataForFollow( { auth_permlink: author_permlink, userName: name } );
+        } );
+        after( async () => {
+            sinon.restore();
         } );
         it( 'should success unfollow', async () => {
             result = await followObjectParser.parse( data );

@@ -1,4 +1,4 @@
-const { expect, ObjectTypeModel, ObjectType, getRandomString, Mongoose } = require( '../../testHelper' );
+const { expect, ObjectTypeModel, ObjectType, getRandomString, dropDatabase } = require( '../../testHelper' );
 const { ObjectTypeFactory } = require( '../../factories' );
 const _ = require( 'lodash' );
 
@@ -62,7 +62,7 @@ describe( 'ObjectTypeModel', async () => {
     describe( 'On getAll', async () => {
         let objTypesCount;
         beforeEach( async () => {
-            await Mongoose.connection.dropDatabase();
+            await dropDatabase();
             objTypesCount = _.random( 5, 10, false );
             for ( let tmp = 0; tmp < objTypesCount; tmp++ ) {
                 await ObjectTypeFactory.Create( );

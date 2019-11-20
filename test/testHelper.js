@@ -28,6 +28,13 @@ const getRandomString = ( length = 5 ) => {
     return faker.internet.password( length, false, /[a-z]/ );
 };
 
+const dropDatabase = async () => {
+    const { models } = require( '../database' );
+    for( const model in models ) {
+        await models[ model ].deleteMany();
+    }
+};
+
 module.exports = {
     objectTypeParser,
     appendObjectParser,
@@ -69,5 +76,6 @@ module.exports = {
     AppModel,
     ObjectTypeModel,
     PostModel,
-    UserModel
+    UserModel,
+    dropDatabase
 };

@@ -1,11 +1,11 @@
-const { expect, UserModel, User, getRandomString, Mongoose, faker, UserWobjects } = require( '../../testHelper' );
+const { expect, UserModel, User, getRandomString, dropDatabase, faker, UserWobjects } = require( '../../testHelper' );
 const { UserFactory, ObjectFactory, userWobjectFactory } = require( '../../factories' );
 
 describe( 'User Model', async () => {
     describe( 'On increaseWobjectWeight', async () => {
         let data, userBeforeIncrease, weightIncrease, name, userAfterIncrease, result;
         beforeEach( async() => {
-            await Mongoose.connection.dropDatabase();
+            await dropDatabase();
             name = getRandomString();
             await UserFactory.Create( { name: name, wobjects_weight: 300 } );
             data = {
@@ -16,7 +16,7 @@ describe( 'User Model', async () => {
             };
             userBeforeIncrease = await User.findOne( { name: name } );
         } );
-        it( 'should return true', async () => {
+        it( 'should return true with valid params', async () => {
             weightIncrease = await UserModel.increaseWobjectWeight( data );
             expect( weightIncrease.result ).is.true;
         } );
@@ -61,43 +61,43 @@ describe( 'User Model', async () => {
             await userWobjectFactory.Create( { user_name: data.name, author_permlink: data.author_permlink, weight: weight } );
         } );
 
-        it( 'should success eq weight', async () => {
+        it( 'should return correct weight', async () => {
             result = await UserModel.checkForObjectShares( data );
             expect( result.weight ).to.eq( weight );
         } );
-        it( 'should success not found user wobject', async () => {
+        it( 'should return error with incorrect input data', async () => {
             result = await UserModel.checkForObjectShares( { name: faker.name.firstName(), author_permlink: getRandomString() } );
             expect( result.error ).is.exist;
         } );
-        it( 'should success return error without data', async () => {
+        it( 'should return error without input data', async () => {
             result = await UserModel.checkForObjectShares( );
             expect( result.error ).is.exist;
         } );
 
     } );
     describe( 'On addUserFollow', async () => {
-        let follower, following, result;
+        let follower, following, upd_follower;
         before( async() => {
             follower = await UserFactory.Create( );
             following = await UserFactory.Create( );
             await UserModel.addUserFollow( { follower: follower.user.name, following: following.user.name } );
-            result = await User.findOne( { name: follower.user.name } );
+            upd_follower = await User.findOne( { name: follower.user.name } );
         } );
         it( 'should users_follow contains following name', async () => {
-            expect( result._doc.users_follow ).to.contain( following.user.name );
+            expect( upd_follower._doc.users_follow ).to.contain( following.user.name );
         } );
-        it( 'should users_follow length bigger then 0', async () => {
-            expect( result._doc.users_follow.length > 0 ).is.true;
+        it( 'should check users_follow contains only one and correct user', async () => {
+            expect( upd_follower.users_follow ).to.deep.eq( [ following.user.name ] );
         } );
         it( 'should return error with incorrect data', async () => {
-            result = await UserModel.addObjectFollow( { follower: { user: getRandomString() }, following: following } );
-            expect( result.error ).is.exist;
+            upd_follower = await UserModel.addUserFollow( { follower: { user: getRandomString() }, following: following } );
+            expect( upd_follower.error ).is.exist;
         } );
     } );
     describe( 'On removeUserFollow', async () => {
-        let follower, following, result;
+        let follower, following;
         beforeEach( async () => {
-            await Mongoose.connection.dropDatabase();
+            await dropDatabase();
             following = [ faker.name.firstName() ];
             follower = await UserFactory.Create( { users_follow: following } );
         } );
@@ -106,39 +106,42 @@ describe( 'User Model', async () => {
         } );
         it( 'should user_follow removed successfully', async () => {
             await UserModel.removeUserFollow( { follower: follower.user.name, following: following[ 0 ] } );
-            result = await User.findOne( { name: follower.user.name } );
+            const result = await User.findOne( { name: follower.user.name } );
             expect( result._doc.users_follow ).to.not.contain( following[ 0 ] );
         } );
         it( 'should user_follow is empty', async () => {
             await UserModel.removeUserFollow( { follower: follower.user.name, following: following[ 0 ] } );
-            result = await User.findOne( { name: follower.user.name } );
+            const result = await User.findOne( { name: follower.user.name } );
             expect( result._doc.users_follow ).is.empty;
         } );
         it( 'should get error with incorrect following', async () => {
-            result = await UserModel.removeUserFollow( { follower: follower.user.name, following: following } );
+            const result = await UserModel.removeUserFollow( { follower: follower.user.name, following: following } );
             expect( result.error ).is.exist;
         } );
         it( 'should get error with incorrect data', async () => {
-            result = await UserModel.removeUserFollow( { follower: { user: getRandomString() }, following: following } );
+            const result = await UserModel.removeUserFollow( { follower: { user: getRandomString() }, following: following } );
             expect( result.error ).is.exist;
         } );
     } );
     describe( 'On addObjectFollow', async () => {
-        let fakeObject, result, follower;
+        let mockObject, result, mockUser;
         before( async () => {
-            follower = await UserFactory.Create();
-            fakeObject = await ObjectFactory.Create();
+            mockUser = await UserFactory.Create();
+            mockObject = await ObjectFactory.Create();
             await UserModel.addObjectFollow( {
-                user: follower.user.name,
-                author_permlink: fakeObject.author_permlink
+                user: mockUser.user.name,
+                author_permlink: mockObject.author_permlink
             } );
-            result = await User.findOne( { name: follower.user.name } );
+            result = await User.findOne( { name: mockUser.user.name } );
         } );
         it( 'should follower object_follow is not empty', async () => {
             expect( result._doc.objects_follow ).not.empty;
         } );
-        it( 'should object_follow contains fakeObject', async () => {
-            expect( result._doc.objects_follow ).to.contain( fakeObject.author_permlink );
+        it( 'object_follow list contains mockObject', async () => {
+            expect( result._doc.objects_follow ).to.contain( mockObject.author_permlink );
+        } );
+        it( 'should check that array objects_follow contains only one wobject', async () => {
+            expect( result.objects_follow ).to.deep.eq( [ mockObject.author_permlink ] );
         } );
         it( 'should get error with incorrect data', async () => {
             result = await UserModel.addObjectFollow( { some: { test: { data: getRandomString() } } } );
@@ -150,49 +153,46 @@ describe( 'User Model', async () => {
         } );
     } );
     describe( 'On removeObjectFollow ', async () => {
-        let data, fakeObject, result, follower;
-        before( async () => {
-            follower = await UserFactory.Create();
-            fakeObject = await ObjectFactory.Create();
-            data = {
-                user: follower.user.name,
-                author_permlink: fakeObject.author_permlink
-            };
-            await UserModel.addObjectFollow( data );
+        let mockObject, result, follower;
+        beforeEach( async () => {
+            mockObject = [ getRandomString() ];
+            follower = await UserFactory.Create( { objects_follow: mockObject } );
         } );
         it( 'should object_follow contains fakeObject', async () => {
             result = await User.findOne( { name: follower.user.name } );
             expect( result._doc.objects_follow ).not.empty;
         } );
         it( 'should remove objects_follow successfully', async () => {
-            await UserModel.removeObjectFollow( data );
+            await UserModel.removeObjectFollow( { user: follower.user.name, author_permlink: mockObject[ 0 ] } );
             result = await User.findOne( { name: follower.user.name } );
-            expect( result._doc.objects_follow ).to.not.contain( fakeObject.author_permlink );
+            expect( result._doc.objects_follow ).to.not.contain( mockObject[ 0 ] );
         } );
-        it( 'should return empty objects_follow array', async () => {
-            await UserModel.removeObjectFollow( data );
-            result = await User.findOne( { name: follower.user.name } );
-            expect( result._doc.objects_follow ).is.empty;
-        } );
-        it( 'should get error with incorrect data', async () => {
+        it( 'should get error without data', async () => {
             result = await UserModel.removeObjectFollow();
             expect( result.error ).is.exist;
         } );
+        it( 'should delete only one wobject from objects_follow', async () => {
+            mockObject = [ getRandomString(), getRandomString() ];
+            follower = await UserFactory.Create( { objects_follow: mockObject } );
+            await UserModel.removeObjectFollow( { user: follower.user.name, author_permlink: mockObject[ 0 ] } );
+            result = await User.findOne( { name: follower.user.name } );
+            expect( result.objects_follow ).not.empty;
+            expect( result.objects_follow ).not.contains( mockObject[ 0 ] );
+        } );
     } );
     describe( 'On create', async () => {
-        let createdUserModel, user, data;
+        let user, data;
         before( async () => {
             data = {
                 name: getRandomString()
             };
-            createdUserModel = await UserModel.create( data );
-            user = createdUserModel.user;
+            user = await UserModel.create( data );
         } );
         it( 'should created user is exist', async () => {
-            expect( user ).is.exist;
+            expect( user.user ).is.exist;
         } );
         it( 'should user name and data name are same', async () => {
-            expect( data.name ).to.eq( user.name );
+            expect( data.name ).to.eq( user.user.name );
         } );
         it( 'should get error with incorrect data', async () => {
             let result = await UserModel.create( { name: { some: getRandomString() } }, { alias: { some: getRandomString() } } );
@@ -204,10 +204,10 @@ describe( 'User Model', async () => {
         } );
     } );
     describe( 'On update', async () => {
-        let user1, user2, updateData, condition, updatedUser, updatedUser2, result;
+        let firstUser, secondUser, updateData, condition, updatedUser, updatedUser2, result;
         before( async () => {
-            user2 = await UserFactory.Create();
-            user1 = await UserFactory.Create();
+            secondUser = await UserFactory.Create();
+            firstUser = await UserFactory.Create();
 
             condition = {
                 count_posts: 0
@@ -218,17 +218,17 @@ describe( 'User Model', async () => {
                 }
             };
             result = await UserModel.update( condition, updateData );
-            updatedUser = await User.findOne( { name: user1.user.name } );
-            updatedUser2 = await User.findOne( { name: user2.user.name } );
+            updatedUser = await User.findOne( { name: firstUser.user.name } );
+            updatedUser2 = await User.findOne( { name: secondUser.user.name } );
         } );
         it( 'should result ok is 1', async () => {
             expect( result.result.ok ).to.eq( 1 );
         } );
         it( 'should update user successfully', async () => {
-            expect( user1.user.wobjects_weight ).to.not.eq( updatedUser._doc.wobjects_weight );
+            expect( firstUser.user.wobjects_weight ).to.not.eq( updatedUser._doc.wobjects_weight );
         } );
         it( 'should update second user successfully', async () => {
-            expect( user2.user.wobjects_weight ).to.not.eq( updatedUser2._doc.wobjects_weight );
+            expect( secondUser.user.wobjects_weight ).to.not.eq( updatedUser2._doc.wobjects_weight );
         } );
         it( 'should get error with incorrect data', async () => {
             let res = await UserModel.update( 55, { get: { data: getRandomString() } } );
