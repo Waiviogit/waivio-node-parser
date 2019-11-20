@@ -20,7 +20,6 @@ describe( 'Append Object Validator', async () => {
         validatePostLinksSpy.restore();
 
     } );
-
     it( 'should not throw error if all fields is exist', () => {
         const tempMockAppendData = {
             field: {

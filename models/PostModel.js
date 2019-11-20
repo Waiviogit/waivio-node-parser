@@ -2,7 +2,7 @@ const PostModel = require( '../database' ).models.Post;
 const User = require( './UserModel' );
 
 const create = async function ( data ) {
-    User.checkAndCreate( { name: data.author } ); // create user in DB if it doesn't exist
+    await User.checkAndCreate( data.author ); // create user in DB if it doesn't exist
 
     const newPost = new PostModel( data );
 
@@ -25,6 +25,7 @@ const findOne = async function ( data ) {
         return { error };
     }
 };
+
 
 const update = async function ( data ) {
     try {
