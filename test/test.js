@@ -1,7 +1,7 @@
-const { Mongoose, redis } = require( './testHelper' );
+const { dropDatabase, redis } = require( './testHelper' );
 
 before( async () => {
     process.env.NODE_ENV = 'test';
-    await Mongoose.connection.dropDatabase();
+    await dropDatabase();
     await redis.postRefsClient.flushdbAsync();
 } );

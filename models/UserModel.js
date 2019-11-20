@@ -1,5 +1,6 @@
 const UserModel = require( '../database' ).models.User;
 const UserWobjectsModel = require( '../database' ).models.UserWobjects;
+const _ = require( 'lodash' );
 
 const create = async function ( data ) {
     const newUser = new UserModel( data );
@@ -12,77 +13,102 @@ const create = async function ( data ) {
 };
 
 const addObjectFollow = async function ( data ) { // create user(if it doesn't exist) and update info
-    const res = await UserModel.findOneAndUpdate(
-        {
-            name: data.user // condition
-        }, {
-            $addToSet: {
-                objects_follow: data.author_permlink // update
-            }
-        }, {
-            upsert: true,
-            new: true, // options
-            setDefaultsOnInsert: true
-        } );
-
-    if ( !res ) {
-        return { result: false };
+    const check = await checkAndCreate( data.user );
+    if ( check.error ) {
+        return { error: check.error };
     }
-    return { result: true };
+    try{
+        const res = await UserModel.findOneAndUpdate(
+            {
+                name: data.user // condition
+            }, {
+                $addToSet: {
+                    objects_follow: data.author_permlink // update
+                }
+            }, {
+                upsert: true,
+                new: true, // options
+                setDefaultsOnInsert: true
+            } );
+
+        if ( !res ) {
+            return { result: false };
+        }
+        return { result: true };
+    } catch ( error ) {
+        return { error };
+    }
 };
 
 const removeObjectFollow = async function ( data ) { // create user(if it doesn't exist) and update info
-    const res = await UserModel.findOneAndUpdate(
-        {
-            name: data.user // conditions
-        }, {
-            // name: data.user,
-            $pull: {
-                objects_follow: data.author_permlink // update data
-            }
-        }, {
-            upsert: true,
-            new: true, // options
-            setDefaultsOnInsert: true
-        } );
-
-    if ( !res ) {
-        return { result: false };
+    try {
+        const res = await UserModel.findOneAndUpdate(
+            {
+                name: data.user // conditions
+            }, {
+                $pull: {
+                    objects_follow: data.author_permlink // update data
+                }
+            }, {
+                upsert: true,
+                new: true, // options
+                setDefaultsOnInsert: true
+            } );
+        if ( !res ) {
+            return { result: false };
+        }
+        return { result: true };
+    } catch ( error ) {
+        return { error };
     }
-    return { result: true };
 };
 
 const addUserFollow = async function ( { follower, following } ) {
-    const res = await UserModel.findOneAndUpdate(
-        {
-            name: follower // condition
-        }, {
-            $addToSet: {
-                users_follow: following// update
-            }
-        } );
-
-    if ( !res ) {
-        return { result: false };
+    if ( !_.isString( follower ) || !_.isString( following ) ) {
+        return { error: 'follower and following must be a string!' };
     }
-    return { result: true };
+    try{
+        const res = await UserModel.findOneAndUpdate(
+            {
+                name: follower // condition
+            }, {
+                $addToSet: {
+                    users_follow: following// update
+                }
+            } );
+
+        if ( !res ) {
+            return { result: false };
+        }
+        return { result: true };
+    } catch ( error ) {
+        return { error };
+    }
 };
 
 const removeUserFollow = async function ( { follower, following } ) {
-    const res = await UserModel.findOneAndUpdate(
-        {
-            name: follower // conditions
-        }, {
-            // name: data.user,
-            $pull: {
-                users_follow: following // update data
-            }
-        } );
-
-    if ( !res ) {
-        return { result: false };
+    if ( !_.isString( follower ) || !_.isString( following ) ) {
+        return { error: 'follower and following must be a string!' };
     }
-    return { result: true };
+    try{
+        const res = await UserModel.findOneAndUpdate(
+            {
+                name: follower // conditions
+            }, {
+                // name: data.user,
+                $pull: {
+                    users_follow: following // update data
+                }
+            } );
+
+        if ( !res ) {
+            return { result: false };
+        }
+        return { result: true };
+    } catch ( error ) {
+        return { error };
+    }
+
 };
 
 /**
@@ -90,13 +116,16 @@ const removeUserFollow = async function ( { follower, following } ) {
  * @param data Include user "name"
  * @returns {Promise<{user: *}|{error: *}>}
  */
-const checkAndCreate = async function ( data ) { // check for existing user and create if not exist
+const checkAndCreate = async function ( name ) { // check for existing user and create if not exist
+    if ( !_.isString( name ) ) {
+        return { error: 'Name must be a string!' };
+    }
     try {
-        let user = await UserModel.findOne( { name: data.name } ).lean();
+        let user = await UserModel.findOne( { name: name } ).lean();
         if( user ) return { user };
 
-        user = await UserModel.create( { name: data.name } );
-        console.log( `User ${data.name} created!` );
+        user = await UserModel.create( { name: name } );
+        console.log( `User ${name} created!` );
         return { user };
 
     } catch ( error ) {
@@ -107,7 +136,7 @@ const checkAndCreate = async function ( data ) { // check for existing user and 
 const increaseWobjectWeight = async function ( data ) {
     try {
         await checkAndCreate( { name: data.name } ); // check for existing user in DB
-        await UserWobjectsModel.findOneAndUpdate( // add weight in wobject to user, or create if it not exist
+        await UserWobjectsModel.updateOne( // add weight in wobject to user, or create if it not exist
             {
                 user_name: data.name,
                 author_permlink: data.author_permlink
@@ -130,7 +159,7 @@ const increaseWobjectWeight = async function ( data ) {
 
 const increaseUserWobjectsWeight = async function ( data ) {
     try {
-        await UserModel.findOneAndUpdate( {
+        await UserModel.updateOne( {
             name: data.name
         }, {
             $inc: {
@@ -166,7 +195,7 @@ const checkForObjectShares = async function ( data ) { // object shares - user w
 
 const update = async function ( condition, updateData ) {
     try{
-        return { result: await UserModel.update( condition, updateData ) };
+        return { result: await UserModel.updateMany( condition, updateData ) };
     } catch ( error ) {
         return { error };
     }
@@ -182,11 +211,11 @@ const updateOne = async function ( condition, updateData ) {
 
 const increaseCountPosts = async ( author ) => {
     try{
-        await UserModel.updateOne(
+        const result = await UserModel.updateOne(
             { name: author },
             { $inc: { count_posts: 1, last_posts_count: 1 } }
         );
-        return { result: true };
+        return { result: result.nModified === 1 };
     } catch( error ) {
         return { error };
     }
