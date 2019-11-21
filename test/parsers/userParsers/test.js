@@ -1,6 +1,7 @@
 const { userParsers, User, expect, sinon, Post, getRandomString, faker } = require( '../../testHelper' );
 const { UserFactory, PostFactory } = require( '../../factories' );
 const { User: UserModel } = require( '../../../models' );
+const _ = require( 'lodash' );
 
 describe( 'UserParsers', async () => {
     describe( 'on updateAccountParse', async () => {
@@ -107,7 +108,10 @@ describe( 'UserParsers', async () => {
                 addUserFollowStub = sinon.stub( UserModel, 'addUserFollow' ).returns( {} );
                 removeUserFollowStub = sinon.stub( UserModel, 'removeUserFollow' ).returns( {} );
                 mockJson = [ 'reblog', { account: faker.name.firstName(), author: faker.name.firstName(), permlink: getRandomString( 15 ) } ];
-                await userParsers.followUserParser( { json: JSON.stringify( mockJson ) } );
+                await userParsers.followUserParser( {
+                    json: JSON.stringify( mockJson ),
+                    required_posting_auths: [ mockJson[ 1 ].account ]
+                } );
             } );
             after( () => {
                 reblogParserStub.restore();
@@ -120,7 +124,7 @@ describe( 'UserParsers', async () => {
             } );
 
             it( 'should call "reblogPostParser" with correct params', () => {
-                expect( reblogParserStub ).to.be.calledWith( mockJson );
+                expect( reblogParserStub ).to.be.calledWith( { json: mockJson, account: mockJson[ 1 ].account } );
             } );
 
             it( 'should not call addUserFollow on user model', () => {
@@ -135,26 +139,41 @@ describe( 'UserParsers', async () => {
 
     describe( 'on reblogPostParser', async () => {
         describe( 'on valid json', async () => {
-            let post, user, reblog_post;
+            let post, user, reblog_post, upd_source_post, mockInput;
             beforeEach( async () => {
-                post = await PostFactory.Create();
+                post = await PostFactory.Create( {
+                    additionsForPost: {
+                        wobjects: [
+                            { author_permlink: getRandomString( 10 ), percent: 50 },
+                            { author_permlink: getRandomString( 10 ), percent: 50 }
+                        ],
+                        language: 'ru-RU'
+                    }
+                } );
                 const { user: userMock } = await UserFactory.Create();
                 user = userMock;
-                await userParsers.reblogPostParser( [
-                    'reblog',
-                    { account: user.name, author: post.author, permlink: post.permlink }
-                ] );
-                reblog_post = await Post.findOne( { author: post.author, permlink: post.permlink, reblog_by: user.name } );
+                mockInput = {
+                    json: [ 'reblog', { account: user.name, author: post.author, permlink: post.permlink } ],
+                    account: user.name
+                };
+                await userParsers.reblogPostParser( mockInput );
+                upd_source_post = await Post.findOne( { author: post.author, permlink: post.permlink } ).lean();
+                reblog_post = await Post.findOne( { author: user.name, permlink: `${post.author}/${post.permlink}` } ).lean();
             } );
-            it( 'should create new post with field reblog_by not null', () => {
-                expect( reblog_post.reblog_by ).to.not.null;
+            it( 'should create new post with field reblog_to not null', () => {
+                expect( reblog_post.reblog_to ).to.not.null;
             } );
-            it( 'should create new post with correct field reblog_by', () => {
-                expect( reblog_post.reblog_by ).to.be.eq( user.name );
+            it( 'should create new post with correct field reblog_to', () => {
+                expect( reblog_post.reblog_to ).to.deep.eq( _.pick( post, [ 'author', 'permlink' ] ) );
             } );
             it( 'should not edit source post', async () => {
-                const sourcePost = await Post.findOne( { _id: post._id } );
-                expect( post ).to.deep.eq( sourcePost._doc );
+                expect( post ).to.deep.eq( upd_source_post );
+            } );
+            it( 'should duplicate all source post wobjects', () => {
+                expect( reblog_post.wobjects ).to.deep.eq( post.wobjects );
+            } );
+            it( 'should duplicate source post language', () => {
+                expect( reblog_post.language ).to.eq( post.language );
             } );
         } );
     } );

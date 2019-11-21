@@ -3,17 +3,17 @@ const Schema = mongoose.Schema;
 
 const PostSchema = new Schema( {
     id: { type: Number, required: true },
-    author: { type: String },
+    author: { type: String, required: true },
     author_reputation: { type: Number, default: 0 }, // rate author in steem
     author_weight: { type: Number, default: 0 }, // rate author in waivio
-    permlink: { type: String },
+    permlink: { type: String, required: true },
     parent_author: { type: String, default: '' },
-    parent_permlink: { type: String, required: true },
-    title: { type: String, required: true, default: '' },
-    body: { type: String, required: true, default: '' },
-    json_metadata: { type: String, required: true, default: '' },
+    parent_permlink: { type: String, default: '' },
+    title: { type: String, default: '' },
+    body: { type: String, default: '' },
+    json_metadata: { type: String, default: '' },
     app: { type: String },
-    depth: { type: Number, default: 0 },
+    depth: { type: Number },
     category: { type: String },
     last_update: { type: String },
     created: { type: String },
@@ -23,21 +23,21 @@ const PostSchema = new Schema( {
     net_rshares: { type: Number, default: 0 },
     abs_rshares: { type: Number, default: 0 },
     vote_rshares: { type: Number, default: 0 },
-    children_abs_rshares: { type: Number, default: 0 },
+    children_abs_rshares: { type: Number },
     cashout_time: { type: String },
-    reward_weight: { type: String, default: 10000 },
-    total_payout_value: { type: String, default: '0.000 SBD' },
-    curator_payout_value: { type: String, default: '0.000 SBD' },
-    author_rewards: { type: Number, default: 0 },
-    net_votes: { type: Number, default: 0 },
+    reward_weight: { type: String },
+    total_payout_value: { type: String },
+    curator_payout_value: { type: String },
+    author_rewards: { type: Number },
+    net_votes: { type: Number },
     root_author: { type: String },
     root_permlink: { type: String },
     root_title: { type: String },
     max_accepted_payout: { type: String },
-    percent_steem_dollars: { type: Number, default: 0 },
-    allow_replies: { type: Boolean, default: true },
-    allow_votes: { type: Boolean, default: true },
-    allow_curation_rewards: { type: Boolean, default: true },
+    percent_steem_dollars: { type: Number },
+    allow_replies: { type: Boolean },
+    allow_votes: { type: Boolean },
+    allow_curation_rewards: { type: Boolean },
     beneficiaries: [ {
         account: { type: String },
         weight: { type: Number }
@@ -45,13 +45,13 @@ const PostSchema = new Schema( {
     url: { type: String },
     pending_payout_value: { type: String },
     total_pending_payout_value: { type: String },
-    total_vote_weight: { type: Number, default: 0 },
-    promoted: { type: String, default: '0.000 STEEM' },
-    body_length: { type: Number, default: 0 },
+    total_vote_weight: { type: Number },
+    promoted: { type: String },
+    body_length: { type: Number },
     active_votes: {
         type: [ {
-            voter: { type: String, required: true },
-            weight: { type: Number, required: true },
+            voter: { type: String },
+            weight: { type: Number },
             percent: { type: Number }
         } ],
         default: []
@@ -62,10 +62,10 @@ const PostSchema = new Schema( {
         tagged: { type: String }
     } ],
     language: { type: String, default: 'en-US' },
-    reblog_by: { type: String, default: null }
+    reblog_to: { type: { author: String, permlink: String } }
 }, { strict: false, timestamps: true } );
 
-PostSchema.index( { author: 1, permlink: 1, reblog_by: 1 }, { unique: true } );
+PostSchema.index( { author: 1, permlink: 1 }, { unique: true } );
 
 const PostModel = mongoose.model( 'Post', PostSchema );
 
