@@ -15,11 +15,7 @@ const create = async function ( data ) {
 
 const findOne = async function ( data ) {
     try {
-        const post = await PostModel.findOne( {
-            author: data.author,
-            permlink: data.permlink
-        } ).lean();
-
+        const post = await PostModel.findOne( { author: data.author, permlink: data.permlink } ).lean();
         return { post };
     } catch ( error ) {
         return { error };

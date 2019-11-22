@@ -1,7 +1,6 @@
 const { postsUtil } = require( '../utilities/steemApi' );
 const { User } = require( '../models' );
 const { voteFieldHelper, votePostHelper } = require( '../utilities/helpers' );
-// const redisGetter = require( '../utilities/redis/redisGetter' );
 const { commentRefGetter } = require( '../utilities/commentRefService' );
 const _ = require( 'lodash' );
 

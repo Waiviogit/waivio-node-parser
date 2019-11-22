@@ -70,7 +70,7 @@ describe( 'PostModel', async () => {
         } );
         it( 'should get error without params', async () => {
             const result = await PostModel.findOne();
-            expect( result.error.message ).to.deep.eq( 'Cannot read property \'author\' of undefined' );
+            expect( result.error ).to.exist;
         } );
     } );
     describe( ' On update', async () => {

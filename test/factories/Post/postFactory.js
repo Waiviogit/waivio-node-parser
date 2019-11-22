@@ -31,7 +31,7 @@ const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_aut
     }
     const new_post = await Post.create( post );
 
-    return new_post._doc;
+    return new_post.toObject();
 };
 
 module.exports = { Create };
