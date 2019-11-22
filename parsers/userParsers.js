@@ -75,6 +75,6 @@ exports.reblogPostParser = async ( { json, account } ) => {
 
         if ( createPostError ) return { error: createPostError };
         if ( createdPost )
-            console.log( `User ${json[ 1 ].account} reblog post @${json[ 1 ].author}/${json[ 1 ].permlink}!` );
+            console.log( `User ${account} reblog post @${json[ 1 ].author}/${json[ 1 ].permlink}!` );
     }
 };
