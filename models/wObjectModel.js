@@ -14,8 +14,8 @@ const create = async function ( data ) {
 
 const update = async function ( conditions, updateData ) {
     try {
-        const result = await WObjectModel.findOneAndUpdate( conditions, updateData );
-        return { result };
+        const result = await WObjectModel.updateOne( conditions, updateData );
+        return { result: result.nModified === 1 };
     } catch ( error ) {
         return { error };
     }
@@ -23,14 +23,14 @@ const update = async function ( conditions, updateData ) {
 
 const addField = async function ( data ) {
     try {
-        await WObjectModel.updateOne( { author_permlink: data.author_permlink },
+        let result = await WObjectModel.updateOne( { author_permlink: data.author_permlink },
             {
                 $push:
                     {
                         fields: data.field
                     }
             } );
-        return { result: true };
+        return { result: result.nModified === 1 };
     } catch ( error ) {
         return { error };
     }
@@ -38,7 +38,7 @@ const addField = async function ( data ) {
 
 const increaseFieldWeight = async function ( data ) { // data include: author, permlink, author_permlink, weight
     try {
-        await WObjectModel.updateOne( {
+        let result = await WObjectModel.updateOne( {
             author_permlink: data.author_permlink,
             'fields.author': data.author,
             'fields.permlink': data.permlink
@@ -47,7 +47,7 @@ const increaseFieldWeight = async function ( data ) { // data include: author, p
                 'fields.$.weight': data.weight
             }
         } );
-        return { result: true };
+        return { result: result.nModified === 1 };
     } catch ( error ) {
         return { error };
     }
@@ -55,17 +55,17 @@ const increaseFieldWeight = async function ( data ) { // data include: author, p
 
 const increaseWobjectWeight = async function ( data ) {
     try {
-        const wobj = await WObjectModel.findOneAndUpdate(
-            { author_permlink: data.author_permlink },
-            { $inc: { weight: data.weight } },
-            { new: true } );
+        const wobj = await WObjectModel.findOne( { author_permlink: data.author_permlink } );
 
-        if( wobj && wobj.object_type )
+        if( wobj ) {
+            await WObjectModel.updateOne( { author_permlink: data.author_permlink },
+                { $inc: { weight: data.weight } } );
             await ObjectTypes.updateOne(
                 { name: wobj.object_type },
                 { $inc: { weight: data.weight } } );
-
-        return { result: true };
+            return { result: true };
+        }
+        return { result: false };
     } catch ( error ) {
         return { error };
     }
@@ -73,7 +73,7 @@ const increaseWobjectWeight = async function ( data ) {
 
 const removeVote = async ( data ) => { // data include: author, permlink, author_permlink, voter
     try {
-        await WObjectModel.updateOne( {
+        let result = await WObjectModel.updateOne( {
             author_permlink: data.author_permlink,
             'fields.author': data.author,
             'fields.permlink': data.permlink
@@ -82,6 +82,7 @@ const removeVote = async ( data ) => { // data include: author, permlink, author
                 'fields.$.active_votes': { voter: data.voter }
             }
         } );
+        return { result: result.nModified === 1 };
     } catch ( error ) {
         return { error };
     }
@@ -89,13 +90,14 @@ const removeVote = async ( data ) => { // data include: author, permlink, author
 
 const addVote = async ( data ) => { // data include: author, permlink, author_permlink, voter, weight
     try {
-        await WObjectModel.updateOne( {
+        let result = await WObjectModel.updateOne( {
             author_permlink: data.author_permlink,
             'fields.author': data.author,
             'fields.permlink': data.permlink
         },
         { $push: { 'fields.$.active_votes': { ...data.vote } } }
         );
+        return { result: result.nModified === 1 };
     } catch ( error ) {
         return { error };
     }
@@ -164,10 +166,11 @@ const getField = async ( author, permlink, author_permlink ) => {
 
 const updateField = async ( author, permlink, author_permlink, key, value ) => {
     try {
-        await WObjectModel.update(
+        let result = await WObjectModel.updateOne(
             { author_permlink, 'fields.author': author, 'fields.permlink': permlink },
             { $set: { [ `fields.$.${key}` ]: value } }
         );
+        return { result: result.nModified === 1 };
     } catch ( e ) {
         return { error: e };
     }
@@ -188,7 +191,7 @@ const getOne = async ( { author_permlink } ) => {
 
 const pushNewPost = async ( { author_permlink, post_id } ) => {
     try {
-        const result = await WObjectModel.update( { author_permlink }, {
+        const result = await WObjectModel.updateOne( { author_permlink }, {
             $push: {
                 latest_posts: {
                     $each: [ post_id ],
@@ -198,7 +201,7 @@ const pushNewPost = async ( { author_permlink, post_id } ) => {
             },
             $inc: { count_posts: 1, last_posts_count: 1 }
         } );
-        return { result };
+        return { result: result.nModified === 1 };
     } catch ( e ) {
         return { error: e };
     }

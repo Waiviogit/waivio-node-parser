@@ -1,12 +1,22 @@
 const { faker, getRandomString, App } = require( '../../testHelper' );
 
-const Create = async ( { blacklists, name, admin, moderators, topUsers } ) => {
+const Create = async ( { blacklists, name, admin, moderators, topUsers } = {} ) => {
     const data = {
         name: name || getRandomString( 10 ),
         admin: admin || faker.name.firstName().toLowerCase(),
         moderators: moderators || [],
         topUsers: topUsers || [],
-        blacklists: blacklists || { users: [], wobjects: [], posts: [], apps: [] }
+        blacklists: blacklists || { users: [], wobjects: [], posts: [], apps: [] },
+        daily_chosen_post: {
+            author: faker.name.firstName().toLowerCase(),
+            permlink: getRandomString(),
+            title: getRandomString( 20 )
+        },
+        weekly_chosen_post: {
+            author: faker.name.firstName().toLowerCase(),
+            permlink: getRandomString(),
+            title: getRandomString( 20 )
+        }
     };
 
     return App.create( data );

@@ -4,14 +4,14 @@ const Schema = mongoose.Schema;
 const WObjectSchema = new Schema( {
     app: String,
     community: String,
-    object_type: String,
+    object_type: { type: String, required: true },
     default_name: { type: String, required: true },
     is_posting_open: { type: Boolean, default: true },
     is_extending_open: { type: Boolean, default: true },
     creator: { type: String, required: true },
     author: { type: String, required: true },
     author_permlink: { type: String, index: true, unique: true, required: true }, // unique identity for wobject, link to create object POST
-    weight: { type: Number, index: true, default: 1 }, // value in STEEM(or WVIO) as a summ of rewards, index for quick sort
+    weight: { type: Number, index: true, default: 0 }, // value in STEEM(or WVIO) as a summ of rewards, index for quick sort
     count_posts: { type: Number, default: 0 },
     parent: { type: String, default: '' },
     children: { type: [ String ], default: [] },

@@ -34,7 +34,7 @@ const UserMetadataSchema = new Schema( {
     }
 } );
 const UserSchema = new Schema( {
-    name: { type: String, index: true, unique: true },
+    name: { type: String, index: true, unique: true, required: true },
     alias: { type: String },
     objects_follow: { type: [ String ], default: [] }, // arr of author_permlink of objects what user following
     users_follow: { type: [ String ], default: [] }, // arr of users which user follow

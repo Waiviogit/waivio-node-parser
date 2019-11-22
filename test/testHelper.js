@@ -14,7 +14,7 @@ const { specifiedFieldsValidator, appendObjectValidator } = require( '../validat
 const { postsUtil } = require( '../utilities/steemApi' );
 const { importTags } = require( '../utilities/objectImportServiceApi' );
 const { ObjectType, WObject, Post, User, UserWobjects, App } = require( '../database' ).models;
-const { Wobj: WobjModel, App: AppModel } = require( '../models' );
+const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel } = require( '../models' );
 const sinon = require( 'sinon' );
 const chai = require( 'chai' );
 const sinonChai = require( 'sinon-chai' );
@@ -26,6 +26,13 @@ const faker = require( 'faker' );
 
 const getRandomString = ( length = 5 ) => {
     return faker.internet.password( length, false, /[a-z]/ );
+};
+
+const dropDatabase = async () => {
+    const { models } = require( '../database' );
+    for( const model in models ) {
+        await models[ model ].deleteMany();
+    }
 };
 
 module.exports = {
@@ -60,11 +67,15 @@ module.exports = {
     specifiedFieldsValidator,
     appendObjectValidator,
     WobjModel,
-    AppModel,
     App,
     appHelper,
     importTags,
     postByTagsHelper,
     ratingHelper,
-    detectPostLanguageHelper
+    detectPostLanguageHelper,
+    AppModel,
+    ObjectTypeModel,
+    PostModel,
+    UserModel,
+    dropDatabase
 };
