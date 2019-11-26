@@ -1,12 +1,16 @@
-const { redisSetter, ObjectType, faker, getRandomString } = require( '../../testHelper' );
+const { ObjectType, faker, getRandomString, commentRefSetter } = require( '../../testHelper' );
 
-const Create = async ( { name } = {} ) => {
-    name = name || getRandomString( 10 );
-    const author = faker.name.firstName().toLowerCase();
-    const permlink = getRandomString( 15 );
-    const objectType = await ObjectType.create( { name, author, permlink } );
+const Create = async ( { name, author, permlink, updates_blacklist } = {} ) => {
+    const data = {
+        name: name || faker.name.firstName().toLowerCase(),
+        author: author || faker.name.firstName().toLowerCase(),
+        permlink: permlink || getRandomString(),
+        updates_blacklist: updates_blacklist || []
+    };
 
-    await redisSetter.addObjectType( `${author}_${ permlink}`, name );
+    const objectType = await ObjectType.create( data );
+
+    await commentRefSetter.addWobjTypeRef( `${data.author}_${ data.permlink}`, data.name );
     return objectType;
 };
 

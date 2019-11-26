@@ -1,150 +1,130 @@
-const { expect, sinon } = require( '../../testHelper' );
+const { expect, faker, getRandomString, ObjectType, WObject } = require( '../../testHelper' );
 const { appendObjectValidator } = require( '../../../validator' );
 const { ObjectFactory, AppendObject } = require( '../../factories' );
 
-describe( 'Append Object Validator', async () => {
-    let mockData, mockOperation; // validator takes 2 params, 1-st is "data", 2-nd is "operation"
-    let validateFieldsSpy;
-    let validatePostLinksSpy;
-    let validateFieldsError;
-
-    let validatePostLinksError;
+describe( 'appendObjectValidator', async () => {
+    let wobject, mockData, mockOp;
 
     beforeEach( async () => {
-        validateFieldsSpy = sinon.spy( appendObjectValidator, 'validateFields' );
-        validatePostLinksSpy = sinon.spy( appendObjectValidator, 'validatePostLinks' );
-
-    } );
-    afterEach( async () => {
-        validateFieldsSpy.restore();
-        validatePostLinksSpy.restore();
-
-    } );
-    it( 'should not throw error if all fields is exist', () => {
-        const tempMockAppendData = {
+        wobject = await ObjectFactory.Create();
+        mockData = {
+            author_permlink: wobject.author_permlink,
             field: {
-                name: 'name',
-                body: 'body',
-                locale: 'locale',
-                author: 'user',
-                permlink: 'permlink',
-                creator: 'user2'
+                name: getRandomString(),
+                body: getRandomString(),
+                locale: 'en-US',
+                creator: faker.name.firstName().toLowerCase(),
+                author: faker.name.firstName().toLowerCase(),
+                permlink: getRandomString( 15 )
             }
         };
-
-        mockData = tempMockAppendData;
-        try {
-            validateFieldsSpy( mockData );
-        } catch ( e ) {
-            validateFieldsError = e;
-        }
-
-        expect( validateFieldsSpy.threw() ).to.be.false;
-
+        mockOp = {
+            parent_author: wobject.author,
+            parent_permlink: wobject.author_permlink,
+            author: getRandomString(),
+            permlink: getRandomString()
+        };
     } );
 
-    describe( 'when not all required fields exist', async () => {
-        it( 'should throw error "Can`t append object, not all required fields is filling!"', () => {
-            const requiredFields = 'name,body,locale,author,permlink,creator'.split( ',' );
-            const tempMockAppendData = {
-                field: {
-                    name: 'name',
-                    body: 'body',
-                    locale: 'locale',
-                    author: 'user',
-                    permlink: 'permlink',
-                    creator: 'user2'
-                }
-            };
+    describe( 'on valid input', async () => {
+        it( 'should not throw error if all fields is exist', async () => {
+            await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.not.be.rejected;
+        } );
+    } );
 
-            for ( const field of requiredFields ) {
-                mockData = tempMockAppendData;
-                delete mockData.field[ field ];
-                try {
-                    validateFieldsSpy( mockData );
-                } catch ( e ) {
-                    validateFieldsError = e;
-                }
+    describe( 'on invalid input', async () => {
+        describe( 'when data do not contain all keys', async () => {
+            let requiredKeys = 'name,body,locale,author,permlink,creator'.split( ',' );
 
-                expect( validateFieldsSpy.threw() ).to.be.true;
-                expect( validateFieldsError.message ).to.equal( "Can't append object, not all required fields is filling!" );
+            for ( const key of requiredKeys ) {
+                it( `should be rejected without ${key}`, async () => {
+                    delete mockData.field[ key ];
+                    await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+                } );
+            }
+            for( const key of requiredKeys ) {
+                it( `should be rejected without ${key} with correct message`, async () => {
+                    delete mockData.field[ key ];
+                    await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                        .to.be.rejectedWith( Error, "Can't append object, not all required fields is filling!" );
+                } );
             }
         } );
-    } );
 
-    describe( 'on validate post links', async () => {
-        let wobject;
-        let append;
-
-        before( async () => {
-            wobject = await ObjectFactory.Create();
-        } );
-
-        describe( 'when parent comment isn`t create Object Comment', async () => {
-            const tempMockOperation = {
-                author: 'someAuthor',
-                permlink: 'somePermlink',
-                parent_author: 'someParentAuthor',
-                parent_permlink: 'someParentPermlink'
-            };
-
-            it( 'should throw error "Can\'t append object, parent comment isn\'t create Object comment!"', async () => {
-                mockOperation = tempMockOperation;
-                try {
-                    await validatePostLinksSpy( mockOperation );
-                } catch ( e ) {
-                    validatePostLinksError = e;
-                }
-
-                // expect( validatePostLinksSpy.threw() ).to.be.true;
-                expect( validatePostLinksError.message ).to.equal( "Can't append object, parent comment isn't create Object comment!" );
-
+        describe( 'when parent comment is not createobject comment', async () => {
+            it( 'should be rejected if parent_author wrong', async () => {
+                mockOp.parent_author = getRandomString( 10 );
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
             } );
-
-        } );
-
-        describe( 'when parent comment is create Object Comment', async () => {
-
-            it( 'should throw error "Can\'t append object, parent comment isn\'t create Object comment!"', async () => {
-
-                try {
-                    await validatePostLinksSpy( {
-                        author: 'someAuthor',
-                        permlink: 'somePermlink',
-                        parent_author: wobject.author,
-                        parent_permlink: wobject.author_permlink
-                    } );
-                } catch ( e ) {
-                    validatePostLinksError = e;
-                }
-
-                expect( validatePostLinksSpy.threw() ).to.be.false;
+            it( 'should be rejected if parent_author wrong with corr. message', async () => {
+                mockOp.parent_author = getRandomString( 10 );
+                await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                    .to.be.rejectedWith( Error, "Can't append object, parent comment isn't create Object comment!" );
             } );
-
+            it( 'should be rejected if parent_permlink wrong', async () => {
+                mockOp.parent_permlink = getRandomString( 10 );
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+            it( 'should be rejected if parent_permlink wrong with corr. message', async () => {
+                mockOp.parent_author = getRandomString( 10 );
+                await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                    .to.be.rejectedWith( Error, "Can't append object, parent comment isn't create Object comment!" );
+            } );
         } );
 
-        describe( 'when append is already exist', async () => {
+        describe( 'when try to add already existing append', async () => {
+            let existAppend;
             before( async () => {
-                wobject = await ObjectFactory.Create();
-                let { appendObject } = await AppendObject.Create( { root_wobj: wobject.author_permlink } );
-
-                append = appendObject;
+                let { appendObject } = await AppendObject.Create();
+                existAppend = appendObject;
             } );
-
-            it( 'should throw error "Can\'t append object, append is now exist!"', async () => {
-                try {
-                    await validatePostLinksSpy( {
-                        author: append.author,
-                        permlink: append.permlink,
-                        parent_author: wobject.author,
-                        parent_permlink: wobject.author_permlink
-                    } );
-                } catch ( e ) {
-                    validatePostLinksError = e;
-                }
-                expect( validatePostLinksError.message ).to.equal( "Can't append object, append is now exist!" );
+            it( 'should be rejected if append with the same author and permlink already exists', async () => {
+                mockOp.author = existAppend.author;
+                mockOp.permlink = existAppend.permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+            it( 'should be rejected with corr. message if append with the same author and permlink already exists', async () => {
+                mockOp.author = existAppend.author;
+                mockOp.permlink = existAppend.permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                    .to.be.rejectedWith( Error, "Can't append object, append is now exist!" );
             } );
         } );
+
+        describe( 'when field in black list for current ObjectType', async () => {
+            let blackListFieldName;
+            beforeEach( async () => {
+                blackListFieldName = getRandomString();
+
+                const objectType = await ObjectType.findOne( { name: wobject.object_type } );
+                objectType.updates_blacklist = [ blackListFieldName ];
+                await objectType.save();
+                mockData.field.name = blackListFieldName;
+            } );
+            it( 'should be rejected with Error', async () => {
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+            it( 'should be rejected with message about blacklist', async () => {
+                await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                    .to.be.rejectedWith( Error, `Can't append object, field ${blackListFieldName} in black list for object type ${wobject.object_type}!` );
+            } );
+        } );
+
+        describe( 'when wobject not exist', async () => {
+            it( 'should be rejected', async () => {
+                await WObject.deleteOne( { author_permlink: wobject.author_permlink } );
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+        } );
+
+        describe( 'when object type not exist', async () => {
+            it( 'should be rejected', async () => {
+                await ObjectType.deleteOne( { name: wobject.object_type } );
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+        } );
+
     } );
+
 } );
 
