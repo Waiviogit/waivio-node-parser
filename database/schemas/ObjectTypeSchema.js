@@ -13,8 +13,8 @@ const ObjectTypeSchema = new Schema( {
             weight: { type: Number, default: 0 }
         } ],
         default: []
-    }
-
+    },
+    updates_blacklist: { type: [ String ], default: [] }
 },
 {
     toObject: { virtuals: true }, timestamps: true

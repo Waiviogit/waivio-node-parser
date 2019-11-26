@@ -1,4 +1,4 @@
-const { faker, getRandomString, redisSetter, WObject } = require( '../../testHelper' );
+const { faker, getRandomString, WObject, commentRefSetter } = require( '../../testHelper' );
 const ObjectFactory = require( '../../factories/Object/ObjectFactory' );
 
 const Create = async ( { creator, name, weight, body, root_wobj, additionalFields = {} } = {} ) => {
@@ -21,7 +21,10 @@ const Create = async ( { creator, name, weight, body, root_wobj, additionalField
         wobject = await ObjectFactory.Create( { author_permlink: root_wobj, fields: [ appendObject ] } );
     }
     await WObject.updateOne( { author_permlink: root_wobj }, { $addToSet: { fields: appendObject } } );
-    await redisSetter.addAppendWobj( `${appendObject.author }_${ appendObject.permlink}`, root_wobj || getRandomString( 20 ) );
+    await commentRefSetter.addAppendWobj(
+        `${appendObject.author }_${ appendObject.permlink}`,
+        root_wobj || getRandomString( 20 )
+    );
     return { appendObject, root_wobj, wobject };
 };
 
