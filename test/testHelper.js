@@ -18,10 +18,13 @@ const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostM
 const sinon = require( 'sinon' );
 const chai = require( 'chai' );
 const sinonChai = require( 'sinon-chai' );
+const chaiAsPromised = require( 'chai-as-promised' );
 chai.use( sinonChai );
+chai.use( chaiAsPromised );
 const expect = chai.expect;
 const { Mongoose } = require( '../database' );
 const { redis, redisGetter, redisSetter } = require( '../utilities/redis' );
+const { commentRefGetter, commentRefSetter } = require( '../utilities/commentRefService' );
 const faker = require( 'faker' );
 
 const getRandomString = ( length = 5 ) => {
@@ -77,5 +80,7 @@ module.exports = {
     ObjectTypeModel,
     PostModel,
     UserModel,
-    dropDatabase
+    dropDatabase,
+    commentRefGetter,
+    commentRefSetter
 };
