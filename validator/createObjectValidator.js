@@ -1,7 +1,10 @@
 const _ = require( 'lodash' );
 const { commentRefGetter } = require( '../utilities/commentRefService' );
+const { validateUserOnBlacklist } = require( './userValidator' );
 
 const validate = async ( data, operation ) => {
+    if( !validateUserOnBlacklist( operation.author ) || !validateUserOnBlacklist( data.creator ) )
+        throw new Error( "Can't create object, user in blacklist!" );
     validateFields( data );
     await validatePostLinks( data, operation );
 };

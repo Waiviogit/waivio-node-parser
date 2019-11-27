@@ -38,7 +38,7 @@ describe( 'chosenPostHelper', async () => {
     describe( 'on updateAppChosenPost', async () => {
         describe( 'on valid all data', async () => {
             let app, resp_user_name, mock_op, postUtilStub, upd_app, mock_res_data;
-            before( async () => {
+            beforeEach( async () => {
                 resp_user_name = getRandomString( 6 );
                 app = await AppFactory.Create( { admin: resp_user_name } );
                 mock_op = {
@@ -61,7 +61,7 @@ describe( 'chosenPostHelper', async () => {
                 await chosenPostHelper.updateAppChosenPost( mock_op );
                 upd_app = await App.findOne( { name: app.name } ).lean();
             } );
-            after( () => {
+            afterEach( () => {
                 postUtilStub.restore();
             } );
             it( 'should update "App" with field "daily_chosen_post"', async () => {
@@ -74,7 +74,7 @@ describe( 'chosenPostHelper', async () => {
 
         describe( 'on invalid app name', async () => {
             let mock_op, postUtilStub;
-            before( async () => {
+            beforeEach( async () => {
                 mock_op = {
                     parent_author: faker.name.firstName(),
                     parent_permlink: getRandomString( 10 ),
@@ -94,7 +94,7 @@ describe( 'chosenPostHelper', async () => {
                 sinon.spy( console, 'error' );
                 await chosenPostHelper.updateAppChosenPost( mock_op );
             } );
-            after( () => {
+            afterEach( () => {
                 postUtilStub.restore();
                 console.error.restore();
             } );
@@ -108,7 +108,7 @@ describe( 'chosenPostHelper', async () => {
 
         describe( 'on "getPost" error result', async () => {
             let app, resp_user_name, mock_op, postUtilStub;
-            before( async () => {
+            beforeEach( async () => {
                 resp_user_name = getRandomString( 6 );
                 app = await AppFactory.Create( { admin: resp_user_name } );
                 mock_op = {
@@ -125,7 +125,7 @@ describe( 'chosenPostHelper', async () => {
                 sinon.spy( AppModel, 'updateChosenPost' );
                 await chosenPostHelper.updateAppChosenPost( mock_op );
             } );
-            after( () => {
+            afterEach( () => {
                 postUtilStub.restore();
                 console.error.restore();
                 AppModel.updateChosenPost.restore();
@@ -140,7 +140,7 @@ describe( 'chosenPostHelper', async () => {
 
         describe( 'on "updateChosenPost" error result', async () => {
             let app, resp_user_name, mock_op, postUtilStub, appModelStub;
-            before( async () => {
+            beforeEach( async () => {
                 resp_user_name = getRandomString( 6 );
                 app = await AppFactory.Create( { admin: resp_user_name } );
                 mock_op = {
@@ -160,7 +160,7 @@ describe( 'chosenPostHelper', async () => {
                 sinon.spy( console, 'log' );
                 await chosenPostHelper.updateAppChosenPost( mock_op );
             } );
-            after( () => {
+            afterEach( () => {
                 postUtilStub.restore();
                 console.error.restore();
                 console.log.restore();

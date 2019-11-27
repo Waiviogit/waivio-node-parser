@@ -46,7 +46,7 @@ const postSwitcher = async ( { operation, metadata } ) => {
         }
     }
     if ( metadata.wia ) {
-        // add forecast to post(for wtrade)
+        // add forecast to post(for investarena)
         await investarenaForecastHelper.updatePostWithForecast( {
             author: operation.author,
             permlink: operation.permlink,

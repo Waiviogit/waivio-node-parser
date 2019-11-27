@@ -6,18 +6,20 @@ describe( 'VoteParser', () => {
         let mocks;
         let upd_author, upd_voter;
 
-        before( async () => {
+        beforeEach( async () => {
             mocks = await votePostMocks();
             await votePostHelper.voteOnPost( { post: mocks.post, voter: mocks.user_voter.name, metadata: mocks.metadata, percent: 10000 } );
             upd_author = await User.findOne( { name: mocks.user_author.name } ).lean();
             upd_voter = await User.findOne( { name: mocks.user_voter.name } ).lean();
         } );
 
-        [ 0, 1, 2, 3, 4 ].forEach( ( idx ) => {
+        for( const idx of [ 0, 1, 2, 3, 4 ] ) {
+
+
             describe( `For wobject ${idx + 1} `, async () => {
                 let wobject, user_wobj_author, user_wobj_voter, object_type;
 
-                before( async () => {
+                beforeEach( async () => {
                     wobject = mocks.wobjects[ idx ];
                     user_wobj_author = await UserWobjects.findOne( { user_name: upd_author.name, author_permlink: wobject.author_permlink } ).lean();
                     user_wobj_voter = await UserWobjects.findOne( { user_name: upd_voter.name, author_permlink: wobject.author_permlink } ).lean();
@@ -73,7 +75,7 @@ describe( 'VoteParser', () => {
                     expect( weight_diff ).to.eq( expected );
                 } );
             } );
-        } );
+        }
         it( 'test', () => {} );
     } );
 } );

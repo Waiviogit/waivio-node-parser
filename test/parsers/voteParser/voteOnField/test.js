@@ -8,7 +8,7 @@ describe( 'Vote On Field', async () => {
             let mocks;
             let upd_field, exst_field;
 
-            before( async () => {
+            beforeEach( async () => {
                 mocks = await voteAppendObjectMocks();
                 const { field } = await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink );
 
@@ -53,7 +53,7 @@ describe( 'Vote On Field', async () => {
             let mocks;
             let upd_field, exst_field;
 
-            before( async () => {
+            beforeEach( async () => {
                 mocks = await voteAppendObjectMocks();
                 const { field } = await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink );
 
@@ -100,7 +100,7 @@ describe( 'Vote On Field', async () => {
             let mocks;
             let upd_field, exst_field;
 
-            before( async () => {
+            beforeEach( async () => {
                 mocks = await voteAppendObjectMocks();
                 await voteFieldHelper.voteOnField( {
                     author: mocks.appendObject.author,
@@ -147,7 +147,7 @@ describe( 'Vote On Field', async () => {
             let mocks;
             let upd_field, exst_field;
 
-            before( async () => {
+            beforeEach( async () => {
                 mocks = await voteAppendObjectMocks();
                 await voteFieldHelper.voteOnField( {
                     author: mocks.appendObject.author,

@@ -4,12 +4,12 @@ const axios = require( 'axios' );
 describe( 'Import Tags Service', async () => {
     describe( 'on success', async () => {
         let stub, result;
-        before( async () => {
+        beforeEach( async () => {
             stub = sinon.stub( axios, 'post' ).callsFake( async () => ( { data: 'this is mock data' } ) );
             result = await importTags.send( [ 'test' ] );
         } );
 
-        after( () => stub.restore() );
+        afterEach( () => stub.restore() );
 
         it( 'should return response', () => expect( result ).to.has.key( 'response' ) );
 
@@ -30,12 +30,14 @@ describe( 'Import Tags Service', async () => {
 
     describe( 'on error', async () => {
         let stub, result;
-        before( async () => {
-            stub = sinon.stub( axios, 'post' ).callsFake( async () => { throw new Error('this is test' ) } );
+        beforeEach( async () => {
+            stub = sinon.stub( axios, 'post' ).callsFake( async () => {
+                throw new Error( 'this is test' );
+            } );
             result = await importTags.send( [ 'test' ] );
         } );
 
-        after( () => stub.restore() );
+        afterEach( () => stub.restore() );
 
         it( 'should return error', () => {
             expect( result ).to.has.key( 'error' );
@@ -48,12 +50,14 @@ describe( 'Import Tags Service', async () => {
 
     describe( 'on not enougt response data', async () => {
         let stub, result;
-        before( async () => {
-            stub = sinon.stub( axios, 'post' ).callsFake( async () => {return {}}  );
+        beforeEach( async () => {
+            stub = sinon.stub( axios, 'post' ).callsFake( async () => {
+                return {};
+            } );
             result = await importTags.send( [ 'test' ] );
         } );
 
-        after( () => stub.restore() );
+        afterEach( () => stub.restore() );
 
         it( 'should return error', () => {
             expect( result ).to.has.key( 'error' );

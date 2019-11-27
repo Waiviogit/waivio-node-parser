@@ -5,7 +5,7 @@ describe( 'wobjectValidator', async () => {
     describe( 'on validateRatingVote ', async () => {
         let requiredFieldsRatingVote = 'author,permlink,author_permlink,rate'.split( ',' );
         let validData = {};
-        before( async () => {
+        beforeEach( async () => {
             requiredFieldsRatingVote.forEach( ( f ) => {
                 validData[ f ] = getRandomString( 10 );
             } );
@@ -27,7 +27,7 @@ describe( 'wobjectValidator', async () => {
     describe( 'on validateObjectType ', async () => {
         let requiredFieldsRatingVote = 'author,permlink,name'.split( ',' );
         let validData = {};
-        before( async () => {
+        beforeEach( async () => {
             requiredFieldsRatingVote.forEach( ( f ) => {
                 validData[ f ] = getRandomString( 10 );
             } );
