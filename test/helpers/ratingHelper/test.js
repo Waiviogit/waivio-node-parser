@@ -5,7 +5,7 @@ describe( 'ratingHelper', async () => {
     describe( 'on parse operation custom json with rating vote', async () => {
         describe( 'on valid operation data', async () => {
             let mockOp, wobject, field, voter, updField;
-            before( async () => {
+            beforeEach( async () => {
                 voter = ( await UserFactory.Create() ).user;
                 const append = await AppendObject.Create( { name: 'rating', body: getRandomString( 10 ) } );
                 wobject = append.wobject;
@@ -24,7 +24,7 @@ describe( 'ratingHelper', async () => {
                 await ratingHelper.parse( mockOp );
                 updField = ( await WObject.findOne( wobject._id ).lean() ).fields[ 0 ];
             } );
-            after( () => {
+            afterEach( () => {
                 WobjModel.getField.restore();
                 WobjModel.updateField.restore();
             } );
@@ -49,7 +49,7 @@ describe( 'ratingHelper', async () => {
         } );
         describe( 'on adding second vote to rating field', async () => {
             let mockOp, wobject, field, voter, updField;
-            before( async () => {
+            beforeEach( async () => {
                 voter = ( await UserFactory.Create() ).user;
                 const { appendObject, wobject: wobj } = await AppendObject.Create(
                     {
@@ -74,7 +74,7 @@ describe( 'ratingHelper', async () => {
                 await ratingHelper.parse( mockOp );
                 updField = ( await WObject.findOne( wobject._id ).lean() ).fields[ 0 ];
             } );
-            after( () => {
+            afterEach( () => {
                 WobjModel.getField.restore();
                 WobjModel.updateField.restore();
             } );
@@ -93,7 +93,7 @@ describe( 'ratingHelper', async () => {
         } );
         describe( 'on update existing rating vote', async () => {
             let mockOp, wobject, field, voter, updField;
-            before( async () => {
+            beforeEach( async () => {
                 voter = ( await UserFactory.Create() ).user;
                 const append = await AppendObject.Create( {
                     name: 'rating',
@@ -116,7 +116,7 @@ describe( 'ratingHelper', async () => {
                 await ratingHelper.parse( mockOp );
                 updField = ( await WObject.findOne( wobject._id ).lean() ).fields[ 0 ];
             } );
-            after( () => {
+            afterEach( () => {
                 WobjModel.getField.restore();
                 WobjModel.updateField.restore();
             } );
@@ -135,7 +135,7 @@ describe( 'ratingHelper', async () => {
         } );
         describe( 'on not valid operation data', async () => {
             let mockOp, wobject, field, voter, updField;
-            before( async () => {
+            beforeEach( async () => {
                 voter = ( await UserFactory.Create() ).user;
                 sinon.spy( WobjModel, 'getField' );
                 sinon.spy( WobjModel, 'updateField' );
@@ -154,7 +154,7 @@ describe( 'ratingHelper', async () => {
                 await ratingHelper.parse( mockOp );
                 updField = ( await WObject.findOne( wobject._id ).lean() ).fields[ 0 ];
             } );
-            after( () => {
+            afterEach( () => {
                 console.error.restore();
                 WobjModel.getField.restore();
                 WobjModel.updateField.restore();
@@ -174,7 +174,7 @@ describe( 'ratingHelper', async () => {
         } );
         describe( 'on not valid operation stringified json', async () => {
             let mockOp;
-            before( async () => {
+            beforeEach( async () => {
                 mockOp = {
                     required_posting_auths: [ 'test' ],
                     json: '{"this_is":"not valid json}'
@@ -184,8 +184,10 @@ describe( 'ratingHelper', async () => {
                 sinon.spy( WobjModel, 'updateField' );
                 await ratingHelper.parse( mockOp );
             } );
-            after( () => {
+            afterEach( () => {
                 console.error.restore();
+                WobjModel.getField.restore();
+                WobjModel.updateField.restore();
             } );
 
             it( 'should not call method "getField" on wobject model', () => {

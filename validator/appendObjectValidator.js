@@ -1,8 +1,11 @@
 const { commentRefGetter } = require( '../utilities/commentRefService' );
 const { Wobj, ObjectType } = require( '../models' );
+const { validateUserOnBlacklist } = require( './userValidator' );
 const _ = require( 'lodash' );
 
 const validate = async ( data, operation ) => {
+    if( !validateUserOnBlacklist( operation.author ) || !validateUserOnBlacklist( _.get( data, 'field.creator' ) ) )
+        throw new Error( "Can't append object, user in blacklist!" );
     validateFields( data );
     await validatePostLinks( operation );
     await validateFieldBlacklist( { author_permlink: data.author_permlink, fieldName: _.get( data, 'field.name' ) } );

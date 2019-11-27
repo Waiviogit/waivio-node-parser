@@ -1,5 +1,4 @@
 const { postByTagsHelper, importTags, expect, sinon, WobjModel, getRandomString } = require( '../../testHelper' );
-const { ObjectFactory } = require( '../../factories' );
 
 describe( 'postByTagsHelper', async () => {
     describe( 'wobjectsByTags', async () => {
@@ -7,13 +6,13 @@ describe( 'postByTagsHelper', async () => {
         describe( 'if tags exists', async () => {
             let input = [ getRandomString(), getRandomString(), getRandomString() ];
             let wobjModelStub, result;
-            before( async () => {
+            beforeEach( async () => {
                 wobjModelStub = sinon.stub( WobjModel, 'getOne' ).callsFake( ( { author_permlink, object_type } ) => {
                     return { wobject: { author_permlink } };
                 } );
                 result = await postByTagsHelper.wobjectsByTags( input );
             } );
-            after( () => {
+            afterEach( () => {
                 wobjModelStub.restore();
             } );
             it( 'should return array of tags', () => {

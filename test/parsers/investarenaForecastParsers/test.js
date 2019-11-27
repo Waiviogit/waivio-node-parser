@@ -11,7 +11,7 @@ describe( 'InvestArena forecast helper', async () => {
             let updatedPost;
             let spy;
 
-            before( async () => {
+            beforeEach( async () => {
                 const mocks = await getMocks();
 
                 existingPost = mocks.existingPost;
@@ -25,7 +25,7 @@ describe( 'InvestArena forecast helper', async () => {
                 updatedPost = await Post.findOne( { author: existingPost.author, permlink: existingPost.permlink } ).lean();
             } );
 
-            after( () => {
+            afterEach( () => {
                 spy.restore();
             } );
 
@@ -56,7 +56,7 @@ describe( 'InvestArena forecast helper', async () => {
             let updatedPost;
             let stub;
 
-            before( async () => {
+            beforeEach( async () => {
                 const mocks = await getMocks();
 
                 newPost = mocks.newPost;
@@ -72,7 +72,7 @@ describe( 'InvestArena forecast helper', async () => {
                 updatedPost = await Post.findOne( { author: newPost.author, permlink: newPost.permlink } ).lean();
             } );
 
-            after( () => {
+            afterEach( () => {
                 stub.restore();
             } );
 
@@ -106,7 +106,7 @@ describe( 'InvestArena forecast helper', async () => {
             let forecastData;
             let updatePostRes;
 
-            before( async () => {
+            beforeEach( async () => {
                 const mocksData = await getMocks();
 
                 forecastData = mocksData.forecastData;
@@ -141,7 +141,7 @@ describe( 'InvestArena forecast helper', async () => {
             } );
 
             describe( 'with not valid bot name(supp. exp. forecast bot)', async () => {
-                before( async () => {
+                beforeEach( async () => {
                     postWithForecast = await PostFactory.Create( {
                         additionsForPost: {
                             forecast: forecastData.wia
@@ -175,7 +175,7 @@ describe( 'InvestArena forecast helper', async () => {
             let postAfterUpdate;
             let updatePostRes;
 
-            before( async () => {
+            beforeEach( async () => {
                 const mocks = await getMocks();
 
                 expForecastData = mocks.expForecastData;

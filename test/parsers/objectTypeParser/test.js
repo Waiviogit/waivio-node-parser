@@ -5,20 +5,19 @@ describe( 'Object Type parser', async () => {
     describe( 'with valid data', async () => {
         let mockData;
 
-        before( () => {
+        beforeEach( async () => {
             mockData = getMockData();
+            await objectTypeParser.parse( mockData.operation, mockData.metadata );
         } );
         it( 'should create new ObjectType', async () => {
-            await objectTypeParser.parse( mockData.operation, mockData.metadata );
             const createdObjectType = await ObjectType.findOne( { name: mockData.metadata.wobj.name } ).lean();
-
             expect( createdObjectType ).to.not.be.undefined;
         } );
 
         describe( 'redis', async () => {
             let redisResult;
 
-            before( async () => {
+            beforeEach( async () => {
                 redisResult = await redisGetter.getHashAll( `${mockData.operation.author }_${ mockData.operation.permlink}` );
             } );
             it( 'should exist redis reference on post', async () => {

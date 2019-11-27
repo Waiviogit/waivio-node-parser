@@ -6,14 +6,14 @@ describe( 'Append object parser,', async () => {
     let wobject;
     let updateSpecificFieldsHelperStub;
 
-    before( async () => {
+    beforeEach( async () => {
         updateSpecificFieldsHelperStub = sinon.stub( updateSpecificFieldsHelper, 'update' ).callsFake( () => {} );
         mockData = await getMocksData();
         await appendObjectParser.parse( mockData.operation, mockData.metadata );
         wobject = await WObject.findOne( { author_permlink: mockData.wobject.author_permlink } ).lean();
     } );
 
-    after( () => {
+    afterEach( () => {
         updateSpecificFieldsHelperStub.restore();
     } );
 
@@ -46,7 +46,7 @@ describe( 'Append object parser,', async () => {
     describe( 'redis', async () => {
         let redisResponse;
 
-        before( async () => {
+        beforeEach( async () => {
             redisResponse = await redisGetter.getHashAll( `${mockData.operation.author }_${ mockData.operation.permlink}` );
         } );
         it( 'should include ref on comment with create object', async () => {
