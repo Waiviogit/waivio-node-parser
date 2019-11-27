@@ -1,3 +1,4 @@
+const { validateUserOnBlacklist } = require( './userValidator' );
 const _ = require( 'lodash' );
 
 const validateRatingVote = ( data ) => {
@@ -22,6 +23,7 @@ const validateObjectType = ( data ) => {
             isValid = false;
         }
     } );
+    isValid = validateUserOnBlacklist( _.get( data, 'author' ) );
     return isValid;
 };
 

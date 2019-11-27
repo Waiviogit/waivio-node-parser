@@ -1,5 +1,6 @@
-const { expect, getRandomString } = require( '../../testHelper' );
+const { expect, getRandomString, faker } = require( '../../testHelper' );
 const { wobjectValidator } = require( '../../../validator' );
+const { BLACK_LIST_BOTS } = require( '../../../utilities/constants' );
 
 describe( 'wobjectValidator', async () => {
     describe( 'on validateRatingVote ', async () => {
@@ -43,6 +44,10 @@ describe( 'wobjectValidator', async () => {
                 delete data[ field ];
                 expect( wobjectValidator.validateObjectType( data ) ).to.be.false;
             } );
+        } );
+        it( 'should return false if author in blacklist', () => {
+            validData.author = BLACK_LIST_BOTS[ faker.random.number( BLACK_LIST_BOTS.length - 1 ) ];
+            expect( wobjectValidator.validateObjectType( validData ) ).to.be.false;
         } );
     } );
 } );
