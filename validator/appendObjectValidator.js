@@ -24,16 +24,11 @@ const validateFields = ( data ) => {
 
 const validateSameFields = async ( data ) => {
     const { wobject } = await Wobj.getOne( { author_permlink: data.author_permlink } );
-    const foundedFields = _.map( wobject.fields, ( field ) => {
-        return{
-            name: field.name,
-            body: field.body,
-            locale: field.locale
-        };
-    } );
-    const result = foundedFields.find( ( field ) => {
-        return _.isEqual( field, _.pick( data.field, [ 'body', 'locale', 'name' ] ) );
-    } );
+    const foundedFields = _.map( wobject.fields, ( field ) => (
+        { name: field.name, body: field.body, locale: field.locale } )
+    );
+    const result = foundedFields.find( ( field ) =>
+        _.isEqual( field, _.pick( data.field, [ 'body', 'locale', 'name' ] ) ) );
     if ( result ) {
         throw new Error( "Can't append object, the same field already exists" );
     }
