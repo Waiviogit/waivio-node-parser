@@ -8,6 +8,7 @@ const validate = async ( data, operation ) => {
         throw new Error( "Can't append object, user in blacklist!" );
     validateFields( data );
     await validatePostLinks( operation );
+    await validateSameFields( data );
     await validateFieldBlacklist( { author_permlink: data.author_permlink, fieldName: _.get( data, 'field.name' ) } );
 };
 
@@ -19,6 +20,18 @@ const validateFields = ( data ) => {
             throw new Error( "Can't append object, not all required fields is filling!" );
         }
     } );
+};
+
+const validateSameFields = async ( data ) => {
+    const { wobject } = await Wobj.getOne( { author_permlink: data.author_permlink } );
+    const foundedFields = _.map( wobject.fields, ( field ) =>
+        ( { name: field.name, body: field.body, locale: field.locale } )
+    );
+    const result = foundedFields.find( ( field ) =>
+        _.isEqual( field, _.pick( data.field, [ 'body', 'locale', 'name' ] ) ) );
+    if ( result ) {
+        throw new Error( "Can't append object, the same field already exists" );
+    }
 };
 
 const validatePostLinks = async ( operation ) => {

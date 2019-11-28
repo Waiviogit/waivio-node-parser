@@ -34,7 +34,37 @@ describe( 'appendObjectValidator', async () => {
         } );
     } );
 
+    describe( 'validate the same fields', async () => {
+        let newWobj;
+        beforeEach( async () => {
+            newWobj = await ObjectFactory.Create( { appends: [ mockData.field ] } );
+        } );
+        describe( 'on valid input', async () => {
+            it( 'should not throw error with the same field in another locale', async () => {
+                mockData.field.locale = 'ru-RU';
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.not.be.rejected;
+            } );
+            it( 'should not throw error if body of added field is different', async () => {
+                mockData.field.body = getRandomString( 20 );
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.not.be.rejected;
+            } );
+        } );
+        describe( 'on invalid input', async () => {
+            it( 'should throw error with the same field ', async () => {
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+            it( 'should rejected with error message if added the same field', async () => {
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                    .to.be.rejectedWith( Error, "Can't append object, the same field already exists" );
+            } );
+        } );
+    } );
     describe( 'on invalid input', async () => {
+
         describe( 'when data do not contain all keys', async () => {
             let requiredKeys = 'name,body,locale,author,permlink,creator'.split( ',' );
 
