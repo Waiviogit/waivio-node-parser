@@ -24,8 +24,8 @@ const validateFields = ( data ) => {
 
 const validateSameFields = async ( data ) => {
     const { wobject } = await Wobj.getOne( { author_permlink: data.author_permlink } );
-    const foundedFields = _.map( wobject.fields, ( field ) => (
-        { name: field.name, body: field.body, locale: field.locale } )
+    const foundedFields = _.map( wobject.fields, ( field ) =>
+        ( { name: field.name, body: field.body, locale: field.locale } )
     );
     const result = foundedFields.find( ( field ) =>
         _.isEqual( field, _.pick( data.field, [ 'body', 'locale', 'name' ] ) ) );
