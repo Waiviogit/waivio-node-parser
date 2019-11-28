@@ -1,25 +1,22 @@
 const { Wobj, User, Post } = require( '../../models' );
-const { BLACK_LIST_BOTS } = require( '../constants' );
 const { getWobjectsFromMetadata } = require( './postByTagsHelper' );
+const { validateUserOnBlacklist } = require( '../../validator/userValidator' );
 const _ = require( 'lodash' );
 
 const voteOnPost = async ( data ) => {
     // calculated value, for using in wobject environment
     const currentVote = data.post.active_votes.find( ( vote ) => vote.voter === data.voter );
+    if ( !currentVote ) return;
 
-    if ( !currentVote ) {
-        return;
-    }
     const weight = Math.round( currentVote.rshares * 1e-6 );
 
-    if ( !BLACK_LIST_BOTS.includes( data.voter ) && data.post.author !== data.voter ) {
+    if ( validateUserOnBlacklist( [ data.voter, data.post.author ] ) && data.post.author !== data.voter ) {
         await unvoteOnPost( data );
         if ( data.percent < 0 ) {
             await downVoteOnPost( data, weight ); // case for down-vote
         } else if ( data.percent > 0 ) {
             await upVoteOnPost( data, weight ); // case for up-vote
         }
-
     }
     data.post.wobjects = await getWobjectsFromMetadata( data );
     data.post.app = _.get( data, 'metadata.app', '' );

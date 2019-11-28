@@ -6,7 +6,7 @@ const _ = require( 'lodash' );
 describe( 'ObjectTypeModel', async () => {
     describe( 'On getOne', async () => {
         let objectType;
-        before( async () => {
+        beforeEach( async () => {
             objectType = await ObjectTypeFactory.Create( );
         } );
         it( 'should return error', async () => {

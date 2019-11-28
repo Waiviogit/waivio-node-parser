@@ -52,7 +52,7 @@ describe( 'User Model', async () => {
     } );
     describe( 'On checkForObjectShares', async () => {
         let data, weight, result;
-        before( async () => {
+        beforeEach( async () => {
             weight = faker.random.number();
             data = {
                 name: faker.name.firstName(),
@@ -77,7 +77,7 @@ describe( 'User Model', async () => {
     } );
     describe( 'On addUserFollow', async () => {
         let follower, following, upd_follower;
-        before( async() => {
+        beforeEach( async() => {
             follower = await UserFactory.Create( );
             following = await UserFactory.Create( );
             await UserModel.addUserFollow( { follower: follower.user.name, following: following.user.name } );
@@ -125,7 +125,7 @@ describe( 'User Model', async () => {
     } );
     describe( 'On addObjectFollow', async () => {
         let mockObject, result, mockUser;
-        before( async () => {
+        beforeEach( async () => {
             mockUser = await UserFactory.Create();
             mockObject = await ObjectFactory.Create();
             await UserModel.addObjectFollow( {
@@ -182,7 +182,7 @@ describe( 'User Model', async () => {
     } );
     describe( 'On create', async () => {
         let user, data;
-        before( async () => {
+        beforeEach( async () => {
             data = {
                 name: getRandomString()
             };
@@ -205,7 +205,7 @@ describe( 'User Model', async () => {
     } );
     describe( 'On update', async () => {
         let firstUser, secondUser, updateData, condition, updatedUser, updatedUser2, result;
-        before( async () => {
+        beforeEach( async () => {
             secondUser = await UserFactory.Create();
             firstUser = await UserFactory.Create();
 
@@ -244,7 +244,7 @@ describe( 'User Model', async () => {
     } );
     describe( 'On updateOne', async () => {
         let firstUser, updateData, condition, updatedUser;
-        before( async() => {
+        beforeEach( async() => {
             firstUser = await UserFactory.Create();
             updateData = {
                 wobjects_weight: 100
@@ -303,7 +303,7 @@ describe( 'User Model', async () => {
     } );
     describe( 'On increaseCountPosts', async () => {
         let author, result, updatedAuthor;
-        before( async () => {
+        beforeEach( async () => {
             author = await UserFactory.Create();
             result = await UserModel.increaseCountPosts( author.user.name );
             updatedAuthor = await User.findOne( { name: author.user.name } );

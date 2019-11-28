@@ -8,7 +8,7 @@ describe( 'UserParsers', async () => {
         let updUser;
         const mock_metadata = { profile: { name: 'Alias Name' } };
 
-        before( async () => {
+        beforeEach( async () => {
             const { user: mockUser } = await UserFactory.Create();
 
             await userParsers.updateAccountParser( {
@@ -47,7 +47,7 @@ describe( 'UserParsers', async () => {
             let usr2;
             let usr3;
 
-            before( async () => {
+            beforeEach( async () => {
                 const { user } = await UserFactory.Create();
                 const { user: user2 } = await UserFactory.Create();
                 const { user: user3 } = await UserFactory.Create();
@@ -103,7 +103,7 @@ describe( 'UserParsers', async () => {
 
         describe( 'if first param in JSON is "reblog"', async () => {
             let mockJson, reblogParserStub, addUserFollowStub, removeUserFollowStub;
-            before( async () => {
+            beforeEach( async () => {
                 reblogParserStub = sinon.stub( userParsers, 'reblogPostParser' ).returns( 0 );
                 addUserFollowStub = sinon.stub( UserModel, 'addUserFollow' ).returns( {} );
                 removeUserFollowStub = sinon.stub( UserModel, 'removeUserFollow' ).returns( {} );
@@ -113,7 +113,7 @@ describe( 'UserParsers', async () => {
                     required_posting_auths: [ mockJson[ 1 ].account ]
                 } );
             } );
-            after( () => {
+            afterEach( () => {
                 reblogParserStub.restore();
                 addUserFollowStub.restore();
                 removeUserFollowStub.restore();

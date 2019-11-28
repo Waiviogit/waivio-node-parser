@@ -1,6 +1,8 @@
 const { expect, faker, getRandomString, ObjectType, WObject } = require( '../../testHelper' );
 const { appendObjectValidator } = require( '../../../validator' );
 const { ObjectFactory, AppendObject } = require( '../../factories' );
+const { BLACK_LIST_BOTS } = require( '../../../utilities/constants' );
+
 
 describe( 'appendObjectValidator', async () => {
     let wobject, mockData, mockOp;
@@ -32,7 +34,37 @@ describe( 'appendObjectValidator', async () => {
         } );
     } );
 
+    describe( 'validate the same fields', async () => {
+        let newWobj;
+        beforeEach( async () => {
+            newWobj = await ObjectFactory.Create( { appends: [ mockData.field ] } );
+        } );
+        describe( 'on valid input', async () => {
+            it( 'should not throw error with the same field in another locale', async () => {
+                mockData.field.locale = 'ru-RU';
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.not.be.rejected;
+            } );
+            it( 'should not throw error if body of added field is different', async () => {
+                mockData.field.body = getRandomString( 20 );
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.not.be.rejected;
+            } );
+        } );
+        describe( 'on invalid input', async () => {
+            it( 'should throw error with the same field ', async () => {
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+            it( 'should rejected with error message if added the same field', async () => {
+                mockData.author_permlink = newWobj.author_permlink;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                    .to.be.rejectedWith( Error, "Can't append object, the same field already exists" );
+            } );
+        } );
+    } );
     describe( 'on invalid input', async () => {
+
         describe( 'when data do not contain all keys', async () => {
             let requiredKeys = 'name,body,locale,author,permlink,creator'.split( ',' );
 
@@ -74,7 +106,7 @@ describe( 'appendObjectValidator', async () => {
 
         describe( 'when try to add already existing append', async () => {
             let existAppend;
-            before( async () => {
+            beforeEach( async () => {
                 let { appendObject } = await AppendObject.Create();
                 existAppend = appendObject;
             } );
@@ -124,6 +156,23 @@ describe( 'appendObjectValidator', async () => {
             } );
         } );
 
+        describe( 'when user on blacklist', async () => {
+            it( 'should be rejected if author of operation in blacklist', async () => {
+                mockOp.author = BLACK_LIST_BOTS[ faker.random.number( BLACK_LIST_BOTS.length ) ];
+                mockData.field.author = mockOp.author;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+            it( 'should be rejected with correct message if author of operation in blacklist', async () => {
+                mockOp.author = BLACK_LIST_BOTS[ faker.random.number( BLACK_LIST_BOTS.length ) ];
+                mockData.field.author = mockOp.author;
+                await expect( appendObjectValidator.validate( mockData, mockOp ) )
+                    .to.be.rejectedWith( Error, "Can't append object, user in blacklist!" );
+            } );
+            it( 'should be rejected if creator of "append" in blacklist', async () => {
+                mockData.field.creator = BLACK_LIST_BOTS[ faker.random.number( BLACK_LIST_BOTS.length ) ];
+                await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
+            } );
+        } );
     } );
 
 } );

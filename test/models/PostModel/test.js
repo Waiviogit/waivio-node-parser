@@ -50,7 +50,7 @@ describe( 'PostModel', async () => {
     } );
     describe( 'On findOne', async () => {
         let post;
-        before( async () => {
+        beforeEach( async () => {
             post = await PostFactory.Create();
         } );
         it( 'should findOne post', async () => {
@@ -75,7 +75,7 @@ describe( 'PostModel', async () => {
     } );
     describe( ' On update', async () => {
         let post, data, upd_post, result_update;
-        before( async () => {
+        beforeEach( async () => {
             post = await PostFactory.Create();
             data = {
                 author: post.author,

@@ -11,7 +11,7 @@ const parse = async ( operation ) => {
         console.error( err );
         return;
     }
-    if ( !wobjectValidator.validateRatingVote( json ) ) {
+    if ( !wobjectValidator.validateRatingVote( json, operation ) ) {
         console.error( 'Rating vote data is not valid!' );
         return;
     }

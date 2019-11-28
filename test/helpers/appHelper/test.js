@@ -5,7 +5,7 @@ describe( 'App Helper', async () => {
     describe( 'Check app on blacklist validity', () => {
         let app;
 
-        before( async () => {
+        beforeEach( async () => {
             app = await AppFactory.Create( {
                 blacklists: {
                     apps: [ 'apptest', 'lala', 'KeK' ]
@@ -13,7 +13,7 @@ describe( 'App Helper', async () => {
             } );
             process.env.APP_NAME = app.name;
         } );
-        after( () => {
+        afterEach( () => {
             delete process.env.APP_NAME;
         } );
         it( 'should return false on validating app1', async () => {

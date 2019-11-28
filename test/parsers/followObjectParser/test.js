@@ -46,7 +46,7 @@ describe( 'followObjectParser', async () => {
     } );
     describe( 'On unfollowObjectParse', async () => {
         let data, result, name, author_permlink;
-        before( async () => {
+        beforeEach( async () => {
             await dropDatabase();
             sinon.stub( User, 'removeObjectFollow' ).callsFake( () => {
                 return { result: true };
@@ -55,7 +55,7 @@ describe( 'followObjectParser', async () => {
             author_permlink = getRandomString( 10 );
             data = await mock.dataForFollow( { auth_permlink: author_permlink, userName: name } );
         } );
-        after( async () => {
+        afterEach( async () => {
             sinon.restore();
         } );
         it( 'should success unfollow', async () => {

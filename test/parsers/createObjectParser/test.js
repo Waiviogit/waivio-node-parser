@@ -6,7 +6,7 @@ describe( 'Object parser', async () => {
         let mockData;
         let wobject;
 
-        before( async () => {
+        beforeEach( async () => {
             mockData = await getMocksData();
             await createObjectParser.parse( mockData.operation, mockData.metadata );
             wobject = await WObject.findOne( { author_permlink: mockData.operation.permlink } ).lean();
@@ -22,7 +22,7 @@ describe( 'Object parser', async () => {
         describe( 'redis result', async () => {
             let redisResult;
 
-            before( async () => {
+            beforeEach( async () => {
                 redisResult = await redisGetter.getHashAll( `${wobject.author }_${ wobject.author_permlink}` );
             } );
             it( 'should exist', async () => {
@@ -41,7 +41,7 @@ describe( 'Object parser', async () => {
         describe( 'creator(user)', async () => {
             let creator;
 
-            before( async () => {
+            beforeEach( async () => {
                 creator = await User.findOne( { name: mockData.metadata.wobj.creator } );
             } );
             it( 'should exist', async () => {
