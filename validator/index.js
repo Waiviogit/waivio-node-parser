@@ -4,5 +4,6 @@ module.exports = {
     appendObjectValidator: require( './appendObjectValidator' ),
     specifiedFieldsValidator: require( './specifiedFieldsValidator' ),
     chosenPostValidator: require( './chosenPostValidator' ),
-    userValidator: require( './userValidator' )
+    userValidator: require( './userValidator' ),
+    postWithWobjValidator: require( './postWithWobjValidator' )
 };
