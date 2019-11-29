@@ -13,7 +13,7 @@ const parse = async function ( operation, metadata ) {
     const data = {
         author: operation.author,
         permlink: operation.permlink,
-        wobjects: _ .chain( metadata ) .get( 'wobj.wobjects', [] ) .filter( ( w ) => w.percent > 0 && w.percent <= 100 ),
+        wobjects: _ .chain( metadata ) .get( 'wobj.wobjects', [] ) .filter( ( w ) => w.percent > 0 && w.percent <= 100 ).value(),
         app: _.isString( metadata.app ) ? metadata.app : '',
         author_weight: user.wobjects_weight
     };
