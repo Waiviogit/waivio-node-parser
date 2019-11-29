@@ -35,7 +35,7 @@ describe( 'On appendWobjectFields', async () => {
             );
         } );
     } );
-    describe( 'On invalid input, many fields', async () => {
+    describe( 'On valid input, many fields', async () => {
         let wobjectOpsStub, mock;
         beforeEach( async () => {
             mock = mocks( { parent_permlink: wobject.author_permlink, parent_author: wobject.author, count: 10 } );

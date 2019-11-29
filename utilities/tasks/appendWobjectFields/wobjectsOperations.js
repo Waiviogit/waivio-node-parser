@@ -7,7 +7,7 @@ const getWobjects = async () => {
     try{
         const result = await WObject.aggregate( [
             { $match: { fields: { $size: 0 } } },
-            { $project: { author: 1, author_permlink: 1, _id: 0 } }
+            { $project: { author: 1, author_permlink: 1, _id: 0, default_name: 1 } }
         ] );
         return { result };
     }catch( error ) {
@@ -16,11 +16,11 @@ const getWobjects = async () => {
 };
 
 const appendWobjectFields = async ( wobject ) => {
-    const { result: comments } = await getComments( wobject.author, wobject.author_permlink );
-    if ( !comments ) {
-        fs.appendFileSync( './utilities/tasks/appendWobjectFields/emptyWobjects.json', JSON.stringify( wobject ) );
-        console.log( 'Have some problem wobject' );
-        return;
+    const { result: comments, err } = await getComments( wobject.author, wobject.author_permlink );
+    if ( err ) console.error( err );
+    if ( !comments || !comments.length ) {
+        console.log( `wobject, author: ${wobject.author}, permlink: ${wobject.author_permlink} has no comments with appends` );
+        return true ;
     }
     for ( let comment of comments ) {
         if ( !comment.metadata.wobj ) continue;
@@ -29,11 +29,16 @@ const appendWobjectFields = async ( wobject ) => {
 };
 
 const appendFields = async () => {
-    fs.writeFileSync( './utilities/tasks/appendWobjectFields/emptyWobjects.json', '' );
+    const emptyWobjects = [];
     const { result: wobjWithoutFields } = await getWobjects();
     for ( let wobject of wobjWithoutFields ) {
-        await appendWobjectFields( wobject );
+        const result = await appendWobjectFields( wobject );
+        if ( result ) {
+            emptyWobjects.push( wobject );
+        }
     }
+    fs.writeFileSync( './utilities/tasks/resources/emptyWobjects.json', JSON.stringify( emptyWobjects ) );
+    console.log( 'Successfully end' );
 };
 
 module.exports = { appendFields };

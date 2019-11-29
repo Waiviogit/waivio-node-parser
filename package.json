@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "scripts": {
+    "fixEmptyWobject": "node ./utilities/tasks/appendWobjectFields/run.js",
+    "fillWobjectNames": "node ./utilities/tasks/fillWobjectNames/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test nyc --reporter=html mocha"
   },
