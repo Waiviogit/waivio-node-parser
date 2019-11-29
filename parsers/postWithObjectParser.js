@@ -18,12 +18,12 @@ const parse = async function ( operation, metadata ) {
         author_weight: user.wobjects_weight
     };
 
-    const { updPost, error } = await createOrUpdatePost( data );
+    const result = await createOrUpdatePost( data );
 
-    if ( error ) {
-        console.error( error );
+    if ( _.get( result, 'error' ) ) {
+        console.error( result.error );
     }
-    if ( updPost ) {
+    if ( _.get( result, 'updPost' ) ) {
         console.log( `Post with wobjects created by ${operation.author}` );
     }
 };
