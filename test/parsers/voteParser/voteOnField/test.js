@@ -1,7 +1,6 @@
 const { expect, voteFieldHelper, UserWobjects, WobjModel } = require( '../../../testHelper' );
 const { voteAppendObjectMocks } = require( './mocks' );
 
-
 describe( 'Vote On Field', async () => {
     describe( 'when user have weight in wobject', async () => {
         describe( 'on upVote', async () => {
@@ -47,7 +46,7 @@ describe( 'Vote On Field', async () => {
             /*
             Usually down vote indicate as negative value of "percent", but on appends we use another system,
             to keep reputations of ours bots, we improve downVotes as upVotes, but with not integer value,
-            for example: upvote with percent value 98 00 is still upVote, but if value not integer, like 98 50 - it
+            for example: UpVote with percent value 98 00 is still upVote, but if value not integer, like 98 50 - it
             becomes calculate as downVote with value 99 (round value to upper if 50, and to lower if 49)
              */
             let mocks;
@@ -69,20 +68,19 @@ describe( 'Vote On Field', async () => {
                 } );
 
                 const { field: new_field } = await WobjModel.getField( mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink );
-
                 upd_field = new_field;
             } );
             it( 'should decrease field weight by correct value', async () => {
                 const diff = upd_field.weight - exst_field.weight;
                 expect( diff ).to.eq( -350 );
             } );
-            it( 'should decrease creator weight by correcta value', async () => {
+            it( 'should decrease creator weight by correct value', async () => {
                 const creator_weight = await UserWobjects.findOne( { user_name: mocks.creator.name, author_permlink: mocks.author_permlink } );
                 expect( creator_weight.weight ).to.eq( 1000 * 0.75 * -1 );
             } );
-            it( 'should increase voter weight by correct value', async () => {
+            it( 'should not create voter user_wobject doc', async () => {
                 const voter_weight = await UserWobjects.findOne( { user_name: mocks.voter.name, author_permlink: mocks.author_permlink } );
-                expect( voter_weight.weight ).to.eq( 1000 * 0.25 );
+                expect( voter_weight ).to.not.exist;
             } );
 
             it( 'should not create duplicates on active_votes', async () => {
