@@ -1,6 +1,6 @@
 const { Post, Wobj } = require( '../models' );
 const { postsUtil } = require( '../utilities/steemApi' );
-const { detectPostLanguageHelper } = require( '../utilities/helpers' );
+const { detectPostLanguageHelper, postHelper } = require( '../utilities/helpers' );
 const { User } = require( '../models' );
 const { commentRefSetter } = require( '../utilities/commentRefService' );
 const { postWithWobjValidator } = require( '../validator' );
@@ -41,6 +41,7 @@ const createOrUpdatePost = async function ( data ) {
 
     if ( !existing.post ) {
         post.active_votes = [];
+        post._id = postHelper.objectIdFromDateString( post.createdAt || Date.now() );
     } else {
         post.active_votes = post.active_votes.map( ( vote ) => {
             return {
