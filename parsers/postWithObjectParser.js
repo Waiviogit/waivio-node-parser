@@ -35,7 +35,7 @@ const createOrUpdatePost = async function ( data ) {
     Object.assign( post, data ); // assign to post fields wobjects and app
 
     // validate post data
-    if( !postWithWobjValidator( { wobjects: data.wobjects } ) ) return;
+    if( !postWithWobjValidator.validate( { wobjects: data.wobjects } ) ) return;
 
     const existing = await Post.findOne( { author: data.author, permlink: data.permlink } );
 
