@@ -2,7 +2,7 @@ const { ObjectType, faker, getRandomString, commentRefSetter } = require( '../..
 
 const Create = async ( { name, author, permlink, updates_blacklist } = {} ) => {
     const data = {
-        name: name || faker.name.firstName().toLowerCase(),
+        name: name || getRandomString( 10 ),
         author: author || faker.name.firstName().toLowerCase(),
         permlink: permlink || getRandomString(),
         updates_blacklist: updates_blacklist || []
