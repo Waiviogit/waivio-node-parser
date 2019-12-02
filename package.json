@@ -11,7 +11,7 @@
   "scripts": {
     "fixEmptyWobject": "node ./utilities/tasks/appendWobjectFields/run.js",
     "fillWobjectNames": "node ./utilities/tasks/fillWobjectNames/run.js",
-    "appendEmptyWobjFields": "node ./utilities/tasks/appendWobjectFields/run.js && node ./utilities/tasks/fillWobjectNames/run.js www.waivio.com",
+    "appendEmptyWobjFields": "node ./utilities/tasks/appendWobjectFields/run.js && node ./utilities/tasks/fillWobjectNames/run.js ",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test nyc --reporter=html mocha"
   },
