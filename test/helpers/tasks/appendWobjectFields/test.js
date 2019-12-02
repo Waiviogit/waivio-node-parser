@@ -54,9 +54,9 @@ describe( 'On appendWobjectFields', async () => {
             mock = mocks( { getError: true } );
             wobjectOpsStub = proxyquire( '../../../../utilities/tasks/appendWobjectFields/wobjectsOperations',
                 { './getComments': () => mock } );
-            sinon.spy( fs, 'appendFileSync' );
+            sinon.spy( fs, 'writeFileSync' );
             await wobjectOpsStub.appendFields();
-            expect( fs.appendFileSync.calledOnce ).to.true;
+            expect( fs.writeFileSync.calledOnce ).to.true;
         } );
         it( 'should not append fields with incorrect data from steem api', async () => {
             mock = mocks( { parent_permlink: wobject.author_permlink, parent_author: wobject.author } );
