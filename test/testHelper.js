@@ -26,6 +26,7 @@ const { Mongoose } = require( '../database' );
 const { redis, redisGetter, redisSetter } = require( '../utilities/redis' );
 const { commentRefGetter, commentRefSetter } = require( '../utilities/commentRefService' );
 const faker = require( 'faker' );
+const wobjectOperations = require( '../utilities/tasks/appendWobjectFields/wobjectsOperations' );
 
 const getRandomString = ( length = 5 ) => {
     return faker.internet.password( length, false, /[a-z]/ );
@@ -48,6 +49,7 @@ module.exports = {
     postWithObjectParser,
     voteParser,
     userParsers,
+    wobjectOperations,
     ObjectType,
     WObject,
     Post,
