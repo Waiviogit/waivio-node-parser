@@ -6,8 +6,7 @@ const fillEmptyFields = async ( emptyWobjects, host ) => {
     if ( _.isArray( emptyWobjects ) && host && host.match( /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ ) ) {
         let notAppended = [];
         for ( let wobject of emptyWobjects ) {
-            // const result = await objectBotRequest( wobject, host );
-            const result = 200;
+            const result = await objectBotRequest( wobject, host );
             if ( result !== 200 ) {
                 console.log( `Some problems with append field to wobject: author: ${wobject.author} permlink: ${wobject.author_permlink}` );
                 notAppended.push( wobject );
