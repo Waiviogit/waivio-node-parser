@@ -21,4 +21,3 @@ module.exports = async ( author, permlink ) => {
         return { err };
     }
 };
-

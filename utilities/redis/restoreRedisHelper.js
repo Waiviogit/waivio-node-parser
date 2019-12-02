@@ -1,4 +1,4 @@
-const { Wobj, Post, ObjectType } = require( '../../models' );
+const { Wobj, Post, ObjectType, CommentRef } = require( '../../models' );
 const { postRefsClient } = require( './redis' );
 const redisSetter = require( './redisSetter' );
 
@@ -19,7 +19,7 @@ const restoreWobjectsRefs = async function () {
     if ( wobjects && wobjects.length ) {
         wobjectsCount += wobjects.length;
         for ( const wobject of wobjects ) {
-            await redisSetter.addWobjRef( `${wobject.author}_${wobject.author_permlink}`, wobject.author_permlink );
+            await CommentRef.addWobjRef( { comment_path: `${wobject.author}_${wobject.author_permlink}`, root_wobj: wobject.author_permlink } );
             const { fields } = await Wobj.getFieldsRefs( wobject.author_permlink ); // get refs of all fields in wobj
 
             if ( fields && fields.length ) {
@@ -60,3 +60,7 @@ const restoreObjectTypesRefs = async () => {
 };
 
 module.exports = { restore };
+
+( async () => {
+    await restoreWobjectsRefs();
+} )();

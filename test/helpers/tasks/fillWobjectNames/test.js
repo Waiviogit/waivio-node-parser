@@ -16,7 +16,7 @@ describe( 'On fillEmptyFields', async () => {
         mocks = mock();
         wobjectOpsStub = proxyquire( '../../../../utilities/tasks/fillWobjectNames/wobjectOperations',
             { './objectBotRequest': () => 200 } );
-        await wobjectOpsStub.fillEmptyFields( mocks, 'www.waivio.com' );
+        await wobjectOpsStub.fillEmptyFields( mocks, 'www.waiviodev.com' );
         expect( fs.writeFileSync.called ).to.false;
     } );
     it( 'should call fs writeFile method if list of objects without fields will not be empty', async () => {
@@ -29,7 +29,7 @@ describe( 'On fillEmptyFields', async () => {
     it( 'shouldnt entry to method if list of wobjects with will be empty ', async () => {
         sinon.spy( console, 'log' );
         mocks = mock( true );
-        await wobjectOperations.fillEmptyFields( mocks, 'www.waivio.com' );
+        await wobjectOperations.fillEmptyFields( mocks, 'www.waiviodev.com' );
         expect( console.log.calledOnce ).to.true;
     } );
     it( 'should not get error without input data', async () => {

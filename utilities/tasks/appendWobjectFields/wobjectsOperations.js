@@ -20,12 +20,13 @@ const appendWobjectFields = async ( wobject ) => {
     if ( err ) console.error( err );
     if ( !comments || !comments.length ) {
         console.log( `wobject, author: ${wobject.author}, permlink: ${wobject.author_permlink} has no comments with appends` );
-        return true ;
+        return false ;
     }
     for ( let comment of comments ) {
         if ( !comment.metadata.wobj ) continue;
         await appendObjectParser.parse( comment.operation, comment.metadata );
     }
+    return true;
 };
 
 const appendFields = async () => {
@@ -33,12 +34,12 @@ const appendFields = async () => {
     const { result: wobjWithoutFields } = await getWobjects();
     for ( let wobject of wobjWithoutFields ) {
         const result = await appendWobjectFields( wobject );
-        if ( result ) {
+        if ( !result ) {
             emptyWobjects.push( wobject );
         }
     }
     fs.writeFileSync( './utilities/tasks/resources/emptyWobjects.json', JSON.stringify( emptyWobjects ) );
-    console.log( 'Successfully end' );
+    console.log( 'Successfully completed adding the found fields to objects and recording empty objects to file' );
 };
 
 module.exports = { appendFields };
