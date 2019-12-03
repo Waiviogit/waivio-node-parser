@@ -206,8 +206,8 @@ describe( 'User Model', async () => {
     describe( 'On update', async () => {
         let firstUser, secondUser, updateData, condition, updatedUser, updatedUser2, result;
         beforeEach( async () => {
-            secondUser = await UserFactory.Create();
-            firstUser = await UserFactory.Create();
+            secondUser = await UserFactory.Create( { count_posts: 0 } );
+            firstUser = await UserFactory.Create( { count_posts: 0 } );
 
             condition = {
                 count_posts: 0

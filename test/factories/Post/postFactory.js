@@ -17,10 +17,11 @@ const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_aut
         author: author || faker.name.firstName().toLowerCase(),
         permlink: getRandomString( 20 ),
         title: faker.address.city(),
-        body: getRandomString( 100 ),
+        body: faker.lorem.sentence(),
         json_metadata: JSON.stringify( json_metadata ),
         id: faker.random.number( 10000 ),
-        active_votes
+        active_votes,
+        createdAt: faker.date.recent( 10 ).toString()
     };
 
     for ( const key in additionsForPost ) {

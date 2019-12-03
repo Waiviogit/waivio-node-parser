@@ -36,12 +36,13 @@ const createOrUpdatePost = async function ( data ) {
 
     // validate post data
     if( !postWithWobjValidator.validate( { wobjects: data.wobjects } ) ) return;
-
+    // find post in DB
     const existing = await Post.findOne( { author: data.author, permlink: data.permlink } );
 
     if ( !existing.post ) {
         post.active_votes = [];
         post._id = postHelper.objectIdFromDateString( post.createdAt || Date.now() );
+        await User.increaseCountPosts( data.author );
     } else {
         post.active_votes = post.active_votes.map( ( vote ) => {
             return {
@@ -59,7 +60,6 @@ const createOrUpdatePost = async function ( data ) {
     const { result: updPost, error } = await Post.update( post );
     if ( error ) return { error };
 
-    await User.increaseCountPosts( data.author );
     for( const author_permlink of data.wobjects.map( ( w ) => w.author_permlink ) ) {
         await Wobj.pushNewPost( { author_permlink, post_id: updPost._id } );
     }
