@@ -9,11 +9,12 @@ const {
     voteParser,
     userParsers
 } = require( '../parsers' );
-const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, votePostHelper, appHelper, postByTagsHelper, ratingHelper, detectPostLanguageHelper } = require( '../utilities/helpers' );
+const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, postHelper,
+    votePostHelper, appHelper, postByTagsHelper, ratingHelper, detectPostLanguageHelper } = require( '../utilities/helpers' );
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { importTags } = require( '../utilities/objectImportServiceApi' );
-const { ObjectType, WObject, Post, User, UserWobjects, App } = require( '../database' ).models;
+const { ObjectType, WObject, Post, User, UserWobjects, App, CommentRef } = require( '../database' ).models;
 const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel } = require( '../models' );
 const sinon = require( 'sinon' );
 const chai = require( 'chai' );
@@ -73,11 +74,13 @@ module.exports = {
     appendObjectValidator,
     WobjModel,
     App,
+    CommentRef,
     appHelper,
     importTags,
     postByTagsHelper,
     ratingHelper,
     detectPostLanguageHelper,
+    postHelper,
     AppModel,
     ObjectTypeModel,
     PostModel,
