@@ -89,7 +89,7 @@ module.exports = async ( { title = '', body = '', author } = {} ) => {
 /**
  * Get preferred user languages, get from read_languages, language of interface and postLanguages
  * @param name Uniq STEEM user name
- * @returns {Promise<*[]>} Array of languages (if format 'en-US', 'ru-RU') or empty array
+ * @returns {Promise<*[{String}]>} Array of languages (if format 'en-US', 'ru-RU') or empty array
  */
 const getUserLanguages = async ( name ) => {
     const user = await User.findOne( { name: name }, { _id: 0, read_locales: 1, 'user_metadata.settings': 1 } );

@@ -9,11 +9,12 @@ const {
     voteParser,
     userParsers
 } = require( '../parsers' );
-const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, votePostHelper, appHelper, postByTagsHelper, ratingHelper, detectPostLanguageHelper } = require( '../utilities/helpers' );
+const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, postHelper,
+    votePostHelper, appHelper, postByTagsHelper, ratingHelper, detectPostLanguageHelper } = require( '../utilities/helpers' );
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { importTags } = require( '../utilities/objectImportServiceApi' );
-const { ObjectType, WObject, Post, User, UserWobjects, App } = require( '../database' ).models;
+const { ObjectType, WObject, Post, User, UserWobjects, App, CommentRef } = require( '../database' ).models;
 const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel } = require( '../models' );
 const sinon = require( 'sinon' );
 const chai = require( 'chai' );
@@ -26,6 +27,7 @@ const { Mongoose } = require( '../database' );
 const { redis, redisGetter, redisSetter } = require( '../utilities/redis' );
 const { commentRefGetter, commentRefSetter } = require( '../utilities/commentRefService' );
 const faker = require( 'faker' );
+const wobjectOperations = require( '../utilities/tasks/appendWobjectFields/wobjectsOperations' );
 
 const getRandomString = ( length = 5 ) => {
     return faker.internet.password( length, false, /[a-z]/ );
@@ -48,6 +50,7 @@ module.exports = {
     postWithObjectParser,
     voteParser,
     userParsers,
+    wobjectOperations,
     ObjectType,
     WObject,
     Post,
@@ -71,11 +74,13 @@ module.exports = {
     appendObjectValidator,
     WobjModel,
     App,
+    CommentRef,
     appHelper,
     importTags,
     postByTagsHelper,
     ratingHelper,
     detectPostLanguageHelper,
+    postHelper,
     AppModel,
     ObjectTypeModel,
     PostModel,

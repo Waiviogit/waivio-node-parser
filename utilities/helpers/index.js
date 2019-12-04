@@ -7,5 +7,6 @@ module.exports = {
     updateSpecificFieldsHelper: require( './updateSpecificFieldsHelper' ),
     appHelper: require( './appHelper' ),
     detectPostLanguageHelper: require( './detectPostLanguageHelper' ),
-    chosenPostHelper: require( './chosenPostHelper' )
+    chosenPostHelper: require( './chosenPostHelper' ),
+    postHelper: require( './postHelper' )
 };
