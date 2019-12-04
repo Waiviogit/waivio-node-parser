@@ -38,6 +38,7 @@ const appendFields = async () => {
             emptyWobjects.push( wobject );
         }
     }
+    if ( !fs.existsSync( './utilities/tasks/resources' ) ) fs.mkdirSync( './utilities/tasks/resources' );
     fs.writeFileSync( './utilities/tasks/resources/emptyWobjects.json', JSON.stringify( emptyWobjects ) );
     console.log( 'Successfully completed adding the found fields to objects and recording empty objects to file' );
 };

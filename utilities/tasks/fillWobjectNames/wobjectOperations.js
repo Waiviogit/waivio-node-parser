@@ -14,6 +14,7 @@ const fillEmptyFields = async ( emptyWobjects, host ) => {
             }
             console.log( `Successfully append field to wobject: author: ${wobject.author} permlink: ${wobject.author_permlink}` );
         }
+        if ( !fs.existsSync( '../resources' ) ) fs.mkdirSync( '../resources' );
         if ( !_.isEmpty( notAppended ) ) fs.writeFileSync( './utilities/tasks/resources/notAppended.json', JSON.stringify( notAppended ) );
         console.log( 'Successfully finished' );
         return;
