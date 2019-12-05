@@ -29,7 +29,7 @@ describe( 'ObjectTypeModel', async () => {
         } );
         it( 'should check objectTypes for identity', async () => {
             const res = await ObjectTypeModel.getOne( { name: objectType.name } );
-            expect( res.objectType ).to.deep.eq( objectType._doc );
+            expect( res.objectType ).to.deep.eq( objectType );
         } );
     } );
     describe( 'On create', async () => {

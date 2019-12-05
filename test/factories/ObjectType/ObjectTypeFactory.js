@@ -8,10 +8,10 @@ const Create = async ( { name, author, permlink, updates_blacklist } = {} ) => {
         updates_blacklist: updates_blacklist || []
     };
 
-    const objectType = await ObjectType.create( data );
+    const objectType = await ObjectType.findOneAndUpdate( { name: data.name }, data, { upsert: true, new: true, setDefaultsOnInsert: true } );
 
     await commentRefSetter.addWobjTypeRef( `${data.author}_${ data.permlink}`, data.name );
-    return objectType;
+    return objectType._doc;
 };
 
 module.exports = { Create };
