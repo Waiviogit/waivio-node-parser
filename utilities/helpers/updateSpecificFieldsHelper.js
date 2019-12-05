@@ -16,28 +16,28 @@ const update = async ( author, permlink, author_permlink ) => {
         case 'parent' :
             const { wobjects: wobjParent } = await Wobj.getSomeFields( 'parent', author_permlink );
 
-            if ( wobjParent && Array.isArray( wobjParent ) && wobjParent[ 0 ].fields && Array.isArray( wobjParent[ 0 ].fields ) ) {
+            if ( _.isArray( _.get( wobjParent, '[0].fields' ) ) && _.get( wobjParent, '[0].fields[0]' ) ) {
                 await Wobj.update( { author_permlink }, { parent: wobjParent[ 0 ].fields[ 0 ] } );
             }
             break;
         case 'tagCloud' :
             const { wobjects: wobjTagCloud } = await Wobj.getSomeFields( 'tagCloud', author_permlink );
 
-            if( wobjTagCloud && Array.isArray( wobjTagCloud ) && wobjTagCloud[ 0 ].fields && Array.isArray( wobjTagCloud[ 0 ].fields ) ) {
+            if( _.isArray( _.get( wobjTagCloud, '[0].fields' ) ) && _.get( wobjTagCloud, '[0].fields[0]' ) ) {
                 await Wobj.update( { author_permlink }, { tagClouds: wobjTagCloud[ 0 ].fields.slice( 0, TAG_CLOUDS_UPDATE_COUNT ) } );
             }
             break;
         case 'rating' :
             const { wobjects: wobjRating } = await Wobj.getSomeFields( 'rating', author_permlink );
 
-            if( wobjRating && Array.isArray( wobjRating ) && wobjRating[ 0 ].fields && Array.isArray( wobjRating[ 0 ].fields ) ) {
+            if( _.isArray( _.get( wobjRating, '[0].fields' ) ) && _.get( wobjRating, '[0].fields[0]' ) ) {
                 await Wobj.update( { author_permlink }, { ratings: wobjRating[ 0 ].fields.slice( 0, RATINGS_UPDATE_COUNT ) } );
             }
             break;
         case 'newsFilter' :
             const { wobjects: wobjNewsFilter } = await Wobj.getSomeFields( 'newsFilter', author_permlink );
 
-            if( wobjNewsFilter && Array.isArray( wobjNewsFilter ) && wobjNewsFilter[ 0 ].fields && Array.isArray( wobjNewsFilter[ 0 ].fields ) ) {
+            if( _.isArray( _.get( wobjNewsFilter, '[0].fields' ) ) && _.get( wobjNewsFilter, '[0].fields[0]' ) ) {
                 let newsFilter;
 
                 try{
@@ -54,7 +54,7 @@ const update = async ( author, permlink, author_permlink ) => {
         case 'map' :
             const { wobjects: wobjMap } = await Wobj.getSomeFields( 'map', author_permlink );
 
-            if( wobjMap && Array.isArray( wobjMap ) && Array.isArray( wobjMap[ 0 ].fields ) ) {
+            if( _.isArray( _.get( wobjMap, '[0].fields' ) ) && _.get( wobjMap, '[0].fields[0]' ) ) {
                 let map;
 
                 try{
@@ -89,7 +89,34 @@ const update = async ( author, permlink, author_permlink ) => {
 
             if( status ) await Wobj.update( { author_permlink }, { status: JSON.parse( status ) } );
             break;
+        case 'tagCategory' :
+            await updateTagCategories( author_permlink );
+            break;
+        case 'categoryItem' :
+            await updateTagCategories( author_permlink );
+            break;
     }
+};
+
+const updateTagCategories = async ( author_permlink ) => {
+    let tagCategories = [];
+    const { wobject: tagCategoriesWobj } = await Wobj.getOne( { author_permlink } );
+    tagCategories = _.chain( tagCategoriesWobj )
+        .get( 'fields', [] )
+        .filter( ( i ) => i.name === 'tagCategory' || i.name === 'categoryItem' )
+        .groupBy( 'id' )
+        // here is array of arrays
+        .reduce( ( result, items ) => {
+            let category = {};
+            for( let i = 0; i < items.length; i++ ) {
+                if( items[ i ].name === 'tagCategory' )
+                    category = items.splice( i, 1 )[ 0 ];
+            }
+            result.push( { ...category, categoryItems: [ ...items.map( ( i ) => ( { locale: i.locale, name: i.body, weight: i.weight } ) ) ] } );
+            return result;
+        }, [] )
+        .value();
+    await Wobj.update( { author_permlink }, { tagCategories } );
 };
 
 module.exports = { update };
