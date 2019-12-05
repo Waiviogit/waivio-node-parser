@@ -1,4 +1,5 @@
 const wobjectOperations = require( './wobjectOperations' );
+const fs = require( 'fs' );
 if ( !fs.existsSync( './utilities/tasks/resources' ) ) {
     fs.mkdirSync( './utilities/tasks/resources' );
     fs.writeFileSync( './utilities/tasks/resources/emptyWobjects.json', [] );

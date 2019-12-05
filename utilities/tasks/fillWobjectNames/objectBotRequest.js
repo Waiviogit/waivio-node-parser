@@ -12,8 +12,8 @@ module.exports = async ( wobject, host ) => {
                 body: `rutrader added name (en-US):  ${wobject.default_name}`,
                 title: '',
                 field: {
-                    name: wobject.default_name,
-                    body: 'name',
+                    name: 'name',
+                    body: wobject.default_name,
                     locale: 'en-US'
                 }
             } );
