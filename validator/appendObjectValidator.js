@@ -130,8 +130,8 @@ const validateSpecifiedFields = async ( data ) => {
                 .get( 'fields', [] )
                 .find( { name: 'categoryItem', body: data.field.body, id: data.field.id } )
                 .value();
-            if( !existItem )
-                throw new Error( `Can't append tagCategory ${data.field.body}, category with the same "id" exists` );
+            if( existItem )
+                throw new Error( `Can't append categoryItem ${data.field.body}, item with the same "id" and "body" exist` );
             break;
     }
 };
