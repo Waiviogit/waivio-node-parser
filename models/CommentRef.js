@@ -2,6 +2,8 @@ const { CommentRef } = require( '../database' ).models;
 const { COMMENT_REF_TYPES } = require( '../utilities/constants' );
 
 const create = async ( data ) => {
+    if( await isExist( data.comment_path ) )
+        return { commentRef: await CommentRef.findOne( { comment_path: data.comment_path } ).lean() };
     const newCommentRef = new CommentRef( data );
     try {
         return { commentRef: await newCommentRef.save() };
@@ -36,6 +38,15 @@ exports.getRef = async ( comment_path ) => {
         return{ commentRef };
     } catch ( error ) {
         return { error };
+    }
+};
+
+const isExist = async ( comment_path ) => {
+    try {
+        const count = await CommentRef.find( { comment_path } ).count();
+        return!!count;
+    } catch ( error ) {
+        return false;
     }
 };
 
