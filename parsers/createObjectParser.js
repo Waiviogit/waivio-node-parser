@@ -1,31 +1,27 @@
 const { Wobj, User } = require( '../models' );
 const { createObjectValidator } = require( '../validator' );
 const { commentRefSetter, commentRefGetter } = require( '../utilities/commentRefService' );
+const { wobjectHelper } = require( '../utilities/helpers' );
 
-const parse = async function ( operation, metadata ) {
-    try {
-        const data = {
-            author_permlink: operation.permlink,
-            author: operation.author,
-            creator: metadata.wobj.creator,
-            app: metadata.app,
-            community: metadata.community,
-            is_posting_open: metadata.wobj.is_posting_open,
-            is_extending_open: metadata.wobj.is_extending_open,
-            default_name: metadata.wobj.default_name
-            // object_type: metadata.wobj.object_type.toLowerCase()
-        };
-        const res = await createObject( data, operation );
-        if( res.error ) console.error( res.error );
-        if ( res ) {
-            console.log( `Waivio object ${data.default_name} created!\n` );
-        }
-    } catch ( error ) {
-        console.error( error );
-    }
+
+const parse = async ( operation, metadata ) => {
+    const data = {
+        author_permlink: operation.permlink,
+        author: operation.author,
+        creator: metadata.wobj.creator,
+        app: metadata.app,
+        community: metadata.community,
+        is_posting_open: metadata.wobj.is_posting_open,
+        is_extending_open: metadata.wobj.is_extending_open,
+        default_name: metadata.wobj.default_name
+    };
+    const { wobject, error } = await createObject( data, operation );
+    if( error ) console.error( error );
+    if ( wobject ) console.log( `Waivio object ${data.default_name} created!\n` );
+    await wobjectHelper.addSupposedUpdates( wobject );
 };
 
-const createObject = async function ( data, operation ) {
+const createObject = async ( data, operation ) => {
     try {
         await createObjectValidator.validate( data, operation );
 
@@ -42,7 +38,7 @@ const createObject = async function ( data, operation ) {
             weight: 1
         } );
 
-        return wObject._doc;
+        return { wobject: wObject.toObject() };
     } catch ( error ) {
         return { error };
     }
