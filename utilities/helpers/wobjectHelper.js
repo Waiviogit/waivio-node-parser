@@ -1,4 +1,4 @@
-const { ObjectType } = require( '../models' );
+const { ObjectType } = require( '../../models' );
 const { uuid } = require( 'uuidv4' );
 const _ = require( 'lodash' );
 
