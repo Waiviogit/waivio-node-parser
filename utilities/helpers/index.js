@@ -8,5 +8,6 @@ module.exports = {
     appHelper: require( './appHelper' ),
     detectPostLanguageHelper: require( './detectPostLanguageHelper' ),
     chosenPostHelper: require( './chosenPostHelper' ),
-    postHelper: require( './postHelper' )
+    postHelper: require( './postHelper' ),
+    wobjectHelper: require( './wobjectHelper' )
 };

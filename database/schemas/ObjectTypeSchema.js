@@ -14,7 +14,14 @@ const ObjectTypeSchema = new Schema( {
         } ],
         default: []
     },
-    updates_blacklist: { type: [ String ], default: [] }
+    updates_blacklist: { type: [ String ], default: [] },
+    supposed_updates: {
+        type: [ {
+            name: String, // name of supposed update(name, title, rating etc.)
+            values: [], // list of supposed values (if need to add several updates, for ex. ratings Taste, Atmosphere etc.)
+            id_path: String // if "id_path" null - do not add any "id" field
+        } ], default: []
+    }
 },
 {
     toObject: { virtuals: true }, timestamps: true
