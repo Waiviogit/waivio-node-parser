@@ -1,4 +1,5 @@
 const { ObjectType } = require( '../../models' );
+const { importUpdates } = require( '../objectImportServiceApi' );
 const { uuid } = require( 'uuidv4' );
 const _ = require( 'lodash' );
 
@@ -20,21 +21,21 @@ const addSupposedUpdates = async ( wobject ) => {
             let field = {
                 name: update.name,
                 body: value,
-                permlink: `${wobject}-${update.name}-${randomString( 5 )}`,
+                permlink: `${wobject.author_permlink}-${update.name}-${randomString( 5 )}`,
                 creator: 'monterey'
             };
             if( update.id_path ) field[ update.id_path ] = uuid();
             importWobjData.fields.push( field );
         } );
     } );
+    await importUpdates.send( [ importWobjData ] );
 };
 
-const randomString = ( length ) => {
+const randomString = ( length = 5 ) => {
     let result = '';
     let characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let charactersLength = characters.length;
     for ( let i = 0; i < length; i++ ) {
-        result += characters.charAt( Math.floor( Math.random() * charactersLength ) );
+        result += characters.charAt( Math.floor( Math.random() * characters.length ) );
     }
     return result;
 };
