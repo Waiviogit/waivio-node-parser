@@ -38,7 +38,7 @@ const createObject = async ( data, operation ) => {
             weight: 1
         } );
 
-        return { wobject: wObject._doc };
+        return { wobject: wObject.toObject() };
     } catch ( error ) {
         return { error };
     }

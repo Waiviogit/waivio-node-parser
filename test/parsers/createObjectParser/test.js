@@ -1,5 +1,5 @@
 const { getMocksData } = require( './mocks' );
-const { createObjectParser, WObject, expect, redisGetter, User, UserWobjects } = require( '../../testHelper' );
+const { createObjectParser, WObject, expect, redisGetter, User, UserWobjects, wobjectHelper, sinon } = require( '../../testHelper' );
 
 describe( 'Object parser', async () => {
     describe( 'when parse valid data', async () => {
@@ -8,9 +8,12 @@ describe( 'Object parser', async () => {
 
         beforeEach( async () => {
             mockData = await getMocksData();
+            sinon.spy( wobjectHelper, 'addSupposedUpdates' );
             await createObjectParser.parse( mockData.operation, mockData.metadata );
             wobject = await WObject.findOne( { author_permlink: mockData.operation.permlink } ).lean();
         } );
+        afterEach( async () => wobjectHelper.addSupposedUpdates.restore() );
+
         describe( 'wobject', async () => {
             it( 'should creating in database', async () => {
                 expect( wobject ).to.exist;
@@ -65,5 +68,16 @@ describe( 'Object parser', async () => {
             } );
 
         } );
+        describe( 'wobjectHelper addSupposedUpdates', async () => {
+            it( 'should be called once', () => {
+                expect( wobjectHelper.addSupposedUpdates ).to.be.calledOnce;
+            } );
+            it( 'should be called with correct params', () => {
+                wobject.id = wobject._id.toString();
+                const call1 = wobjectHelper.addSupposedUpdates.getCall( 0 );
+                expect( call1.args[ 0 ] ).to.be.deep.eq( wobject );
+            } );
+        } );
+
     } );
 } );
