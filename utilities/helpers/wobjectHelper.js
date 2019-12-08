@@ -9,6 +9,7 @@ const _ = require( 'lodash' );
  * @param wobject {Object}
  */
 const addSupposedUpdates = async ( wobject ) => {
+    if( !_.get( wobject, 'object_type' ) ) return;
     const { objectType, error: objTypeError } = await ObjectType.getOne( { name: wobject.object_type } );
     if( objTypeError ) return { error: objTypeError };
 
