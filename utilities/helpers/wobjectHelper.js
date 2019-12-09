@@ -22,7 +22,7 @@ const addSupposedUpdates = async ( wobject ) => {
             let field = {
                 name: update.name,
                 body: value,
-                permlink: `${wobject.author_permlink}-${update.name}-${randomString( 5 )}`,
+                permlink: `${wobject.author_permlink}-${update.name.toLowerCase()}-${randomString( 5 )}`,
                 creator: 'monterey'
             };
             if( update.id_path ) field[ update.id_path ] = uuid();
