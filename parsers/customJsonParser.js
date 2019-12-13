@@ -14,7 +14,8 @@ exports.parse = async ( operation ) => {
         case 'follow' :
             await userParsers.followUserParser( operation );
             break;
-        // guests operations
+
+        // guests operations below //
         case 'waivio_guest_create' :
             // waivio_guest_create
             break;
@@ -22,7 +23,7 @@ exports.parse = async ( operation ) => {
             // waivio_guest_update
             break;
         case 'waivio_guest_vote' :
-            // waivio_guest_vote
+            await customJsonOperations.guestVote( operation );
             break;
         case 'waivio_guest_follow' :
             await customJsonOperations.followUser( operation );
