@@ -65,11 +65,9 @@ const voteAppendObject = async function ( data ) {
 
 const votePostWithObjects = async function ( data ) { // data include: post, metadata, voter, percent
     data.post = data.posts.find( ( p ) => p.author === data.author && p.permlink === data.permlink );
-    if ( !data.post ) {
-        return;
-    }
-    let metadata;
+    if ( !data.post )return;
 
+    let metadata;
     try {
         if ( data.post.json_metadata !== '' ) {
             metadata = JSON.parse( data.post.json_metadata ); // parse json_metadata from string to JSON
@@ -77,9 +75,7 @@ const votePostWithObjects = async function ( data ) { // data include: post, met
     } catch ( e ) {
         console.error( e );
     }
-    if ( !metadata ) {
-        return;
-    }
+    if ( !metadata ) return;
     if ( !metadata.wobj ) {
         metadata.wobj = { wobjects: data.wobjects };
     }
@@ -103,16 +99,16 @@ const getPosts = async function ( postsRefs ) {
 
 const votesFormat = async ( votesOps ) => {
     for ( const voteOp of votesOps ) {
-        const redisResponse = await commentRefGetter.getCommentRef( `${voteOp.author}_${voteOp.permlink}` );
+        const response = await commentRefGetter.getCommentRef( `${voteOp.author}_${voteOp.permlink}` );
 
-        if ( redisResponse && redisResponse.type ) {
-            voteOp.type = redisResponse.type;
-            voteOp.root_wobj = redisResponse.root_wobj;
-            voteOp.wobjects = redisResponse.wobjects ? JSON.parse( redisResponse.wobjects ) : [];
-            voteOp.name = redisResponse.name;
+        if ( _.get( response, 'type' ) ) {
+            voteOp.type = response.type;
+            voteOp.root_wobj = response.root_wobj;
+            voteOp.wobjects = response.wobjects ? JSON.parse( response.wobjects ) : [];
+            voteOp.name = response.name;
         }
     }
     return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
-module.exports = { parse };
+module.exports = { parse, votesFormat };

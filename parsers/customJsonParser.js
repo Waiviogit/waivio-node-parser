@@ -1,6 +1,7 @@
 const followObjectParser = require( './followObjectParser' );
 const userParsers = require( './userParsers' );
 const { ratingHelper } = require( '../utilities/helpers' );
+const { customJsonOperations } = require( '../utilities/guestOperations' );
 
 exports.parse = async ( operation ) => {
     switch ( operation[ 1 ].id ) {
@@ -24,11 +25,10 @@ exports.parse = async ( operation ) => {
             // waivio_guest_vote
             break;
         case 'waivio_guest_follow' :
-            // waivio_guest_follow
+            await customJsonOperations.followUser( operation );
             break;
         case 'waivio_guest_follow_wobject' :
-            // waivio_guest_follow
+            await customJsonOperations.followWobject( operation );
             break;
-
     }
 };
