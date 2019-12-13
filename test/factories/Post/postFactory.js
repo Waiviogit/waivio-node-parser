@@ -1,4 +1,4 @@
-const { faker, getRandomString, Post } = require( '../../testHelper' );
+const { faker, getRandomString, Post, commentRefSetter } = require( '../../testHelper' );
 const _ = require( 'lodash' );
 
 const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_author, parent_permlink, additionsForPost = {}, active_votes = [], app } = {} ) => { // additionsForMetadata(Post) must be an Object
@@ -31,6 +31,7 @@ const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_aut
         return post;
     }
     const new_post = await Post.create( post );
+    await commentRefSetter.addPostRef( `${post.author}_${post.permlink}`, _.get( additionsForMetadata, 'wobj.wobjects', [] ) );
 
     return new_post.toObject();
 };
