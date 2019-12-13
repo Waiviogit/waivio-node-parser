@@ -42,7 +42,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
 };
 
 const voteAppendObject = async function ( data ) {
-    // data include: author, permlink, percent, voter, author_permlink
+    // data include: author, permlink, percent, voter, author_permlink, posts
     // author and permlink - identity of field
     // author_permlink - identity of wobject
     let { weight, error } = await User.checkForObjectShares( {

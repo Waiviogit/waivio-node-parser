@@ -2,7 +2,7 @@ const userParsers = require( '../../parsers/userParsers' );
 const followObjectParser = require( '../../parsers/followObjectParser' );
 const voteParser = require( '../../parsers/voteParser' );
 const { validateProxyBot } = require( './guestHelpers' );
-const { votePostHelper } = require( '../../utilities/helpers' );
+const { votePostHelper, voteFieldHelper } = require( '../../utilities/helpers' );
 const { Post } = require( '../../models' );
 const _ = require( 'lodash' );
 
@@ -35,7 +35,7 @@ exports.guestVote = async ( operation ) => {
         if( vote.type === 'post_with_wobj' ) {
             await voteOnPost( { vote } );
         } else if ( vote.type === 'append_wobj' ) {
-            // vote on field
+            await voteOnField( { vote } );
         }
     }
 };
@@ -62,6 +62,18 @@ const voteOnPost = async ( { vote } ) => {
         metadata,
         percent: vote.weight,
         ..._.pick( vote, [ 'wobjects', 'author', 'permlink', 'voter' ] )
+    } );
+};
+
+const voteOnField = async ( { vote } ) => {
+    await voteFieldHelper.voteOnField( {
+        author: vote.author,
+        permlink: vote.permlink,
+        voter: vote.voter,
+        author_permlink: vote.root_wobj,
+        percent: vote.weight,
+        weight: 0,
+        rshares_weight: 0
     } );
 };
 
