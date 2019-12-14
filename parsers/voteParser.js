@@ -27,6 +27,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
             voter: voteOp.voter,
             percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
             wobjects: voteOp.wobjects,
+            guest_author: voteOp.guest_author,
             posts
         } );
     } else if ( voteOp.type === 'append_wobj' ) {
@@ -63,7 +64,7 @@ const voteAppendObject = async function ( data ) {
     await voteFieldHelper.voteOnField( data );
 };
 
-const votePostWithObjects = async function ( data ) { // data include: post, metadata, voter, percent
+const votePostWithObjects = async function ( data ) { // data include: posts, metadata, voter, percent, author, permlink, guest_author
     data.post = data.posts.find( ( p ) => p.author === data.author && p.permlink === data.permlink );
     if ( !data.post )return;
 
@@ -106,6 +107,7 @@ const votesFormat = async ( votesOps ) => {
             voteOp.root_wobj = response.root_wobj;
             voteOp.wobjects = response.wobjects ? JSON.parse( response.wobjects ) : [];
             voteOp.name = response.name;
+            voteOp.guest_author = response.guest_author;
         }
     }
     return votesOps;
