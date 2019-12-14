@@ -3,7 +3,7 @@ const followObjectParser = require( '../../parsers/followObjectParser' );
 const voteParser = require( '../../parsers/voteParser' );
 const { validateProxyBot } = require( './guestHelpers' );
 const { votePostHelper, voteFieldHelper } = require( '../../utilities/helpers' );
-const { Post } = require( '../../models' );
+const { Post, User } = require( '../../models' );
 const _ = require( 'lodash' );
 
 exports.followUser = async ( operation ) => {
@@ -37,6 +37,28 @@ exports.guestVote = async ( operation ) => {
         } else if ( vote.type === 'append_wobj' ) {
             await voteOnField( { vote } );
         }
+    }
+};
+
+exports.guestCreate = async ( operation ) => {
+    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]' ) ) ) {
+        const json = parseJson( operation.json );
+        if( !json ) return;
+        if( !json.userId || !json.displayName || !json.json_metadata ) return;
+        const { error: crError } = await User.checkAndCreate( json.userId );
+        if( crError ) {
+            console.error( crError );
+            return;
+        }
+        const { error: updError } = await User.updateOne(
+            { name: json.userId },
+            { json_metadata: json.json_metadata, alias: json.displayName }
+        );
+        if( updError ) {
+            console.error( updError );
+            return;
+        }
+        console.log( `Guest user ${json.userId} updated!` );
     }
 };
 
