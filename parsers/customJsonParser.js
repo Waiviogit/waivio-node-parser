@@ -17,7 +17,7 @@ exports.parse = async ( operation ) => {
 
         // guests operations below //
         case 'waivio_guest_create' :
-            // waivio_guest_create
+            await customJsonOperations.guestCreate( operation );
             break;
         case 'waivio_guest_update' :
             // waivio_guest_update
