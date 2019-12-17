@@ -23,6 +23,8 @@ const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_aut
         active_votes,
         createdAt: faker.date.recent( 10 ).toString()
     };
+    post.root_author = post.author;
+    post.root_permlink = post.permlink;
 
     for ( const key in additionsForPost ) {
         post[ key ] = additionsForPost[ key ];
