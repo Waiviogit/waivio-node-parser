@@ -1,5 +1,5 @@
 const constants = require( '../constants' );
-const METADATA_GUEST_MARKERS = 'userId,displayName,social'.split( ',' );
+const METADATA_GUEST_MARKERS = 'userId,social'.split( ',' );
 const _ = require( 'lodash' );
 
 exports.validateProxyBot = ( username ) => {
