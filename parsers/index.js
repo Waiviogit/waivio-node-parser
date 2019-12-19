@@ -7,5 +7,6 @@ module.exports = {
     voteParser: require( './voteParser' ),
     objectTypeParser: require( './objectTypeParser' ),
     postWithObjectParser: require( './postWithObjectParser' ),
-    userParsers: require( './userParsers' )
+    userParsers: require( './userParsers' ),
+    customJsonParser: require( './customJsonParser' )
 };

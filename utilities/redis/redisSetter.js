@@ -7,12 +7,14 @@ const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
  * Set ref to post to redis
  * @param path {String} author and permlink joined with underline
  * @param wobjects {String} Stringified array of wobjects on post
+ * @param guest_author {String} If post was written from guest user, put here his name
  * @returns {Promise<void>}
  */
-const addPostWithWobj = async function ( path, wobjects ) {
+const addPostWithWobj = async function ( path, wobjects, guest_author ) {
     let wobjectsStr = typeof wobjects === 'string' ? wobjects : JSON.stringify( wobjects );
     await postRefsClient.hsetAsync( path, 'type', COMMENT_REF_TYPES.postWithWobjects );
     await postRefsClient.hsetAsync( path, 'wobjects', wobjectsStr );
+    if( guest_author ) await postRefsClient.hsetAsync( path, 'guest_author', guest_author );
 };
 
 /**

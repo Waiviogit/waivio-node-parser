@@ -1,4 +1,5 @@
 const { User, Wobj } = require( '../models' );
+const _ = require( 'lodash' );
 
 const parse = async function ( data ) {
     let json;
@@ -8,6 +9,11 @@ const parse = async function ( data ) {
     } catch ( error ) {
         console.error( error );
         return( error );
+    }
+    // check author of operation and user which will be updated
+    if( _.get( data, 'required_posting_auths[0]' ) !== _.get( json, '[1].user' ) ) {
+        console.error( 'Can\'t follow, follower and author of operation are different' );
+        return;
     }
     if ( json && json[ 0 ] === 'follow' && json[ 1 ] && json[ 1 ].user && json[ 1 ].author_permlink && json[ 1 ].what ) {
         if ( json[ 1 ].what.length ) { // if field what present - it's follow on object

@@ -12,10 +12,10 @@ const create = async ( data ) => {
     }
 };
 
-exports.addPostRef = async ( { comment_path, wobjects } ) => {
-    return await create( {
-        comment_path, wobjects, type: COMMENT_REF_TYPES.postWithWobjects
-    } );
+exports.addPostRef = async ( { comment_path, wobjects, guest_author } ) => {
+    const data = { comment_path, wobjects, type: COMMENT_REF_TYPES.postWithWobjects };
+    if( guest_author ) data.guest_author = guest_author;
+    return await create( data );
 };
 exports.addWobjRef = async ( { comment_path, root_wobj } ) => {
     return await create( {

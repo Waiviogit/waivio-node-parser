@@ -32,6 +32,7 @@ const wobjectOperations = require( '../utilities/tasks/appendWobjectFields/wobje
 const getRandomString = ( length = 5 ) => {
     return faker.internet.password( length, false, /[a-z]/ );
 };
+faker.random.string = getRandomString;
 
 const dropDatabase = async () => {
     const { models } = require( '../database' );

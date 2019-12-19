@@ -1,5 +1,4 @@
-const { followObjectParser, commentParser, voteParser, userParsers } = require( '../parsers' );
-const { ratingHelper } = require( '../utilities/helpers' );
+const { commentParser, voteParser, userParsers, customJsonParser } = require( '../parsers' );
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 const parseSwitcher = async ( transactions ) => {
@@ -14,17 +13,7 @@ const parseSwitcher = async ( transactions ) => {
                             await commentParser.parse( operation[ 1 ] );
                             break;
                         case 'custom_json' :
-                            switch ( operation[ 1 ].id ) {
-                                case 'follow_wobject' :
-                                    await followObjectParser.parse( operation[ 1 ] );
-                                    break;
-                                case 'wobj_rating' :
-                                    await ratingHelper.parse( operation[ 1 ] );
-                                    break;
-                                case 'follow' :
-                                    await userParsers.followUserParser( operation[ 1 ] );
-                                    break;
-                            }
+                            await customJsonParser.parse( operation[ 1 ] );
                             break;
                         case 'account_update' :
                             await userParsers.updateAccountParser( operation[ 1 ] );
