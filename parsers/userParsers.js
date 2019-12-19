@@ -36,7 +36,7 @@ exports.followUserParser = async ( operation ) => {
         await this.reblogPostParser( { json, account: _.get( operation, 'required_posting_auths[0]' ) } );
     }
     // check author of operation and user which will be updated
-    if( _.get( operation, 'required_posting_auths[0]' ) !== _.get( json, '[1].follower' ) ) {
+    if( _.get( operation, 'required_posting_auths[0]' ) !== _.get( json, '[1].follower' ) && _.get( operation, 'required_auths[0]' ) !== _.get( json, '[1].follower' ) ) {
         console.error( 'Can\'t follow, follower and author of operation are different' );
         return;
     }
