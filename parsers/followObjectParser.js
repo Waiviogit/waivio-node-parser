@@ -11,7 +11,7 @@ const parse = async function ( data ) {
         return( error );
     }
     // check author of operation and user which will be updated
-    if( _.get( data, 'required_posting_auths[0]' ) !== _.get( json, '[1].user' ) ) {
+    if( _.get( data, 'required_posting_auths[0]' ) !== _.get( json, '[1].user' ) && _.get( data, 'required_auths[0]' ) !== _.get( json, '[1].user' ) ) {
         console.error( 'Can\'t follow, follower and author of operation are different' );
         return;
     }
