@@ -9,10 +9,12 @@ const dataForFollow = async ( { follow, error, userName, auth_permlink } = {} ) 
     await ObjectFactory.Create( { author_permlink: author_permlink } );
     if( follow ) {
         return {
-            json: `["follow",{"user": "${name}","author_permlink": "${author_permlink}","what": [{"user": \"rtestser\","author_permlink": \"getRandomString\"}]}]`
+            required_posting_auths: [ name ],
+            json: `["follow",{"user": "${name}","author_permlink": "${author_permlink}","what": ["blog"]}]`
         };
     }
     return {
+        required_posting_auths: [ name ],
         json: `["follow",{"user": "${name}","author_permlink": "${author_permlink}","what": []}]`
     };
 };

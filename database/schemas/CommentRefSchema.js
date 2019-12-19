@@ -8,6 +8,7 @@ const CommentRefSchema = new Schema( {
     wobjects: { type: String, required: function() {
         return this.type === COMMENT_REF_TYPES.postWithWobjects;
     } },
+    guest_author: { type: String },
     name: { type: String, required: function() {
         return this.type === COMMENT_REF_TYPES.wobjType;
     } },

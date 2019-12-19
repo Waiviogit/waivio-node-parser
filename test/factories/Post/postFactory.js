@@ -1,7 +1,7 @@
-const { faker, getRandomString, Post } = require( '../../testHelper' );
+const { faker, getRandomString, Post, commentRefSetter } = require( '../../testHelper' );
 const _ = require( 'lodash' );
 
-const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_author, parent_permlink, additionsForPost = {}, active_votes = [], app } = {} ) => { // additionsForMetadata(Post) must be an Object
+const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_author, parent_permlink, additionsForPost = {}, active_votes = [], app, root_author } = {} ) => { // additionsForMetadata(Post) must be an Object
     const json_metadata = {
         community: 'waiviotest',
         app: app || 'waiviotest',
@@ -23,6 +23,8 @@ const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_aut
         active_votes,
         createdAt: faker.date.recent( 10 ).toString()
     };
+    post.root_author = root_author || post.author;
+    post.root_permlink = post.permlink;
 
     for ( const key in additionsForPost ) {
         post[ key ] = additionsForPost[ key ];
@@ -31,6 +33,11 @@ const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_aut
         return post;
     }
     const new_post = await Post.create( post );
+    await commentRefSetter.addPostRef(
+        `${post.root_author}_${post.permlink}`,
+        _.get( additionsForMetadata, 'wobj.wobjects', [] ),
+        post.author === post.root_author ? null : post.author
+    );
 
     return new_post.toObject();
 };
