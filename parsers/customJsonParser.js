@@ -4,7 +4,7 @@ const { ratingHelper } = require( '../utilities/helpers' );
 const { customJsonOperations } = require( '../utilities/guestOperations' );
 
 exports.parse = async ( operation ) => {
-    switch ( operation[ 1 ].id ) {
+    switch ( operation.id ) {
         case 'follow_wobject' :
             await followObjectParser.parse( operation );
             break;
