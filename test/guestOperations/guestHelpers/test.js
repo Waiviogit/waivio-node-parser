@@ -36,7 +36,7 @@ describe( 'guestHelpers', async () => {
         it( 'should return all items from "comment"', () => {
             const data = {
                 operation: { author: mockListBots[ 0 ] },
-                metadata: { comment: { userId: faker.random.string(), displayName: faker.name.firstName(), social: faker.random.string() } }
+                metadata: { comment: { userId: faker.random.string(), social: faker.random.string() } }
             };
             expect( getFromMetadataGuestInfo( data ) ).to.be.deep.eq( data.metadata.comment );
         } );
@@ -61,19 +61,12 @@ describe( 'guestHelpers', async () => {
             };
             expect( getFromMetadataGuestInfo( data ) ).to.be.undefined;
         } );
-        it( 'should return undefined if displayName isn\'t string', () => {
-            const data = {
-                operation: { author: mockListBots[ 0 ] },
-                metadata: { comment: { userId: faker.random.string(), displayName: faker.random.number(), social: faker.random.string() } }
-            };
-            expect( getFromMetadataGuestInfo( data ) ).to.be.undefined;
-        } );
-        it( 'should return undefined if displayName missing', () => {
+        it( 'should not return undefined if displayName missing', () => {
             const data = {
                 operation: { author: mockListBots[ 0 ] },
                 metadata: { comment: { userId: faker.random.string(), social: faker.random.string() } }
             };
-            expect( getFromMetadataGuestInfo( data ) ).to.be.undefined;
+            expect( getFromMetadataGuestInfo( data ) ).to.not.be.undefined;
         } );
         it( 'should return undefined if userId isn\'t string', () => {
             const data = {
