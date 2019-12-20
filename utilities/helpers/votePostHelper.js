@@ -18,16 +18,7 @@ const voteOnPost = async ( data ) => {
             await upVoteOnPost( data, weight ); // case for up-vote
         }
     }
-    data.post.wobjects = await getWobjectsFromMetadata( data );
-    data.post.app = _.get( data, 'metadata.app', '' );
-    data.post.active_votes = data.post.active_votes.map( ( vote ) => ( {
-        voter: vote.voter,
-        weight: Math.round( vote.rshares * 1e-6 ),
-        percent: vote.percent,
-        rshares: vote.rshares
-    } ) );
-    data.post.author = _.get( data, 'guest_author', data.post.author );
-    await Post.update( data.post ); // update post info in DB
+    await updatePost( data );
 };
 
 
@@ -78,6 +69,27 @@ const upVoteOnPost = async function ( data, weight ) {
             weight: Number( ( voteWeight * 0.25 ).toFixed( 3 ) )
         } );
     }
+};
+
+const updatePost = async ( data ) => {
+    const { post: postInDb, error } = await Post.findOne( { author: _.get( data, 'guest_author', data.post.author ), permlink: data.post.permlink } );
+    if ( !postInDb || error ) return {};
+
+    data.post.wobjects = await getWobjectsFromMetadata( data );
+    data.post.app = _.get( data, 'metadata.app', '' );
+    data.post.active_votes = data.post.active_votes.map( ( vote ) => ( {
+        voter: vote.voter,
+        weight: Math.round( vote.rshares * 1e-6 ),
+        percent: vote.percent,
+        rshares: vote.rshares
+    } ) );
+    postInDb.active_votes.forEach( ( dbVote ) => {
+        if( !data.post.active_votes.find( ( v ) => v.voter === dbVote.voter ) ) {
+            data.post.active_votes.push( dbVote );
+        }
+    } );
+    data.post.author = _.get( data, 'guest_author', data.post.author );
+    await Post.update( data.post ); // update post info in DB
 };
 
 module.exports = { voteOnPost };
