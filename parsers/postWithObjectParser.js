@@ -48,7 +48,7 @@ const createOrUpdatePost = async function ( data ) {
 
     if ( !existing.post ) {
         post.active_votes = [];
-        post._id = postHelper.objectIdFromDateString( post.createdAt || Date.now() );
+        post._id = postHelper.objectIdFromDateString( post.created || Date.now() );
         await User.increaseCountPosts( _.get( data, 'guestInfo.userId', data.author ) );
     } else {
         post.active_votes = post.active_votes.map( ( vote ) => {
