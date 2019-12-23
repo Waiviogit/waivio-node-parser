@@ -53,7 +53,7 @@ describe( 'postWithObjectParser', async () => {
                 expect( res ).to.exist;
             } );
             it( 'should call postHelper.objectIdFromDateString with correct params', () => {
-                expect( postHelper.objectIdFromDateString ).to.be.calledWith( mockPost.createdAt );
+                expect( postHelper.objectIdFromDateString ).to.be.calledWith( mockPost.created );
             } );
             it( 'should create new post in db', async () => {
                 const res = await Post.findOne( { author: mockPost.author, permlink: mockPost.permlink } );
@@ -111,7 +111,7 @@ describe( 'postWithObjectParser', async () => {
                 expect( res ).to.exist;
             } );
             it( 'should call postHelper.objectIdFromDateString with correct params', () => {
-                expect( postHelper.objectIdFromDateString ).to.be.calledWith( mockPost.createdAt );
+                expect( postHelper.objectIdFromDateString ).to.be.calledWith( mockPost.created );
             } );
             it( 'should create new post in db', async () => {
                 const res = await Post.findOne( { author: mockPost.author, permlink: mockPost.permlink } );

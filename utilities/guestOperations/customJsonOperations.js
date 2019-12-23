@@ -7,7 +7,7 @@ const { Post, User } = require( '../../models' );
 const _ = require( 'lodash' );
 
 exports.followUser = async ( operation ) => {
-    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]' ) ) ) {
+    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
         const json = parseJson( operation.json );
         if( !json ) return;
 
@@ -16,8 +16,18 @@ exports.followUser = async ( operation ) => {
     }
 };
 
+exports.reblogPost = async ( operation ) => {
+    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
+        const json = parseJson( operation.json );
+        if( !json ) return;
+
+        operation.required_posting_auths = [ _.get( json, '[1].account' ) ];
+        await userParsers.followUserParser( operation );
+    }
+};
+
 exports.followWobject = async ( operation ) => {
-    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]' ) ) ) {
+    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
         const json = parseJson( operation.json );
         if( !json ) return;
 
@@ -27,7 +37,7 @@ exports.followWobject = async ( operation ) => {
 };
 
 exports.guestVote = async ( operation ) => {
-    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]' ) ) ) {
+    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
         const json = parseJson( operation.json );
         if( !json ) return;
 
@@ -41,7 +51,7 @@ exports.guestVote = async ( operation ) => {
 };
 
 exports.guestCreate = async ( operation ) => {
-    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]' ) ) ) {
+    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
         const json = parseJson( operation.json );
         if( !json ) return;
         if( !json.userId || !json.displayName || !json.json_metadata ) return;

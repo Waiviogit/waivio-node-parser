@@ -21,7 +21,8 @@ const Create = async ( { author, additionsForMetadata = {}, onlyData, parent_aut
         json_metadata: JSON.stringify( json_metadata ),
         id: faker.random.number( 10000 ),
         active_votes,
-        createdAt: faker.date.recent( 10 ).toString()
+        createdAt: faker.date.recent( 10 ).toString(),
+        created: faker.date.recent( 10 ).toString()
     };
     post.root_author = root_author || post.author;
     post.root_permlink = post.permlink;
