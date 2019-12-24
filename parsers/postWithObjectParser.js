@@ -33,7 +33,7 @@ const parse = async function ( operation, metadata ) {
 
 const createOrUpdatePost = async function ( data ) {
     const { post, err: steemError } = await postsUtil.getPost( data.author, data.permlink ); // get post from steem api
-    if ( steemError ) return { error: steemError };
+    if ( steemError || !post || !post.author ) return { error: steemError || `Post @${data.author}/${data.permlink} not found or was deleted!` };
 
     Object.assign( post, data ); // assign to post fields wobjects and app
 
