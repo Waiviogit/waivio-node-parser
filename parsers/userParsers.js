@@ -1,5 +1,4 @@
 const { User, Post } = require( '../models' );
-const { postsUtil } = require( '../utilities/steemApi' );
 const _ = require( 'lodash' );
 
 
@@ -27,7 +26,6 @@ exports.updateAccountParser = async ( operation ) => {
 
 exports.followUserParser = async ( operation ) => {
     let json;
-
     try {
         json = JSON.parse( operation.json );
     } catch ( error ) {
@@ -37,7 +35,11 @@ exports.followUserParser = async ( operation ) => {
     if ( _.get( json, '[0]' ) === 'reblog' ) {
         await this.reblogPostParser( { json, account: _.get( operation, 'required_posting_auths[0]' ) } );
     }
-    // if ( json && Array.isArray( json ) && json[ 0 ] === 'follow' && json[ 1 ] && json[ 1 ].user && json[ 1 ].author_permlink && json[ 1 ].what ) {
+    // check author of operation and user which will be updated
+    if( _.get( operation, 'required_posting_auths[0]' ) !== _.get( json, '[1].follower' ) && _.get( operation, 'required_auths[0]' ) !== _.get( json, '[1].follower' ) ) {
+        console.error( 'Can\'t follow, follower and author of operation are different' );
+        return;
+    }
     if ( _.get( json, '[0]' ) === 'follow' && _.get( json, '[1].follower' ) && _.get( json, '[1].following' ) && _.get( json, '[1].what' ) ) {
         if ( _.get( json, '[1].what[0]' ) === 'blog' ) { // if field "what" present - it's follow on user
             const { result } = await User.addUserFollow( json[ 1 ] );

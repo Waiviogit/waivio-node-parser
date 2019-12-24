@@ -1,6 +1,6 @@
 const { Post } = require( '../../models' );
 const { postsUtil } = require( '../steemApi' );
-const SUPPORTED_EXP_FORECAST_BOTS = 'wiv01,w7ngc,x6oc5,sor31,vmn31,z1wo5,et42k,suy38,x45ki,q13lp,j5gs7,q1w2c,no58s,mhg41,b23df,vp4g5,an98r,npo31,w1c6c,nn13b,asd09,fgh87,jkl65,zxc43,xcv47'.split( ',' );
+const SUPPORTED_EXP_FORECAST_BOTS = 'wiv01,w7ngc,x6oc5,sor31,vmn31,z1wo5,et42k,suy38,x45ki,q13lp,j5gs7,q1w2c,no58s,mhg41,b23df,vp4g5,an98r,npo31,w1c6c,nn13b,asd09,fgh87,jkl65,zxc43,xcv47,dw38h,f76wz,hk14d,u89gw,w95hj'.split( ',' );
 
 
 const updatePostWithForecast = async ( { author, permlink, forecast } ) => {

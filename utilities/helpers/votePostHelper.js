@@ -10,7 +10,7 @@ const voteOnPost = async ( data ) => {
 
     const weight = Math.round( currentVote.rshares * 1e-6 );
 
-    if ( validateUserOnBlacklist( [ data.voter, data.post.author ] ) && data.post.author !== data.voter ) {
+    if ( validateUserOnBlacklist( [ data.voter, data.post.author, data.guest_author ] ) && ( data.post.author !== data.voter && data.guest_author !== data.voter ) ) {
         await unvoteOnPost( data );
         if ( data.percent < 0 ) {
             await downVoteOnPost( data, weight ); // case for down-vote
@@ -18,28 +18,15 @@ const voteOnPost = async ( data ) => {
             await upVoteOnPost( data, weight ); // case for up-vote
         }
     }
-    data.post.wobjects = await getWobjectsFromMetadata( data );
-    data.post.app = _.get( data, 'metadata.app', '' );
-    data.post.active_votes = data.post.active_votes.map( ( vote ) => {
-        return {
-            voter: vote.voter,
-            weight: Math.round( vote.rshares * 1e-6 ),
-            percent: vote.percent,
-            rshares: vote.rshares
-        };
-    } );
-    await Post.update( data.post ); // update post info in DB
+    await updatePost( data );
 };
 
 
 const unvoteOnPost = async function ( data ) { // method also using as undo previous vote before up- or down-vote
-    const { post, error } = await Post.findOne( { author: data.post.author, permlink: data.post.permlink } );
+    const { post, error } = await Post.findOne( { author: _.get( data, 'guest_author', data.post.author ), permlink: data.post.permlink } );
+    if ( !post || error ) return {};
 
-    if ( !post || error ) {
-        return {};
-    }
     const existingVote = post.active_votes.find( ( vote ) => vote.voter === data.voter );
-
     if ( existingVote ) {
         if ( existingVote.weight < 0 ) { // if un-vote after down-vote, need increase only author weight in wobjects
             await downVoteOnPost( data, -existingVote.weight );
@@ -50,12 +37,12 @@ const unvoteOnPost = async function ( data ) { // method also using as undo prev
 };
 
 const downVoteOnPost = async function ( data, weight ) {
-    if ( data && data.metadata && data.metadata.wobj && data.metadata.wobj.wobjects && Array.isArray( data.metadata.wobj.wobjects ) ) {
+    if ( _.isArray( _.get( data, 'metadata.wobj.wobjects' ) ) ) {
         for( const wObject of _.get( data, 'metadata.wobj.wobjects', [] ) ) {
             const voteWeight = Number( weight * ( wObject.percent / 100 ).toFixed( 3 ) ); // calculate vote weight for each wobject in post
 
             await User.increaseWobjectWeight( {
-                name: data.post.author,
+                name: _.get( data, 'guest_author', data.post.author ),
                 author_permlink: wObject.author_permlink, // decrease author weight in wobject
                 weight: voteWeight
             } );
@@ -64,7 +51,7 @@ const downVoteOnPost = async function ( data, weight ) {
 };
 
 const upVoteOnPost = async function ( data, weight ) {
-    for ( const wObject of _.get( data, 'metadata.wobj.wobjects' ) || [] ) {
+    for ( const wObject of _.get( data, 'metadata.wobj.wobjects', [] ) ) {
         const voteWeight = Number( ( weight * ( wObject.percent / 100 ) ).toFixed( 3 ) ); // calculate vote weight for each wobject in post
 
         await Wobj.increaseWobjectWeight( {
@@ -72,7 +59,7 @@ const upVoteOnPost = async function ( data, weight ) {
             weight: voteWeight
         } );
         await User.increaseWobjectWeight( {
-            name: data.post.author,
+            name: _.get( data, 'guest_author', data.post.author ),
             author_permlink: wObject.author_permlink, // increase author weight in wobject
             weight: Number( ( voteWeight * 0.75 ).toFixed( 3 ) )
         } );
@@ -82,6 +69,27 @@ const upVoteOnPost = async function ( data, weight ) {
             weight: Number( ( voteWeight * 0.25 ).toFixed( 3 ) )
         } );
     }
+};
+
+const updatePost = async ( data ) => {
+    const { post: postInDb, error } = await Post.findOne( { author: _.get( data, 'guest_author', data.post.author ), permlink: data.post.permlink } );
+    if ( !postInDb || error ) return {};
+
+    data.post.wobjects = await getWobjectsFromMetadata( data );
+    data.post.app = _.get( data, 'metadata.app', '' );
+    data.post.active_votes = data.post.active_votes.map( ( vote ) => ( {
+        voter: vote.voter,
+        weight: Math.round( vote.rshares * 1e-6 ),
+        percent: vote.percent,
+        rshares: vote.rshares
+    } ) );
+    postInDb.active_votes.forEach( ( dbVote ) => {
+        if( !data.post.active_votes.find( ( v ) => v.voter === dbVote.voter ) ) {
+            data.post.active_votes.push( dbVote );
+        }
+    } );
+    data.post.author = _.get( data, 'guest_author', data.post.author );
+    await Post.update( data.post ); // update post info in DB
 };
 
 module.exports = { voteOnPost };

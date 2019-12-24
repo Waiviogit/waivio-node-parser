@@ -4,7 +4,7 @@ const updateSpecificFieldHelper = require( './updateSpecificFieldsHelper' );
 const _ = require( 'lodash' );
 /**
  * Handle votes on append objects(Fields).
- * DownVotes do not use in app(just "UnVote" if vote already exist)
+ * DownVotes do not use in app(only "UnVote" if vote already exist)
  * UpVotes depends on integrity of value, if the value is integer(100 00, 40 00, 12 00 etc.) calculate as "UpVote",
  *      if the value is not integer (90 40, 10 99 etc.) calculate as "DownVote"
  * @param {Object} data include info about vote and append (field) (author, permlink, author_permlink, voter, percent, weight, rshares_weight)

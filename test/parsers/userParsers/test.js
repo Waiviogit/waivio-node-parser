@@ -57,6 +57,7 @@ describe( 'UserParsers', async () => {
                 usr3 = user3;
                 await User.update( { name: user2.name }, { users_follow: [ 'tstusernamefllw' ] } );
                 await userParsers.followUserParser( {
+                    required_posting_auths: [ user.name ],
                     json: JSON.stringify( [
                         'follow',
                         {
@@ -67,6 +68,7 @@ describe( 'UserParsers', async () => {
                     ] )
                 } );
                 await userParsers.followUserParser( {
+                    required_posting_auths: [ user2.name ],
                     json: JSON.stringify( [
                         'follow',
                         {
@@ -77,6 +79,7 @@ describe( 'UserParsers', async () => {
                     ] )
                 } );
                 await userParsers.followUserParser( {
+                    required_posting_auths: [ user2.name ],
                     json: JSON.stringify( [
                         'follow',
                         {

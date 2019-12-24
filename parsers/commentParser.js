@@ -36,14 +36,12 @@ const postSwitcher = async ( { operation, metadata } ) => {
     } else if( _.isArray( _.get( metadata, 'wobj.wobjects' ) ) && !_.isEmpty( _.get( metadata, 'wobj.wobjects' ) ) ) {
         // create post with wobjects in database
         await postWithObjectsParser.parse( operation, metadata );
-    } else if ( metadata.tags ) {
+    } else {
         // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
-        const wobjects = await postByTagsHelper.wobjectsByTags( metadata.tags );
+        const wobjects = await postByTagsHelper.wobjectsByTags( _.get( metadata, 'tags', [] ) );
 
-        if ( wobjects && wobjects.length ) {
-            metadata.wobj = { wobjects };
-            await postWithObjectsParser.parse( operation, metadata );
-        }
+        metadata.wobj = { wobjects: wobjects || [] };
+        await postWithObjectsParser.parse( operation, metadata );
     }
     if ( metadata.wia ) {
         // add forecast to post(for investarena)

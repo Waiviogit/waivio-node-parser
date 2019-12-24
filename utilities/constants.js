@@ -100,3 +100,12 @@ exports.COMMENT_REF_TYPES = {
     wobjType: 'wobj_type'
 };
 exports.MIN_REDIS_REFS_IDLE_TIME_IN_SEC = 2592000;
+// exports.WAIVIO_PROXY_BOTS = JSON.parse( process.env.WAIVIO_PROXY_BOTS ) || [ 'asd09' ];
+const getProxyBots = () => {
+    try {
+        return JSON.parse( process.env.WAIVIO_PROXY_BOTS );
+    } catch ( e ) {
+        return [ 'asd09' ];
+    }
+};
+exports.WAIVIO_PROXY_BOTS = getProxyBots();

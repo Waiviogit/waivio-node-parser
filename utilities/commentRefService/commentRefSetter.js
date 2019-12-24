@@ -26,9 +26,9 @@ exports.addWobjTypeRef = async ( comment_path, name ) => {
     }
 };
 
-exports.addPostRef = async ( comment_path, wobjects ) => {
-    const mongoRes = await CommentRef.addPostRef( { comment_path, wobjects: JSON.stringify( wobjects ) } );
-    const redisRes = await redisSetter.addPostWithWobj( comment_path, wobjects );
+exports.addPostRef = async ( comment_path, wobjects, guest_author ) => {
+    const mongoRes = await CommentRef.addPostRef( { comment_path, wobjects: JSON.stringify( wobjects ), guest_author } );
+    const redisRes = await redisSetter.addPostWithWobj( comment_path, wobjects, guest_author );
     if( _.get( mongoRes, 'error' ) || _.get( redisRes, 'error' ) ) {
         console.error( mongoRes.error || redisRes.error );
     }
