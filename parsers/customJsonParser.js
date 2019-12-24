@@ -34,5 +34,8 @@ exports.parse = async ( operation ) => {
         case 'waivio_guest_reblog' :
             await customJsonOperations.reblogPost( operation );
             break;
+        case 'waivio_guest_account_update' :
+            await customJsonOperations.accountUpdate( operation );
+            break;
     }
 };

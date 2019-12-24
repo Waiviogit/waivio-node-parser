@@ -50,6 +50,14 @@ exports.guestVote = async ( operation ) => {
     }
 };
 
+exports.accountUpdate = async ( operation ) => {
+    if( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
+        const json = parseJson( operation.json );
+        if( !json ) return;
+        await userParsers.updateAccountParser( json );
+    }
+};
+
 exports.guestCreate = async ( operation ) => {
     if( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
         const json = parseJson( operation.json );
