@@ -152,9 +152,17 @@ describe( 'postWithObjectParser', async () => {
                 const res = await redisGetter.getHashAll( `${mockPost.author}_${mockPost.permlink}` );
                 expect( res ).to.exist;
             } );
+            it( 'should update ref in redis with correct wobjects data', async () => {
+                const res = await redisGetter.getHashAll( `${mockPost.author}_${mockPost.permlink}` );
+                expect( JSON.parse( res.wobjects ) ).to.be.deep.eq( [ { author_permlink: mockWobj.author_permlink, percent: 100 } ] );
+            } );
             it( 'should add post reference to mongo', async () => {
                 const res = await CommentRef.findOne( { comment_path: `${mockPost.author}_${mockPost.permlink}` } );
                 expect( res ).to.exist;
+            } );
+            it( 'should update commentRef in mongo with correct "wobjects" data', async () => {
+                const res = await CommentRef.findOne( { comment_path: `${mockPost.author}_${mockPost.permlink}` } );
+                expect( JSON.parse( res.wobjects ) ).to.be.deep.eq( [ { author_permlink: mockWobj.author_permlink, percent: 100 } ] );
             } );
             it( 'should not call postHelper.objectIdFromDateString', () => {
                 expect( postHelper.objectIdFromDateString ).to.be.not.called;

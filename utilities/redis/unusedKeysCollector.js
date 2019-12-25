@@ -27,7 +27,7 @@ exports.deleteUnusedCommentRefs = () => {
     } );
     unusedRefsScanner.on( 'end', () => {
         // clean up
-        console.log( `Unused Redis COMMENT_REFS deleted ${deletedCount} pieces!` );
+        console.log( `Unused Redis COMMENT_REFS deleted ${deletedCount} records!` );
     } );
 };
 
