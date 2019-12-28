@@ -83,6 +83,7 @@ exports.guestCreate = async ( operation ) => {
 const voteOnPost = async ( { vote } ) => {
     const { post, error } = await Post.findOne( _.pick( vote, [ 'author', 'permlink' ] ) );
     if( error ) return;
+    _.remove( post.active_votes, ( v ) => v.voter === vote.voter );
     post.active_votes.push( {
         voter: vote.voter,
         percent: vote.weight,
