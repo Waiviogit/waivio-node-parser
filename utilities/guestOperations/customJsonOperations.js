@@ -43,7 +43,7 @@ exports.guestVote = async ( operation ) => {
         if ( !json ) return;
 
         const [ vote ] = await voteParser.votesFormat( [ json ] );
-        if ( vote.type === 'post_with_wobj' ) {
+        if ( vote.type === 'post_with_wobj' || !vote.type ) {
             await voteOnPost( { vote } );
         } else if ( vote.type === 'append_wobj' ) {
             await voteOnField( { vote } );
