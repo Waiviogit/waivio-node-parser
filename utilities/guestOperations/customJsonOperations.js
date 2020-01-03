@@ -145,9 +145,3 @@ const savePostInBase = async ( data ) => {
     return { newPost: await Post.findOne( { author: data.author, permlink: data.permlink } ) };
 
 };
-
-
-( async () => {
-    const res = await voteOnPost( { vote: { author: 'dw38h', permlink: 'test-post' } } );
-    console.log( res );
-} )();
