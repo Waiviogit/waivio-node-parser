@@ -1,5 +1,4 @@
 const { User, Post } = require( '../models' );
-const { postsUtil } = require( '../utilities/steemApi' );
 const _ = require( 'lodash' );
 
 
@@ -27,17 +26,24 @@ exports.updateAccountParser = async ( operation ) => {
 
 exports.followUserParser = async ( operation ) => {
     let json;
-
     try {
         json = JSON.parse( operation.json );
     } catch ( error ) {
         console.error( error );
         return;
     }
+    // check author of operation and user which will be updated
+    if( _.get( json, '[0]' ) === 'reblog' && _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths' ) ) !== _.get( json, '[1].account' ) ) {
+        console.error( 'Can\'t reblog, account and author of operation are different' );
+        return;
+    } else if( _.get( json, '[0]' ) === 'follow' && _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths' ) ) !== _.get( json, '[1].follower' ) ) {
+        console.error( 'Can\'t follow(reblog), follower(account) and author of operation are different' );
+        return;
+    }
+
     if ( _.get( json, '[0]' ) === 'reblog' ) {
         await this.reblogPostParser( { json, account: _.get( operation, 'required_posting_auths[0]' ) } );
     }
-    // if ( json && Array.isArray( json ) && json[ 0 ] === 'follow' && json[ 1 ] && json[ 1 ].user && json[ 1 ].author_permlink && json[ 1 ].what ) {
     if ( _.get( json, '[0]' ) === 'follow' && _.get( json, '[1].follower' ) && _.get( json, '[1].following' ) && _.get( json, '[1].what' ) ) {
         if ( _.get( json, '[1].what[0]' ) === 'blog' ) { // if field "what" present - it's follow on user
             const { result } = await User.addUserFollow( json[ 1 ] );

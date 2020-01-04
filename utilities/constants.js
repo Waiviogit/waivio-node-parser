@@ -1,10 +1,9 @@
-const appsBots = [ 'partico', 'dtube', 'actifit', 'steemhunt', 'dragwars' ];
+const appsBots = [ 'partico', 'dtube', 'actifit', 'steemhunt', 'drugwars' ];
 
 const serviceBots = [ 'steemitboard', 'siditech', 'booster', 'bot-helper', 'cheetah', 'cleverbot', 'discordia', 'drdoogie-rb-vote-trail-script', 'dr-otto-vote-bidding-bot',
     'freakazoid', 'gentlebot', 'helpbot', 'lovejuice', 'minnowsupport', 'mrsquiggle', 'promoted', 'randowhale', 'seraph', 'steemprice', 'steemvoter', 'thing-2',
     'treeplanter', 'trufflepig', 'welcomebot', 'morwhale', 'remind.bot', 'wang', 'boxmining', 'merej99', 'samstonehill', 'inertia', 'somethingsubtle',
-    'stefen', 'ropaga', 'vmsolutionsltd', 'stellabelle', 'acidyo', 'ethandsmith', 'ura-soul', 'crokkon', 'eturnerx', 'greer184', 'mack-bot',
-    'z1wo5', 'et42k', 'suy38', 'x45ki', 'q13lp', 'j5gs7', 'q1w2c', 'no58s', 'mhg41', 'b23df', 'vp4g5', 'an98r', 'npo31', 'w1c6c', 'nn13b', 'spaminator' ];
+    'stefen', 'ropaga', 'vmsolutionsltd', 'stellabelle', 'acidyo', 'ethandsmith', 'ura-soul', 'crokkon', 'eturnerx', 'greer184', 'mack-bot', 'spaminator' ];
 
 const otherBots = [ 'voteme', 'raise-me-up', 'steeming-hot', 'steem-ua', 'vortac', 'steemchoose', 'photocircle',
     'a-bot', 'acehbot', 'actionbot', 'admiralbot', 'aldebot', 'altobot', 'altruisticbot', 'anonbot',
@@ -101,3 +100,12 @@ exports.COMMENT_REF_TYPES = {
     wobjType: 'wobj_type'
 };
 exports.MIN_REDIS_REFS_IDLE_TIME_IN_SEC = 2592000;
+// exports.WAIVIO_PROXY_BOTS = JSON.parse( process.env.WAIVIO_PROXY_BOTS ) || [ 'asd09' ];
+const getProxyBots = () => {
+    try {
+        return JSON.parse( process.env.WAIVIO_PROXY_BOTS );
+    } catch ( e ) {
+        return [ 'asd09' ];
+    }
+};
+exports.WAIVIO_PROXY_BOTS = getProxyBots();

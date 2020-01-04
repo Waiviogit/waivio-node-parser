@@ -1,11 +1,12 @@
 const { expect, postsUtil } = require( '../testHelper' );
+const TEST_POST_ON_STEEMIT = { author: 'alice', permlink: 'a-post-by-alice' };
 
 describe( 'Steem API', async () => {
     describe( 'Posts Util', async () => {
         describe( 'on existing post', async () => {
             let result;
-            before( async () => {
-                result = await postsUtil.getPost( 'alice', 'a-post-by-alice' );
+            beforeEach( async () => {
+                result = await postsUtil.getPost( TEST_POST_ON_STEEMIT.author, TEST_POST_ON_STEEMIT.permlink );
             } );
             it( 'should return post', () => {
                 expect( result ).to.has.key( 'post' );
@@ -22,7 +23,7 @@ describe( 'Steem API', async () => {
             let result;
             let emptyFields = 'author,permlink,category,parent_author,parent_permlink,title,body,json_metadata,url,root_title'.split( ',' );
             let zeroFields = 'id,depth,children,net_rshares,abs_rshares,vote_rshares,children_abs_rshares,total_vote_weight,reward_weight,author_rewards,net_votes,percent_steem_dollars,author_reputation,body_length'.split( ',' );
-            before( async () => {
+            beforeEach( async () => {
                 result = await postsUtil.getPost( 'kkkkkkkkk', 'kkkkkkkkk' );
             } );
             it( 'should not return error', () => {

@@ -27,7 +27,7 @@ describe( 'chosenPostValidator', async () => {
 
     describe( 'on validate app name', async () => {
         let app;
-        before( async () => {
+        beforeEach( async () => {
             app = await AppFactory.Create( {} );
         } );
         it( 'should return true if name correct', async () => {
@@ -46,7 +46,7 @@ describe( 'chosenPostValidator', async () => {
 
     describe( 'on validate responsible user name', async () => {
         let app;
-        before( async () => {
+        beforeEach( async () => {
             app = await AppFactory.Create( {} );
         } );
         it( 'should return true if app and user name correct', async () => {

@@ -9,14 +9,14 @@ describe( 'comment parser', async () => {
                 let mockOp;
                 let stub;
 
-                before( async () => {
+                beforeEach( async () => {
                     mockOp = await getCreateObjectTypeMocks();
                     stub = sinon.stub( objectTypeParser, 'parse' ).callsFake( async ( a, b ) => {
                         return {};
                     } );
                     await commentParser.parse( mockOp );
                 } );
-                after( () => {
+                afterEach( () => {
                     stub.restore();
                 } );
 
@@ -41,7 +41,7 @@ describe( 'comment parser', async () => {
             describe( 'createObjectType from app at blacklist', () => {
                 let mockOp, app, stub;
 
-                before( async () => {
+                beforeEach( async () => {
                     app = await AppFactory.Create( { blacklists: { apps: [ 'apptest', 'lala', 'kek' ] } } );
                     mockOp = await getCreateObjectTypeMocks( 'apptest' );
                     stub = sinon.stub( objectTypeParser, 'parse' ).callsFake( async () => {
@@ -50,7 +50,7 @@ describe( 'comment parser', async () => {
                     process.env.APP_NAME = app.name;
                     await commentParser.parse( mockOp );
                 } );
-                after( () => {
+                afterEach( () => {
                     stub.restore();
                     delete process.env.APP_NAME;
                 } );
@@ -67,14 +67,14 @@ describe( 'comment parser', async () => {
                 let mockOp;
                 let stub;
 
-                before( async () => {
+                beforeEach( async () => {
                     mockOp = await getCreateObjectMocks();
                     stub = sinon.stub( createObjectParser, 'parse' ).callsFake( async ( a, b ) => {
                         return {};
                     } );
                     await commentParser.parse( mockOp );
                 } );
-                after( () => {
+                afterEach( () => {
                     stub.restore();
                 } );
 

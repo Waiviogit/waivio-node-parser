@@ -25,12 +25,12 @@ describe( 'detectPostLanguageHelper', async () => {
                     exp_result: 'ja-JP'
                 }
             ];
-            before( () => {
+            beforeEach( () => {
                 sinon.stub( User, 'findOne' ).callsFake( async () => {
                     return {};
                 } );
             } );
-            after( () => {
+            afterEach( () => {
                 User.findOne.restore();
             } );
 

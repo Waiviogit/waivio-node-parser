@@ -2,18 +2,22 @@ const { CommentRef } = require( '../database' ).models;
 const { COMMENT_REF_TYPES } = require( '../utilities/constants' );
 
 const create = async ( data ) => {
-    const newCommentRef = new CommentRef( data );
     try {
-        return { commentRef: await newCommentRef.save() };
+        const commentRef = await CommentRef.findOneAndUpdate(
+            { comment_path: data.comment_path },
+            { ...data },
+            { upsert: true, new: true }
+        ).lean();
+        return { commentRef };
     } catch ( error ) {
         return { error };
     }
 };
 
-exports.addPostRef = async ( { comment_path, wobjects } ) => {
-    return await create( {
-        comment_path, wobjects, type: COMMENT_REF_TYPES.postWithWobjects
-    } );
+exports.addPostRef = async ( { comment_path, wobjects, guest_author } ) => {
+    const data = { comment_path, wobjects, type: COMMENT_REF_TYPES.postWithWobjects };
+    if( guest_author ) data.guest_author = guest_author;
+    return await create( data );
 };
 exports.addWobjRef = async ( { comment_path, root_wobj } ) => {
     return await create( {
@@ -36,6 +40,15 @@ exports.getRef = async ( comment_path ) => {
         return{ commentRef };
     } catch ( error ) {
         return { error };
+    }
+};
+
+const isExist = async ( comment_path ) => {
+    try {
+        const count = await CommentRef.find( { comment_path } ).count();
+        return!!count;
+    } catch ( error ) {
+        return false;
     }
 };
 

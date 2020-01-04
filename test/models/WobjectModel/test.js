@@ -216,7 +216,7 @@ describe( 'Wobject model', async () => {
     } );
     describe( 'On getOne', async () => {
         let result, permlink;
-        before( async () => {
+        beforeEach( async () => {
             permlink = getRandomString();
             await ObjectFactory.Create( { author_permlink: permlink } );
         } );
@@ -246,7 +246,7 @@ describe( 'Wobject model', async () => {
     } );
     describe( 'On create', async () => {
         let result, data;
-        before( async () => {
+        beforeEach( async () => {
             data = await ObjectFactory.Create( { onlyData: true } );
             await WobjModel.create( data );
         } );
@@ -294,7 +294,7 @@ describe( 'Wobject model', async () => {
     } );
     describe( 'On addField', async () => {
         let result, data, permlink;
-        before( async () => {
+        beforeEach( async () => {
             permlink = getRandomString();
             await ObjectFactory.Create( { author_permlink: permlink } );
             data = {

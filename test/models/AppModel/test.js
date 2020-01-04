@@ -5,7 +5,7 @@ describe( 'App model', async () => {
     describe( 'On getOne', () => {
         let app, result;
 
-        before( async () => {
+        beforeEach( async () => {
             app = await AppFactory.Create( );
         } );
         it( 'Should check names for identity', async () => {

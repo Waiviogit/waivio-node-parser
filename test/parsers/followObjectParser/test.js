@@ -1,14 +1,13 @@
-const { dropDatabase, expect, getRandomString, faker, sinon } = require( '../../testHelper' );
+const { dropDatabase, expect, getRandomString, faker, sinon, UserModel, WobjModel, User } = require( '../../testHelper' );
 const { followObjectParser } = require( '../../../parsers' );
 const mock = require( './mock' );
-const { User, Wobj } = require( '../../../models' );
 
 describe( 'followObjectParser', async () => {
     describe( 'On followObjectParse and errors', async () => {
         let data, result, name, author_permlink;
         beforeEach( async () => {
-            sinon.stub( User, 'addObjectFollow' ).callsFake( () => ( { result: true } ) );
-            sinon.stub( Wobj, 'getOne' ).callsFake( () => ( { wobject: true } ) );
+            sinon.stub( UserModel, 'addObjectFollow' ).callsFake( () => ( { result: true } ) );
+            sinon.stub( WobjModel, 'getOne' ).callsFake( () => ( { wobject: true } ) );
             await dropDatabase();
             name = faker.name.firstName();
             author_permlink = getRandomString( 10 );
@@ -37,25 +36,30 @@ describe( 'followObjectParser', async () => {
             result = await followObjectParser.parse( { json: '["follow",{"author_permlink": "name","what":[]}]' } );
             expect( result ).is.undefined;
         } );
-        it( 'should trying to follow to not exist wobject', async () => {
+        it( 'should return 404 on follow not exist wobject', async () => {
             sinon.restore();
-            sinon.stub( Wobj, 'getOne' ).callsFake( () => ( { error: { status: 404, message: 'Wobject not found!' } } ) );
-            result = await followObjectParser.parse( { json: '["follow",{"user": "name","author_permlink": "name","what":[{"some":"test"}]}]' } );
+            sinon.stub( WobjModel, 'getOne' ).callsFake( () => ( { error: { status: 404, message: 'Wobject not found!' } } ) );
+            const mockOp = await mock.dataForFollow( { follow: true, auth_permlink: getRandomString( 10 ), userName: name } );
+            result = await followObjectParser.parse( mockOp );
             expect( result.status ).to.eq( 404 );
+        } );
+        it( 'should not submit follow if user in json and author of operation are different', async () => {
+            result = await followObjectParser.parse( { ...data, required_posting_auths: [ faker.name.firstName() ] } );
+            expect( result ).to.be.undefined;
         } );
     } );
     describe( 'On unfollowObjectParse', async () => {
         let data, result, name, author_permlink;
-        before( async () => {
+        beforeEach( async () => {
             await dropDatabase();
-            sinon.stub( User, 'removeObjectFollow' ).callsFake( () => {
+            sinon.stub( UserModel, 'removeObjectFollow' ).callsFake( () => {
                 return { result: true };
             } );
             name = faker.name.firstName();
             author_permlink = getRandomString( 10 );
             data = await mock.dataForFollow( { auth_permlink: author_permlink, userName: name } );
         } );
-        after( async () => {
+        afterEach( async () => {
             sinon.restore();
         } );
         it( 'should success unfollow', async () => {
