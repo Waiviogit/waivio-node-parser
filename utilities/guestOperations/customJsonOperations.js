@@ -1,3 +1,4 @@
+const { getWobjectsFromMetadata } = require( '../helpers/postByTagsHelper' );
 const userParsers = require( '../../parsers/userParsers' );
 const followObjectParser = require( '../../parsers/followObjectParser' );
 const voteParser = require( '../../parsers/voteParser' );
@@ -84,7 +85,7 @@ exports.guestCreate = async ( operation ) => {
 const voteOnPost = async ( { vote } ) => {
     let { post, error } = await Post.findOne( _.pick( vote, [ 'author', 'permlink' ] ) );
     if ( !post ) {
-        const { err, newPost } = await savePostInBase( _.pick( vote, [ 'author', 'permlink' ] ) );
+        const { err, newPost } = await savePostInDB( _.pick( vote, [ 'author', 'permlink' ] ) );
         if ( err ) return;
         post = newPost.post;
     }
@@ -131,17 +132,4 @@ const parseJson = ( json ) => {
     } catch ( error ) {
         console.error( error );
     }
-};
-
-const savePostInBase = async ( data ) => {
-    const { post, err } = await postsUtil.getPost( data.author, data.permlink );
-    if( err ) return { err };
-    if ( !post ) {
-        console.error( 'No post in steem' );
-        return { err: 'No post in steem' };
-    }
-    const { error } = await Post.create( post );
-    if ( error ) return { err: error };
-    return { newPost: await Post.findOne( { author: data.author, permlink: data.permlink } ) };
-
 };
