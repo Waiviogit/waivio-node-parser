@@ -133,3 +133,16 @@ const parseJson = ( json ) => {
         console.error( error );
     }
 };
+
+const savePostInDB = async ( data ) => {
+    const { post, err } = await postsUtil.getPost( data.author, data.permlink );
+    if( err ) return { err };
+    if ( !post ) {
+        console.error( 'No post in steem' );
+        return { err: 'No post in steem' };
+    }
+    post.wobjects = await getWobjectsFromMetadata( post );
+    const { error } = await Post.create( post );
+    if ( error ) return { err: error };
+    return { newPost: await Post.findOne( { author: data.author, permlink: data.permlink } ) };
+};
