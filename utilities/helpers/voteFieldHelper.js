@@ -4,8 +4,8 @@ const updateSpecificFieldHelper = require( './updateSpecificFieldsHelper' );
 const _ = require( 'lodash' );
 /**
  * Handle votes on append objects(Fields).
- * DownVotes do not use in app(just "UnVote" if vote already exist)
- * UpVotes depends on intigrity of value, if the value is integer(100 00, 40 00, 12 00 etc.) calculate as "UpVote",
+ * DownVotes do not use in app(only "UnVote" if vote already exist)
+ * UpVotes depends on integrity of value, if the value is integer(100 00, 40 00, 12 00 etc.) calculate as "UpVote",
  *      if the value is not integer (90 40, 10 99 etc.) calculate as "DownVote"
  * @param {Object} data include info about vote and append (field) (author, permlink, author_permlink, voter, percent, weight, rshares_weight)
  * @returns return nothing (or error)
@@ -15,7 +15,7 @@ const voteOnField = async ( data ) => {
     const { field, error: fieldError } = await Wobj.getField( data.author, data.permlink, data.author_permlink );
 
     if( fieldError ) return { error: fieldError };
-    if( !field ) return{ error: { status: 404, message: 'Field not found!' } };
+    if( !field ) return { error: { status: 404, message: 'Field not found!' } };
 
     if ( _.get( field, 'active_votes' ) ) {
         data.existingVote = field.active_votes.find( ( v ) => v.voter === data.voter );
@@ -47,7 +47,7 @@ const unVoteOnAppend = async ( data ) => {
 const addVoteOnField = async ( data ) => {
     data.percent = calculateVotePercent( data.percent );
     data.weight = ( data.weight + data.rshares_weight * 0.25 ) * ( data.percent / 100 );
-    await upDownVoteOnAppend( { ...data, isDownVote: ( data.percent < 0 ) } );
+    await upDownVoteOnAppend( { ...data } );
 
     await Wobj.addVote( {
         ...data,
@@ -67,16 +67,16 @@ const addVoteOnField = async ( data ) => {
  * @param percent Voter Percent of current Vote
  * @param creator Person who create field (not to be confused with bot who write down comment to blockchain)
  * @param voter Person who vote for field(Approve or Reject)
- * @param isDownVote Flag to indicate UpVote or DownVote (if down vote => revert increasing weight to voter)
  * @returns {Promise<void>}
  */
-const upDownVoteOnAppend = async ( { author, permlink, author_permlink, weight, creator, voter, rshares_weight, percent, isDownVote = false } ) => {
-    // increase weight of voter
-    await User.increaseWobjectWeight( {
-        name: voter,
-        author_permlink,
-        weight: rshares_weight * 0.25 * ( percent / 100 ) * ( isDownVote ? -1 : 1 )
-    } );
+const upDownVoteOnAppend = async ( { author, permlink, author_permlink, weight, creator, voter, rshares_weight, percent } ) => {
+    if( percent > 0 )
+        // increase weight of voter only on UpVotes
+        await User.increaseWobjectWeight( {
+            name: voter,
+            author_permlink,
+            weight: rshares_weight * 0.25 * ( percent / 100 )
+        } );
     // increase weight of field author
     await User.increaseWobjectWeight( {
         name: creator,

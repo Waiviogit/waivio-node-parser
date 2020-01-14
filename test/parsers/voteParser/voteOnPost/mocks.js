@@ -1,7 +1,10 @@
 const { PostFactory, ObjectFactory, UserFactory } = require( '../../../factories' );
 const { faker, ObjectType } = require( '../../../testHelper' );
-
-module.exports = async() => {
+// generate 5 wobjects and object_types,
+// generate author and voter,
+// generate 1 vote on post,
+// generate post
+module.exports = async( { author, voter } = {} ) => {
     let wobjectsCount = 5;
     let wobjects = [];
     let object_types = [];
@@ -14,8 +17,8 @@ module.exports = async() => {
         object_types.push( object_type );
     }
 
-    const { user: user_author } = await UserFactory.Create();
-    const { user: user_voter } = await UserFactory.Create();
+    const { user: user_author } = await UserFactory.Create( { name: author } );
+    const { user: user_voter } = await UserFactory.Create( { name: voter } );
     const metadata = {
         wobj: {
             wobjects: wobjects.map( ( w ) => ( { percent: 100 / wobjectsCount, author_permlink: w.author_permlink } ) )

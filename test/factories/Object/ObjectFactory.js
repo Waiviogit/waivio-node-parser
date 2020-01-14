@@ -1,4 +1,4 @@
-const { WObject, faker, getRandomString, redisSetter } = require( '../../testHelper' );
+const { WObject, faker, getRandomString, commentRefSetter } = require( '../../testHelper' );
 const ObjectTypeFactory = require( '../ObjectType/ObjectTypeFactory' );
 
 const Create = async ( { onlyData, appends = [], author_permlink: root_permlink, object_type } = {} ) => {
@@ -33,7 +33,7 @@ const Create = async ( { onlyData, appends = [], author_permlink: root_permlink,
         fields: [ ...appends ]
     } );
 
-    await redisSetter.addWobjRef( `${author}_${author_permlink}`, author_permlink );
+    await commentRefSetter.addWobjRef( `${author}_${author_permlink}`, author_permlink );
     return wobject._doc;
 };
 

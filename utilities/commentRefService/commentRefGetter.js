@@ -29,7 +29,7 @@ exports.getCommentRef = async ( comment_path ) => {
                 await redisSetter.addAppendWobj( comment_path, _.get( mongoResult, 'commentRef.root_wobj' ) );
                 break;
             case COMMENT_REF_TYPES.wobjType :
-                await redisSetter.addObjectType( comment_path, _.get( mongoResult, 'commentPath.name' ) );
+                await redisSetter.addObjectType( comment_path, _.get( mongoResult, 'commentRef.name' ) );
                 break;
         }
         return mongoResult.commentRef;

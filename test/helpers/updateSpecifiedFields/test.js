@@ -5,14 +5,14 @@ const _ = require( 'lodash' );
 describe( 'UpdateSpecificFieldsHelper', async () => {
     let wobject;
 
-    before( async () => {
+    beforeEach( async () => {
         wobject = await ObjectFactory.Create();
     } );
     describe( 'on "parent" field', () => {
         let fields;
         let updWobj;
 
-        before( async () => {
+        beforeEach( async () => {
             let { appendObject: field1 } = await AppendObject.Create( { name: 'parent', weight: 100 } );
             let { appendObject: field2 } = await AppendObject.Create( { name: 'parent', weight: 1 } );
             let { appendObject: field3 } = await AppendObject.Create( { name: 'parent', weight: -99 } );
@@ -38,7 +38,7 @@ describe( 'UpdateSpecificFieldsHelper', async () => {
         let updWobj;
         let mockBody;
 
-        before( async () => {
+        beforeEach( async () => {
             mockBody = () => {
                 // const kek = getRandomString(3);
                 return JSON.stringify( {
@@ -71,7 +71,7 @@ describe( 'UpdateSpecificFieldsHelper', async () => {
         let updWobj;
         let topFields;
 
-        before( async () => {
+        beforeEach( async () => {
             let { appendObject: field1 } = await AppendObject.Create( { name: 'tagCloud', weight: 100 } );
             let { appendObject: field2 } = await AppendObject.Create( { name: 'tagCloud', weight: 1 } );
             let { appendObject: field3 } = await AppendObject.Create( { name: 'tagCloud', weight: -99 } );
@@ -85,10 +85,6 @@ describe( 'UpdateSpecificFieldsHelper', async () => {
             await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
             await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
-        } );
-
-        it( 'should add field "tagCloud" to wobject', async () => {
-            expect( updWobj.newsFilter ).to.exist;
         } );
 
         it( 'should write first field "tagCloud"', async () => {
@@ -105,7 +101,7 @@ describe( 'UpdateSpecificFieldsHelper', async () => {
         let updWobj;
         let topFields;
 
-        before( async () => {
+        beforeEach( async () => {
             let { appendObject: field1 } = await AppendObject.Create( { name: 'rating', weight: 100 } );
             let { appendObject: field2 } = await AppendObject.Create( { name: 'rating', weight: 1 } );
             let { appendObject: field3 } = await AppendObject.Create( { name: 'rating', weight: -99 } );
@@ -138,7 +134,7 @@ describe( 'UpdateSpecificFieldsHelper', async () => {
         let fields;
         let updWobj;
 
-        before( async () => {
+        beforeEach( async () => {
             let mockBody = () => {
                 return JSON.stringify( {
                     longitude: faker.random.number( { min: -180, max: 180 } ),
@@ -168,20 +164,17 @@ describe( 'UpdateSpecificFieldsHelper', async () => {
     } );
 
     describe( 'on "status" field', () => {
-        let fields;
         let updWobj;
 
-        before( async () => {
+        beforeEach( async () => {
             let mockBody = () => {
                 return JSON.stringify( { title: 'Unavailable', link: '' } );
             };
-            let { appendObject: field1 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: 10 } );
-            let { appendObject: field2 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: 1 } );
-            let { appendObject: field3 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: -99 } );
-            let { appendObject: field4 } = await AppendObject.Create( { name: 'status', body: ( mockBody() ), weight: 80 } );
+            const { appendObject: field1 } = await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'status', body: ( mockBody() ), weight: 10 } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'status', body: ( mockBody() ), weight: 1 } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'status', body: ( mockBody() ), weight: -99 } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'status', body: ( mockBody() ), weight: 80 } );
 
-            fields = [ field1, field2, field3, field4 ];
-            await WObject.findOneAndUpdate( { author_permlink: wobject.author_permlink }, { fields: fields } );
             await updateSpecificFieldsHelper.update( field1.author, field1.permlink, wobject.author_permlink );
             updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
         } );
@@ -194,4 +187,61 @@ describe( 'UpdateSpecificFieldsHelper', async () => {
             expect( updWobj.status ).to.deep.equal( { title: 'Unavailable', link: '' } );
         } );
     } );
+
+    describe( 'on "tagCategory" field', async () => {
+        let updWobj;
+        beforeEach( async () => {
+            const [ id1, id2 ] = [ getRandomString( 10 ), getRandomString( 10 ) ];
+            const tagWobjects = [
+                await ObjectFactory.Create( { object_type: 'hashtag' } ),
+                await ObjectFactory.Create( { object_type: 'hashtag' } ),
+                await ObjectFactory.Create( { object_type: 'hashtag' } )
+            ];
+
+            let { appendObject: category1 } = await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'tagCategory', body: getRandomString(), additionalFields: { id: id1 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'categoryItem', body: tagWobjects[ 0 ].author_permlink, additionalFields: { id: id1 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'categoryItem', body: tagWobjects[ 1 ].author_permlink, additionalFields: { id: id1 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'tagCategory', body: getRandomString(), additionalFields: { id: id2 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'categoryItem', body: tagWobjects[ 2 ].author_permlink, additionalFields: { id: id2 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'tagCategory', body: getRandomString(), additionalFields: { id: getRandomString() } } );
+
+            await updateSpecificFieldsHelper.update( category1.author, category1.permlink, wobject.author_permlink );
+            updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
+        } );
+        it( 'should create field "tagCategories" on wobject root', async () => {
+            expect( updWobj.tagCategories ).to.exist;
+        } );
+        it( 'should create field "tagCategories" on wobject root with correct length', async () => {
+            expect( updWobj.tagCategories.length ).to.be.eq( 3 );
+        } );
+    } );
+
+    describe( 'on "categoryItem" field', async () => {
+        let updWobj;
+        beforeEach( async () => {
+            const [ id1, id2 ] = [ getRandomString( 10 ), getRandomString( 10 ) ];
+            const tagWobjects = [
+                await ObjectFactory.Create( { object_type: 'hashtag' } ),
+                await ObjectFactory.Create( { object_type: 'hashtag' } ),
+                await ObjectFactory.Create( { object_type: 'hashtag' } )
+            ];
+
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'tagCategory', body: getRandomString(), additionalFields: { id: id1 } } );
+            let { appendObject: categoryItem1 } = await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'categoryItem', body: tagWobjects[ 0 ].author_permlink, additionalFields: { id: id1 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'categoryItem', body: tagWobjects[ 1 ].author_permlink, additionalFields: { id: id1 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'tagCategory', body: getRandomString(), additionalFields: { id: id2 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'categoryItem', body: tagWobjects[ 2 ].author_permlink, additionalFields: { id: id2 } } );
+            await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'tagCategory', body: getRandomString(), additionalFields: { id: getRandomString() } } );
+
+            await updateSpecificFieldsHelper.update( categoryItem1.author, categoryItem1.permlink, wobject.author_permlink );
+            updWobj = await WObject.findOne( { author_permlink: wobject.author_permlink } ).lean();
+        } );
+        it( 'should create field "tagCategories" on wobject root', async () => {
+            expect( updWobj.tagCategories ).to.exist;
+        } );
+        it( 'should create field "tagCategories" on wobject root with correct length', async () => {
+            expect( updWobj.tagCategories.length ).to.be.eq( 3 );
+        } );
+    } );
+
 } );

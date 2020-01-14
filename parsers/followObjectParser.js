@@ -1,4 +1,5 @@
 const { User, Wobj } = require( '../models' );
+const _ = require( 'lodash' );
 
 const parse = async function ( data ) {
     let json;
@@ -7,26 +8,33 @@ const parse = async function ( data ) {
         json = JSON.parse( data.json );
     } catch ( error ) {
         console.error( error );
+        return( error );
+    }
+    // check author of operation and user which will be updated
+    if( _.get( data, 'required_posting_auths[0]' ) !== _.get( json, '[1].user' ) && _.get( data, 'required_auths[0]' ) !== _.get( json, '[1].user' ) ) {
+        console.error( 'Can\'t follow, follower and author of operation are different' );
         return;
     }
     if ( json && json[ 0 ] === 'follow' && json[ 1 ] && json[ 1 ].user && json[ 1 ].author_permlink && json[ 1 ].what ) {
         if ( json[ 1 ].what.length ) { // if field what present - it's follow on object
             const { wobject, error } = await Wobj.getOne( { author_permlink: json[ 1 ].author_permlink } );
-
             if( !wobject || error ) {
-                console.log( error || `User ${json[ 1 ].user} try to follow non existing wobject: ${json[ 1 ].author_permlink}` );
-                return;
+                const resultMessage = error || `User ${json[ 1 ].user} try to follow non existing wobject: ${json[ 1 ].author_permlink}`;
+                console.log( resultMessage );
+                return ( resultMessage );
             }
             const { result } = await User.addObjectFollow( json[ 1 ] );
-
             if ( result ) {
-                console.log( `User ${json[ 1 ].user} now following wobject ${json[ 1 ].author_permlink}!\n` );
+                const resultMessage = `User ${json[ 1 ].user} now following wobject ${json[ 1 ].author_permlink}!\n`;
+                console.log( resultMessage );
+                return resultMessage;
             }
         } else { // else if missing - unfollow
             const { result } = await User.removeObjectFollow( json[ 1 ] );
-
             if ( result ) {
-                console.log( `User ${json[ 1 ].user} now unfollow wobject ${json[ 1 ].author_permlink} !\n` );
+                const resultMessage = `User ${json[ 1 ].user} now unfollow wobject ${json[ 1 ].author_permlink} !\n`;
+                console.log( resultMessage );
+                return resultMessage ;
             }
         }
     }

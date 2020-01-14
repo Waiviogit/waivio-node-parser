@@ -12,5 +12,5 @@ const getPost = async ( author, permlink ) => {
     }
 };
 
-
 module.exports = { getPost };
+

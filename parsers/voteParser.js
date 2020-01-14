@@ -1,7 +1,6 @@
 const { postsUtil } = require( '../utilities/steemApi' );
 const { User } = require( '../models' );
 const { voteFieldHelper, votePostHelper } = require( '../utilities/helpers' );
-// const redisGetter = require( '../utilities/redis/redisGetter' );
 const { commentRefGetter } = require( '../utilities/commentRefService' );
 const _ = require( 'lodash' );
 
@@ -28,6 +27,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
             voter: voteOp.voter,
             percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
             wobjects: voteOp.wobjects,
+            guest_author: voteOp.guest_author,
             posts
         } );
     } else if ( voteOp.type === 'append_wobj' ) {
@@ -43,7 +43,7 @@ const parseVoteByType = async ( voteOp, posts ) => {
 };
 
 const voteAppendObject = async function ( data ) {
-    // data include: author, permlink, percent, voter, author_permlink
+    // data include: author, permlink, percent, voter, author_permlink, posts
     // author and permlink - identity of field
     // author_permlink - identity of wobject
     let { weight, error } = await User.checkForObjectShares( {
@@ -64,13 +64,11 @@ const voteAppendObject = async function ( data ) {
     await voteFieldHelper.voteOnField( data );
 };
 
-const votePostWithObjects = async function ( data ) { // data include: post, metadata, voter, percent
+const votePostWithObjects = async function ( data ) { // data include: posts, metadata, voter, percent, author, permlink, guest_author
     data.post = data.posts.find( ( p ) => p.author === data.author && p.permlink === data.permlink );
-    if ( !data.post ) {
-        return;
-    }
-    let metadata;
+    if ( !data.post )return;
 
+    let metadata;
     try {
         if ( data.post.json_metadata !== '' ) {
             metadata = JSON.parse( data.post.json_metadata ); // parse json_metadata from string to JSON
@@ -78,9 +76,7 @@ const votePostWithObjects = async function ( data ) { // data include: post, met
     } catch ( e ) {
         console.error( e );
     }
-    if ( !metadata ) {
-        return;
-    }
+    if ( !metadata ) return;
     if ( !metadata.wobj ) {
         metadata.wobj = { wobjects: data.wobjects };
     }
@@ -104,16 +100,17 @@ const getPosts = async function ( postsRefs ) {
 
 const votesFormat = async ( votesOps ) => {
     for ( const voteOp of votesOps ) {
-        const redisResponse = await commentRefGetter.getCommentRef( `${voteOp.author}_${voteOp.permlink}` );
+        const response = await commentRefGetter.getCommentRef( `${voteOp.author}_${voteOp.permlink}` );
 
-        if ( redisResponse && redisResponse.type ) {
-            voteOp.type = redisResponse.type;
-            voteOp.root_wobj = redisResponse.root_wobj;
-            voteOp.wobjects = redisResponse.wobjects ? JSON.parse( redisResponse.wobjects ) : [];
-            voteOp.name = redisResponse.name;
+        if ( _.get( response, 'type' ) ) {
+            voteOp.type = response.type;
+            voteOp.root_wobj = response.root_wobj;
+            voteOp.wobjects = response.wobjects ? JSON.parse( response.wobjects ) : [];
+            voteOp.name = response.name;
+            voteOp.guest_author = response.guest_author;
         }
     }
     return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
-module.exports = { parse };
+module.exports = { parse, votesFormat };

@@ -8,7 +8,7 @@ describe( 'VoteParser', async () => {
             let postUtilStub;
             let mocks;
 
-            before( async () => {
+            beforeEach( async () => {
                 mocks = await voteAppendObjectMocks();
                 voteFieldHelperStub = sinon.stub( voteFieldHelper, 'voteOnField' ).callsFake( async () => {
                 } );
@@ -18,7 +18,7 @@ describe( 'VoteParser', async () => {
                 await voteParser.parse( [ mocks.vote ] );
             } );
 
-            after( () => {
+            afterEach( () => {
                 voteFieldHelperStub.restore();
                 postUtilStub.restore();
             } );
@@ -54,7 +54,7 @@ describe( 'VoteParser', async () => {
             let mocks;
             let redisResp;
 
-            before( async () => {
+            beforeEach( async () => {
                 mocks = await voteAppendObjectMocks();
                 redisResp = await redisGetter.getHashAll( `${mocks.vote.author}_${mocks.vote.permlink}` );
                 await UserWobjects.create( {
@@ -69,7 +69,7 @@ describe( 'VoteParser', async () => {
                 await voteParser.parse( [ mocks.vote ] );
             } );
 
-            after( () => {
+            afterEach( () => {
                 voteFieldHelperStub.restore();
                 postUtilStub.restore();
             } );
