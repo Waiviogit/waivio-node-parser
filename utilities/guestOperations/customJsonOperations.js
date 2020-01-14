@@ -1,3 +1,4 @@
+const { getWobjectsFromMetadata } = require( '../helpers/postByTagsHelper' );
 const userParsers = require( '../../parsers/userParsers' );
 const followObjectParser = require( '../../parsers/followObjectParser' );
 const voteParser = require( '../../parsers/voteParser' );
@@ -42,7 +43,7 @@ exports.guestVote = async ( operation ) => {
         if( !json ) return;
 
         const [ vote ] = await voteParser.votesFormat( [ json ] );
-        if( vote.type === 'post_with_wobj' ) {
+        if( vote.type === 'post_with_wobj' || !vote.type ) {
             await voteOnPost( { vote } );
         } else if ( vote.type === 'append_wobj' ) {
             await voteOnField( { vote } );
@@ -81,8 +82,13 @@ exports.guestCreate = async ( operation ) => {
 };
 
 const voteOnPost = async ( { vote } ) => {
-    const { post, error } = await Post.findOne( _.pick( vote, [ 'author', 'permlink' ] ) );
-    if( error ) return;
+    let { post, error } = await Post.findOne( _.pick( vote, [ 'author', 'permlink' ] ) );
+    if ( !post ) {
+        const { err, newPost } = await savePostInDB( _.pick( vote, [ 'author', 'permlink' ] ) );
+        if ( err ) return;
+        post = newPost.post;
+    }
+    if ( error || !post ) return;
     _.remove( post.active_votes, ( v ) => v.voter === vote.voter );
     post.active_votes.push( {
         voter: vote.voter,
@@ -125,4 +131,17 @@ const parseJson = ( json ) => {
     } catch ( error ) {
         console.error( error );
     }
+};
+
+const savePostInDB = async ( data ) => {
+    const { post, err } = await postsUtil.getPost( data.author, data.permlink );
+    if( err ) return { err };
+    if ( !post ) {
+        console.error( 'No post in steem' );
+        return { err: 'No post in steem' };
+    }
+    post.wobjects = await getWobjectsFromMetadata( post );
+    const { error } = await Post.create( post );
+    if ( error ) return { err: error };
+    return { newPost: await Post.findOne( { author: data.author, permlink: data.permlink } ) };
 };

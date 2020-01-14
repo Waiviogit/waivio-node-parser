@@ -42,7 +42,8 @@ const UserSchema = new Schema( {
     wobjects_weight: { type: Number, default: 0 }, // sum of weight of all wobjects
     count_posts: { type: Number, default: 0, index: true }, // count of the all posts
     last_posts_count: { type: Number, default: 0 }, // count of the posts written in last day
-    user_metadata: { type: UserMetadataSchema, default: () => ( {} ), select: false }
+    user_metadata: { type: UserMetadataSchema, default: () => ( {} ), select: false },
+    last_root_post: { type: String, default: null }
 }, { timestamps: true } );
 
 UserSchema.index( { wobjects_weight: -1 } );

@@ -1,5 +1,6 @@
 const UserModel = require( '../database' ).models.User;
 const UserWobjectsModel = require( '../database' ).models.UserWobjects;
+const moment = require( 'moment' );
 const _ = require( 'lodash' );
 
 const create = async function ( data ) {
@@ -209,11 +210,14 @@ const updateOne = async function ( condition, updateData ) {
     }
 };
 
-const increaseCountPosts = async ( author ) => {
+const updateOnNewPost = async ( author, postCreatedTime ) => {
     try{
         const result = await UserModel.updateOne(
             { name: author },
-            { $inc: { count_posts: 1, last_posts_count: 1 } }
+            {
+                $inc: { count_posts: 1, last_posts_count: 1 },
+                $set: { last_root_post: moment.utc( postCreatedTime ).toISOString().split( '.' )[ 0 ] }
+            }
         );
         return { result: result.nModified === 1 };
     } catch( error ) {
@@ -232,5 +236,5 @@ module.exports = {
     checkForObjectShares,
     update,
     updateOne,
-    increaseCountPosts
+    updateOnNewPost
 };

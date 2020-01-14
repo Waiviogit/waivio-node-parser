@@ -1,5 +1,5 @@
 const { expect, postsUtil } = require( '../testHelper' );
-const TEST_POST_ON_STEEMIT = { author: 'alice', permlink: 'a-post-by-alice' };
+const TEST_POST_ON_STEEMIT = { author: 'waiviodev', permlink: 'yqsgzu78um7' };
 
 describe( 'Steem API', async () => {
     describe( 'Posts Util', async () => {

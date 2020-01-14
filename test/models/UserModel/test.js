@@ -1,5 +1,6 @@
 const { expect, UserModel, User, getRandomString, dropDatabase, faker, UserWobjects } = require( '../../testHelper' );
 const { UserFactory, ObjectFactory, userWobjectFactory } = require( '../../factories' );
+const moment = require( 'moment' );
 
 describe( 'User Model', async () => {
     describe( 'On increaseWobjectWeight', async () => {
@@ -301,24 +302,34 @@ describe( 'User Model', async () => {
             expect( result.error ).to.eq( 'Name must be a string!' );
         } );
     } );
-    describe( 'On increaseCountPosts', async () => {
-        let author, result, updatedAuthor;
+    describe( 'On updateOnNewPost', async () => {
+        let author, result, updatedAuthor, lastPostDateMock;
         beforeEach( async () => {
             author = await UserFactory.Create();
-            result = await UserModel.increaseCountPosts( author.user.name );
-            updatedAuthor = await User.findOne( { name: author.user.name } );
+            lastPostDateMock = faker.date.recent().toISOString().split( '.' )[ 0 ];
+            result = await UserModel.updateOnNewPost( author.user.name, lastPostDateMock );
+            updatedAuthor = await User.findOne( { name: author.user.name } ).lean();
         } );
         it( 'should return result true', async () => {
             expect( result.result ).is.true;
         } );
         it( 'should update count posts', async () => {
-            expect( author.user.count_posts ).to.not.eq( updatedAuthor._doc.count_posts );
+            expect( author.user.count_posts ).to.not.eq( updatedAuthor.count_posts );
         } );
-        it( 'should success update count posts by 1', async () => {
-            expect( author.user.count_posts + 1 ).to.eq( updatedAuthor._doc.count_posts );
+        it( 'should update count posts by 1', async () => {
+            expect( author.user.count_posts + 1 ).to.be.eq( updatedAuthor.count_posts );
+        } );
+        it( 'should update last_root_post with correct value', async () => {
+            expect( updatedAuthor.last_root_post ).to.be.eq( lastPostDateMock );
+        } );
+        it( 'should update last_root_post with correct value on input Date.now', async () => {
+            const postDate = Date.now();
+            await UserModel.updateOnNewPost( author.user.name, postDate );
+            updatedAuthor = await User.findOne( { name: author.user.name } ).lean();
+            expect( updatedAuthor.last_root_post ).to.be.eq( moment.utc( postDate ).toISOString().split( '.' )[ 0 ] );
         } );
         it( 'should get error with incorrect data', async () => {
-            let res = await UserModel.increaseCountPosts( { author: { incorrect: getRandomString() } } );
+            let res = await UserModel.updateOnNewPost( { author: { incorrect: getRandomString() } } );
             expect( res.error ).is.exist;
         } );
     } );
