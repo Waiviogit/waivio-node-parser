@@ -66,6 +66,12 @@ const PostSchema = new Schema( {
 }, { strict: false, timestamps: true } );
 
 PostSchema.index( { author: 1, permlink: 1 }, { unique: true } );
+PostSchema.index( { root_author: 1, permlink: 1 }, { unique: true } );
+
+PostSchema.pre( 'save', ( next ) => {
+    this.root_author = this.root_author || this.author;
+    next();
+} );
 
 const PostModel = mongoose.model( 'Post', PostSchema );
 
