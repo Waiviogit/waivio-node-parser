@@ -1,10 +1,10 @@
-const { postByTagsHelper, importTags, expect, sinon, WobjModel, getRandomString } = require( '../../testHelper' );
+const { postByTagsHelper, importTags, expect, sinon, WobjModel } = require( '../../testHelper' );
 
 describe( 'postByTagsHelper', async () => {
     describe( 'wobjectsByTags', async () => {
         let importTagsStub;
         describe( 'if tags exists', async () => {
-            let input = [ getRandomString(), getRandomString(), getRandomString() ];
+            let input = [ faker.random.string(), faker.random.string(), faker.random.string() ];
             let wobjModelStub, result;
             beforeEach( async () => {
                 wobjModelStub = sinon.stub( WobjModel, 'getOne' ).callsFake( ( { author_permlink, object_type } ) => {
@@ -24,7 +24,7 @@ describe( 'postByTagsHelper', async () => {
             } );
         } );
         describe( 'if tags not exists', async () => {
-            let input = [ getRandomString(), getRandomString(), getRandomString() ];
+            let input = [ faker.random.string(), faker.random.string(), faker.random.string() ];
             let wobjModelStub, result;
             beforeEach( async () => {
                 wobjModelStub = sinon.stub( WobjModel, 'getOne' ).callsFake( ( { author_permlink, object_type } ) => ( {} ) );

@@ -1,4 +1,4 @@
-const { expect, postWithObjectParser, Post, faker, getRandomString, postsUtil, sinon, User, redisGetter, CommentRef, postHelper } = require( '../../testHelper' );
+const { expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper } = require( '../../testHelper' );
 const { PostFactory, UserFactory, ObjectFactory } = require( '../../factories' );
 const { postWithWobjValidator } = require( '../../../validator' );
 
@@ -16,7 +16,7 @@ describe( 'postWithObjectParser', async () => {
                 mockMetadata = {
                     wobj: { wobjects: [
                         { author_permlink: mockWobj.author_permlink, percent: 100 },
-                        { author_permlink: getRandomString( 10 ), percent: 0 }
+                        { author_permlink: faker.random.string( 10 ), percent: 0 }
                     ] },
                     app: faker.address.city()
                 };
@@ -187,9 +187,9 @@ describe( 'postWithObjectParser', async () => {
                 };
                 mockMetadata = {
                     wobj: { wobjects: [
-                        { author_permlink: getRandomString( 10 ), percent: 33 },
-                        { author_permlink: getRandomString( 10 ), percent: 34 },
-                        { author_permlink: getRandomString( 10 ), percent: 34 }
+                        { author_permlink: faker.random.string( 10 ), percent: 33 },
+                        { author_permlink: faker.random.string( 10 ), percent: 34 },
+                        { author_permlink: faker.random.string( 10 ), percent: 34 }
                     ] },
                     app: faker.address.city()
                 };

@@ -1,4 +1,4 @@
-const { expect, faker, getRandomString, ObjectType, WObject } = require( '../../testHelper' );
+const { expect, faker, ObjectType, WObject } = require( '../../testHelper' );
 const { appendObjectValidator } = require( '../../../validator' );
 const { ObjectFactory, AppendObject } = require( '../../factories' );
 const { BLACK_LIST_BOTS } = require( '../../../utilities/constants' );
@@ -12,19 +12,19 @@ describe( 'appendObjectValidator', async () => {
         mockData = {
             author_permlink: wobject.author_permlink,
             field: {
-                name: getRandomString(),
-                body: getRandomString(),
+                name: faker.random.string(),
+                body: faker.random.string(),
                 locale: 'en-US',
                 creator: faker.name.firstName().toLowerCase(),
                 author: faker.name.firstName().toLowerCase(),
-                permlink: getRandomString( 15 )
+                permlink: faker.random.string( 15 )
             }
         };
         mockOp = {
             parent_author: wobject.author,
             parent_permlink: wobject.author_permlink,
-            author: getRandomString(),
-            permlink: getRandomString()
+            author: faker.random.string(),
+            permlink: faker.random.string()
         };
     } );
 
@@ -46,7 +46,7 @@ describe( 'appendObjectValidator', async () => {
                 await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.not.be.rejected;
             } );
             it( 'should not throw error if body of added field is different', async () => {
-                mockData.field.body = getRandomString( 20 );
+                mockData.field.body = faker.random.string( 20 );
                 mockData.author_permlink = newWobj.author_permlink;
                 await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.not.be.rejected;
             } );
@@ -85,20 +85,20 @@ describe( 'appendObjectValidator', async () => {
 
         describe( 'when parent comment is not createobject comment', async () => {
             it( 'should be rejected if parent_author wrong', async () => {
-                mockOp.parent_author = getRandomString( 10 );
+                mockOp.parent_author = faker.random.string( 10 );
                 await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
             } );
             it( 'should be rejected if parent_author wrong with corr. message', async () => {
-                mockOp.parent_author = getRandomString( 10 );
+                mockOp.parent_author = faker.random.string( 10 );
                 await expect( appendObjectValidator.validate( mockData, mockOp ) )
                     .to.be.rejectedWith( Error, "Can't append object, parent comment isn't create Object comment!" );
             } );
             it( 'should be rejected if parent_permlink wrong', async () => {
-                mockOp.parent_permlink = getRandomString( 10 );
+                mockOp.parent_permlink = faker.random.string( 10 );
                 await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
             } );
             it( 'should be rejected if parent_permlink wrong with corr. message', async () => {
-                mockOp.parent_author = getRandomString( 10 );
+                mockOp.parent_author = faker.random.string( 10 );
                 await expect( appendObjectValidator.validate( mockData, mockOp ) )
                     .to.be.rejectedWith( Error, "Can't append object, parent comment isn't create Object comment!" );
             } );
@@ -126,7 +126,7 @@ describe( 'appendObjectValidator', async () => {
         describe( 'when field in black list for current ObjectType', async () => {
             let blackListFieldName;
             beforeEach( async () => {
-                blackListFieldName = getRandomString();
+                blackListFieldName = faker.random.string();
 
                 const objectType = await ObjectType.findOne( { name: wobject.object_type } );
                 objectType.updates_blacklist = [ blackListFieldName ];
@@ -178,7 +178,7 @@ describe( 'appendObjectValidator', async () => {
             describe( 'on parent field', async () => {
                 it( 'should be rejected if body refer to non existing wobject', async () => {
                     mockData.field.name = 'parent';
-                    mockData.field.body = getRandomString( 10 );
+                    mockData.field.body = faker.random.string( 10 );
                     await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
                 } );
             } );
@@ -260,7 +260,7 @@ describe( 'appendObjectValidator', async () => {
                 } );
                 it( 'should be rejected if category with the same "id" already exist', async () => {
                     mockData.field.name = 'tagCategory';
-                    mockData.field.id = getRandomString( 10 );
+                    mockData.field.id = faker.random.string( 10 );
                     await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'tagCategory', additionalFields: { id: mockData.field.id } } );
                     await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
                 } );
@@ -274,15 +274,15 @@ describe( 'appendObjectValidator', async () => {
 
                 it( 'should be rejected if field body refer to non existing wobject', async () => {
                     mockData.field.name = 'categoryItem';
-                    mockData.field.id = getRandomString( 15 );
-                    mockData.field.body = getRandomString( 20 );
+                    mockData.field.id = faker.random.string( 15 );
+                    mockData.field.body = faker.random.string( 20 );
                     await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
                 } );
 
                 it( 'should be rejected if tagCategory with the same "id" doesn\'t exist', async () => {
                     const hashtagWobj = await ObjectFactory.Create( { object_type: 'hashtag' } );
                     mockData.field.name = 'categoryItem';
-                    mockData.field.id = getRandomString( 15 );
+                    mockData.field.id = faker.random.string( 15 );
                     mockData.field.body = hashtagWobj.author_permlink;
                     await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
                 } );
@@ -290,7 +290,7 @@ describe( 'appendObjectValidator', async () => {
                 it( 'should be rejected if categoryItem with the same id, name and body already exist', async () => {
                     const hashtagWobj = await ObjectFactory.Create( { object_type: 'hashtag' } );
                     mockData.field.name = 'categoryItem';
-                    mockData.field.id = getRandomString( 15 );
+                    mockData.field.id = faker.random.string( 15 );
                     mockData.field.body = hashtagWobj.author_permlink;
                     await AppendObject.Create( { root_wobj: wobject.author_permlink, name: 'categoryItem', body: hashtagWobj.author_permlink, id: mockData.field.id } );
                     await expect( appendObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;

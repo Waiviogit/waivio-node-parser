@@ -8,7 +8,7 @@ describe( 'CommentModel', async () => {
 
         beforeEach( async () => {
             comment = await CommentFactory.Create( { onlyData: true } );
-            result = await CommentModel.create( comment );
+            result = await CommentModel.createOrUpdate( comment );
             createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
         } );
         it( 'should create user - author of comment ', async () => {
@@ -26,15 +26,27 @@ describe( 'CommentModel', async () => {
         it( 'should create comment with correct fields values', () => {
             expect( _.omit( createdComment, '_id' ) ).to.deep.eq( comment );
         } );
-        it( 'should return comment with correct fields values', () => {
-            expect( _.omit( result.comment._doc, '_id' ) ).to.deep.eq( comment );
+        it( 'should return comment:null if comment didn\'t exist before ', () => {
+            expect( result.comment ).to.be.null;
         } );
         it( 'should create comment only with allowed fields(without redundant)', async () => {
             comment = await CommentFactory.Create( { onlyData: true } );
             comment = { ...comment, redundantField1: faker.random.string(), redundantField2: faker.random.string() };
-            result = await CommentModel.create( comment );
+            result = await CommentModel.createOrUpdate( comment );
             createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
             expect( createdComment ).to.has.not.all.keys( [ 'redundantField1', 'redundantField2' ] );
+        } );
+        it( 'should update if comment was exist)', async () => {
+            comment = await CommentFactory.Create();
+            comment = { ...comment, active_votes: [ {
+                voter: faker.name.firstName().toLowerCase(),
+                weight: faker.random.number( 10000 ),
+                percent: faker.random.number( 10000 )
+            } ] };
+            result = await CommentModel.createOrUpdate( comment );
+            createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
+            expect( createdComment.active_votes.map( ( v ) => _.omit( v, '_id' ) ) )
+                .to.be.deep.eq( comment.active_votes );
         } );
     } );
 } );

@@ -1,4 +1,4 @@
-const { expect, UserModel, User, getRandomString, dropDatabase, faker, UserWobjects } = require( '../../testHelper' );
+const { expect, UserModel, User, dropDatabase, faker, UserWobjects } = require( '../../testHelper' );
 const { UserFactory, ObjectFactory, userWobjectFactory } = require( '../../factories' );
 const moment = require( 'moment' );
 
@@ -7,12 +7,12 @@ describe( 'User Model', async () => {
         let data, userBeforeIncrease, weightIncrease, name, userAfterIncrease, result;
         beforeEach( async() => {
             await dropDatabase();
-            name = getRandomString();
+            name = faker.random.string();
             await UserFactory.Create( { name: name, wobjects_weight: 300 } );
             data = {
                 name: name,
-                author: getRandomString(),
-                author_permlink: getRandomString(),
+                author: faker.random.string(),
+                author_permlink: faker.random.string(),
                 weight: 50
             };
             userBeforeIncrease = await User.findOne( { name: name } );
@@ -41,11 +41,11 @@ describe( 'User Model', async () => {
             expect( result.error ).is.exist;
         } );
         it( 'should get error with incorrect data', async () => {
-            result = await UserModel.increaseWobjectWeight( { data: { some: getRandomString() } } );
+            result = await UserModel.increaseWobjectWeight( { data: { some: faker.random.string() } } );
             expect( result.error ).is.exist;
         } );
         it( 'should create new user if it not exist', async () => {
-            data.name = getRandomString();
+            data.name = faker.random.string();
             weightIncrease = await UserModel.increaseWobjectWeight( data );
             result = await User.findOne( { name: data.name } );
             expect( result ).is.not.null;
@@ -57,7 +57,7 @@ describe( 'User Model', async () => {
             weight = faker.random.number();
             data = {
                 name: faker.name.firstName(),
-                author_permlink: getRandomString( 10 )
+                author_permlink: faker.random.string( 10 )
             };
             await userWobjectFactory.Create( { user_name: data.name, author_permlink: data.author_permlink, weight: weight } );
         } );
@@ -67,7 +67,7 @@ describe( 'User Model', async () => {
             expect( result.weight ).to.eq( weight );
         } );
         it( 'should return error with incorrect input data', async () => {
-            result = await UserModel.checkForObjectShares( { name: faker.name.firstName(), author_permlink: getRandomString() } );
+            result = await UserModel.checkForObjectShares( { name: faker.name.firstName(), author_permlink: faker.random.string() } );
             expect( result.error ).is.exist;
         } );
         it( 'should return error without input data', async () => {
@@ -91,7 +91,7 @@ describe( 'User Model', async () => {
             expect( upd_follower.users_follow ).to.deep.eq( [ following.user.name ] );
         } );
         it( 'should return error with incorrect data', async () => {
-            upd_follower = await UserModel.addUserFollow( { follower: { user: getRandomString() }, following: following } );
+            upd_follower = await UserModel.addUserFollow( { follower: { user: faker.random.string() }, following: following } );
             expect( upd_follower.error ).is.exist;
         } );
     } );
@@ -120,7 +120,7 @@ describe( 'User Model', async () => {
             expect( result.error ).is.exist;
         } );
         it( 'should get error with incorrect data', async () => {
-            const result = await UserModel.removeUserFollow( { follower: { user: getRandomString() }, following: following } );
+            const result = await UserModel.removeUserFollow( { follower: { user: faker.random.string() }, following: following } );
             expect( result.error ).is.exist;
         } );
     } );
@@ -145,18 +145,18 @@ describe( 'User Model', async () => {
             expect( result.objects_follow ).to.deep.eq( [ mockObject.author_permlink ] );
         } );
         it( 'should get error with incorrect data', async () => {
-            result = await UserModel.addObjectFollow( { some: { test: { data: getRandomString() } } } );
+            result = await UserModel.addObjectFollow( { some: { test: { data: faker.random.string() } } } );
             expect( result.error ).is.exist;
         } );
         it( 'shouldn\'t get error without author_permlink', async () => {
-            result = await UserModel.addObjectFollow( { user: getRandomString() } );
+            result = await UserModel.addObjectFollow( { user: faker.random.string() } );
             expect( result.error ).is.not.exist;
         } );
     } );
     describe( 'On removeObjectFollow ', async () => {
         let mockObject, result, follower;
         beforeEach( async () => {
-            mockObject = [ getRandomString() ];
+            mockObject = [ faker.random.string() ];
             follower = await UserFactory.Create( { objects_follow: mockObject } );
         } );
         it( 'should object_follow contains fakeObject', async () => {
@@ -173,7 +173,7 @@ describe( 'User Model', async () => {
             expect( result.error ).is.exist;
         } );
         it( 'should delete only one wobject from objects_follow', async () => {
-            mockObject = [ getRandomString(), getRandomString() ];
+            mockObject = [ faker.random.string(), faker.random.string() ];
             follower = await UserFactory.Create( { objects_follow: mockObject } );
             await UserModel.removeObjectFollow( { user: follower.user.name, author_permlink: mockObject[ 0 ] } );
             result = await User.findOne( { name: follower.user.name } );
@@ -185,7 +185,7 @@ describe( 'User Model', async () => {
         let user, data;
         beforeEach( async () => {
             data = {
-                name: getRandomString()
+                name: faker.random.string()
             };
             user = await UserModel.create( data );
         } );
@@ -196,11 +196,11 @@ describe( 'User Model', async () => {
             expect( data.name ).to.eq( user.user.name );
         } );
         it( 'should get error with incorrect data', async () => {
-            let result = await UserModel.create( { name: { some: getRandomString() } }, { alias: { some: getRandomString() } } );
+            let result = await UserModel.create( { name: { some: faker.random.string() } }, { alias: { some: faker.random.string() } } );
             expect( result.error ).exist;
         } );
         it( 'should get validation error', async () => {
-            let result = await UserModel.create( { name: { some: getRandomString() } }, { alias: { some: getRandomString() } } );
+            let result = await UserModel.create( { name: { some: faker.random.string() } }, { alias: { some: faker.random.string() } } );
             expect( result.error.name ).to.eq( 'ValidationError' );
         } );
     } );
@@ -232,11 +232,11 @@ describe( 'User Model', async () => {
             expect( secondUser.user.wobjects_weight ).to.not.eq( updatedUser2._doc.wobjects_weight );
         } );
         it( 'should get error with incorrect data', async () => {
-            let res = await UserModel.update( 55, { get: { data: getRandomString() } } );
+            let res = await UserModel.update( 55, { get: { data: faker.random.string() } } );
             expect( res.error ).exist;
         } );
         it( 'should get object parameter error', async () => {
-            let res = await UserModel.update( 55, { get: { data: getRandomString() } } );
+            let res = await UserModel.update( 55, { get: { data: faker.random.string() } } );
             expect( res.error.name ).to.eq( 'ObjectParameterError' );
         } );
         it( 'should check that the fields which was update are the same ', async () => {
@@ -263,18 +263,18 @@ describe( 'User Model', async () => {
             expect( updatedUser._doc.wobjects_weight ).to.eq( updateData.wobjects_weight );
         } );
         it( 'should get error ', async () => {
-            let res = await UserModel.updateOne( 55, { get: { data: getRandomString() } } );
+            let res = await UserModel.updateOne( 55, { get: { data: faker.random.string() } } );
             expect( res.error ).exist;
         } );
         it( 'should get object parameter error', async () => {
-            let res = await UserModel.updateOne( 55, { get: { data: getRandomString() } } );
+            let res = await UserModel.updateOne( 55, { get: { data: faker.random.string() } } );
             expect( res.error.name ).to.eq( 'ObjectParameterError' );
         } );
     } );
     describe( 'On checkAndCreate', async () => {
         let user, foundedUser, name, result;
         beforeEach( async () => {
-            name = getRandomString();
+            name = faker.random.string();
             user = await UserFactory.Create( { name: name } );
         } );
         it( 'should return user', async () => {
@@ -282,7 +282,7 @@ describe( 'User Model', async () => {
             expect( user.user._id ).to.deep.eq( checkedExistUser.user._id );
         } );
         it( 'should create new user if user not exist', async () => {
-            name = getRandomString();
+            name = faker.random.string();
             const findUser = await User.findOne( { name: name } );
             await UserModel.checkAndCreate( name );
             foundedUser = await User.findOne( { name: name } );
@@ -329,7 +329,7 @@ describe( 'User Model', async () => {
             expect( updatedAuthor.last_root_post ).to.be.eq( moment.utc( postDate ).toISOString().split( '.' )[ 0 ] );
         } );
         it( 'should get error with incorrect data', async () => {
-            let res = await UserModel.updateOnNewPost( { author: { incorrect: getRandomString() } } );
+            let res = await UserModel.updateOnNewPost( { author: { incorrect: faker.random.string() } } );
             expect( res.error ).is.exist;
         } );
     } );
