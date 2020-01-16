@@ -14,8 +14,8 @@ const { investarenaForecastHelper, voteFieldHelper, updateSpecificFieldsHelper, 
 const { specifiedFieldsValidator, appendObjectValidator } = require( '../validator' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { importTags, importUpdates } = require( '../utilities/objectImportServiceApi' );
-const { ObjectType, WObject, Post, User, UserWobjects, App, CommentRef } = require( '../database' ).models;
-const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel } = require( '../models' );
+const { ObjectType, WObject, Post, User, UserWobjects, App, CommentRef, Comment } = require( '../database' ).models;
+const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel, CommentModel } = require( '../models' );
 const sinon = require( 'sinon' );
 const chai = require( 'chai' );
 const sinonChai = require( 'sinon-chai' );
@@ -74,7 +74,9 @@ module.exports = {
     specifiedFieldsValidator,
     appendObjectValidator,
     WobjModel,
+    CommentModel,
     App,
+    Comment,
     CommentRef,
     appHelper,
     importTags,

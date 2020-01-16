@@ -19,6 +19,7 @@ module.exports = {
         ObjectType: require( './schemas/ObjectTypeSchema' ),
         UserWobjects: require( './schemas/UserWobjectsSchema' ),
         App: require( './schemas/AppSchema' ),
-        CommentRef: require( './schemas/CommentRefSchema' )
+        CommentRef: require( './schemas/CommentRefSchema' ),
+        Comment: require( './schemas/CommentSchema' )
     }
 };

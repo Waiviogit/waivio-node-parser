@@ -1,7 +1,7 @@
 const mongoose = require( 'mongoose' );
 const Schema = mongoose.Schema;
 
-const CommentsSchema = new Schema( {
+const CommentSchema = new Schema( {
     author: { type: String, required: true },
     permlink: { type: String, required: true },
     root_author: { type: String, required: true },
@@ -20,13 +20,13 @@ const CommentsSchema = new Schema( {
         type: { userId: String, social: String },
         default: null
     }
-}, { timestamps: false } );
+}, { timestamps: false, versionKey: false } );
 
-CommentsSchema.index( { author: 1, permlink: 1 }, { unique: true } );
-CommentsSchema.index( { root_author: 1, root_permlink: 1 } );
-CommentsSchema.index( { parent_author: 1, parent_permlink: 1 } );
-CommentsSchema.index( { 'guestInfo.userId': 1 } );
+CommentSchema.index( { author: 1, permlink: 1 }, { unique: true } );
+CommentSchema.index( { root_author: 1, root_permlink: 1 } );
+CommentSchema.index( { parent_author: 1, parent_permlink: 1 } );
+CommentSchema.index( { 'guestInfo.userId': 1 } );
 
-const CommentsModel = mongoose.model( 'Comments', CommentsSchema );
+const CommentModel = mongoose.model( 'Comments', CommentSchema );
 
-module.exports = CommentsModel;
+module.exports = CommentModel;
