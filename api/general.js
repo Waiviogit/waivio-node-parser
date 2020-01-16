@@ -7,7 +7,7 @@ const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 bluebird.promisifyAll( steem.api );
 // steem.api.setOptions( { url: nodeUrls[ 0 ] } );
-steem.api.setOptions( { url: 'https://api.steemit.com' } );
+steem.api.setOptions( { url: nodeUrls[ 0 ] } );
 
 const getBlockNumberStream = async ( { startFromBlock, startFromCurrent } ) => {
     if ( startFromCurrent ) {
