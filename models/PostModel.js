@@ -1,5 +1,6 @@
 const PostModel = require( '../database' ).models.Post;
 const User = require( './UserModel' );
+const _ = require( 'lodash' );
 
 const create = async function ( data ) {
     await User.checkAndCreate( data.author ); // create user in DB if it doesn't exist
@@ -15,7 +16,8 @@ const create = async function ( data ) {
 
 const findOne = async function ( data ) {
     try {
-        const post = await PostModel.findOne( { author: data.author, permlink: data.permlink } ).lean();
+        const cond = _.pick( data, [ data.root_author ? 'root_author' : 'author', 'permlink' ] );
+        const post = await PostModel.findOne( { ...cond } ).lean();
         return { post };
     } catch ( error ) {
         return { error };
