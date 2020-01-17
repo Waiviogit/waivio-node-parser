@@ -68,23 +68,44 @@ describe( 'guestCommentParser', async () => {
         describe( 'when proxy bot is incorrect', async () => {
             beforeEach( async () => {
                 validOp.author = faker.name.firstName().toLowerCase();
+                await guestCommentParser.parse( { operation: validOp, metadata: validMetadata } );
             } );
             it( 'should not call postsUtil.getPost ', async () => {
-                expect( postsUtil.getPost ).to.be.calledOnce;
+                expect( postsUtil.getPost ).to.not.be.called;
+            } );
+            it( 'should not create Comment in DB', async () => {
+                const comment = await Comment.findOne( { author: validOp.author, permlink: validOp.permlink } );
+                expect( comment ).is.not.exist;
             } );
         } );
 
+        describe( 'when guestInfo in metadata is incorrect', async () => {
+            beforeEach( async () => {
+                delete validMetadata.comment.userId;
+                await guestCommentParser.parse( { operation: validOp, metadata: validMetadata } );
+            } );
+            it( 'should not call postsUtil.getPost ', async () => {
+                expect( postsUtil.getPost ).to.not.be.called;
+            } );
+            it( 'should not create Comment in DB', async () => {
+                const comment = await Comment.findOne( { author: validOp.author, permlink: validOp.permlink } );
+                expect( comment ).is.not.exist;
+            } );
+        } );
 
-        it( 'should call CommentModel.createOrUpdate once', () => {
-            expect( CommentModel.createOrUpdate ).to.be.calledOnce;
-        } );
-        it( 'should create Comment in DB', async () => {
-            const comment = await Comment.findOne( { author: validOp.author, permlink: validOp.permlink } );
-            expect( comment ).is.exist;
-        } );
-        it( 'should create comment with correct guestInfo', async () => {
-            const comment = await Comment.findOne( { author: validOp.author, permlink: validOp.permlink } );
-            expect( comment.guestInfo ).to.be.deep.eq( { ...validMetadata.comment } );
+        describe( 'when comment already not exist in blockchain', async () => {
+            beforeEach( async () => {
+                postsUtil.getPost.restore();
+                sinon.stub( postsUtil, 'getPost' ).callsFake( () => ( { err: 'Comment not found!' } ) );
+                await guestCommentParser.parse( { operation: validOp, metadata: validMetadata } );
+            } );
+            it( 'should call postsUtil.getPost once', async () => {
+                expect( postsUtil.getPost ).to.be.called;
+            } );
+            it( 'should not create Comment in DB', async () => {
+                const comment = await Comment.findOne( { author: validOp.author, permlink: validOp.permlink } );
+                expect( comment ).is.not.exist;
+            } );
         } );
     } );
 } );
