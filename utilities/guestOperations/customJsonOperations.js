@@ -5,8 +5,8 @@ const voteParser = require( '../../parsers/voteParser' );
 const { validateProxyBot } = require( './guestHelpers' );
 const { votePostHelper, voteFieldHelper } = require( '../../utilities/helpers' );
 const { Post, User } = require( '../../models' );
-const _ = require( 'lodash' );
 const { postsUtil } = require( '../steemApi' );
+const _ = require( 'lodash' );
 
 exports.followUser = async ( operation ) => {
     if ( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
@@ -83,7 +83,7 @@ exports.guestCreate = async ( operation ) => {
 };
 
 const voteOnPost = async ( { vote } ) => {
-    let { post, error } = await Post.findOne( _.pick( vote, [ 'author', 'permlink' ] ) );
+    let { post, error } = await Post.findOne( { root_author: vote.author, permlink: vote.permlink } );
     if ( !post ) {
         const { err, newPost } = await savePostInDB( _.pick( vote, [ 'author', 'permlink' ] ) );
         if ( err ) return;
@@ -138,8 +138,9 @@ const savePostInDB = async ( data ) => {
     const { post, err } = await postsUtil.getPost( data.author, data.permlink );
     if( err ) return { err };
     if ( !post ) {
-        console.error( 'No post in steem' );
-        return { err: 'No post in steem' };
+        const errorMessage = `No post in steem: @${data.author}/${data.permlink}`;
+        console.error( errorMessage );
+        return { err: errorMessage };
     }
     post.wobjects = await getWobjectsFromMetadata( post );
     const { error } = await Post.create( post );
