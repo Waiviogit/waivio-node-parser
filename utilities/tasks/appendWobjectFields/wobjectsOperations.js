@@ -6,7 +6,7 @@ const fs = require( 'fs' );
 const getWobjects = async () => {
     try{
         const result = await WObject.aggregate( [
-            { $match: { fields: { $size: 0 } } },
+            { $match: { $or: [ { fields: { $size: 0 } }, { 'fields.name': { $ne: 'name' } } ] } },
             { $project: { author: 1, author_permlink: 1, _id: 0, default_name: 1 } }
         ] );
         return { result };
@@ -22,11 +22,13 @@ const appendWobjectFields = async ( wobject ) => {
         console.log( `wobject, author: ${wobject.author}, permlink: ${wobject.author_permlink} has no comments with appends` );
         return false ;
     }
+    let success = false;
     for ( let comment of comments ) {
         if ( !comment.metadata.wobj ) continue;
-        await appendObjectParser.parse( comment.operation, comment.metadata );
+        const result = await appendObjectParser.parse( comment.operation, comment.metadata );
+        if( result ) success = true;
     }
-    return true;
+    return success;
 };
 
 const appendFields = async () => {
