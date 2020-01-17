@@ -7,7 +7,6 @@ const { votePostHelper, voteFieldHelper } = require( '../../utilities/helpers' )
 const { Post, User } = require( '../../models' );
 const { postsUtil } = require( '../steemApi' );
 const _ = require( 'lodash' );
-const { postsUtil } = require( '../steemApi' );
 
 exports.followUser = async ( operation ) => {
     if ( validateProxyBot( _.get( operation, 'required_posting_auths[0]', _.get( operation, 'required_auths[0]' ) ) ) ) {
