@@ -43,14 +43,6 @@ const postSwitcher = async ( { operation, metadata } ) => {
         metadata.wobj = { wobjects: wobjects || [] };
         await postWithObjectsParser.parse( operation, metadata );
     }
-    if ( metadata.wia ) {
-        // add forecast to post(for investarena)
-        await investarenaForecastHelper.updatePostWithForecast( {
-            author: operation.author,
-            permlink: operation.permlink,
-            forecast: metadata.wia
-        } );
-    }
 };
 
 const commentSwitcher = async ( { operation, metadata } ) => {
@@ -69,14 +61,6 @@ const commentSwitcher = async ( { operation, metadata } ) => {
         await chosenPostHelper.updateAppChosenPost( operation );
     }
 
-    if ( _.get( metadata, 'wia.exp_forecast' ) ) {
-        await investarenaForecastHelper.updatePostWithExpForecast( {
-            parent_author: operation.parent_author,
-            parent_permlink: operation.parent_permlink,
-            author: operation.author,
-            exp_forecast: metadata.wia.exp_forecast
-        } ); // add expired forecast to post(for investarena)
-    }
 };
 
 module.exports = { parse };
