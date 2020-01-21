@@ -5,7 +5,7 @@ const { postWithWobjValidator } = require( '../../../validator' );
 describe( 'postWithObjectParser', async () => {
     describe( 'on valid input data', async () => {
         describe( 'if user and post doesnt exists', async () => {
-            let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub;
+            let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub, result;
             beforeEach( async () => {
                 mockPost = await PostFactory.Create( { onlyData: true } );
                 mockWobj = await ObjectFactory.Create();
@@ -23,7 +23,7 @@ describe( 'postWithObjectParser', async () => {
                 postsUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( ( a, b ) => ( { post: mockPost } ) );
                 sinon.spy( postWithWobjValidator, 'validate' );
                 sinon.spy( postHelper, 'objectIdFromDateString' );
-                await postWithObjectParser.parse( mockOp, mockMetadata );
+                result = await postWithObjectParser.parse( mockOp, mockMetadata );
             } );
             afterEach( () => {
                 postsUtilStub.restore();

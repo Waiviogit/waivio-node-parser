@@ -69,9 +69,7 @@ describe( 'comment parser', async () => {
 
                 beforeEach( async () => {
                     mockOp = await getCreateObjectMocks();
-                    stub = sinon.stub( createObjectParser, 'parse' ).callsFake( async ( a, b ) => {
-                        return {};
-                    } );
+                    stub = sinon.stub( createObjectParser, 'parse' ).returns( {} );
                     await commentParser.parse( mockOp );
                 } );
                 afterEach( () => {
@@ -79,19 +77,17 @@ describe( 'comment parser', async () => {
                 } );
 
                 it( 'should call createObjectParser.parse once', () => {
-                    expect( stub.calledOnce ).to.be.true;
+                    expect( stub ).to.be.calledOnce;
                 } );
 
                 it( 'should call with correct first argument', async () => {
                     const firstArg = stub.getCall( 0 ).args[ 0 ];
-
                     expect( firstArg ).to.deep.equal( mockOp );
                 } );
 
                 it( 'should call with correct first argument', async () => {
                     const secondArg = stub.getCall( 0 ).args[ 1 ];
                     const expectedArg = JSON.parse( mockOp.json_metadata );
-
                     expect( secondArg ).to.deep.equal( expectedArg );
                 } );
             } );

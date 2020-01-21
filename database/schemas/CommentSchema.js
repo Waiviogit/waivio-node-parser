@@ -11,8 +11,7 @@ const CommentSchema = new Schema( {
     active_votes: {
         type: [ {
             voter: { type: String },
-            weight: { type: Number },
-            percent: { type: Number }
+            weight: { type: Number }
         } ],
         default: []
     },

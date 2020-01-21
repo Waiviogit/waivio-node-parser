@@ -1,14 +1,13 @@
 const { Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel, CommentModel } = require( '../models' );
-const sinon = require( 'sinon' );
+const wobjectOperations = require( '../utilities/tasks/appendWobjectFields/wobjectsOperations' );
 const chai = require( 'chai' );
 const sinonChai = require( 'sinon-chai' );
 const chaiAsPromised = require( 'chai-as-promised' );
-chai.use( sinonChai );
 chai.use( chaiAsPromised );
+chai.use( sinonChai );
 const expect = chai.expect;
-const { Mongoose } = require( '../database' );
 const faker = require( 'faker' );
-const wobjectOperations = require( '../utilities/tasks/appendWobjectFields/wobjectsOperations' );
+const { Mongoose } = require( '../database' );
 
 faker.random.string = ( length = 5 ) => {
     return faker.internet.password( length, false, /[a-z]/ );
@@ -22,25 +21,25 @@ const dropDatabase = async () => {
 };
 
 module.exports = {
-    ...require( '../parsers' ),
-    ...require( '../utilities/helpers' ),
-    ...require( '../utilities/redis' ),
-    ...require( '../utilities/commentRefService' ),
-    ...require( '../database' ).models,
-    ...require( '../validator' ),
     ...require( '../utilities/objectImportServiceApi' ),
+    ...require( '../utilities/commentRefService' ),
     ...require( '../utilities/steemApi' ),
+    ...require( '../utilities/helpers' ),
+    ...require( '../database' ).models,
+    ...require( '../utilities/redis' ),
+    ...require( '../validator' ),
+    ...require( '../parsers' ),
+    sinon: require( 'sinon' ),
     wobjectOperations,
-    chai,
-    expect,
-    Mongoose,
-    faker,
-    sinon,
-    WobjModel,
-    CommentModel,
-    AppModel,
     ObjectTypeModel,
+    dropDatabase,
+    CommentModel,
+    WobjModel,
     PostModel,
     UserModel,
-    dropDatabase
+    AppModel,
+    Mongoose,
+    expect,
+    faker,
+    chai
 };

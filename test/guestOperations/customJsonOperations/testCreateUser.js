@@ -17,7 +17,7 @@ describe( 'customJsonOperations', async () => {
         let validOp, validJson;
         beforeEach( async () => {
             validJson = {
-                userId: `facebook|${faker.random.string( 5 )}`,
+                userId: `waivio_${faker.random.string( 5 )}`,
                 displayName: faker.name.firstName(),
                 json_metadata: JSON.stringify( { name: 'lalal', address: 'allal' } )
             };

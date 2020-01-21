@@ -26,22 +26,21 @@ describe( 'CommentModel', async () => {
         it( 'should create comment with correct fields values', () => {
             expect( _.omit( createdComment, '_id' ) ).to.deep.eq( comment );
         } );
-        it( 'should return comment:null if comment didn\'t exist before ', () => {
-            expect( result.comment ).to.be.null;
+        it( 'should return created comment', () => {
+            expect( result.comment ).is.exist;
         } );
         it( 'should create comment only with allowed fields(without redundant)', async () => {
             comment = await CommentFactory.Create( { onlyData: true } );
-            comment = { ...comment, redundantField1: faker.random.string(), redundantField2: faker.random.string() };
+            comment = { ...comment, id: faker.random.number( 1000 ), redundantField2: faker.random.string() };
             result = await CommentModel.createOrUpdate( comment );
             createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
-            expect( createdComment ).to.has.not.all.keys( [ 'redundantField1', 'redundantField2' ] );
+            expect( createdComment ).to.has.not.any.keys( [ 'id', 'redundantField2' ] );
         } );
         it( 'should update if comment was exist)', async () => {
             comment = await CommentFactory.Create();
             comment = { ...comment, active_votes: [ {
                 voter: faker.name.firstName().toLowerCase(),
-                weight: faker.random.number( 10000 ),
-                percent: faker.random.number( 10000 )
+                weight: faker.random.number( 10000 )
             } ] };
             result = await CommentModel.createOrUpdate( comment );
             createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
@@ -49,5 +48,31 @@ describe( 'CommentModel', async () => {
                 .to.be.deep.eq( comment.active_votes );
         } );
     } );
+    describe( 'On addVote', async () => {
+        let comment, mockVote, result, updatedComment;
+
+        beforeEach( async () => {
+            mockVote = { voter: faker.name.firstName().toLowerCase(), weight: faker.random.number( 10000 ) };
+            comment = await CommentFactory.Create();
+            result = await CommentModel.addVote( { ..._.pick( comment, [ 'author', 'permlink' ] ), ...mockVote } );
+
+            updatedComment = await Comment.findOne( { ..._.pick( comment, [ 'author', 'permlink' ] ) } ).lean();
+        } );
+        it( 'should increase votes count', async () => {
+            expect( updatedComment.active_votes ).to.has.length( 1 );
+        } );
+        it( 'should add correct vote to active_votes', () => {
+            expect( updatedComment.active_votes.find( ( v ) => v.voter === mockVote.voter && v.weight === mockVote.weight ) ).is.exist;
+        } );
+        it( 'should not add duplicates of votes', async () => {
+            await CommentModel.addVote( { ..._.pick( comment, [ 'author', 'permlink' ] ), ...mockVote } );
+            updatedComment = await Comment.findOne( { ..._.pick( comment, [ 'author', 'permlink' ] ) } ).lean();
+            expect( updatedComment.active_votes ).to.has.length( 1 );
+        } );
+        it( 'should return n:1 on success', () => {
+            expect( result.result ).to.deep.eq( { 'n': 1, 'nModified': 1, 'ok': 1 } );
+        } );
+    } );
+
 } );
 

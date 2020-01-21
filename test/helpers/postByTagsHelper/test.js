@@ -1,4 +1,4 @@
-const { postByTagsHelper, importTags, expect, sinon, WobjModel } = require( '../../testHelper' );
+const { postByTagsHelper, importTags, expect, sinon, WobjModel, faker } = require( '../../testHelper' );
 
 describe( 'postByTagsHelper', async () => {
     describe( 'wobjectsByTags', async () => {
