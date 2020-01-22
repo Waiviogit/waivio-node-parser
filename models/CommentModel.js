@@ -8,7 +8,7 @@ exports.createOrUpdate = async function ( comment ) {
         const newComment = await Comment.findOneAndUpdate(
             { ..._.pick( comment, [ 'author', 'permlink' ] ) },
             { ...comment },
-            { upsert: true, new: true, sedDefaultOnInsert: true } );
+            { upsert: true, new: true, setDefaultOnInsert: true } );
         return { comment: newComment.toObject() };
     } catch ( error ) {
         return { error };

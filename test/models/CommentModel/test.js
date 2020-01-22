@@ -47,6 +47,16 @@ describe( 'CommentModel', async () => {
             expect( createdComment.active_votes.map( ( v ) => _.omit( v, '_id' ) ) )
                 .to.be.deep.eq( comment.active_votes );
         } );
+        it( 'should not update active_votes if key not exist in update data', async () => {
+            comment = await CommentFactory.Create( { active_votes: [ {
+                voter: faker.name.firstName().toLowerCase(),
+                weight: faker.random.number( 10000 )
+            } ] } );
+            delete comment.active_votes;
+            result = await CommentModel.createOrUpdate( comment );
+            const updatedComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
+            expect( updatedComment.active_votes ).to.not.been.empty;
+        } );
     } );
     describe( 'On addVote', async () => {
         let comment, mockVote, result, updatedComment;
