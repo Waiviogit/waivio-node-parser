@@ -1,4 +1,4 @@
-const { getRandomString, expect, sinon } = require( '../../../testHelper' );
+const { faker, expect, sinon } = require( '../../../testHelper' );
 const wobjectOperations = require( '../../../../utilities/tasks/fillWobjectNames/wobjectOperations' );
 const mock = require( './mock' );
 const proxyquire = require( 'proxyquire' );
@@ -36,7 +36,7 @@ describe( 'On fillEmptyFields', async () => {
         await expect( wobjectOperations.fillEmptyFields( ) ).to.not.be.rejected;
     } );
     it( 'should not get error with incorrect input data', async () => {
-        await expect( wobjectOperations.fillEmptyFields( getRandomString( 20 ), getRandomString( 10 ) ) ).to.not.be.rejected;
+        await expect( wobjectOperations.fillEmptyFields( faker.random.string( 20 ), faker.random.string( 10 ) ) ).to.not.be.rejected;
     } );
 
 } );

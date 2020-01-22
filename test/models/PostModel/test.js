@@ -1,4 +1,4 @@
-const { expect, PostModel, Post, getRandomString, dropDatabase } = require( '../../testHelper' );
+const { expect, PostModel, Post, dropDatabase, faker } = require( '../../testHelper' );
 const { PostFactory } = require( '../../factories' );
 const _ = require( 'lodash' );
 
@@ -59,7 +59,7 @@ describe( 'PostModel', async () => {
             expect( foundedPost.post ).to.exist;
         } );
         it( 'should not find not exist post', async () => {
-            const result = await PostModel.findOne( { author: getRandomString(), permlink: getRandomString() } );
+            const result = await PostModel.findOne( { author: faker.random.string(), permlink: faker.random.string() } );
             expect( result.post ).not.exist;
         } );
         it( 'should compare found post with created post', async () => {

@@ -1,4 +1,4 @@
-const { expect, WobjModel, getRandomString, WObject, faker, ObjectType, dropDatabase } = require( '../../testHelper' );
+const { expect, WobjModel, WObject, faker, ObjectType, dropDatabase } = require( '../../testHelper' );
 const WObjectModel = require( '../../../database' ).models.WObject;
 const { ObjectFactory, PostFactory, AppendObject } = require( '../../factories' );
 const _ = require( 'lodash' );
@@ -16,7 +16,7 @@ describe( 'Wobject model', async () => {
                 author_permlink: wobject.author_permlink,
                 weight: 1111,
                 vote: {
-                    voter: getRandomString(),
+                    voter: faker.random.string(),
                     weight: 100
                 }
             };
@@ -26,9 +26,9 @@ describe( 'Wobject model', async () => {
             expect( result.result ).is.true;
         } );
         it( 'should return false on incorrect data', async () => {
-            result = await WobjModel.addVote( { author: getRandomString(),
-                permlink: getRandomString(),
-                author_permlink: getRandomString(),
+            result = await WobjModel.addVote( { author: faker.random.string(),
+                permlink: faker.random.string(),
+                author_permlink: faker.random.string(),
                 weight: 1111,
                 vote: {
                     voter: voter,
@@ -46,9 +46,9 @@ describe( 'Wobject model', async () => {
             expect( result.error ).is.exist;
         } );
         it( 'should return CastError message', async () => {
-            result = await WobjModel.addVote( { author: getRandomString(),
-                author_permlink: { data: getRandomString() },
-                permlink: getRandomString(),
+            result = await WobjModel.addVote( { author: faker.random.string(),
+                author_permlink: { data: faker.random.string() },
+                permlink: faker.random.string(),
                 weight: 1111 } );
             expect( result.error.name ).to.eq( 'CastError' );
         } );
@@ -81,7 +81,7 @@ describe( 'Wobject model', async () => {
     describe( 'On getFieldsRefs', async () => {
         let result, wobjectsCount, wobject, data, permlink;
         beforeEach( async () => {
-            permlink = getRandomString();
+            permlink = faker.random.string();
 
             await dropDatabase();
             wobjectsCount = _.random( 5, 10, false );
@@ -90,8 +90,8 @@ describe( 'Wobject model', async () => {
                 data = {
                     author_permlink: permlink,
                     field: {
-                        author: getRandomString(),
-                        permlink: getRandomString()
+                        author: faker.random.string(),
+                        permlink: faker.random.string()
                     }
                 };
                 await WobjModel.addField( data );
@@ -109,7 +109,7 @@ describe( 'Wobject model', async () => {
             expect( result.fields ).to.deep.eq( wobject );
         } );
         it( 'should return empty array with incorrect permlink', async () => {
-            result = await WobjModel.getFieldsRefs( getRandomString() );
+            result = await WobjModel.getFieldsRefs( faker.random.string() );
             expect( result.fields.length === 0 ).is.true;
         } );
         it( 'should return error with incorrect data', async () => {
@@ -129,7 +129,7 @@ describe( 'Wobject model', async () => {
             expect( result.wobjects.length ).to.eq( 2 );
         } );
         it( 'should dont get error with incorrect data', async () => {
-            result = await WobjModel.getSomeFields( { some: { field: getRandomString() } }, { field: { data: getRandomString() } } );
+            result = await WobjModel.getSomeFields( { some: { field: faker.random.string() } }, { field: { data: faker.random.string() } } );
             expect( result.error ).not.exist;
         } );
     } );
@@ -148,7 +148,7 @@ describe( 'Wobject model', async () => {
             expect( field.field ).is.undefined;
         } );
         it( 'shouldn\'t return error with incorrect params', async () => {
-            field = await WobjModel.getField( { test: getRandomString() }, { get: getRandomString() }, getRandomString() );
+            field = await WobjModel.getField( { test: faker.random.string() }, { get: faker.random.string() }, faker.random.string() );
             expect( field.error ).not.exist;
         } );
     } );
@@ -166,7 +166,7 @@ describe( 'Wobject model', async () => {
             expect( result.result ).is.true;
         } );
         it( 'should return false with incorrect data', async () => {
-            result = await WobjModel.updateField( field.author, field.permlink, getRandomString(), key, value );
+            result = await WobjModel.updateField( field.author, field.permlink, faker.random.string(), key, value );
             expect( result.result ).is.false;
         } );
         it( 'should update field by correct value', async () => {
@@ -175,7 +175,7 @@ describe( 'Wobject model', async () => {
             expect( value ).to.eq( result.fields[ 0 ].weight );
         } );
         it( 'should return CastError with incorrect params type', async () => {
-            result = await WobjModel.updateField( { author: { some: getRandomString() } } );
+            result = await WobjModel.updateField( { author: { some: faker.random.string() } } );
             expect( result.error.name ).to.eq( 'CastError' );
         } );
     } );
@@ -184,7 +184,7 @@ describe( 'Wobject model', async () => {
         beforeEach( async () => {
             await dropDatabase();
             post = await PostFactory.Create();
-            author_permlink = getRandomString();
+            author_permlink = faker.random.string();
             await ObjectFactory.Create( { author_permlink: author_permlink } );
         } );
         it( 'should pushNewPost return true', async () => {
@@ -192,7 +192,7 @@ describe( 'Wobject model', async () => {
             expect( result.result ).is.true;
         } );
         it( 'should pushNewPost return false with nonexistent wobject', async () => {
-            result = await WobjModel.pushNewPost( { author_permlink: getRandomString(), post_id: post._id } );
+            result = await WobjModel.pushNewPost( { author_permlink: faker.random.string(), post_id: post._id } );
             expect( result.result ).is.false;
         } );
         it( 'should push needed post to wobject', async () => {
@@ -210,14 +210,14 @@ describe( 'Wobject model', async () => {
             expect( result.error.name ).to.deep.eq( 'CastError' );
         } );
         it( 'should return error with incorrect data', async () => {
-            result = await WobjModel.pushNewPost( { author_permlink: { data: getRandomString() } } );
+            result = await WobjModel.pushNewPost( { author_permlink: { data: faker.random.string() } } );
             expect( result.error ).is.exist;
         } );
     } );
     describe( 'On getOne', async () => {
         let result, permlink;
         beforeEach( async () => {
-            permlink = getRandomString();
+            permlink = faker.random.string();
             await ObjectFactory.Create( { author_permlink: permlink } );
         } );
         it( 'should return wobject on valid input', async () => {
@@ -229,12 +229,12 @@ describe( 'Wobject model', async () => {
             expect( result.wobject.author_permlink ).to.eq( permlink );
         } );
         it( 'should return error with status 404 if wobj not found', async () => {
-            result = await WobjModel.getOne( { author_permlink: getRandomString( 10 ) } );
+            result = await WobjModel.getOne( { author_permlink: faker.random.string( 10 ) } );
 
             expect( result.error.status ).to.eq( 404 );
         } );
         it( 'should return error message with incorrect input', async () => {
-            result = await WobjModel.getOne( { author_permlink: getRandomString( 10 ) } );
+            result = await WobjModel.getOne( { author_permlink: faker.random.string( 10 ) } );
 
             expect( result.error.message ).to.eq( 'Wobject not found!' );
         } );
@@ -295,12 +295,12 @@ describe( 'Wobject model', async () => {
     describe( 'On addField', async () => {
         let result, data, permlink;
         beforeEach( async () => {
-            permlink = getRandomString();
+            permlink = faker.random.string();
             await ObjectFactory.Create( { author_permlink: permlink } );
             data = {
                 author_permlink: permlink,
                 field: {
-                    data: getRandomString()
+                    data: faker.random.string()
                 }
             };
         } );
@@ -309,7 +309,7 @@ describe( 'Wobject model', async () => {
             expect( result.result ).is.true;
         } );
         it( 'should return false with invalid input params', async () => {
-            result = await WobjModel.addField( { author_permlink: getRandomString() } );
+            result = await WobjModel.addField( { author_permlink: faker.random.string() } );
 
             expect( result.result ).is.false;
         } );
@@ -325,7 +325,7 @@ describe( 'Wobject model', async () => {
             expect( result.error.message ).is.exist;
         } );
         it( 'should return error with not valid field', async () => {
-            result = await WobjModel.addField( { author_permlink: permlink, field: getRandomString() } );
+            result = await WobjModel.addField( { author_permlink: permlink, field: faker.random.string() } );
 
             expect( result.error.name ).to.eq( 'ObjectParameterError' );
         } );
@@ -356,9 +356,9 @@ describe( 'Wobject model', async () => {
             expect( result.error ).is.exist;
         } );
         it( 'should return false if object don\'t found', async () => {
-            result = await WobjModel.increaseFieldWeight( { author: getRandomString(),
-                permlink: getRandomString(),
-                author_permlink: getRandomString(),
+            result = await WobjModel.increaseFieldWeight( { author: faker.random.string(),
+                permlink: faker.random.string(),
+                author_permlink: faker.random.string(),
                 weight: 1111 } );
             expect( result.result ).is.false;
         } );
@@ -367,14 +367,14 @@ describe( 'Wobject model', async () => {
             expect( result.error ).is.exist;
         } );
         it( 'should return false without author permlink', async () => {
-            result = await WobjModel.increaseFieldWeight( { author: getRandomString(),
-                permlink: getRandomString(),
+            result = await WobjModel.increaseFieldWeight( { author: faker.random.string(),
+                permlink: faker.random.string(),
                 weight: 1111 } );
             expect( result.result ).is.false;
         } );
         it( 'should return false without author', async () => {
-            result = await WobjModel.increaseFieldWeight( { author_permlink: getRandomString(),
-                permlink: getRandomString(),
+            result = await WobjModel.increaseFieldWeight( { author_permlink: faker.random.string(),
+                permlink: faker.random.string(),
                 weight: 1111 } );
             expect( result.result ).is.false;
         } );
@@ -383,7 +383,7 @@ describe( 'Wobject model', async () => {
         let result, data, wobject;
         beforeEach( async () => {
             data = {
-                author_permlink: getRandomString(),
+                author_permlink: faker.random.string(),
                 weight: 100
             };
             wobject = await ObjectFactory.Create( { author_permlink: data.author_permlink } );
@@ -407,7 +407,7 @@ describe( 'Wobject model', async () => {
             expect( result.error.message ).to.eq( 'Cannot read property \'author_permlink\' of undefined' );
         } );
         it( 'should return result false with incorrect data', async () => {
-            result = await WobjModel.increaseWobjectWeight( { author_permlink: getRandomString(),
+            result = await WobjModel.increaseWobjectWeight( { author_permlink: faker.random.string(),
                 weight: 100 } );
             expect( result.result ).is.false;
         } );
@@ -423,7 +423,7 @@ describe( 'Wobject model', async () => {
                 permlink: field.permlink,
                 author_permlink: resultCreateAppend.root_wobj,
                 weight: 1111,
-                voter: getRandomString()
+                voter: faker.random.string()
             };
         } );
         it( 'should return true with correct input value', async () => {
@@ -431,9 +431,9 @@ describe( 'Wobject model', async () => {
             expect( result.result ).is.true;
         } );
         it( 'should return false with incorrect input data', async () => {
-            result = await WobjModel.removeVote( { author: getRandomString(),
+            result = await WobjModel.removeVote( { author: faker.random.string(),
                 permlink: field.permlink,
-                author_permlink: getRandomString(),
+                author_permlink: faker.random.string(),
                 weight: 1111,
                 voter: voter } );
             expect( result.result ).is.false;

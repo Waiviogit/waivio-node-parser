@@ -4,6 +4,7 @@ module.exports = {
     appendObjectParser: require( './appendObjectParser' ),
     followObjectParser: require( './followObjectParser' ),
     commentParser: require( './commentParser' ),
+    guestCommentParser: require( './guestCommentParser' ),
     voteParser: require( './voteParser' ),
     objectTypeParser: require( './objectTypeParser' ),
     postWithObjectParser: require( './postWithObjectParser' ),

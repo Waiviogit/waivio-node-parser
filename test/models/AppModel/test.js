@@ -1,4 +1,4 @@
-const { expect, AppModel, getRandomString, faker } = require( '../../testHelper' );
+const { expect, AppModel, faker } = require( '../../testHelper' );
 const { AppFactory } = require( '../../factories' );
 
 describe( 'App model', async () => {
@@ -14,11 +14,11 @@ describe( 'App model', async () => {
         } );
 
         it( ' Should check that the error exists', async () => {
-            result = await AppModel.getOne( { name: getRandomString() } );
+            result = await AppModel.getOne( { name: faker.random.string() } );
             expect( result.error ).is.exist;
         } );
         it( ' Should return error message', async () => {
-            result = await AppModel.getOne( { name: getRandomString() } );
+            result = await AppModel.getOne( { name: faker.random.string() } );
             expect( result.error.message ).to.eq( 'App not found!' );
         } );
     } );
@@ -26,8 +26,8 @@ describe( 'App model', async () => {
         let app, result, name, author, permlink, title;
         beforeEach( async () => {
             author = faker.name.firstName();
-            permlink = getRandomString();
-            title = getRandomString( 20 );
+            permlink = faker.random.string();
+            title = faker.random.string( 20 );
             name = faker.name.firstName();
             app = await AppFactory.Create( { name: name } );
         } );
@@ -52,7 +52,7 @@ describe( 'App model', async () => {
             expect( result.app ).is.null;
         } );
         it( 'should not update app with incorrect period', async () => {
-            result = await AppModel.updateChosenPost( { name: name, author: author, permlink: permlink, title: title, period: getRandomString() } );
+            result = await AppModel.updateChosenPost( { name: name, author: author, permlink: permlink, title: title, period: faker.random.string() } );
             expect( result.app.weekly_chosen_post, result.app.daily_chosen_post ).to.deep.eq( app.weekly_chosen_post, app.daily_chosen_post );
         } );
 

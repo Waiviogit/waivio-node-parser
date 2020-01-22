@@ -2,6 +2,7 @@ const createObjectParser = require( './createObjectParser' );
 const appendObjectParser = require( './appendObjectParser' );
 const postWithObjectsParser = require( './postWithObjectParser' );
 const objectTypeParser = require( './objectTypeParser' );
+const guestCommentParser = require( './guestCommentParser' );
 const { postByTagsHelper, chosenPostHelper } = require( '../utilities/helpers' );
 const { checkAppBlacklistValidity } = require( '../utilities/helpers' ).appHelper;
 const { chosenPostValidator } = require( '../validator' );
@@ -46,6 +47,10 @@ const postSwitcher = async ( { operation, metadata } ) => {
 };
 
 const commentSwitcher = async ( { operation, metadata } ) => {
+    if( _.get( metadata, 'comment.userId' ) ) {
+        await guestCommentParser.parse( { operation, metadata } );
+    }
+
     if ( _.get( metadata, 'wobj.action' ) ) {
         switch ( metadata.wobj.action ) {
             case 'createObject' :
