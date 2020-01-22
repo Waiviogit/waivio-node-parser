@@ -1,4 +1,4 @@
-const { expect, getRandomString, faker } = require( '../../testHelper' );
+const { expect, faker } = require( '../../testHelper' );
 const { wobjectValidator } = require( '../../../validator' );
 const { BLACK_LIST_BOTS } = require( '../../../utilities/constants' );
 
@@ -8,7 +8,7 @@ describe( 'wobjectValidator', async () => {
         let validData = {};
         beforeEach( async () => {
             requiredFieldsRatingVote.forEach( ( f ) => {
-                validData[ f ] = getRandomString( 10 );
+                validData[ f ] = faker.random.string( 10 );
             } );
             validData.rate = faker.random.number( 10 );
         } );
@@ -34,7 +34,7 @@ describe( 'wobjectValidator', async () => {
         let validData = {};
         beforeEach( async () => {
             requiredFieldsRatingVote.forEach( ( f ) => {
-                validData[ f ] = getRandomString( 10 );
+                validData[ f ] = faker.random.string( 10 );
             } );
         } );
 

@@ -1,4 +1,4 @@
-const { expect, faker, getRandomString } = require( '../../testHelper' );
+const { expect, faker } = require( '../../testHelper' );
 const { createObjectValidator } = require( '../../../validator' );
 const { ObjectTypeFactory, ObjectFactory } = require( '../../factories' );
 const { BLACK_LIST_BOTS } = require( '../../../utilities/constants' );
@@ -11,7 +11,7 @@ describe( 'createObjectValidator', async () => {
         object_type = await ObjectTypeFactory.Create();
         mockOp = {
             author: faker.name.firstName().toLowerCase(),
-            permlink: getRandomString( 15 ),
+            permlink: faker.random.string( 15 ),
             parent_author: object_type.author,
             parent_permlink: object_type.permlink
         };
@@ -19,7 +19,7 @@ describe( 'createObjectValidator', async () => {
             author_permlink: mockOp.permlink,
             author: mockOp.author,
             creator: faker.name.firstName().toLowerCase(),
-            default_name: getRandomString( 10 )
+            default_name: faker.random.string( 10 )
         };
     } );
     describe( 'on valid input', async () => {
@@ -58,11 +58,11 @@ describe( 'createObjectValidator', async () => {
                     .to.be.rejectedWith( Error, "Can't create object, parent post isn't create Object Type post or wrong object type!" );
             } );
             it( 'should be rejected if parent_permlink wrong', async () => {
-                mockOp.parent_permlink = getRandomString( 10 );
+                mockOp.parent_permlink = faker.random.string( 10 );
                 await expect( createObjectValidator.validate( mockData, mockOp ) ).to.be.rejected;
             } );
             it( 'should be rejected if parent_permlink wrong with corr. message', async () => {
-                mockOp.parent_author = getRandomString( 10 );
+                mockOp.parent_author = faker.random.string( 10 );
                 await expect( createObjectValidator.validate( mockData, mockOp ) )
                     .to.be.rejectedWith( Error, "Can't create object, parent post isn't create Object Type post or wrong object type!" );
             } );

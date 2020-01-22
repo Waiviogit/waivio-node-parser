@@ -1,7 +1,7 @@
 const { Post, Wobj } = require( '../models' );
 const { postsUtil } = require( '../utilities/steemApi' );
 const { detectPostLanguageHelper, postHelper } = require( '../utilities/helpers' );
-const { guestHelpers } = require( '../utilities/guestOperations' );
+const guestHelpers = require( '../utilities/guestOperations/guestHelpers' );
 const { User } = require( '../models' );
 const { commentRefSetter } = require( '../utilities/commentRefService' );
 const { postWithWobjValidator } = require( '../validator' );
@@ -25,9 +25,11 @@ const parse = async function ( operation, metadata ) {
 
     if ( _.get( result, 'error' ) ) {
         console.error( result.error );
+        return{ error: result };
     }
     if ( _.get( result, 'updPost' ) ) {
         console.log( `Post with wobjects created by ${operation.author}` );
+        return { post: result.updPost };
     }
 };
 

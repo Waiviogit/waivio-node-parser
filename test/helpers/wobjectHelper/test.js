@@ -1,4 +1,4 @@
-const { expect, sinon, importUpdates, wobjectHelper, faker, getRandomString, ObjectTypeModel } = require( '../../testHelper' );
+const { expect, sinon, importUpdates, wobjectHelper, faker, ObjectTypeModel } = require( '../../testHelper' );
 const { ObjectTypeFactory, ObjectFactory } = require( '../../factories' );
 
 describe( 'addSupposedUpdates', async () => {
@@ -7,8 +7,8 @@ describe( 'addSupposedUpdates', async () => {
         beforeEach( async () => {
             supposedUpdatesMock = [ {
                 name: faker.address.city(),
-                values: [ getRandomString( 10 ) ],
-                id_path: getRandomString( 5 )
+                values: [ faker.random.string( 10 ) ],
+                id_path: faker.random.string( 5 )
             } ];
             objectType = await ObjectTypeFactory.Create( { supposed_updates: supposedUpdatesMock } );
             wobject = await ObjectFactory.Create( { object_type: objectType.name } );

@@ -1,4 +1,4 @@
-const { expect, postsUtil, sinon, getRandomString, App, faker, AppModel } = require( '../../testHelper' );
+const { expect, postsUtil, sinon, App, faker, AppModel } = require( '../../testHelper' );
 const { AppFactory } = require( '../../factories' );
 const { chosenPostHelper } = require( '../../../utilities/helpers' );
 
@@ -39,7 +39,7 @@ describe( 'chosenPostHelper', async () => {
         describe( 'on valid all data', async () => {
             let app, resp_user_name, mock_op, postUtilStub, upd_app, mock_res_data;
             beforeEach( async () => {
-                resp_user_name = getRandomString( 6 );
+                resp_user_name = faker.random.string( 6 );
                 app = await AppFactory.Create( { admin: resp_user_name } );
                 mock_op = {
                     parent_author: 'mock_post_author',
@@ -77,17 +77,17 @@ describe( 'chosenPostHelper', async () => {
             beforeEach( async () => {
                 mock_op = {
                     parent_author: faker.name.firstName(),
-                    parent_permlink: getRandomString( 10 ),
+                    parent_permlink: faker.random.string( 10 ),
                     author: faker.name.firstName(),
-                    permlink: getRandomString( 10 ),
-                    body: `#daily @${getRandomString( 5 )}`
+                    permlink: faker.random.string( 10 ),
+                    body: `#daily @${faker.random.string( 5 )}`
                 };
                 postUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( async ( a, b ) => {
                     return {
                         post: {
                             author: mock_op.parent_author,
                             permlink: mock_op.parent_permlink,
-                            title: getRandomString( 10 )
+                            title: faker.random.string( 10 )
                         }
                     };
                 } );
@@ -109,13 +109,13 @@ describe( 'chosenPostHelper', async () => {
         describe( 'on "getPost" error result', async () => {
             let app, resp_user_name, mock_op, postUtilStub;
             beforeEach( async () => {
-                resp_user_name = getRandomString( 6 );
+                resp_user_name = faker.random.string( 6 );
                 app = await AppFactory.Create( { admin: resp_user_name } );
                 mock_op = {
                     parent_author: faker.name.firstName(),
-                    parent_permlink: getRandomString( 10 ),
+                    parent_permlink: faker.random.string( 10 ),
                     author: resp_user_name,
-                    permlink: getRandomString( 10 ),
+                    permlink: faker.random.string( 10 ),
                     body: `#daily @${app.name}`
                 };
                 postUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( async ( a, b ) => {
@@ -141,13 +141,13 @@ describe( 'chosenPostHelper', async () => {
         describe( 'on "updateChosenPost" error result', async () => {
             let app, resp_user_name, mock_op, postUtilStub, appModelStub;
             beforeEach( async () => {
-                resp_user_name = getRandomString( 6 );
+                resp_user_name = faker.random.string( 6 );
                 app = await AppFactory.Create( { admin: resp_user_name } );
                 mock_op = {
                     parent_author: faker.name.firstName(),
-                    parent_permlink: getRandomString( 10 ),
+                    parent_permlink: faker.random.string( 10 ),
                     author: resp_user_name,
-                    permlink: getRandomString( 10 ),
+                    permlink: faker.random.string( 10 ),
                     body: `#daily @${app.name}`
                 };
                 postUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( async ( a, b ) => {

@@ -1,4 +1,4 @@
-const { expect, ObjectTypeModel, ObjectType, getRandomString, dropDatabase } = require( '../../testHelper' );
+const { expect, ObjectTypeModel, ObjectType, faker, dropDatabase } = require( '../../testHelper' );
 const { ObjectTypeFactory } = require( '../../factories' );
 const _ = require( 'lodash' );
 
@@ -10,12 +10,12 @@ describe( 'ObjectTypeModel', async () => {
             objectType = await ObjectTypeFactory.Create( );
         } );
         it( 'should return error', async () => {
-            const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
+            const res = await ObjectTypeModel.getOne( { name: faker.random.string() } );
             expect( res.error ).is.exist;
         } );
 
         it( 'should not found Object type', async () => {
-            const res = await ObjectTypeModel.getOne( { name: getRandomString() } );
+            const res = await ObjectTypeModel.getOne( { name: faker.random.string() } );
             expect( res ).to.deep.eq( {
                 'error': {
                     'message': 'Object Type not found!',
@@ -35,8 +35,8 @@ describe( 'ObjectTypeModel', async () => {
     describe( 'On create', async () => {
         let objectType;
         beforeEach( async () => {
-            objectType = await ObjectTypeModel.create( { name: getRandomString(), author: getRandomString(),
-                author_permlink: getRandomString()
+            objectType = await ObjectTypeModel.create( { name: faker.random.string(), author: faker.random.string(),
+                author_permlink: faker.random.string()
             } );
         } );
         it( 'should return objectType with correct permlink', async () => {
@@ -49,13 +49,13 @@ describe( 'ObjectTypeModel', async () => {
             expect( objectType.objectType._id ).to.deep.eq( result._id );
         } );
         it( 'should return error with incorrect params', async () => {
-            objectType = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
-                author_permlink: getRandomString() } );
+            objectType = await ObjectTypeModel.create( { name: { some: faker.random.string() }, author: faker.random.string(),
+                author_permlink: faker.random.string() } );
             expect( objectType.error ).is.exist;
         } );
         it( 'should return Validation error', async () => {
-            objectType = await ObjectTypeModel.create( { name: { some: getRandomString() }, author: getRandomString(),
-                author_permlink: getRandomString() } );
+            objectType = await ObjectTypeModel.create( { name: { some: faker.random.string() }, author: faker.random.string(),
+                author_permlink: faker.random.string() } );
             expect( objectType.error.name ).to.eq( 'ValidationError' );
         } );
     } );
