@@ -11,6 +11,8 @@ exports.parse = async ( { operation, metadata } ) => {
         return console.error( err || `Comment @${operation.author}/${operation.permlink} not found!` );
     }
 
-    const { error } = await CommentModel.createOrUpdate( { ...operation, guestInfo } );
+    delete comment.active_votes;
+    const { error } = await CommentModel.createOrUpdate( { ...comment, guestInfo } );
     if( error ) return console.error( error );
+    console.log( `Guest comment created: ${operation.author}/${operation.permlink}, guest name: ${guestInfo.userId}` );
 };
