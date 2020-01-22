@@ -198,10 +198,10 @@ describe( 'customJsonOperations', async () => {
                             const upd_comment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } );
                             expect( upd_comment.active_votes.map( ( v ) => v.voter ) ).to.include( voter.name );
                         } );
-                        it( 'should add vote with correct weight', async () => {
+                        it( 'should add vote with correct percent', async () => {
                             const upd_comment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } );
                             const upd_vote = upd_comment.active_votes.find( ( v ) => v.voter === voter.name );
-                            expect( upd_vote.weight ).to.be.eq( vote.weight );
+                            expect( upd_vote.percent ).to.be.eq( vote.weight );
                         } );
                     } );
 
@@ -241,10 +241,10 @@ describe( 'customJsonOperations', async () => {
                             const upd_comment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } );
                             expect( upd_comment.active_votes.map( ( v ) => v.voter ) ).to.include( voter.name );
                         } );
-                        it( 'should add vote with correct weight', async () => {
+                        it( 'should add vote with correct percent', async () => {
                             const upd_comment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } );
                             const upd_vote = upd_comment.active_votes.find( ( v ) => v.voter === voter.name );
-                            expect( upd_vote.weight ).to.be.eq( vote.weight );
+                            expect( upd_vote.percent ).to.be.eq( vote.weight );
                         } );
                     } );
                 } );

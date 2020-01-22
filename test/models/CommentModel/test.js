@@ -40,7 +40,7 @@ describe( 'CommentModel', async () => {
             comment = await CommentFactory.Create();
             comment = { ...comment, active_votes: [ {
                 voter: faker.name.firstName().toLowerCase(),
-                weight: faker.random.number( 10000 )
+                percent: faker.random.number( 10000 )
             } ] };
             result = await CommentModel.createOrUpdate( comment );
             createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
@@ -50,7 +50,7 @@ describe( 'CommentModel', async () => {
         it( 'should not update active_votes if key not exist in update data', async () => {
             comment = await CommentFactory.Create( { active_votes: [ {
                 voter: faker.name.firstName().toLowerCase(),
-                weight: faker.random.number( 10000 )
+                percent: faker.random.number( 10000 )
             } ] } );
             delete comment.active_votes;
             result = await CommentModel.createOrUpdate( comment );
@@ -62,7 +62,7 @@ describe( 'CommentModel', async () => {
         let comment, mockVote, result, updatedComment;
 
         beforeEach( async () => {
-            mockVote = { voter: faker.name.firstName().toLowerCase(), weight: faker.random.number( 10000 ) };
+            mockVote = { voter: faker.name.firstName().toLowerCase(), percent: faker.random.number( 10000 ) };
             comment = await CommentFactory.Create();
             result = await CommentModel.addVote( { ..._.pick( comment, [ 'author', 'permlink' ] ), ...mockVote } );
 
@@ -72,7 +72,7 @@ describe( 'CommentModel', async () => {
             expect( updatedComment.active_votes ).to.has.length( 1 );
         } );
         it( 'should add correct vote to active_votes', () => {
-            expect( updatedComment.active_votes.find( ( v ) => v.voter === mockVote.voter && v.weight === mockVote.weight ) ).is.exist;
+            expect( updatedComment.active_votes.find( ( v ) => v.voter === mockVote.voter && v.percent === mockVote.percent ) ).is.exist;
         } );
         it( 'should not add duplicates of votes', async () => {
             await CommentModel.addVote( { ..._.pick( comment, [ 'author', 'permlink' ] ), ...mockVote } );

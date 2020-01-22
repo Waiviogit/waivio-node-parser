@@ -127,12 +127,13 @@ const voteOnPost = async ( { vote } ) => {
         } );
     } else if ( comment ) {
         // add to existing comment one new vote
-        const { result, error: addVoteError } = await CommentModel.addVote( { ..._.pick( vote, [ 'author', 'permlink', 'voter', 'weight' ] ) } );
+        vote.percent = vote.weight;
+        const { result, error: addVoteError } = await CommentModel.addVote( { ..._.pick( vote, [ 'author', 'permlink', 'voter', 'percent' ] ) } );
         if( addVoteError ) {
             console.error( addVoteError );
             return{ error: addVoteError };
         }
-        if( result.ok ) console.log( `User ${vote.voter} vote for comment @${vote.author}/${vote.permlink}` );
+        if( result.ok ) console.log( `Guest user ${vote.voter} vote for comment @${vote.author}/${vote.permlink}` );
         return { result };
     }
 
