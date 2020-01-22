@@ -60,7 +60,7 @@ describe( 'customJsonOperations', async () => {
             describe( 'if user already exist', async () => {
                 let user;
                 beforeEach( async () => {
-                    user = ( await UserFactory.Create( { name: validJson.userId } ) ).user;
+                    user = ( await UserFactory.Create( { name: validJson.userId, count_posts: 100 } ) ).user;
                     sinon.spy( UserModel, 'updateOne' );
                     sinon.spy( UserModel, 'checkAndCreate' );
                     await guestCreate( validOp );
@@ -76,13 +76,18 @@ describe( 'customJsonOperations', async () => {
                     expect( UserModel.updateOne ).to.be.calledOnce;
                 } );
                 it( 'should update User in database with correct alias', async () => {
-                    const user = await User.findOne( { name: validJson.userId } );
-                    expect( user.alias ).to.be.eq( validJson.displayName );
+                    const updUser = await User.findOne( { name: validJson.userId } );
+                    expect( updUser.alias ).to.be.eq( validJson.displayName );
                 } );
                 it( 'should update User in database with correct json_metadata', async () => {
-                    const user = await User.findOne( { name: validJson.userId } );
-                    expect( user.json_metadata ).to.be.eq( validJson.json_metadata );
+                    const updUser = await User.findOne( { name: validJson.userId } );
+                    expect( updUser.json_metadata ).to.be.eq( validJson.json_metadata );
                 } );
+                it( 'should not delete exists keys', async () => {
+                    const upd_user = await User.findOne( { name: user.name } ).lean();
+                    expect( upd_user.count_posts ).to.be.eq( 100 );
+                } );
+
             } );
 
         } );

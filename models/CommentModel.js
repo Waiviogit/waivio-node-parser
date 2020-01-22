@@ -23,13 +23,13 @@ exports.getOne = async ( { author, permlink } ) => {
     }
 };
 
-exports.addVote = async ( { author, permlink, voter, weight } ) => {
+exports.addVote = async ( { author, permlink, voter, percent } ) => {
     try {
         await Comment.updateOne( { author, permlink }, { $pull: { active_votes: { voter } } } );
         return {
             result: await Comment.updateOne(
                 { author, permlink },
-                { $addToSet: { active_votes: { voter, weight } } }
+                { $addToSet: { active_votes: { voter, percent } } }
             )
         };
     } catch ( error ) {
