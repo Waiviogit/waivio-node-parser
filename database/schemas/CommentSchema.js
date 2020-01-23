@@ -13,7 +13,7 @@ const CommentSchema = new Schema( {
             voter: { type: String },
             percent: { type: Number }
         } ],
-        default: []
+        default: [], required: true
     },
     guestInfo: {
         type: { userId: String, social: String },
