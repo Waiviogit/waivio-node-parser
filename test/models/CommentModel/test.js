@@ -8,6 +8,7 @@ describe( 'CommentModel', async () => {
 
         beforeEach( async () => {
             comment = await CommentFactory.Create( { onlyData: true } );
+            delete comment.active_votes;
             result = await CommentModel.createOrUpdate( comment );
             createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
         } );
