@@ -61,7 +61,7 @@ describe( 'Vote On Field', async () => {
                     author: mocks.appendObject.author,
                     permlink: mocks.appendObject.permlink,
                     voter: mocks.voter.name,
-                    percent: 9950, // should be rounded to - 100 percent
+                    percent: 9995, // should be rounded to - 100 percent
                     author_permlink: mocks.author_permlink,
                     weight: 100,
                     rshares_weight: 1000
@@ -151,7 +151,7 @@ describe( 'Vote On Field', async () => {
                     author: mocks.appendObject.author,
                     permlink: mocks.appendObject.permlink,
                     voter: mocks.voter.name,
-                    percent: 9950, // should be rounded to - 100 percent
+                    percent: 9995, // should be rounded to - 100 percent
                     author_permlink: mocks.author_permlink,
                     weight: 100,
                     rshares_weight: 1000
@@ -173,7 +173,6 @@ describe( 'Vote On Field', async () => {
             } );
             it( 'should increase field weight by 100', async () => {
                 const diff = upd_field.weight - exst_field.weight;
-
                 expect( diff ).to.eq( 350 );
             } );
             it( 'should increase creator weight and became 0', async () => {
