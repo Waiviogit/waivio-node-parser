@@ -93,8 +93,8 @@ const upDownVoteOnAppend = async ( { author, permlink, author_permlink, weight, 
  * @returns {Number} Number from 1 to 100
  */
 const calculateVotePercent = ( percent ) => {
-    if ( percent % 100 === 0 ) return percent / 100 ;
-    return -Math.round( percent / 100 ) ;
+    if ( percent % 10 === 0 ) return _.round( ( percent / 100 ), 1 ) ;
+    return -_.round( ( percent / 100 ), 1 ) ;
 };
 
 const handleSpecifiedField = async ( author, permlink, author_permlink ) => {
