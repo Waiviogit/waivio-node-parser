@@ -8,7 +8,6 @@ describe( 'CommentModel', async () => {
 
         beforeEach( async () => {
             comment = await CommentFactory.Create( { onlyData: true } );
-            delete comment.active_votes;
             result = await CommentModel.createOrUpdate( comment );
             createdComment = await Comment.findOne( { author: comment.author, permlink: comment.permlink } ).lean();
         } );
@@ -24,7 +23,7 @@ describe( 'CommentModel', async () => {
             const keys = 'author,permlink,parent_author,parent_permlink,root_author,root_permlink,active_votes,guestInfo,_id'.split( ',' );
             expect( createdComment ).to.has.all.keys( keys );
         } );
-        it( 'should create comment with correct fields values', () => {
+        it( 'should create comment with correct format', () => {
             expect( _.omit( createdComment, '_id' ) ).to.deep.eq( comment );
         } );
         it( 'should return created comment', () => {
