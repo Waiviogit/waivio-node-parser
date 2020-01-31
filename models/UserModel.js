@@ -1,7 +1,8 @@
+const _ = require( 'lodash' );
+const moment = require( 'moment' );
 const UserModel = require( '../database' ).models.User;
 const UserWobjectsModel = require( '../database' ).models.UserWobjects;
-const moment = require( 'moment' );
-const _ = require( 'lodash' );
+const DEFAULT_UPDATE_OPTIONS = { upsert: true, new: true, setDefaultsOnInsert: true };
 
 const create = async function ( data ) {
     const newUser = new UserModel( data );
@@ -26,11 +27,7 @@ const addObjectFollow = async function ( data ) { // create user(if it doesn't e
                 $addToSet: {
                     objects_follow: data.author_permlink // update
                 }
-            }, {
-                upsert: true,
-                new: true, // options
-                setDefaultsOnInsert: true
-            } );
+            }, DEFAULT_UPDATE_OPTIONS );
 
         if ( !res ) {
             return { result: false };
@@ -50,11 +47,7 @@ const removeObjectFollow = async function ( data ) { // create user(if it doesn'
                 $pull: {
                     objects_follow: data.author_permlink // update data
                 }
-            }, {
-                upsert: true,
-                new: true, // options
-                setDefaultsOnInsert: true
-            } );
+            }, DEFAULT_UPDATE_OPTIONS );
         if ( !res ) {
             return { result: false };
         }
@@ -114,7 +107,7 @@ const removeUserFollow = async function ( { follower, following } ) {
 
 /**
  * Return user if it exist, or create new user and return
- * @param data Include user "name"
+ * @param name Include user "name"
  * @returns {Promise<{user: *}|{error: *}>}
  */
 const checkAndCreate = async function ( name ) { // check for existing user and create if not exist
@@ -146,11 +139,7 @@ const increaseWobjectWeight = async function ( data ) {
                 $inc: {
                     weight: data.weight
                 }
-            }, {
-                upsert: true,
-                new: true,
-                setDefaultsOnInsert: true
-            } );
+            }, DEFAULT_UPDATE_OPTIONS );
         await increaseUserWobjectsWeight( { name: data.name, weight: data.weight } );
         return { result: true };
     } catch ( error ) {
@@ -166,11 +155,7 @@ const increaseUserWobjectsWeight = async function ( data ) {
             $inc: {
                 wobjects_weight: data.weight
             }
-        }, {
-            upsert: true,
-            new: true,
-            setDefaultsOnInsert: true
-        } );
+        }, DEFAULT_UPDATE_OPTIONS );
         return { result: true };
     } catch ( error ) {
         return { error };
@@ -204,7 +189,7 @@ const update = async function ( condition, updateData ) {
 
 const updateOne = async function ( condition, updateData ) {
     try{
-        return { result: await UserModel.updateOne( condition, updateData ) };
+        return { result: await UserModel.updateOne( condition, updateData, DEFAULT_UPDATE_OPTIONS ) };
     } catch ( error ) {
         return { error };
     }

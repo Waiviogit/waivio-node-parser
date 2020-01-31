@@ -1,4 +1,4 @@
-const { expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper } = require( '../../testHelper' );
+const { expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper, PostModel } = require( '../../testHelper' );
 const { PostFactory, UserFactory, ObjectFactory } = require( '../../factories' );
 const { postWithWobjValidator } = require( '../../../validator' );
 
@@ -171,6 +171,36 @@ describe( 'postWithObjectParser', async () => {
                 const res = await Post.findOne( { author: mockPost.author, permlink: mockPost.permlink } );
                 expect( res.body ).to.be.eq( mockPost.body );
             } );
+        } );
+    } );
+    describe( 'On called with post in parameters', async() => {
+        let mockPost, mockMetadata, mockOp, mockWobj, author, updPost;
+        beforeEach( async () => {
+            author = ( await UserFactory.Create() ).user;
+            mockPost = await PostFactory.Create( { author: author.name } );
+            mockPost.body = faker.lorem.sentence( 10 ); // return post with new body, imitate update content
+            mockWobj = await ObjectFactory.Create();
+            mockOp = {
+                author: mockPost.author,
+                permlink: mockPost.permlink
+            };
+            updPost = await PostFactory.Create( { onlyData: true, author: mockOp.author, permlink: mockOp.permlink } );
+            mockMetadata = {
+                wobj: { wobjects: [ { author_permlink: mockWobj.author_permlink, percent: 100 } ] },
+                app: faker.address.city()
+            };
+            sinon.spy( postsUtil, 'getPost' );
+            await postWithObjectParser.parse( mockOp, mockMetadata, updPost );
+        } );
+        afterEach( () => {
+            sinon.restore();
+        } );
+        it( 'should not call get post from steem method if parser will called with post in params', async () => {
+            expect( postsUtil.getPost ).to.be.not.called;
+        } );
+        it( 'should update exist post with updatePost data ', async () => {
+            const { post } = await PostModel.findOne( mockOp );
+            expect( post.children ).to.be.eq( updPost.children );
         } );
     } );
 

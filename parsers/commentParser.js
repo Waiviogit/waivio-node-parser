@@ -5,6 +5,7 @@ const objectTypeParser = require( './objectTypeParser' );
 const guestCommentParser = require( './guestCommentParser' );
 const { postByTagsHelper, chosenPostHelper } = require( '../utilities/helpers' );
 const { checkAppBlacklistValidity } = require( '../utilities/helpers' ).appHelper;
+const updatePostAfterComment = require( '../utilities/helpers/updatePostAfterComment' );
 const { chosenPostValidator } = require( '../validator' );
 const _ = require( 'lodash' );
 
@@ -65,7 +66,7 @@ const commentSwitcher = async ( { operation, metadata } ) => {
     if( chosenPostValidator.checkBody( operation.body ) ) {
         await chosenPostHelper.updateAppChosenPost( operation );
     }
-
+    await updatePostAfterComment.updateCounters( operation.parent_author, operation.parent_permlink );
 };
 
 module.exports = { parse };

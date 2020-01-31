@@ -30,14 +30,14 @@ describe( 'UserParsers', async () => {
         it( 'should update alias name correct', () => {
             expect( updUser.alias ).to.equal( 'Alias Name' );
         } );
-        it( 'should not create user if update was on non exist user', async () => {
+        it( 'should create user if update was on non exist user', async () => {
             await userParsers.updateAccountParser( {
                 account: 'nonexistuser',
                 json_metadata: '{hello: world}'
             } );
             const user = await User.findOne( { name: 'nonexistuser' } );
 
-            expect( user ).to.not.exist;
+            expect( user ).to.exist;
         } );
     } );
 
