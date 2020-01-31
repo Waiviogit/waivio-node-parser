@@ -24,6 +24,11 @@ exports.updateAccountParser = async ( operation ) => {
     }
 };
 
+exports.createUser = async ( data ) => {
+    await User.updateOne(
+        { name: data.new_account_name }, { json_metadata: data.json_metadata } );
+};
+
 exports.followUserParser = async ( operation ) => {
     let json;
     try {

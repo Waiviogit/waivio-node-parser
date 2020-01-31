@@ -20,8 +20,7 @@ const parseSwitcher = async ( transactions ) => {
                             await userParsers.updateAccountParser( operation[ 1 ] );
                             break;
                         case 'create_claimed_account' :
-                            await User.updateOne(
-                                { name: operation[ 1 ].new_account_name }, { json_metadata: operation[ 1 ].json_metadata } );
+                            await userParsers.createUser( operation[ 1 ] );
                             break;
                         case 'vote' :
                             votesOps.push( operation[ 1 ] );
