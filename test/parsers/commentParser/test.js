@@ -1,5 +1,6 @@
 const { getCreateObjectTypeMocks, getCreateObjectMocks } = require( './mocks' );
 const { objectTypeParser, commentParser, createObjectParser, expect, sinon } = require( '../../testHelper' );
+const updatePostAfterComment = require( '../../../utilities/helpers/updatePostAfterComment' );
 const { AppFactory } = require( '../../factories' );
 
 describe( 'comment parser', async () => {
@@ -69,11 +70,12 @@ describe( 'comment parser', async () => {
 
                 beforeEach( async () => {
                     mockOp = await getCreateObjectMocks();
+                    sinon.stub( updatePostAfterComment, 'updateCounters' ).returns( {} );
                     stub = sinon.stub( createObjectParser, 'parse' ).returns( {} );
                     await commentParser.parse( mockOp );
                 } );
                 afterEach( () => {
-                    stub.restore();
+                    sinon.restore();
                 } );
 
                 it( 'should call createObjectParser.parse once', () => {

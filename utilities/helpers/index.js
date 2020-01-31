@@ -8,6 +8,5 @@ module.exports = {
     detectPostLanguageHelper: require( './detectPostLanguageHelper' ),
     chosenPostHelper: require( './chosenPostHelper' ),
     postHelper: require( './postHelper' ),
-    wobjectHelper: require( './wobjectHelper' ),
-    updatePostAfterComment: require( './updatePostAfterComment' )
+    wobjectHelper: require( './wobjectHelper' )
 };

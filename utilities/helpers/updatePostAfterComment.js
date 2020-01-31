@@ -1,5 +1,4 @@
-const _ = require( 'lodash' );
-const { Post } = require( '../../models' );
+const { postWithObjectParser } = require( '../../parsers' );
 const { postsUtil } = require( '../steemApi' );
 
 const updateCounters = async( author, permlink ) => {
@@ -10,11 +9,15 @@ const updateCounters = async( author, permlink ) => {
         return;
     }
     if( post ) {
-        const updData = _.omit( post,
-            [ 'id', 'active_votes', 'wobjects', 'language', 'reblogged_by', 'author_weight' ] );
-        await Post.update( updData );
+        let metadata = {};
+        try{
+            metadata = JSON.parse( post.json_metadata );
+        } catch ( e ) {
+            console.error( err.message );
+            return;
+        }
+        await postWithObjectParser.parse( { author, permlink }, metadata, post );
     }
-
 };
 
 module.exports = { updateCounters };

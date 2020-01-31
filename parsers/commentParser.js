@@ -5,6 +5,7 @@ const objectTypeParser = require( './objectTypeParser' );
 const guestCommentParser = require( './guestCommentParser' );
 const { postByTagsHelper, chosenPostHelper } = require( '../utilities/helpers' );
 const { checkAppBlacklistValidity } = require( '../utilities/helpers' ).appHelper;
+const updatePostAfterComment = require( '../utilities/helpers/updatePostAfterComment' );
 const { chosenPostValidator } = require( '../validator' );
 const _ = require( 'lodash' );
 
