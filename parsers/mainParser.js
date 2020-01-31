@@ -1,4 +1,5 @@
 const { commentParser, voteParser, userParsers, customJsonParser } = require( '../parsers' );
+const { User } = require( '../models' );
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 const parseSwitcher = async ( transactions ) => {
@@ -17,6 +18,9 @@ const parseSwitcher = async ( transactions ) => {
                             break;
                         case 'account_update' :
                             await userParsers.updateAccountParser( operation[ 1 ] );
+                            break;
+                        case 'create_claimed_account' :
+                            await userParsers.createUser( operation[ 1 ] );
                             break;
                         case 'vote' :
                             votesOps.push( operation[ 1 ] );
