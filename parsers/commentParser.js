@@ -2,7 +2,7 @@ const createObjectParser = require( './createObjectParser' );
 const appendObjectParser = require( './appendObjectParser' );
 const postWithObjectsParser = require( './postWithObjectParser' );
 const objectTypeParser = require( './objectTypeParser' );
-const { postByTagsHelper, investarenaForecastHelper, chosenPostHelper } = require( '../utilities/helpers' );
+const { postByTagsHelper, investarenaForecastHelper, chosenPostHelper, updatePostAfterComment } = require( '../utilities/helpers' );
 const { checkAppBlacklistValidity } = require( '../utilities/helpers' ).appHelper;
 const { chosenPostValidator } = require( '../validator' );
 const _ = require( 'lodash' );
@@ -77,6 +77,7 @@ const commentSwitcher = async ( { operation, metadata } ) => {
             exp_forecast: metadata.wia.exp_forecast
         } ); // add expired forecast to post(for investarena)
     }
+    await updatePostAfterComment.updateCounters( operation.parent_author, operation.parent_permlink );
 };
 
 module.exports = { parse };
