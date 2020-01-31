@@ -1,11 +1,11 @@
-const { expect, postWithObjectParser, Post, faker, getRandomString, postsUtil, sinon, User, redisGetter, CommentRef, postHelper } = require( '../../testHelper' );
+const { expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper } = require( '../../testHelper' );
 const { PostFactory, UserFactory, ObjectFactory } = require( '../../factories' );
 const { postWithWobjValidator } = require( '../../../validator' );
 
 describe( 'postWithObjectParser', async () => {
     describe( 'on valid input data', async () => {
         describe( 'if user and post doesnt exists', async () => {
-            let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub;
+            let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub, result;
             beforeEach( async () => {
                 mockPost = await PostFactory.Create( { onlyData: true } );
                 mockWobj = await ObjectFactory.Create();
@@ -16,14 +16,14 @@ describe( 'postWithObjectParser', async () => {
                 mockMetadata = {
                     wobj: { wobjects: [
                         { author_permlink: mockWobj.author_permlink, percent: 100 },
-                        { author_permlink: getRandomString( 10 ), percent: 0 }
+                        { author_permlink: faker.random.string( 10 ), percent: 0 }
                     ] },
                     app: faker.address.city()
                 };
                 postsUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( ( a, b ) => ( { post: mockPost } ) );
                 sinon.spy( postWithWobjValidator, 'validate' );
                 sinon.spy( postHelper, 'objectIdFromDateString' );
-                await postWithObjectParser.parse( mockOp, mockMetadata );
+                result = await postWithObjectParser.parse( mockOp, mockMetadata );
             } );
             afterEach( () => {
                 postsUtilStub.restore();
@@ -187,9 +187,9 @@ describe( 'postWithObjectParser', async () => {
                 };
                 mockMetadata = {
                     wobj: { wobjects: [
-                        { author_permlink: getRandomString( 10 ), percent: 33 },
-                        { author_permlink: getRandomString( 10 ), percent: 34 },
-                        { author_permlink: getRandomString( 10 ), percent: 34 }
+                        { author_permlink: faker.random.string( 10 ), percent: 33 },
+                        { author_permlink: faker.random.string( 10 ), percent: 34 },
+                        { author_permlink: faker.random.string( 10 ), percent: 34 }
                     ] },
                     app: faker.address.city()
                 };

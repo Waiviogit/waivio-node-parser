@@ -1,4 +1,4 @@
-const { dropDatabase, expect, getRandomString, faker, sinon, UserModel, WobjModel, User } = require( '../../testHelper' );
+const { dropDatabase, expect, faker, sinon, UserModel, WobjModel, User } = require( '../../testHelper' );
 const { followObjectParser } = require( '../../../parsers' );
 const mock = require( './mock' );
 
@@ -10,7 +10,7 @@ describe( 'followObjectParser', async () => {
             sinon.stub( WobjModel, 'getOne' ).callsFake( () => ( { wobject: true } ) );
             await dropDatabase();
             name = faker.name.firstName();
-            author_permlink = getRandomString( 10 );
+            author_permlink = faker.random.string( 10 );
             data = await mock.dataForFollow( { follow: true, auth_permlink: author_permlink, userName: name } );
         } );
         afterEach( () => {
@@ -21,7 +21,7 @@ describe( 'followObjectParser', async () => {
             expect( result ).to.eq( `User ${name} now following wobject ${author_permlink}!\n` );
         } );
         it( 'should get error with incorrect data', async () => {
-            result = await followObjectParser.parse( getRandomString( 20 ) );
+            result = await followObjectParser.parse( faker.random.string( 20 ) );
             expect( result.message ).to.eq( 'Unexpected token u in JSON at position 0' );
         } );
         it( 'should not work without author_permlink', async () => {
@@ -39,7 +39,7 @@ describe( 'followObjectParser', async () => {
         it( 'should return 404 on follow not exist wobject', async () => {
             sinon.restore();
             sinon.stub( WobjModel, 'getOne' ).callsFake( () => ( { error: { status: 404, message: 'Wobject not found!' } } ) );
-            const mockOp = await mock.dataForFollow( { follow: true, auth_permlink: getRandomString( 10 ), userName: name } );
+            const mockOp = await mock.dataForFollow( { follow: true, auth_permlink: faker.random.string( 10 ), userName: name } );
             result = await followObjectParser.parse( mockOp );
             expect( result.status ).to.eq( 404 );
         } );
@@ -56,7 +56,7 @@ describe( 'followObjectParser', async () => {
                 return { result: true };
             } );
             name = faker.name.firstName();
-            author_permlink = getRandomString( 10 );
+            author_permlink = faker.random.string( 10 );
             data = await mock.dataForFollow( { auth_permlink: author_permlink, userName: name } );
         } );
         afterEach( async () => {

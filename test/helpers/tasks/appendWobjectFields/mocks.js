@@ -1,4 +1,4 @@
-const { faker, getRandomString } = require( '../../../testHelper' );
+const { faker } = require( '../../../testHelper' );
 
 
 module.exports = ( { parent_author, parent_permlink, author, permlink, getError, count } = {} ) => {
@@ -11,9 +11,9 @@ module.exports = ( { parent_author, parent_permlink, author, permlink, getError,
             {
                 operation: {
                     parent_author: parent_author || faker.name.firstName(),
-                    parent_permlink: parent_permlink || getRandomString( 10 ),
+                    parent_permlink: parent_permlink || faker.random.string( 10 ),
                     author: author || faker.name.firstName(),
-                    permlink: permlink || getRandomString( 10 )
+                    permlink: permlink || faker.random.string( 10 )
                 },
                 metadata: {
                     app: 'waivio/1.0.0',
@@ -23,8 +23,8 @@ module.exports = ( { parent_author, parent_permlink, author, permlink, getError,
                         action: 'appendObject',
                         creator: faker.name.firstName(),
                         field: {
-                            name: getRandomString( 10 ),
-                            body: getRandomString( 20 ),
+                            name: faker.random.string( 10 ),
+                            body: faker.random.string( 20 ),
                             locale: 'ru-RU'
                         }
                     }

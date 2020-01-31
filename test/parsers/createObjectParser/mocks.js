@@ -1,5 +1,5 @@
 const { ObjectTypeFactory } = require( '../../factories' );
-const { faker, getRandomString } = require( '../../testHelper' );
+const { faker } = require( '../../testHelper' );
 
 const getMocksData = async () => {
     const objectType = await ObjectTypeFactory.Create();
@@ -8,7 +8,7 @@ const getMocksData = async () => {
         parent_author: objectType.author,
         parent_permlink: objectType.permlink,
         author: faker.name.firstName().toLowerCase(),
-        permlink: getRandomString( 15 )
+        permlink: faker.random.string( 15 )
 
     };
     const metadata = {

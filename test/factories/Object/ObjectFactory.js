@@ -1,4 +1,4 @@
-const { WObject, faker, getRandomString, commentRefSetter } = require( '../../testHelper' );
+const { WObject, faker, commentRefSetter } = require( '../../testHelper' );
 const ObjectTypeFactory = require( '../ObjectType/ObjectTypeFactory' );
 
 const Create = async ( { onlyData, appends = [], author_permlink: root_permlink, object_type } = {} ) => {
@@ -8,7 +8,7 @@ const Create = async ( { onlyData, appends = [], author_permlink: root_permlink,
     const is_extending_open = true;
     const creator = faker.name.firstName().toLowerCase();
     const author = faker.name.firstName().toLowerCase();
-    const author_permlink = root_permlink || `${getRandomString( 3 )}-${default_name.replace( / /g, '' )}`;
+    const author_permlink = root_permlink || `${faker.random.string( 3 )}-${default_name.replace( / /g, '' )}`;
     object_type = created_object_type.name;
 
     if ( onlyData ) {
