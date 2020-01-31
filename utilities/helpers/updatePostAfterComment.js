@@ -11,7 +11,7 @@ const updateCounters = async( author, permlink ) => {
     if( post && post.author ) {
         try {
             const res = await Post.updateOne( {
-                author: post.author, permlink: permlink.post.permlink
+                author: post.author, permlink: post.permlink
             }, {
                 children: post.children
             } );
