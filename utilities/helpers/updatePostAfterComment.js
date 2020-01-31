@@ -7,7 +7,7 @@ const updateCounters = async( author, permlink ) => {
         console.error( err.message );
         return;
     }
-    if( post.author ) {
+    if( post && post.author ) {
         let metadata = {};
         try{
             metadata = JSON.parse( post.json_metadata );
