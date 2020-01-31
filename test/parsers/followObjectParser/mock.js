@@ -1,10 +1,10 @@
 const { UserFactory, ObjectFactory } = require( '../../factories' );
-const { faker, getRandomString } = require( '../../testHelper' );
+const { faker } = require( '../../testHelper' );
 
 const dataForFollow = async ( { follow, error, userName, auth_permlink } = {} ) => {
-    const author_permlink = auth_permlink || getRandomString( 10 );
+    const author_permlink = auth_permlink || faker.random.string( 10 );
     const name = userName || faker.name.firstName();
-    if ( error ) getRandomString();
+    if ( error ) faker.random.string();
     await UserFactory.Create( name );
     await ObjectFactory.Create( { author_permlink: author_permlink } );
     if( follow ) {

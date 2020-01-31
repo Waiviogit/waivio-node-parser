@@ -2,8 +2,10 @@ const createObjectParser = require( './createObjectParser' );
 const appendObjectParser = require( './appendObjectParser' );
 const postWithObjectsParser = require( './postWithObjectParser' );
 const objectTypeParser = require( './objectTypeParser' );
-const { postByTagsHelper, investarenaForecastHelper, chosenPostHelper } = require( '../utilities/helpers' );
+const guestCommentParser = require( './guestCommentParser' );
+const { postByTagsHelper, chosenPostHelper } = require( '../utilities/helpers' );
 const { checkAppBlacklistValidity } = require( '../utilities/helpers' ).appHelper;
+const updatePostAfterComment = require( '../utilities/helpers/updatePostAfterComment' );
 const { chosenPostValidator } = require( '../validator' );
 const _ = require( 'lodash' );
 
@@ -43,17 +45,13 @@ const postSwitcher = async ( { operation, metadata } ) => {
         metadata.wobj = { wobjects: wobjects || [] };
         await postWithObjectsParser.parse( operation, metadata );
     }
-    if ( metadata.wia ) {
-        // add forecast to post(for investarena)
-        await investarenaForecastHelper.updatePostWithForecast( {
-            author: operation.author,
-            permlink: operation.permlink,
-            forecast: metadata.wia
-        } );
-    }
 };
 
 const commentSwitcher = async ( { operation, metadata } ) => {
+    if( _.get( metadata, 'comment.userId' ) ) {
+        await guestCommentParser.parse( { operation, metadata } );
+    }
+
     if ( _.get( metadata, 'wobj.action' ) ) {
         switch ( metadata.wobj.action ) {
             case 'createObject' :
@@ -68,15 +66,7 @@ const commentSwitcher = async ( { operation, metadata } ) => {
     if( chosenPostValidator.checkBody( operation.body ) ) {
         await chosenPostHelper.updateAppChosenPost( operation );
     }
-
-    if ( _.get( metadata, 'wia.exp_forecast' ) ) {
-        await investarenaForecastHelper.updatePostWithExpForecast( {
-            parent_author: operation.parent_author,
-            parent_permlink: operation.parent_permlink,
-            author: operation.author,
-            exp_forecast: metadata.wia.exp_forecast
-        } ); // add expired forecast to post(for investarena)
-    }
+    await updatePostAfterComment.updateCounters( operation.parent_author, operation.parent_permlink );
 };
 
 module.exports = { parse };

@@ -1,4 +1,4 @@
-const { expect, WObject, ratingHelper, getRandomString, WobjModel, sinon } = require( '../../testHelper' );
+const { expect, WObject, ratingHelper, WobjModel, sinon, faker } = require( '../../testHelper' );
 const { AppendObject, UserFactory } = require( '../../factories' );
 
 describe( 'ratingHelper', async () => {
@@ -7,7 +7,7 @@ describe( 'ratingHelper', async () => {
             let mockOp, wobject, field, voter, updField;
             beforeEach( async () => {
                 voter = ( await UserFactory.Create() ).user;
-                const append = await AppendObject.Create( { name: 'rating', body: getRandomString( 10 ) } );
+                const append = await AppendObject.Create( { name: 'rating', body: faker.random.string( 10 ) } );
                 wobject = append.wobject;
                 field = append.appendObject;
                 mockOp = {
@@ -54,8 +54,8 @@ describe( 'ratingHelper', async () => {
                 const { appendObject, wobject: wobj } = await AppendObject.Create(
                     {
                         name: 'rating',
-                        body: getRandomString( 10 ),
-                        additionalFields: { rating_votes: [ { voter: getRandomString( 15 ), rate: 8 } ], average_rating_weight: 8 }
+                        body: faker.random.string( 10 ),
+                        additionalFields: { rating_votes: [ { voter: faker.random.string( 15 ), rate: 8 } ], average_rating_weight: 8 }
                     }
                 );
                 wobject = wobj;
@@ -97,7 +97,7 @@ describe( 'ratingHelper', async () => {
                 voter = ( await UserFactory.Create() ).user;
                 const append = await AppendObject.Create( {
                     name: 'rating',
-                    body: getRandomString( 10 ),
+                    body: faker.random.string( 10 ),
                     additionalFields: { rating_votes: [ { voter: voter.name, rate: 2 } ] }
                 } );
                 wobject = append.wobject;
@@ -139,7 +139,7 @@ describe( 'ratingHelper', async () => {
                 voter = ( await UserFactory.Create() ).user;
                 sinon.spy( WobjModel, 'getField' );
                 sinon.spy( WobjModel, 'updateField' );
-                const append = await AppendObject.Create( { name: 'rating', body: getRandomString( 10 ) } );
+                const append = await AppendObject.Create( { name: 'rating', body: faker.random.string( 10 ) } );
                 wobject = append.wobject;
                 field = append.appendObject;
                 mockOp = {

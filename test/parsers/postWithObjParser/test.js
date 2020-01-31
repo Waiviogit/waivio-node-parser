@@ -1,11 +1,11 @@
-const { expect, postWithObjectParser, Post, faker, getRandomString, postsUtil, sinon, User, redisGetter, CommentRef, postHelper } = require( '../../testHelper' );
+const { expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper, PostModel } = require( '../../testHelper' );
 const { PostFactory, UserFactory, ObjectFactory } = require( '../../factories' );
 const { postWithWobjValidator } = require( '../../../validator' );
 
 describe( 'postWithObjectParser', async () => {
     describe( 'on valid input data', async () => {
         describe( 'if user and post doesnt exists', async () => {
-            let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub;
+            let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub, result;
             beforeEach( async () => {
                 mockPost = await PostFactory.Create( { onlyData: true } );
                 mockWobj = await ObjectFactory.Create();
@@ -16,14 +16,14 @@ describe( 'postWithObjectParser', async () => {
                 mockMetadata = {
                     wobj: { wobjects: [
                         { author_permlink: mockWobj.author_permlink, percent: 100 },
-                        { author_permlink: getRandomString( 10 ), percent: 0 }
+                        { author_permlink: faker.random.string( 10 ), percent: 0 }
                     ] },
                     app: faker.address.city()
                 };
                 postsUtilStub = sinon.stub( postsUtil, 'getPost' ).callsFake( ( a, b ) => ( { post: mockPost } ) );
                 sinon.spy( postWithWobjValidator, 'validate' );
                 sinon.spy( postHelper, 'objectIdFromDateString' );
-                await postWithObjectParser.parse( mockOp, mockMetadata );
+                result = await postWithObjectParser.parse( mockOp, mockMetadata );
             } );
             afterEach( () => {
                 postsUtilStub.restore();
@@ -173,6 +173,36 @@ describe( 'postWithObjectParser', async () => {
             } );
         } );
     } );
+    describe( 'On called with post in parameters', async() => {
+        let mockPost, mockMetadata, mockOp, mockWobj, author, updPost;
+        beforeEach( async () => {
+            author = ( await UserFactory.Create() ).user;
+            mockPost = await PostFactory.Create( { author: author.name } );
+            mockPost.body = faker.lorem.sentence( 10 ); // return post with new body, imitate update content
+            mockWobj = await ObjectFactory.Create();
+            mockOp = {
+                author: mockPost.author,
+                permlink: mockPost.permlink
+            };
+            updPost = await PostFactory.Create( { onlyData: true, author: mockOp.author, permlink: mockOp.permlink } );
+            mockMetadata = {
+                wobj: { wobjects: [ { author_permlink: mockWobj.author_permlink, percent: 100 } ] },
+                app: faker.address.city()
+            };
+            sinon.spy( postsUtil, 'getPost' );
+            await postWithObjectParser.parse( mockOp, mockMetadata, updPost );
+        } );
+        afterEach( () => {
+            sinon.restore();
+        } );
+        it( 'should not call get post from steem method if parser will called with post in params', async () => {
+            expect( postsUtil.getPost ).to.be.not.called;
+        } );
+        it( 'should update exist post with updatePost data ', async () => {
+            const { post } = await PostModel.findOne( mockOp );
+            expect( post.children ).to.be.eq( updPost.children );
+        } );
+    } );
 
     describe( 'on invalid input data', async () => {
         describe( 'when wobjects percent sum greater than 100', async () => {
@@ -187,9 +217,9 @@ describe( 'postWithObjectParser', async () => {
                 };
                 mockMetadata = {
                     wobj: { wobjects: [
-                        { author_permlink: getRandomString( 10 ), percent: 33 },
-                        { author_permlink: getRandomString( 10 ), percent: 34 },
-                        { author_permlink: getRandomString( 10 ), percent: 34 }
+                        { author_permlink: faker.random.string( 10 ), percent: 33 },
+                        { author_permlink: faker.random.string( 10 ), percent: 34 },
+                        { author_permlink: faker.random.string( 10 ), percent: 34 }
                     ] },
                     app: faker.address.city()
                 };

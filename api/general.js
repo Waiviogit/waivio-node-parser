@@ -6,8 +6,7 @@ const { redisGetter, redisSetter } = require( '../utilities/redis' );
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 bluebird.promisifyAll( steem.api );
-// steem.api.setOptions( { url: nodeUrls[ 0 ] } );
-steem.api.setOptions( { url: 'https://api.steemit.com' } );
+steem.api.setOptions( { url: nodeUrls[ 0 ] } );
 
 const getBlockNumberStream = async ( { startFromBlock, startFromCurrent } ) => {
     if ( startFromCurrent ) {
@@ -75,7 +74,8 @@ const loadBlock = async ( block_num ) => { // return true if block exist and par
 const changeNodeUrl = () => {
     const index = nodeUrls.indexOf( steem.config.url );
 
-    steem.config.url = index === nodeUrls.length - 1 ? nodeUrls[ 0 ] : nodeUrls[ index + 1 ];
+    // steem.config.url = index === nodeUrls.length - 1 ? nodeUrls[ 0 ] : nodeUrls[ index + 1 ];
+    steem.api.setOptions( { url: index === nodeUrls.length - 1 ? nodeUrls[ 0 ] : nodeUrls[ index + 1 ] } );
     console.error( `Node URL was changed to ${ steem.config.url}` );
 };
 

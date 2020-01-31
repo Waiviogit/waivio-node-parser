@@ -1,4 +1,4 @@
-const { userParsers, User, expect, sinon, Post, getRandomString, faker } = require( '../../testHelper' );
+const { userParsers, User, expect, sinon, Post, faker } = require( '../../testHelper' );
 const { UserFactory, PostFactory } = require( '../../factories' );
 const { User: UserModel } = require( '../../../models' );
 const _ = require( 'lodash' );
@@ -30,14 +30,14 @@ describe( 'UserParsers', async () => {
         it( 'should update alias name correct', () => {
             expect( updUser.alias ).to.equal( 'Alias Name' );
         } );
-        it( 'should not create user if update was on non exist user', async () => {
+        it( 'should create user if update was on non exist user', async () => {
             await userParsers.updateAccountParser( {
                 account: 'nonexistuser',
                 json_metadata: '{hello: world}'
             } );
             const user = await User.findOne( { name: 'nonexistuser' } );
 
-            expect( user ).to.not.exist;
+            expect( user ).to.exist;
         } );
     } );
 
@@ -110,7 +110,7 @@ describe( 'UserParsers', async () => {
                 reblogParserStub = sinon.stub( userParsers, 'reblogPostParser' ).returns( 0 );
                 addUserFollowStub = sinon.stub( UserModel, 'addUserFollow' ).returns( {} );
                 removeUserFollowStub = sinon.stub( UserModel, 'removeUserFollow' ).returns( {} );
-                mockJson = [ 'reblog', { account: faker.name.firstName(), author: faker.name.firstName(), permlink: getRandomString( 15 ) } ];
+                mockJson = [ 'reblog', { account: faker.name.firstName(), author: faker.name.firstName(), permlink: faker.random.string( 15 ) } ];
                 await userParsers.followUserParser( {
                     json: JSON.stringify( mockJson ),
                     required_posting_auths: [ mockJson[ 1 ].account ]
@@ -147,8 +147,8 @@ describe( 'UserParsers', async () => {
                 post = await PostFactory.Create( {
                     additionsForPost: {
                         wobjects: [
-                            { author_permlink: getRandomString( 10 ), percent: 50 },
-                            { author_permlink: getRandomString( 10 ), percent: 50 }
+                            { author_permlink: faker.random.string( 10 ), percent: 50 },
+                            { author_permlink: faker.random.string( 10 ), percent: 50 }
                         ],
                         language: 'ru-RU'
                     }

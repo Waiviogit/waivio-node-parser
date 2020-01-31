@@ -26,9 +26,9 @@ const getCreateObjectMocks = async () => {
             default_name: faker.address.city()
         }
     };
-    const op = PostFactory.Create( { parent_author: objectType.author, parent_permlink: objectType.permlink, additionsForMetadata: metadataWobj, onlyData: true } );
+    const op = await PostFactory.Create( { parent_permlink: objectType.permlink, additionsForMetadata: metadataWobj, onlyData: true } );
 
-    return op;
+    return { ...op, parent_author: objectType.author };
 };
 
 module.exports = { getCreateObjectTypeMocks, getCreateObjectMocks };

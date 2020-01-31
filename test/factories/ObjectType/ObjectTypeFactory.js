@@ -1,10 +1,10 @@
-const { ObjectType, faker, getRandomString, commentRefSetter } = require( '../../testHelper' );
+const { ObjectType, faker, commentRefSetter } = require( '../../testHelper' );
 
 const Create = async ( { name, author, permlink, updates_blacklist, supposed_updates } = {} ) => {
     const data = {
-        name: name || getRandomString( 10 ),
+        name: name || faker.random.string( 10 ),
         author: author || faker.name.firstName().toLowerCase(),
-        permlink: permlink || getRandomString()
+        permlink: permlink || faker.random.string()
     };
     if( updates_blacklist ) data.updates_blacklist = updates_blacklist;
     if( supposed_updates ) data.supposed_updates = supposed_updates;
