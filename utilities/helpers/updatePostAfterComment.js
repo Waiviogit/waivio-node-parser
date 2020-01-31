@@ -2,7 +2,6 @@ const { postWithObjectParser } = require( '../../parsers' );
 const { postsUtil } = require( '../steemApi' );
 
 const updateCounters = async( author, permlink ) => {
-
     const { post, err } = await postsUtil.getPost( author, permlink );
     if ( err ) {
         console.error( err.message );
