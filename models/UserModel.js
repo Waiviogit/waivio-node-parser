@@ -19,7 +19,7 @@ const addObjectFollow = async function ( data ) { // create user(if it doesn't e
     if ( check.error ) {
         return { error: check.error };
     }
-    try{
+    try {
         const res = await UserModel.findOneAndUpdate(
             {
                 name: data.user // condition
@@ -61,7 +61,7 @@ const addUserFollow = async function ( { follower, following } ) {
     if ( !_.isString( follower ) || !_.isString( following ) ) {
         return { error: 'follower and following must be a string!' };
     }
-    try{
+    try {
         const res = await UserModel.findOneAndUpdate(
             {
                 name: follower // condition
@@ -84,7 +84,7 @@ const removeUserFollow = async function ( { follower, following } ) {
     if ( !_.isString( follower ) || !_.isString( following ) ) {
         return { error: 'follower and following must be a string!' };
     }
-    try{
+    try {
         const res = await UserModel.findOneAndUpdate(
             {
                 name: follower // conditions
@@ -116,7 +116,7 @@ const checkAndCreate = async function ( name ) { // check for existing user and 
     }
     try {
         let user = await UserModel.findOne( { name: name } ).lean();
-        if( user ) return { user };
+        if ( user ) return { user };
 
         user = await UserModel.create( { name: name } );
         console.log( `User ${name} created!` );
@@ -129,6 +129,17 @@ const checkAndCreate = async function ( name ) { // check for existing user and 
 
 const increaseWobjectWeight = async function ( data ) {
     try {
+        if ( data.weight < 0 ) {
+            const result = await UserWobjectsModel.findOne( {
+                user_name: data.name,
+                author_permlink: data.author_permlink
+            } ).lean();
+            if ( result && result.weight < Math.abs( data.weight ) ) {
+                data.weight = -result.weight;
+            } else if ( !result ) {
+                data.weight = 0;
+            }
+        }
         await checkAndCreate( { name: data.name } ); // check for existing user in DB
         await UserWobjectsModel.updateOne( // add weight in wobject to user, or create if it not exist
             {
@@ -180,7 +191,7 @@ const checkForObjectShares = async function ( data ) { // object shares - user w
 };
 
 const update = async function ( condition, updateData ) {
-    try{
+    try {
         return { result: await UserModel.updateMany( condition, updateData ) };
     } catch ( error ) {
         return { error };
@@ -188,7 +199,7 @@ const update = async function ( condition, updateData ) {
 };
 
 const updateOne = async function ( condition, updateData ) {
-    try{
+    try {
         return { result: await UserModel.updateOne( condition, updateData, DEFAULT_UPDATE_OPTIONS ) };
     } catch ( error ) {
         return { error };
@@ -196,7 +207,7 @@ const updateOne = async function ( condition, updateData ) {
 };
 
 const updateOnNewPost = async ( author, postCreatedTime ) => {
-    try{
+    try {
         const result = await UserModel.updateOne(
             { name: author },
             {
@@ -205,7 +216,7 @@ const updateOnNewPost = async ( author, postCreatedTime ) => {
             }
         );
         return { result: result.nModified === 1 };
-    } catch( error ) {
+    } catch ( error ) {
         return { error };
     }
 };
