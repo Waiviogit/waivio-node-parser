@@ -1,2 +1,2 @@
-exports.customJsonOperations = require( './customJsonOperations' );
-exports.guestHelpers = require( './guestHelpers' );
+exports.customJsonOperations = require('./customJsonOperations');
+exports.guestHelpers = require('./guestHelpers');
