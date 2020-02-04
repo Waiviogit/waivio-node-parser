@@ -1,3 +1,3 @@
 module.exports = {
-    postsUtil: require( './postsUtil' )
+  postsUtil: require('./postsUtil'),
 };

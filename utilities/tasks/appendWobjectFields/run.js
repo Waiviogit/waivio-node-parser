@@ -1,6 +1,6 @@
-const wobjectOperations = require( './wobjectsOperations' );
+const wobjectOperations = require('./wobjectsOperations');
 
-( async () => {
-    await wobjectOperations.appendFields();
-    process.exit();
-} )();
+(async () => {
+  await wobjectOperations.appendFields();
+  process.exit();
+})();
