@@ -1,10 +1,10 @@
-const { processor } = require( '../processor' );
+const express = require('express');
+const { processor } = require('../processor');
 
-const express = require( 'express' );
 
 const routes = express.Router();
 
-routes.use( '/waivio-parser', routes );
+routes.use('/waivio-parser', routes);
 
 // routes.route( '/parse-from-start' )
 //     .post( processor.parseAllBlockChain );
