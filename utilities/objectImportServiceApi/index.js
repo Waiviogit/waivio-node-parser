@@ -1,4 +1,4 @@
 module.exports = {
-    importTags: require( './importTags' ),
-    importUpdates: require( './importUpdates' )
+  importTags: require('./importTags'),
+  importUpdates: require('./importUpdates'),
 };

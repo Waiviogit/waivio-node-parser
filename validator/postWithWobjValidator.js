@@ -1,4 +1,4 @@
-const _ = require( 'lodash' );
+const _ = require('lodash');
 
 /**
  * Validating post data before creating(updating) in db
@@ -7,8 +7,8 @@ const _ = require( 'lodash' );
  * @param wobjects {[Object]}
  * @returns {boolean} Return true if post data valid, false if not equal to some condition
  */
-exports.validate = ( { wobjects } ) => {
-    const sum_percents = _.sumBy( wobjects, 'percent' );
-    if ( !_.isEmpty( wobjects ) && ( sum_percents > 100 || sum_percents <= 0 ) ) return false;
-    return true;
+exports.validate = ({ wobjects }) => {
+  const sumPercents = _.sumBy(wobjects, 'percent');
+  if (!_.isEmpty(wobjects) && (sumPercents > 100 || sumPercents <= 0)) return false;
+  return true;
 };
