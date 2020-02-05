@@ -1,4 +1,4 @@
-const { App } = require('../database').models;
+const { App } = require('database').models;
 
 const getOne = async ({ name }) => {
   try {
