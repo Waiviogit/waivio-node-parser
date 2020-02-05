@@ -1,7 +1,7 @@
 const _ = require('lodash');
-const { ObjectType } = require('../models');
-const { commentRefSetter } = require('../utilities/commentRefService');
-const { wobjectValidator } = require('../validator');
+const { ObjectType } = require('models');
+const { commentRefSetter } = require('utilities/commentRefService');
+const { wobjectValidator } = require('validator');
 
 const parse = async (operation, metadata) => {
   try {

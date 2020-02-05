@@ -1,7 +1,7 @@
-const followObjectParser = require('./followObjectParser');
-const userParsers = require('./userParsers');
-const { ratingHelper } = require('../utilities/helpers');
-const { customJsonOperations } = require('../utilities/guestOperations');
+const followObjectParser = require('parsers/followObjectParser');
+const userParsers = require('parsers/userParsers');
+const { ratingHelper } = require('utilities/helpers');
+const { customJsonOperations } = require('utilities/guestOperations');
 
 exports.parse = async (operation) => {
   switch (operation.id) {

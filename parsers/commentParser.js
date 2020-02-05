@@ -1,13 +1,13 @@
 const _ = require('lodash');
-const createObjectParser = require('./createObjectParser');
-const appendObjectParser = require('./appendObjectParser');
-const postWithObjectsParser = require('./postWithObjectParser');
-const objectTypeParser = require('./objectTypeParser');
-const guestCommentParser = require('./guestCommentParser');
-const { postByTagsHelper, chosenPostHelper } = require('../utilities/helpers');
-const { checkAppBlacklistValidity } = require('../utilities/helpers').appHelper;
-const updatePostAfterComment = require('../utilities/helpers/updatePostAfterComment');
-const { chosenPostValidator } = require('../validator');
+const createObjectParser = require('parsers/createObjectParser');
+const appendObjectParser = require('parsers/appendObjectParser');
+const objectTypeParser = require('parsers/objectTypeParser');
+const postWithObjectsParser = require('parsers/postWithObjectParser');
+const guestCommentParser = require('parsers/guestCommentParser');
+const { postByTagsHelper, chosenPostHelper } = require('utilities/helpers');
+const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
+const updatePostAfterComment = require('utilities/helpers/updatePostAfterComment');
+const { chosenPostValidator } = require('validator');
 
 const parse = async (operation) => { // data is operation[1] of transaction in block
   let metadata;

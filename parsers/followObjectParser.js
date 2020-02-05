@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { User, Wobj } = require('../models');
+const { User, Wobj } = require('models');
 
 const parse = async (data) => {
   let json;
