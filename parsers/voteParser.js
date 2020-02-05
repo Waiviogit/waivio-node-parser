@@ -1,8 +1,8 @@
 const _ = require('lodash');
-const { postsUtil } = require('../utilities/steemApi');
-const { User } = require('../models');
-const { voteFieldHelper, votePostHelper } = require('../utilities/helpers');
-const { commentRefGetter } = require('../utilities/commentRefService');
+const { postsUtil } = require('utilities/steemApi');
+const { User } = require('models');
+const { voteFieldHelper, votePostHelper } = require('utilities/helpers');
+const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
   const votesOps = await votesFormat(votes);

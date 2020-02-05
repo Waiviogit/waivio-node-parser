@@ -15,15 +15,15 @@ describe('On fillEmptyFields', async () => {
     wobjectOpsStub;
   it('should not call fs writeFile method if there are no objects in which fields are not added', async () => {
     mocks = mock();
-    wobjectOpsStub = proxyquire('../../../../utilities/tasks/fillWobjectNames/wobjectOperations',
-      { './objectBotRequest': () => 200 });
+    wobjectOpsStub = proxyquire('utilities/tasks/fillWobjectNames/wobjectOperations',
+      { 'utilities/tasks/fillWobjectNames/objectBotRequest': () => 200 });
     await wobjectOpsStub.fillEmptyFields(mocks, 'www.waiviodev.com');
     expect(fs.writeFileSync.called).to.false;
   });
   it('should call fs writeFile method if list of objects without fields will not be empty', async () => {
     mocks = mock();
-    wobjectOpsStub = proxyquire('../../../../utilities/tasks/fillWobjectNames/wobjectOperations',
-      { './objectBotRequest': () => 401 });
+    wobjectOpsStub = proxyquire('utilities/tasks/fillWobjectNames/wobjectOperations',
+      { 'utilities/tasks/fillWobjectNames/objectBotRequest': () => 401 });
     await wobjectOpsStub.fillEmptyFields(mocks, 'waiviodev.com');
     expect(fs.writeFileSync.called).to.true;
   });

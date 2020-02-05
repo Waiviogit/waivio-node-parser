@@ -1,7 +1,7 @@
 const _ = require('lodash');
-const { Wobj, User } = require('../../models');
-const { BLACK_LIST_BOTS } = require('../constants');
-const updateSpecificFieldHelper = require('./updateSpecificFieldsHelper');
+const { Wobj, User } = require('models');
+const { BLACK_LIST_BOTS } = require('utilities/constants');
+const updateSpecificFieldHelper = require('utilities/helpers/updateSpecificFieldsHelper');
 /**
  * Handle votes on append objects(Fields).
  * DownVotes do not use in app(only "UnVote" if vote already exist)

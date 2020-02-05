@@ -1,5 +1,5 @@
-const { postsUtil } = require('../steemApi');
-const { Post } = require('../../database').models;
+const { postsUtil } = require('utilities/steemApi');
+const { Post } = require('database').models;
 
 const updateCounters = async (author, permlink) => {
   const { post, err } = await postsUtil.getPost(author, permlink);

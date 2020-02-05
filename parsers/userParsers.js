@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { User, Post } = require('../models');
+const { User, Post } = require('models');
 
 
 exports.updateAccountParser = async (operation) => {

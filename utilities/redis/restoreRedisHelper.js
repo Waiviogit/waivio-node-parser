@@ -1,6 +1,6 @@
-const { Wobj, Post, ObjectType } = require('../../models');
-const { postRefsClient } = require('./redis');
-const redisSetter = require('./redisSetter');
+const { Wobj, Post, ObjectType } = require('models');
+const { postRefsClient } = require('utilities/redis/redis');
+const redisSetter = require('utilities/redis/redisSetter');
 
 const restore = async () => {
   await postRefsClient.flushdbAsync();

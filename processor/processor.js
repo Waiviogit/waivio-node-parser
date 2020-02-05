@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { api } = require('../api');
-const { restoreRedisHelper } = require('../utilities/redis');
+const { api } = require('api');
+const { restoreRedisHelper } = require('utilities/redis');
 
 const START_FROM_CURRENT = process.env.START_FROM_CURRENT === 'true';
 const RESTORE_REDIS = process.env.RESTORE_REDIS === 'true';

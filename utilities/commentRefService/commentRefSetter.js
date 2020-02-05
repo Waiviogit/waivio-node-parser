@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { CommentRef } = require('../../models');
-const { redisSetter } = require('../redis');
+const { CommentRef } = require('models');
+const { redisSetter } = require('utilities/redis');
 
 exports.addAppendWobj = async (commentPath, rootWobj) => {
   const mongoRes = await CommentRef.addAppendRef({
