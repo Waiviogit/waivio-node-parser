@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { Wobj } = require('../../models');
-const { importTags } = require('../objectImportServiceApi');
+const { Wobj } = require('models');
+const { importTags } = require('utilities/objectImportServiceApi');
 
 const DYNAMIC_HASHTAGS = () => process.env.DYNAMIC_HASHTAGS === 'true';
 

@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { commentRefGetter } = require('../utilities/commentRefService');
-const { validateUserOnBlacklist } = require('./userValidator');
+const { commentRefGetter } = require('utilities/commentRefService');
+const { validateUserOnBlacklist } = require('validator/userValidator');
 
 const validate = async (data, operation) => {
   if (!validateUserOnBlacklist(operation.author) || !validateUserOnBlacklist(data.creator)) {

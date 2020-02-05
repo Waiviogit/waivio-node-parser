@@ -1,8 +1,8 @@
 const express = require('express');
 const logger = require('morgan');
-const { routes } = require('./routes');
-const { runStream } = require('./processor/processor');
-require('./utilities/jobs');
+const { routes } = require('routes');
+const { runStream } = require('processor/processor');
+require('utilities/jobs');
 
 const app = express();
 

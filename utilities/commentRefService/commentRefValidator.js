@@ -1,4 +1,4 @@
-const { getCommentRef } = require('./commentRefGetter');
+const { getCommentRef } = require('utilities/commentRefService/commentRefGetter');
 
 /**
  * Validate for compatibility with existing Ref(if it exists).

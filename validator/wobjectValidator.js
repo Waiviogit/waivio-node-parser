@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { validateUserOnBlacklist } = require('./userValidator');
+const { validateUserOnBlacklist } = require('validator/userValidator');
 
 const validateRatingVote = (data, operation) => {
   if (!validateUserOnBlacklist(_.get(operation, 'required_posting_auths[0]'))) return false;

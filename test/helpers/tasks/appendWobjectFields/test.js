@@ -22,8 +22,8 @@ describe('On appendWobjectFields', async () => {
       mock;
     beforeEach(async () => {
       mock = mocks({ parent_permlink: wobject.author_permlink, parent_author: wobject.author });
-      wobjectOpsStub = proxyquire('../../../../utilities/tasks/appendWobjectFields/wobjectsOperations',
-        { './getComments': () => mock });
+      wobjectOpsStub = proxyquire('utilities/tasks/appendWobjectFields/wobjectsOperations',
+        { 'utilities/tasks/appendWobjectFields/getComments': () => mock });
     });
     it('should successfully append field to wobject', async () => {
       await wobjectOpsStub.appendFields();
@@ -43,8 +43,8 @@ describe('On appendWobjectFields', async () => {
       mock;
     beforeEach(async () => {
       mock = mocks({ parent_permlink: wobject.author_permlink, parent_author: wobject.author, count: 10 });
-      wobjectOpsStub = proxyquire('../../../../utilities/tasks/appendWobjectFields/wobjectsOperations',
-        { './getComments': () => mock });
+      wobjectOpsStub = proxyquire('utilities/tasks/appendWobjectFields/wobjectsOperations',
+        { 'utilities/tasks/appendWobjectFields/getComments': () => mock });
     });
     it('should append correct quantity of fields', async () => {
       await wobjectOpsStub.appendFields(wobject);
@@ -57,8 +57,8 @@ describe('On appendWobjectFields', async () => {
       mock;
     it('should write log to file if wobject have no fields in steem database', async () => {
       mock = mocks({ getError: true });
-      wobjectOpsStub = proxyquire('../../../../utilities/tasks/appendWobjectFields/wobjectsOperations',
-        { './getComments': () => mock });
+      wobjectOpsStub = proxyquire('utilities/tasks/appendWobjectFields/wobjectsOperations',
+        { 'utilities/tasks/appendWobjectFields/getComments': () => mock });
       sinon.spy(fs, 'writeFileSync');
       await wobjectOpsStub.appendFields();
       expect(fs.writeFileSync.calledOnce).to.true;
@@ -66,8 +66,8 @@ describe('On appendWobjectFields', async () => {
     it('should not append fields with incorrect data from steem api', async () => {
       mock = mocks({ parent_permlink: wobject.author_permlink, parent_author: wobject.author });
       mock.result[0].metadata.wobj = {};
-      wobjectOpsStub = proxyquire('../../../../utilities/tasks/appendWobjectFields/wobjectsOperations',
-        { './getComments': () => mock });
+      wobjectOpsStub = proxyquire('utilities/tasks/appendWobjectFields/wobjectsOperations',
+        { 'utilities/tasks/appendWobjectFields/getComments': () => mock });
       await wobjectOpsStub.appendFields();
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink, author: wobject.author });
       expect(result.fields.length === 0).to.true;

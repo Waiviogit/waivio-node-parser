@@ -1,8 +1,8 @@
 const _ = require('lodash');
-const { commentRefGetter } = require('../utilities/commentRefService');
-const { Wobj, ObjectType } = require('../models');
-const { validateUserOnBlacklist } = require('./userValidator');
-const { validateNewsFilter, validateMap } = require('./specifiedFieldsValidator');
+const { commentRefGetter } = require('utilities/commentRefService');
+const { Wobj, ObjectType } = require('models');
+const { validateUserOnBlacklist } = require('validator/userValidator');
+const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 
 const validate = async (data, operation) => {
   if (!validateUserOnBlacklist(operation.author) || !validateUserOnBlacklist(_.get(data, 'field.creator'))) throw new Error("Can't append object, user in blacklist!");

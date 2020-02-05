@@ -1,5 +1,5 @@
 const fs = require('fs');
-const wobjectOperations = require('./wobjectOperations');
+const wobjectOperations = require('utilities/tasks/fillWobjectNames/wobjectOperations');
 
 if (!fs.existsSync('./utilities/tasks/resources')) {
   fs.mkdirSync('./utilities/tasks/resources');

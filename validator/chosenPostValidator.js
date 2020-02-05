@@ -1,4 +1,4 @@
-const { App } = require('../models');
+const { App } = require('models');
 
 const VALIDATE_BODY_REGEX = /^#(daily|weekly) @[a-zA-Z]{3,}/;
 const RESPONSIBLE_USER_ROLE = 'admin';
