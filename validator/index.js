@@ -1,9 +1,9 @@
 module.exports = {
-    wobjectValidator: require( './wobjectValidator' ),
-    createObjectValidator: require( './createObjectValidator' ),
-    appendObjectValidator: require( './appendObjectValidator' ),
-    specifiedFieldsValidator: require( './specifiedFieldsValidator' ),
-    chosenPostValidator: require( './chosenPostValidator' ),
-    userValidator: require( './userValidator' ),
-    postWithWobjValidator: require( './postWithWobjValidator' )
+  specifiedFieldsValidator: require('./specifiedFieldsValidator'),
+  createObjectValidator: require('./createObjectValidator'),
+  appendObjectValidator: require('./appendObjectValidator'),
+  postWithWobjValidator: require('./postWithWobjValidator'),
+  chosenPostValidator: require('./chosenPostValidator'),
+  wobjectValidator: require('./wobjectValidator'),
+  userValidator: require('./userValidator'),
 };

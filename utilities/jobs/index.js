@@ -1,3 +1,3 @@
 exports = {
-    deleteUnusedCommentRefs: require( './delUnusedRedisRefs' )
+  deleteUnusedCommentRefs: require('./delUnusedRedisRefs'),
 };
