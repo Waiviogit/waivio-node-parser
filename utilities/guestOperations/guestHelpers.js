@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const constants = require('../constants');
+const constants = require('utilities/constants');
 
 const METADATA_GUEST_MARKERS = 'userId,social'.split(',');
 

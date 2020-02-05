@@ -1,7 +1,7 @@
 const _ = require('lodash');
-const { App } = require('../../models');
-const { postsUtil } = require('../steemApi');
-const { chosenPostValidator } = require('../../validator');
+const { App } = require('models');
+const { postsUtil } = require('utilities/steemApi');
+const { chosenPostValidator } = require('validator');
 
 const VALIDATE_BODY_REGEX = /^#(?<period>daily|weekly) @(?<app>[a-zA-Z]{3,})/;
 

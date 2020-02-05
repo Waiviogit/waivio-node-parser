@@ -1,11 +1,11 @@
 const _ = require('lodash');
-const { Post, Wobj } = require('../models');
-const { postsUtil } = require('../utilities/steemApi');
-const { detectPostLanguageHelper, postHelper } = require('../utilities/helpers');
-const guestHelpers = require('../utilities/guestOperations/guestHelpers');
-const { User } = require('../models');
-const { commentRefSetter } = require('../utilities/commentRefService');
-const { postWithWobjValidator } = require('../validator');
+const { detectPostLanguageHelper, postHelper } = require('utilities/helpers');
+const guestHelpers = require('utilities/guestOperations/guestHelpers');
+const { commentRefSetter } = require('utilities/commentRefService');
+const { postWithWobjValidator } = require('validator');
+const { postsUtil } = require('utilities/steemApi');
+const { Post, Wobj } = require('models');
+const { User } = require('models');
 
 const parse = async (operation, metadata, post) => {
   const { user, error: userError } = await User.checkAndCreate(operation.author);

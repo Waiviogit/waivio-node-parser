@@ -1,8 +1,8 @@
 const RedisKeyScanner = require('redis-key-scanner');
 const _ = require('lodash');
-const config = require('../../config');
-const { postRefsClient } = require('./redis');
-const { MIN_REDIS_REFS_IDLE_TIME_IN_SEC } = require('../constants');
+const config = require('config');
+const { postRefsClient } = require('utilities/redis/redis');
+const { MIN_REDIS_REFS_IDLE_TIME_IN_SEC } = require('utilities/constants');
 
 /**
  * Delete unused redis CommentRefs

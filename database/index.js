@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const config = require('../config');
+const config = require('config');
 
 const URI = `mongodb://${config.db.host}:${config.db.port}/${config.db.database}`;
 

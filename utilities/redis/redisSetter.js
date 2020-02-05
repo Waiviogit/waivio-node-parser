@@ -1,5 +1,5 @@
-const { postRefsClient, lastBlockClient } = require('./redis');
-const { COMMENT_REF_TYPES } = require('../constants');
+const { postRefsClient, lastBlockClient } = require('utilities/redis/redis');
+const { COMMENT_REF_TYPES } = require('utilities/constants');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 

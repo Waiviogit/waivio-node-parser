@@ -1,6 +1,6 @@
-const { CommentModel } = require('../models');
-const { guestHelpers } = require('../utilities/guestOperations');
-const { postsUtil } = require('../utilities/steemApi');
+const { CommentModel } = require('models');
+const { guestHelpers } = require('utilities/guestOperations');
+const { postsUtil } = require('utilities/steemApi');
 
 exports.parse = async ({ operation, metadata }) => {
   const guestInfo = guestHelpers.getFromMetadataGuestInfo({ operation, metadata });

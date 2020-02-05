@@ -1,7 +1,7 @@
-const { Wobj, User } = require('../models');
-const { createObjectValidator } = require('../validator');
-const { commentRefSetter, commentRefGetter } = require('../utilities/commentRefService');
-const { wobjectHelper } = require('../utilities/helpers');
+const { Wobj, User } = require('models');
+const { createObjectValidator } = require('validator');
+const { commentRefSetter, commentRefGetter } = require('utilities/commentRefService');
+const { wobjectHelper } = require('utilities/helpers');
 
 
 const parse = async (operation, metadata) => {

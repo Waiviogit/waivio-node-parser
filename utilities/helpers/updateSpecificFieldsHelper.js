@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { validateNewsFilter, validateMap } = require('../../validator/specifiedFieldsValidator');
-const { Wobj } = require('../../models');
+const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
+const { Wobj } = require('models');
 
 const TAG_CLOUDS_UPDATE_COUNT = 5;
 const RATINGS_UPDATE_COUNT = 4;

@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { Wobj } = require('../../models');
-const { wobjectValidator } = require('../../validator');
+const { Wobj } = require('models');
+const { wobjectValidator } = require('validator');
 
 const parse = async (operation) => {
   let json;

@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { App } = require('../../models');
-const { getAppData } = require('../../constants/appData');
+const { App } = require('models');
+const { getAppData } = require('constants/appData');
 
 const checkAppBlacklistValidity = async (metadata) => {
   // get current app (app from comment)

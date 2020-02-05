@@ -1,4 +1,4 @@
-const { postRefsClient, lastBlockClient } = require('./redis');
+const { postRefsClient, lastBlockClient } = require('utilities/redis/redis');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 

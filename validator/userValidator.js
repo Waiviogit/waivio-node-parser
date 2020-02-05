@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { BLACK_LIST_BOTS } = require('../utilities/constants');
+const { BLACK_LIST_BOTS } = require('utilities/constants');
 
 /**
  * Check that user not bid-bot or other kind of bots

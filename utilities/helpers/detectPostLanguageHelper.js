@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const franc = require('franc-min');
-const { User } = require('../../database').models;
+const { User } = require('database').models;
 
 const languageList = {
   'en-US': 'eng',
