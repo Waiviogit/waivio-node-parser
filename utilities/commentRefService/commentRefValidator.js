@@ -1,4 +1,4 @@
-const { getCommentRef } = require( './commentRefGetter' );
+const { getCommentRef } = require('utilities/commentRefService/commentRefGetter');
 
 /**
  * Validate for compatibility with existing Ref(if it exists).
@@ -8,7 +8,7 @@ const { getCommentRef } = require( './commentRefGetter' );
  * @param type {String}
  * @returns {Promise<boolean>}
  */
-exports.isRefWithCorrectType = async ( path, type ) => {
-    const existRef = await getCommentRef( path );
-    return !existRef || existRef.type === type;
+exports.isRefWithCorrectType = async (path, type) => {
+  const existRef = await getCommentRef(path);
+  return !existRef || existRef.type === type;
 };
