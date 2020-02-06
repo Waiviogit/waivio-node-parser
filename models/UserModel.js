@@ -111,10 +111,10 @@ const removeUserFollow = async ({ follower, following }) => {
 
 /**
  * Return user if it exist, or create new user and return
- * @param name Include user "name"
+ * @param name {String}
  * @returns {Promise<{user: *}|{error: *}>}
  */
-const checkAndCreate = async (name) => { // check for existing user and create if not exist
+const checkAndCreate = async (name) => {
   if (!_.isString(name)) {
     return { error: 'Name must be a string!' };
   }
