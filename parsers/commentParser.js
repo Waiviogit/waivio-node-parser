@@ -66,7 +66,7 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (chosenPostValidator.checkBody(operation.body)) {
     await chosenPostHelper.updateAppChosenPost(operation);
   }
-  await updatePostAfterComment.updateCounters(operation.parent_author, operation.parent_permlink);
+  await updatePostAfterComment.updateCounters(operation.root_author, operation.root_permlink);
 };
 
 module.exports = { parse };
