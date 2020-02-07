@@ -1,5 +1,5 @@
 const { CronJob } = require('cron');
-const { unusedKeysCollector } = require('../redis');
+const { unusedKeysCollector } = require('utilities/redis');
 
 /**
  * Cron to delete unused redis references once per day

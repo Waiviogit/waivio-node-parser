@@ -1,7 +1,7 @@
 const { uuid } = require('uuidv4');
 const _ = require('lodash');
-const { ObjectType } = require('../../models');
-const { importUpdates } = require('../objectImportServiceApi');
+const { ObjectType } = require('models');
+const { importUpdates } = require('utilities/objectImportServiceApi');
 
 const DEFAULT_UPDATES_CREATOR = 'monterey';
 

@@ -1,7 +1,7 @@
 const _ = require('lodash');
-const { Wobj, User, Post } = require('../../models');
-const { getWobjectsFromMetadata } = require('./postByTagsHelper');
-const { validateUserOnBlacklist } = require('../../validator/userValidator');
+const { Wobj, User, Post } = require('models');
+const { getWobjectsFromMetadata } = require('utilities/helpers/postByTagsHelper');
+const { validateUserOnBlacklist } = require('validator/userValidator');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment

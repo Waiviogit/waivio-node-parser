@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const PostModel = require('../database').models.Post;
-const User = require('./UserModel');
+const PostModel = require('database').models.Post;
+const User = require('models/UserModel');
 
 const create = async (data) => {
   await User.checkAndCreate(data.author); // create user in DB if it doesn't exist

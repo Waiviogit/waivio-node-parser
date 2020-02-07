@@ -1,7 +1,7 @@
 const fs = require('fs');
-const { WObject } = require('../../../database').models;
-const getComments = require('./getComments');
-const appendObjectParser = require('../../../parsers/appendObjectParser');
+const { WObject } = require('database').models;
+const getComments = require('utilities/tasks/appendWobjectFields/getComments');
+const appendObjectParser = require('parsers/appendObjectParser');
 
 const getWobjects = async () => {
   try {

@@ -1,4 +1,4 @@
-const { ObjectType } = require('../database').models;
+const { ObjectType } = require('database').models;
 
 const getAll = async () => {
   try {

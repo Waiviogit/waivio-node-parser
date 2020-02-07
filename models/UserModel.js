@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment');
-const UserModel = require('../database').models.User;
-const UserWobjectsModel = require('../database').models.UserWobjects;
+const UserModel = require('database').models.User;
+const UserWobjectsModel = require('database').models.UserWobjects;
 
 const DEFAULT_UPDATE_OPTIONS = { upsert: true, new: true, setDefaultsOnInsert: true };
 

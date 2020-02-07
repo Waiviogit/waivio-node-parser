@@ -1,6 +1,6 @@
 const {
-  commentParser, voteParser, userParsers, customJsonParser,
-} = require('../parsers');
+  customJsonParser, commentParser, voteParser, userParsers,
+} = require('parsers');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 

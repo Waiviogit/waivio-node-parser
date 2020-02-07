@@ -1,12 +1,12 @@
 const _ = require('lodash');
-const userParsers = require('../../parsers/userParsers');
-const followObjectParser = require('../../parsers/followObjectParser');
-const voteParser = require('../../parsers/voteParser');
-const postWithObjectParser = require('../../parsers/postWithObjectParser');
-const { validateProxyBot, getFromMetadataGuestInfo } = require('./guestHelpers');
-const { votePostHelper, voteFieldHelper } = require('../../utilities/helpers');
-const { Post, User, CommentModel } = require('../../models');
-const { postsUtil } = require('../steemApi');
+const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
+const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
+const postWithObjectParser = require('parsers/postWithObjectParser');
+const followObjectParser = require('parsers/followObjectParser');
+const { Post, User, CommentModel } = require('models');
+const { postsUtil } = require('utilities/steemApi');
+const userParsers = require('parsers/userParsers');
+const voteParser = require('parsers/voteParser');
 
 exports.followUser = async (operation) => {
   if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {

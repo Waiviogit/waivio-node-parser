@@ -1,8 +1,8 @@
 const steem = require('steem');
 const bluebird = require('bluebird');
-const { nodeUrls } = require('../constants/appData');
-const { parseSwitcher } = require('../parsers/mainParser');
-const { redisGetter, redisSetter } = require('../utilities/redis');
+const { nodeUrls } = require('constants/appData');
+const { parseSwitcher } = require('parsers/mainParser');
+const { redisGetter, redisSetter } = require('utilities/redis');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 

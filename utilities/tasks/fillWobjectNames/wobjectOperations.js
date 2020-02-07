@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const fs = require('fs');
-const objectBotRequest = require('./objectBotRequest');
+const objectBotRequest = require('utilities/tasks/fillWobjectNames/objectBotRequest');
 
 const fillEmptyFields = async (emptyWobjects, host) => {
   if (_.isArray(emptyWobjects) && host && host.match(/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/)) {
