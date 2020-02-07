@@ -8,16 +8,16 @@ const _ = require('lodash');
  * if user not exists or exists with ZERO "stage_v" =>
  * => start import user process on waivio-api
  * @param userName
- * @returns {Promise<void>}
+ * @returns {Promise<{user: *}|{error: *}>}
  */
 exports.checkAndCreateUser = async (userName) => {
   const { user, error } = await checkAndCreate(userName);
-  if (error) return console.error(error);
+  if (error) return { error };
   if (_.get(user, 'stage_v') === 0) {
     const { response, error: importError } = await importUser.send(userName);
     if (importError) {
-      return console.error(importError);
+      return { error: importError };
     }
-    return response;
   }
+  return { user };
 };

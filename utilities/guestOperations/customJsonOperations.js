@@ -4,6 +4,7 @@ const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const followObjectParser = require('parsers/followObjectParser');
 const { Post, User, CommentModel } = require('models');
+const { userHelper } = require('utilities/helpers');
 const { postsUtil } = require('utilities/steemApi');
 const userParsers = require('parsers/userParsers');
 const voteParser = require('parsers/voteParser');
@@ -65,7 +66,7 @@ exports.guestCreate = async (operation) => {
     const json = parseJson(operation.json);
     if (!json) return;
     if (!json.userId || !json.displayName || !json.json_metadata) return;
-    const { error: crError } = await User.checkAndCreate(json.userId);
+    const { error: crError, user } = await userHelper.checkAndCreateUser(json.userId);
     if (crError) {
       console.error(crError);
       return;
@@ -108,7 +109,7 @@ const voteOnPost = async ({ vote }) => {
       console.error(`Failed on vote from guest user: ${vote.voter}!`);
       return { err };
     }
-    if (dbPost) post = dbPost;
+    if (dbPost) post = dbPost.toObject();
     else if (dbComment) comment = dbComment;
   } else {
     post = existPost;
