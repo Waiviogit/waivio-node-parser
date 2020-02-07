@@ -11,7 +11,7 @@ const URL = HOST + BASE_URL + IMPORT_STEEM_USER_ROUTE;
 exports.send = async (userName) => {
   try {
     const { data: response } = await axios.get(URL, { params: { userName } });
-    if (response) {
+    if (response && response.ok) {
       return { response };
     }
     return { error: { message: '[IMPORT STEEM USER TO WAIVIO-API]Not enough response data!' } };

@@ -116,12 +116,12 @@ const checkAndCreate = async (name) => {
     return { error: 'Name must be a string!' };
   }
   try {
-    let user = await UserModel.findOne({ name }).lean();
+    let user = await UserModel.findOne({ name }).select('+user_metadata').lean();
     if (user) return { user };
 
     user = await UserModel.create({ name });
     console.log(`User ${name} created!`);
-    return { user };
+    return { user: user.toObject() };
   } catch (error) {
     return { error };
   }

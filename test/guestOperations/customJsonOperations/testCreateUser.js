@@ -29,13 +29,11 @@ describe('customJsonOperations', async () => {
     describe('on valid input', async () => {
       describe('if user dont exist', async () => {
         beforeEach(async () => {
-          sinon.spy(userHelper, 'checkAndCreateUser');
+          sinon.stub(userHelper, 'checkAndCreateUser').returns({});
           sinon.spy(UserModel, 'updateOne');
           await guestCreate(validOp);
         });
         afterEach(() => {
-          // UserModel.checkAndCreate.restore();
-          // UserModel.updateOne.restore();
           sinon.restore();
         });
         it('should call checkAndCreate on User helper once', () => {

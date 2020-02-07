@@ -18,7 +18,7 @@ const parse = async (operation, metadata, post) => {
     permlink: operation.permlink,
     wobjects: _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent > 0 && w.percent <= 100).value(),
     app: _.isString(metadata.app) ? metadata.app : '',
-    author_weight: user.wobjects_weight,
+    author_weight: _.get(user, 'wobjects_weight'),
     guestInfo,
   };
 
