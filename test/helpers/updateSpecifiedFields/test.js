@@ -22,7 +22,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
       fields = [field1, field2, field3, field4];
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(field1.author, field1.permlink, wobject.author_permlink);
+      await updateSpecificFieldsHelper.update(
+        field1.author, field1.permlink, wobject.author_permlink,
+      );
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -52,7 +54,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
       fields = [field1, field2, field3, field4];
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(field1.author, field1.permlink, wobject.author_permlink);
+      await updateSpecificFieldsHelper.update(
+        field1.author, field1.permlink, wobject.author_permlink,
+      );
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -82,7 +86,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
       fields = [field1, field2, field3, field4, field5, field6, field7];
       topFields = [field1, field2, field4, field5, field6];
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(field1.author, field1.permlink, wobject.author_permlink);
+      await updateSpecificFieldsHelper.update(
+        field1.author, field1.permlink, wobject.author_permlink,
+      );
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -112,7 +118,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
       fields = [field1, field2, field3, field4, field5, field6, field7];
       topFields = [field1, field4, field5, field6];
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(field1.author, field1.permlink, wobject.author_permlink);
+      await updateSpecificFieldsHelper.update(
+        field1.author, field1.permlink, wobject.author_permlink,
+      );
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -145,7 +153,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
       fields = [field1, field2, field3, field4];
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(field1.author, field1.permlink, wobject.author_permlink);
+      await updateSpecificFieldsHelper.update(
+        field1.author, field1.permlink, wobject.author_permlink,
+      );
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 

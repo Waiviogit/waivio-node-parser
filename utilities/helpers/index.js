@@ -9,4 +9,5 @@ module.exports = {
   chosenPostHelper: require('./chosenPostHelper'),
   postHelper: require('./postHelper'),
   wobjectHelper: require('./wobjectHelper'),
+  userHelper: require('./userHelper'),
 };

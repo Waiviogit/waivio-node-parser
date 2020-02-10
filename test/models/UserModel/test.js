@@ -31,7 +31,8 @@ describe('User Model', async () => {
     it('should increase weight by data weight', async () => {
       weightIncrease = await UserModel.increaseWobjectWeight(data);
       userAfterIncrease = await User.findOne({ name });
-      expect(userAfterIncrease.wobjects_weight - userBeforeIncrease.wobjects_weight).is.eq(data.weight);
+      expect(userAfterIncrease.wobjects_weight - userBeforeIncrease.wobjects_weight)
+        .is.eq(data.weight);
     });
     it('should create userWobject', async () => {
       weightIncrease = await UserModel.increaseWobjectWeight(data);
@@ -68,7 +69,9 @@ describe('User Model', async () => {
         name: faker.name.firstName(),
         author_permlink: faker.random.string(10),
       };
-      await userWobjectFactory.Create({ user_name: data.name, author_permlink: data.author_permlink, weight });
+      await userWobjectFactory.Create({
+        user_name: data.name, author_permlink: data.author_permlink, weight,
+      });
     });
 
     it('should return correct weight', async () => {
@@ -76,7 +79,9 @@ describe('User Model', async () => {
       expect(result.weight).to.eq(weight);
     });
     it('should return error with incorrect input data', async () => {
-      result = await UserModel.checkForObjectShares({ name: faker.name.firstName(), author_permlink: faker.random.string() });
+      result = await UserModel.checkForObjectShares({
+        name: faker.name.firstName(), author_permlink: faker.random.string(),
+      });
       expect(result.error).is.exist;
     });
     it('should return error without input data', async () => {
@@ -87,22 +92,26 @@ describe('User Model', async () => {
   describe('On addUserFollow', async () => {
     let follower,
       following,
-      upd_follower;
+      updFollower;
     beforeEach(async () => {
       follower = await UserFactory.Create();
       following = await UserFactory.Create();
-      await UserModel.addUserFollow({ follower: follower.user.name, following: following.user.name });
-      upd_follower = await User.findOne({ name: follower.user.name });
+      await UserModel.addUserFollow({
+        follower: follower.user.name, following: following.user.name,
+      });
+      updFollower = await User.findOne({ name: follower.user.name });
     });
     it('should users_follow contains following name', async () => {
-      expect(upd_follower._doc.users_follow).to.contain(following.user.name);
+      expect(updFollower._doc.users_follow).to.contain(following.user.name);
     });
     it('should check users_follow contains only one and correct user', async () => {
-      expect(upd_follower.users_follow).to.deep.eq([following.user.name]);
+      expect(updFollower.users_follow).to.deep.eq([following.user.name]);
     });
     it('should return error with incorrect data', async () => {
-      upd_follower = await UserModel.addUserFollow({ follower: { user: faker.random.string() }, following });
-      expect(upd_follower.error).is.exist;
+      updFollower = await UserModel.addUserFollow({
+        follower: { user: faker.random.string() }, following,
+      });
+      expect(updFollower.error).is.exist;
     });
   });
   describe('On removeUserFollow', async () => {
@@ -131,7 +140,9 @@ describe('User Model', async () => {
       expect(result.error).is.exist;
     });
     it('should get error with incorrect data', async () => {
-      const result = await UserModel.removeUserFollow({ follower: { user: faker.random.string() }, following });
+      const result = await UserModel.removeUserFollow({
+        follower: { user: faker.random.string() }, following,
+      });
       expect(result.error).is.exist;
     });
   });
@@ -157,10 +168,6 @@ describe('User Model', async () => {
     it('should check that array objects_follow contains only one wobject', async () => {
       expect(result.objects_follow).to.deep.eq([mockObject.author_permlink]);
     });
-    it('should get error with incorrect data', async () => {
-      result = await UserModel.addObjectFollow({ some: { test: { data: faker.random.string() } } });
-      expect(result.error).is.exist;
-    });
     it('shouldn\'t get error without author_permlink', async () => {
       result = await UserModel.addObjectFollow({ user: faker.random.string() });
       expect(result.error).is.not.exist;
@@ -179,7 +186,9 @@ describe('User Model', async () => {
       expect(result._doc.objects_follow).not.empty;
     });
     it('should remove objects_follow successfully', async () => {
-      await UserModel.removeObjectFollow({ user: follower.user.name, author_permlink: mockObject[0] });
+      await UserModel.removeObjectFollow({
+        user: follower.user.name, author_permlink: mockObject[0],
+      });
       result = await User.findOne({ name: follower.user.name });
       expect(result._doc.objects_follow).to.not.contain(mockObject[0]);
     });
@@ -190,7 +199,9 @@ describe('User Model', async () => {
     it('should delete only one wobject from objects_follow', async () => {
       mockObject = [faker.random.string(), faker.random.string()];
       follower = await UserFactory.Create({ objects_follow: mockObject });
-      await UserModel.removeObjectFollow({ user: follower.user.name, author_permlink: mockObject[0] });
+      await UserModel.removeObjectFollow({
+        user: follower.user.name, author_permlink: mockObject[0],
+      });
       result = await User.findOne({ name: follower.user.name });
       expect(result.objects_follow).not.empty;
       expect(result.objects_follow).not.contains(mockObject[0]);
@@ -212,11 +223,17 @@ describe('User Model', async () => {
       expect(data.name).to.eq(user.user.name);
     });
     it('should get error with incorrect data', async () => {
-      const result = await UserModel.create({ name: { some: faker.random.string() } }, { alias: { some: faker.random.string() } });
+      const result = await UserModel.create(
+        { name: { some: faker.random.string() } },
+        { alias: { some: faker.random.string() } },
+      );
       expect(result.error).exist;
     });
     it('should get validation error', async () => {
-      const result = await UserModel.create({ name: { some: faker.random.string() } }, { alias: { some: faker.random.string() } });
+      const result = await UserModel.create(
+        { name: { some: faker.random.string() } },
+        { alias: { some: faker.random.string() } },
+      );
       expect(result.error.name).to.eq('ValidationError');
     });
   });
@@ -337,7 +354,7 @@ describe('User Model', async () => {
       lastPostDateMock;
     beforeEach(async () => {
       author = await UserFactory.Create();
-      lastPostDateMock = faker.date.recent().toISOString().split('.')[0];
+      [lastPostDateMock] = faker.date.recent().toISOString().split('.');
       result = await UserModel.updateOnNewPost(author.user.name, lastPostDateMock);
       updatedAuthor = await User.findOne({ name: author.user.name }).lean();
     });

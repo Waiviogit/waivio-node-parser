@@ -52,6 +52,7 @@ const UserSchema = new Schema({
   last_posts_count: { type: Number, default: 0 }, // count of the posts written in last day
   user_metadata: { type: UserMetadataSchema, default: () => ({}), select: false },
   last_root_post: { type: String, default: null },
+  stage_version: { type: Number, default: 0, required: true },
 }, { timestamps: true });
 
 UserSchema.index({ wobjects_weight: -1 });
