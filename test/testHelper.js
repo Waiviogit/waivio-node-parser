@@ -24,6 +24,7 @@ const dropDatabase = async () => {
 module.exports = {
   ...require('../utilities/objectImportServiceApi'),
   ...require('../utilities/commentRefService'),
+  ...require('../utilities/waivioApi'),
   ...require('../utilities/steemApi'),
   ...require('../utilities/helpers'),
   ...require('../database').models,

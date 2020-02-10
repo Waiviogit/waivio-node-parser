@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const {
-  expect, faker, sinon, UserModel, User,
-} = require('../../testHelper');
+  expect, faker, sinon, UserModel, User, userHelper,
+} = require('test/testHelper');
 const { guestCreate } = require('../../../utilities/guestOperations/customJsonOperations');
 const { UserFactory } = require('../../factories');
 const constants = require('../../../utilities/constants');
@@ -29,16 +29,15 @@ describe('customJsonOperations', async () => {
     describe('on valid input', async () => {
       describe('if user dont exist', async () => {
         beforeEach(async () => {
-          sinon.spy(UserModel, 'checkAndCreate');
+          sinon.stub(userHelper, 'checkAndCreateUser').returns({});
           sinon.spy(UserModel, 'updateOne');
           await guestCreate(validOp);
         });
         afterEach(() => {
-          UserModel.checkAndCreate.restore();
-          UserModel.updateOne.restore();
+          sinon.restore();
         });
-        it('should call checkAndCreate on User Model once', () => {
-          expect(UserModel.checkAndCreate).to.be.calledOnce;
+        it('should call checkAndCreate on User helper once', () => {
+          expect(userHelper.checkAndCreateUser).to.be.calledOnce;
         });
         it('should call updateOne on User Model once', () => {
           expect(UserModel.updateOne).to.be.calledOnce;
@@ -65,15 +64,14 @@ describe('customJsonOperations', async () => {
         beforeEach(async () => {
           user = (await UserFactory.Create({ name: validJson.userId, count_posts: 100 })).user;
           sinon.spy(UserModel, 'updateOne');
-          sinon.spy(UserModel, 'checkAndCreate');
+          sinon.spy(userHelper, 'checkAndCreateUser');
           await guestCreate(validOp);
         });
         afterEach(() => {
-          UserModel.updateOne.restore();
-          UserModel.checkAndCreate.restore();
+          sinon.restore();
         });
         it('should call checkAndCreate on User Model once', () => {
-          expect(UserModel.checkAndCreate).to.be.calledOnce;
+          expect(userHelper.checkAndCreateUser).to.be.calledOnce;
         });
         it('should call updateOne on User Model once', () => {
           expect(UserModel.updateOne).to.be.calledOnce;
