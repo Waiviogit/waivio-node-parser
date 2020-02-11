@@ -86,6 +86,12 @@ exports.reblogPostParser = async ({ json, account }) => {
       });
 
     if (createPostError) return { error: createPostError };
+    const updateData = {
+      author,
+      permlink,
+      $addToSet: { reblogged_users: account },
+    };
+    await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
   }
 };
