@@ -57,7 +57,9 @@ describe('customJsonOperations', async () => {
       });
       it('should create reblogged post with correct reference to source post', async () => {
         const post = await Post.findOne({ author: mockUser.name, permlink: `${mockPost.author}/${mockPost.permlink}` });
-        expect(post.reblog_to).to.be.deep.eq({ author: mockPost.author, permlink: mockPost.permlink });
+        expect(post.reblog_to).to.be.deep.eq(
+          { author: mockPost.author, permlink: mockPost.permlink },
+        );
       });
     });
     describe('on not valid proxy bot', async () => {
