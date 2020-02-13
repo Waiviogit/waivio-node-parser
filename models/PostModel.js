@@ -63,6 +63,20 @@ const getPostsRefs = async () => {
   }
 };
 
+
+const findByBothAuthors = async ({ author, permlink }) => {
+  try {
+    return {
+      result: await PostModel.find({
+        $or: [{ author, permlink }, { root_author: author, permlink }],
+      }).lean(),
+    };
+  } catch (error) {
+    return { error };
+  }
+};
+
+
 module.exports = {
-  create, update, findOne, getPostsRefs,
+  create, update, findOne, getPostsRefs, findByBothAuthors,
 };
