@@ -87,7 +87,7 @@ exports.reblogPostParser = async ({ json, account }) => {
 
     if (createPostError) return { error: createPostError };
     const updateData = {
-      author,
+      author: post.root_author,
       permlink,
       $addToSet: { reblogged_users: account },
     };
