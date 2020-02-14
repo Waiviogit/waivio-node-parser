@@ -43,6 +43,7 @@ const UserSchema = new Schema({
     type: String, index: true, unique: true, required: true,
   },
   alias: { type: String },
+  profile_image: { type: String },
   // arr of author_permlink of objects what user following
   objects_follow: { type: [String], default: [] },
   users_follow: { type: [String], default: [] }, // arr of users which user follow
@@ -50,12 +51,24 @@ const UserSchema = new Schema({
   wobjects_weight: { type: Number, default: 0 }, // sum of weight of all wobjects
   count_posts: { type: Number, default: 0, index: true }, // count of the all posts
   last_posts_count: { type: Number, default: 0 }, // count of the posts written in last day
+  last_posts_counts_by_hours: { type: [Number], default: [] },
   user_metadata: { type: UserMetadataSchema, default: () => ({}), select: false },
   last_root_post: { type: String, default: null },
+  followers_count: { type: Number, default: 0 },
   stage_version: { type: Number, default: 0, required: true },
 }, { timestamps: true });
 
 UserSchema.index({ wobjects_weight: -1 });
+
+// eslint-disable-next-line func-names
+UserSchema.virtual('objects_following_count').get(function () {
+  return this.objects_follow.length;
+});
+
+// eslint-disable-next-line func-names
+UserSchema.virtual('users_following_count').get(function () {
+  return this.users_follow.length;
+});
 
 const UserModel = mongoose.model('User', UserSchema);
 

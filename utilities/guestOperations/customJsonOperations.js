@@ -15,7 +15,7 @@ exports.followUser = async (operation) => {
     if (!json) return;
 
     operation.required_posting_auths = [_.get(json, '[1].follower')];
-    await userParsers.followUserParser(operation);
+    await userParsers.followUserParser(operation, json);
   }
 };
 

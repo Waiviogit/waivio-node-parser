@@ -30,14 +30,7 @@ exports.createUser = async (data) => {
   );
 };
 
-exports.followUserParser = async (operation) => {
-  let json;
-  try {
-    json = JSON.parse(operation.json);
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+exports.followUserParser = async (operation, json) => {
   // check author of operation and user which will be updated
   if (_.get(json, '[0]') === 'reblog' && _.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, '[1].account')) {
     console.error('Can\'t reblog, account and author of operation are different');
@@ -54,11 +47,13 @@ exports.followUserParser = async (operation) => {
     if (_.get(json, '[1].what[0]') === 'blog') { // if field "what" present - it's follow on user
       const { result } = await User.addUserFollow(json[1]);
       if (result) {
+        await User.updateOne({ name: json[1].following }, ({ $inc: { followers_count: 1 } }));
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
     } else { // else if missing - unfollow
       const { result } = await User.removeUserFollow(json[1]);
       if (result) {
+        await User.updateOne({ name: json[1].following }, ({ $inc: { followers_count: -1 } }));
         console.log(`User ${json[1].follower} now unfollow user ${json[1].following} !`);
       }
     }
