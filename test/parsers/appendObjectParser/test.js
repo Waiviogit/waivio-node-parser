@@ -1,7 +1,7 @@
-const { getMocksData } = require('./mocks');
 const {
-  appendObjectParser, WObject, expect, redisGetter, updateSpecificFieldsHelper, sinon,
-} = require('../../testHelper');
+  appendObjectParser, WObject, expect, redisGetter, updateSpecificFieldsHelper, sinon, usersUtil, importUser,
+} = require('test/testHelper');
+const { getMocksData } = require('./mocks');
 
 describe('Append object parser,', async () => {
   let mockData;
@@ -9,6 +9,8 @@ describe('Append object parser,', async () => {
   let updateSpecificFieldsHelperStub;
 
   beforeEach(async () => {
+    sinon.stub(usersUtil, 'getUser').returns({ user: 'its ok' });
+    sinon.stub(importUser, 'send').returns({ response: 'its ok' });
     updateSpecificFieldsHelperStub = sinon.stub(updateSpecificFieldsHelper, 'update').callsFake(() => {});
     mockData = await getMocksData();
     await appendObjectParser.parse(mockData.operation, mockData.metadata);
@@ -16,7 +18,7 @@ describe('Append object parser,', async () => {
   });
 
   afterEach(() => {
-    updateSpecificFieldsHelperStub.restore();
+    sinon.restore();
   });
 
   it('should call "updateSpecifiedFields" once', () => {

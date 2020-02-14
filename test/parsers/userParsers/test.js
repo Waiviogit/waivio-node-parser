@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker, dropDatabase,
+  userParsers, User, expect, sinon, Post, faker, userHelper,
 } = require('test/testHelper');
 const { UserFactory, PostFactory } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
@@ -167,6 +167,7 @@ describe('UserParsers', async () => {
         updSourcePost,
         mockInput;
       beforeEach(async () => {
+        sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         const { user: userMock } = await UserFactory.Create();
         user = userMock;
         post = await PostFactory.Create({
@@ -189,6 +190,9 @@ describe('UserParsers', async () => {
           author: user.name,
           permlink: `${post.author}/${post.permlink}`,
         }).lean();
+      });
+      afterEach(async () => {
+        sinon.restore();
       });
       it('should create new post with field reblog_to not null', () => {
         expect(reblogPost.reblog_to).to.not.null;

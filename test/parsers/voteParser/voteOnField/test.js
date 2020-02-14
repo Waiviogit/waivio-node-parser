@@ -1,6 +1,6 @@
 const {
-  expect, voteFieldHelper, UserWobjects, WobjModel,
-} = require('../../../testHelper');
+  expect, voteFieldHelper, UserWobjects, WobjModel, userHelper, sinon,
+} = require('test/testHelper');
 const { voteAppendObjectMocks } = require('./mocks');
 
 describe('Vote On Field', async () => {
@@ -11,6 +11,7 @@ describe('Vote On Field', async () => {
         exst_field;
 
       beforeEach(async () => {
+        sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         mocks = await voteAppendObjectMocks();
         const { field } = await WobjModel.getField(mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink);
 
@@ -25,6 +26,9 @@ describe('Vote On Field', async () => {
           rshares_weight: 1000,
         });
         upd_field = (await WobjModel.getField(mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink)).field;
+      });
+      afterEach(async () => {
+        sinon.restore();
       });
       it('should increase field weight by correct value', async () => {
         const diff = upd_field.weight - exst_field.weight;

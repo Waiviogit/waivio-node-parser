@@ -74,6 +74,7 @@ const addUserFollow = async ({ follower, following }) => {
     if (!res) {
       return { result: false };
     }
+    await updateOne({ name: following }, ({ $inc: { followers_count: 1 } }));
     return { result: true };
   } catch (error) {
     return { error };
@@ -99,6 +100,7 @@ const removeUserFollow = async ({ follower, following }) => {
     if (!res) {
       return { result: false };
     }
+    await updateOne({ name: following }, ({ $inc: { followers_count: -1 } }));
     return { result: true };
   } catch (error) {
     return { error };

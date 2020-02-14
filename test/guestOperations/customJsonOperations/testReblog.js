@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, userParsers, Post,
+  expect, sinon, faker, userParsers, Post, userHelper
 } = require('test/testHelper');
 const { reblogPost } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, PostFactory } = require('test/factories');
@@ -10,6 +10,7 @@ describe('customJsonOperations', async () => {
   let mockListBots;
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
+    sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
     sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
   });
   afterEach(() => {

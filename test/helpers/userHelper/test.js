@@ -1,5 +1,5 @@
 const {
-  expect, userHelper, sinon, faker, importUser, User,
+  expect, userHelper, sinon, faker, importUser, User, usersUtil,
 } = require('test/testHelper');
 const { UserFactory } = require('test/factories');
 
@@ -13,6 +13,7 @@ describe('userHelper', async () => {
         beforeEach(async () => {
           newUserName = faker.name.firstName().toLowerCase();
           sinon.stub(importUser, 'send').returns({ response: 'its ok' });
+          sinon.stub(usersUtil, 'getUser').returns({ user: 'its ok' });
           result = await userHelper.checkAndCreateUser(newUserName);
           createdUser = await User.findOne({ name: newUserName }).select('+user_metadata').lean();
         });
@@ -45,6 +46,7 @@ describe('userHelper', async () => {
           user = (await UserFactory.Create({
             name: newUserName, count_posts: 10, wobjects_weight: 100, stage_version: 1,
           })).user;
+          sinon.stub(usersUtil, 'getUser').returns({ user: 'its ok' });
           sinon.stub(importUser, 'send').returns({ response: 'its ok' });
           result = await userHelper.checkAndCreateUser(newUserName);
           createdUser = await User.findOne({ name: newUserName }).lean();
