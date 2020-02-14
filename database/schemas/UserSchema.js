@@ -60,16 +60,6 @@ const UserSchema = new Schema({
 
 UserSchema.index({ wobjects_weight: -1 });
 
-// eslint-disable-next-line func-names
-UserSchema.virtual('objects_following_count').get(function () {
-  return this.objects_follow.length;
-});
-
-// eslint-disable-next-line func-names
-UserSchema.virtual('users_following_count').get(function () {
-  return this.users_follow.length;
-});
-
 const UserModel = mongoose.model('User', UserSchema);
 
 module.exports = UserModel;
