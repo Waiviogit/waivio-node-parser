@@ -16,7 +16,6 @@ const create = async (data) => {
 };
 
 const addObjectFollow = async (data) => {
-  await checkAndCreate(data.user);
   try {
     const res = await UserModel.findOneAndUpdate(
       {
@@ -75,6 +74,7 @@ const addUserFollow = async ({ follower, following }) => {
     if (!res) {
       return { result: false };
     }
+    await updateOne({ name: following }, ({ $inc: { followers_count: 1 } }));
     return { result: true };
   } catch (error) {
     return { error };
@@ -100,6 +100,7 @@ const removeUserFollow = async ({ follower, following }) => {
     if (!res) {
       return { result: false };
     }
+    await updateOne({ name: following }, ({ $inc: { followers_count: -1 } }));
     return { result: true };
   } catch (error) {
     return { error };
@@ -129,7 +130,6 @@ const checkAndCreate = async (name) => {
 
 const increaseWobjectWeight = async (data) => {
   try {
-    await checkAndCreate(data.name);
     await UserWobjectsModel.updateOne( // add weight in wobject to user, or create if it not exist
       {
         user_name: data.name,

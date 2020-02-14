@@ -1,7 +1,7 @@
 const {
-  dropDatabase, expect, faker, sinon, UserModel, WobjModel, User,
-} = require('../../testHelper');
-const { followObjectParser } = require('../../../parsers');
+  dropDatabase, expect, faker, sinon, UserModel, WobjModel, userHelper,
+} = require('test/testHelper');
+const { followObjectParser } = require('parsers');
 const mock = require('./mock');
 
 describe('followObjectParser', async () => {
@@ -11,12 +11,15 @@ describe('followObjectParser', async () => {
       name,
       author_permlink;
     beforeEach(async () => {
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       sinon.stub(UserModel, 'addObjectFollow').callsFake(() => ({ result: true }));
       sinon.stub(WobjModel, 'getOne').callsFake(() => ({ wobject: true }));
       await dropDatabase();
       name = faker.name.firstName();
       author_permlink = faker.random.string(10);
-      data = await mock.dataForFollow({ follow: true, auth_permlink: author_permlink, userName: name });
+      data = await mock.dataForFollow(
+        { follow: true, auth_permlink: author_permlink, userName: name },
+      );
     });
     afterEach(() => {
       sinon.restore();
@@ -44,12 +47,16 @@ describe('followObjectParser', async () => {
     it('should return 404 on follow not exist wobject', async () => {
       sinon.restore();
       sinon.stub(WobjModel, 'getOne').callsFake(() => ({ error: { status: 404, message: 'Wobject not found!' } }));
-      const mockOp = await mock.dataForFollow({ follow: true, auth_permlink: faker.random.string(10), userName: name });
+      const mockOp = await mock.dataForFollow(
+        { follow: true, auth_permlink: faker.random.string(10), userName: name },
+      );
       result = await followObjectParser.parse(mockOp);
       expect(result.status).to.eq(404);
     });
     it('should not submit follow if user in json and author of operation are different', async () => {
-      result = await followObjectParser.parse({ ...data, required_posting_auths: [faker.name.firstName()] });
+      result = await followObjectParser.parse(
+        { ...data, required_posting_auths: [faker.name.firstName()] },
+      );
       expect(result).to.be.undefined;
     });
   });

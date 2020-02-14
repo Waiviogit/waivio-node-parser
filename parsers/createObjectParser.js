@@ -1,7 +1,7 @@
 const { Wobj, User } = require('models');
 const { createObjectValidator } = require('validator');
 const { commentRefSetter, commentRefGetter } = require('utilities/commentRefService');
-const { wobjectHelper } = require('utilities/helpers');
+const { wobjectHelper, userHelper } = require('utilities/helpers');
 
 
 const parse = async (operation, metadata) => {
@@ -32,6 +32,7 @@ const createObject = async (data, operation) => {
     if (error) return { error };
 
     await commentRefSetter.addWobjRef(`${data.author}_${data.author_permlink}`, data.author_permlink);
+    await userHelper.checkAndCreateUser(data.creator);
     await User.increaseWobjectWeight({
       name: data.creator,
       author_permlink: data.author_permlink,

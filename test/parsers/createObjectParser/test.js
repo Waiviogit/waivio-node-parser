@@ -1,6 +1,6 @@
 const { getMocksData } = require('./mocks');
 const {
-  createObjectParser, WObject, expect, redisGetter, User, UserWobjects, wobjectHelper, sinon,
+  createObjectParser, WObject, expect, redisGetter, User, UserWobjects, wobjectHelper, sinon, userHelper,
 } = require('../../testHelper');
 
 describe('Object parser', async () => {
@@ -9,12 +9,13 @@ describe('Object parser', async () => {
     let wobject;
 
     beforeEach(async () => {
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       mockData = await getMocksData();
       sinon.spy(wobjectHelper, 'addSupposedUpdates');
       await createObjectParser.parse(mockData.operation, mockData.metadata);
       wobject = await WObject.findOne({ author_permlink: mockData.operation.permlink }).lean();
     });
-    afterEach(async () => wobjectHelper.addSupposedUpdates.restore());
+    afterEach(async () => sinon.restore());
 
     describe('wobject', async () => {
       it('should creating in database', async () => {

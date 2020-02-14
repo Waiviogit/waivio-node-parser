@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker,
-} = require('../../testHelper');
-const { UserFactory, PostFactory } = require('../../factories');
-const { User: UserModel, Post: PostModel } = require('../../../models');
+  userParsers, User, expect, sinon, Post, faker, userHelper,
+} = require('test/testHelper');
+const { UserFactory, PostFactory } = require('test/factories');
+const { User: UserModel, Post: PostModel } = require('models');
 
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
@@ -45,11 +45,13 @@ describe('UserParsers', async () => {
 
   describe('on followUserParser', async () => {
     describe('on valid input data', async () => {
-      let usr;
-      let usr2;
-      let usr3;
+      let usr, usr2, usr3, following, unfollowing;
 
       beforeEach(async () => {
+        following = faker.name.firstName();
+        unfollowing = faker.name.firstName();
+        await UserFactory.Create({ name: following });
+        await UserFactory.Create({ name: unfollowing });
         const { user } = await UserFactory.Create();
         const { user: user2 } = await UserFactory.Create();
         const { user: user3 } = await UserFactory.Create();
@@ -57,14 +59,14 @@ describe('UserParsers', async () => {
         usr = user;
         usr2 = user2;
         usr3 = user3;
-        await User.update({ name: user2.name }, { users_follow: ['tstusernamefllw'] });
+        await User.updateOne({ name: user2.name }, { users_follow: ['tstusernamefllw'] });
         await userParsers.followUserParser({
           required_posting_auths: [user.name],
           json: JSON.stringify([
             'follow',
             {
               follower: user.name,
-              following: 'tstusernamefllw',
+              following,
               what: ['blog'],
             },
           ]),
@@ -75,7 +77,7 @@ describe('UserParsers', async () => {
             'follow',
             {
               follower: user2.name,
-              following: 'tstusernamefllw',
+              following: unfollowing,
               what: [],
             },
           ]),
@@ -94,7 +96,15 @@ describe('UserParsers', async () => {
       });
       it('should add user to follow list', async () => {
         const user = await User.findOne({ name: usr.name }).lean();
-        expect(user.users_follow).to.include('tstusernamefllw');
+        expect(user.users_follow).to.include(following);
+      });
+      it('should increase follower counters at folloving user', async () => {
+        const user = await User.findOne({ name: following }).lean();
+        expect(user.followers_count).to.be.eq(1);
+      });
+      it('should decrease followers counters with unfollow operation', async () => {
+        const user = await User.findOne({ name: unfollowing }).lean();
+        expect(user.followers_count).to.be.eq(-1);
       });
       it('should remove user from follow list', async () => {
         const user = await User.findOne({ name: usr2.name }).lean();
@@ -157,6 +167,7 @@ describe('UserParsers', async () => {
         updSourcePost,
         mockInput;
       beforeEach(async () => {
+        sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         const { user: userMock } = await UserFactory.Create();
         user = userMock;
         post = await PostFactory.Create({
@@ -179,6 +190,9 @@ describe('UserParsers', async () => {
           author: user.name,
           permlink: `${post.author}/${post.permlink}`,
         }).lean();
+      });
+      afterEach(async () => {
+        sinon.restore();
       });
       it('should create new post with field reblog_to not null', () => {
         expect(reblogPost.reblog_to).to.not.null;
