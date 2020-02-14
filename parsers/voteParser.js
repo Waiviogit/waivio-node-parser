@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { postsUtil } = require('utilities/steemApi');
 const { User } = require('models');
-const { voteFieldHelper, votePostHelper } = require('utilities/helpers');
+const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
@@ -14,6 +14,7 @@ const parse = async (votes) => {
   );
 
   await Promise.all(votesOps.map(async (voteOp) => {
+    await userHelper.checkAndCreateUsers([voteOp.author, voteOp.voter]);
     await parseVoteByType(voteOp, posts);
   }));
   console.log(`Parsed votes: ${votesOps.length}`);
@@ -61,7 +62,6 @@ const voteAppendObject = async (data) => {
     // voters weight in wobject
   data.weight = weight;
   data.rshares_weight = Math.round(Number(currentVote.rshares) * 1e-6);
-
   await voteFieldHelper.voteOnField(data);
 };
 

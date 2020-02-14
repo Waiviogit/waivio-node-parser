@@ -10,7 +10,7 @@ const { User } = require('models');
 
 const parse = async (operation, metadata, post) => {
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
-  if (userError) console.log(userError);
+  if (userError) console.log(userError.message);
   // get info about guest account(if post had been written from "guest" through proxy bot)
   const guestInfo = guestHelpers.getFromMetadataGuestInfo({ operation, metadata });
   const data = {

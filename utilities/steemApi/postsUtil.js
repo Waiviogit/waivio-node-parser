@@ -1,6 +1,4 @@
-const dsteem = require('dsteem');
-
-const client = new dsteem.Client('https://api.steemit.com');
+const { client } = require('./createClient');
 
 const getPost = async (author, permlink) => {
   try {
