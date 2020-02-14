@@ -30,7 +30,14 @@ exports.createUser = async (data) => {
   );
 };
 
-exports.followUserParser = async (operation, json) => {
+exports.followUserParser = async (operation) => {
+  let json;
+  try {
+    json = JSON.parse(operation.json);
+  } catch (error) {
+    console.error(error);
+    return;
+  }
   // check author of operation and user which will be updated
   if (_.get(json, '[0]') === 'reblog' && _.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, '[1].account')) {
     console.error('Can\'t reblog, account and author of operation are different');

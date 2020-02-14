@@ -1,10 +1,10 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, followObjectParser, userParsers, Post,
-} = require('../../testHelper');
-const { reblogPost } = require('../../../utilities/guestOperations/customJsonOperations');
-const { UserFactory, ObjectFactory, PostFactory } = require('../../factories');
-const constants = require('../../../utilities/constants');
+  expect, sinon, faker, userParsers, Post,
+} = require('test/testHelper');
+const { reblogPost } = require('utilities/guestOperations/customJsonOperations');
+const { UserFactory, PostFactory } = require('test/factories');
+const constants = require('utilities/constants');
 
 describe('customJsonOperations', async () => {
   let mockListBots;

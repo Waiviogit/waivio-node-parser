@@ -25,6 +25,7 @@
     "consistent-return": 0,
     "mocha/no-exclusive-tests": "error",
     "no-negated-in-lhs": 2,
+    "one-var-declaration-per-line": 0,
     "default-case": 0,
     "no-continue": 0,
     "block-scoped-var": 2,
