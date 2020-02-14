@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  expect, guestCommentParser, postsUtil, faker, sinon, Comment, CommentModel,
+  expect, guestCommentParser, postsUtil, faker, sinon, Comment, CommentModel, userHelper
 } = require('../../testHelper');
 const { CommentFactory, UserFactory } = require('../../factories');
 const constants = require('../../../utilities/constants');
@@ -19,6 +19,7 @@ describe('guestCommentParser', async () => {
       validMetadata,
       guestAuthor;
     beforeEach(async () => {
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       guestAuthor = (await UserFactory.Create({ name: `waivio_${faker.name.firstName().toLowerCase()}` })).user;
       validMetadata = {
         community: 'test',

@@ -1,15 +1,16 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, WObject, UserWobjects, voteFieldHelper,
-} = require('../../testHelper');
-const { guestVote } = require('../../../utilities/guestOperations/customJsonOperations');
-const { UserFactory, AppendObject, userWobjectFactory } = require('../../factories');
-const constants = require('../../../utilities/constants');
+  expect, sinon, faker, WObject, UserWobjects, voteFieldHelper, userHelper,
+} = require('test/testHelper');
+const { guestVote } = require('utilities/guestOperations/customJsonOperations');
+const { UserFactory, AppendObject, userWobjectFactory } = require('test/factories');
+const constants = require('utilities/constants');
 
 
 describe('customJsonOperations', async () => {
   let mockListBots;
   beforeEach(async () => {
+    sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
     mockListBots = _.times(5, faker.name.firstName);
     sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
   });
@@ -29,8 +30,12 @@ describe('customJsonOperations', async () => {
         const { appendObject, wobject: createdWobj } = await AppendObject.Create();
         wobject = createdWobj;
         field = appendObject;
-        voterUserWobj = await userWobjectFactory.Create({ user_name: voter.name, author_permlink: wobject.author_permlink });
-        creatorUserWobj = await userWobjectFactory.Create({ user_name: field.creator, author_permlink: wobject.author_permlink });
+        voterUserWobj = await userWobjectFactory.Create(
+          { user_name: voter.name, author_permlink: wobject.author_permlink },
+        );
+        creatorUserWobj = await userWobjectFactory.Create(
+          { user_name: field.creator, author_permlink: wobject.author_permlink },
+        );
         validJson = {
           required_posting_auths: [mockListBots[0]],
           json: JSON.stringify({

@@ -1,17 +1,18 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, postsUtil, Post, Comment, votePostHelper,
-} = require('../../testHelper');
-const { guestVote } = require('../../../utilities/guestOperations/customJsonOperations');
+  expect, sinon, faker, postsUtil, Post, Comment, votePostHelper, userHelper
+} = require('test/testHelper');
+const { guestVote } = require('utilities/guestOperations/customJsonOperations');
 const {
   UserFactory, ObjectFactory, PostFactory, CommentFactory,
-} = require('../../factories');
-const constants = require('../../../utilities/constants');
+} = require('test/factories');
+const constants = require('utilities/constants');
 
 describe('customJsonOperations', async () => {
   let mockListBots;
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
+    sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
     sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
   });
   afterEach(() => {

@@ -1,5 +1,5 @@
 const {
-  expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper, PostModel, usersUtil,
+  expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper, PostModel, usersUtil, userHelper,
 } = require('../../testHelper');
 const { PostFactory, UserFactory, ObjectFactory } = require('../../factories');
 const { postWithWobjValidator } = require('../../../validator');
@@ -100,14 +100,13 @@ describe('postWithObjectParser', async () => {
           app: faker.address.city(),
         };
         postsUtilStub = sinon.stub(postsUtil, 'getPost').callsFake((a, b) => ({ post: mockPost }));
+        sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
         await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
-        postsUtilStub.restore();
-        postWithWobjValidator.validate.restore();
-        postHelper.objectIdFromDateString.restore();
+        sinon.restore();
       });
       it('should update author with increase count_posts', async () => {
         const upd_author = await User.findOne({ name: mockPost.author });
@@ -157,14 +156,13 @@ describe('postWithObjectParser', async () => {
           app: faker.address.city(),
         };
         postsUtilStub = sinon.stub(postsUtil, 'getPost').callsFake((a, b) => ({ post: mockPost }));
+        sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
         await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
-        postsUtilStub.restore();
-        postWithWobjValidator.validate.restore();
-        postHelper.objectIdFromDateString.restore();
+        sinon.restore();
       });
       it('should not increase user count of posts', async () => {
         const upd_author = await User.findOne({ name: mockPost.author });
@@ -203,6 +201,7 @@ describe('postWithObjectParser', async () => {
       author,
       updPost;
     beforeEach(async () => {
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       author = (await UserFactory.Create()).user;
       mockPost = await PostFactory.Create({ author: author.name });
       mockPost.body = faker.lorem.sentence(10); // return post with new body, imitate update content
@@ -257,14 +256,13 @@ describe('postWithObjectParser', async () => {
           app: faker.address.city(),
         };
         postsUtilStub = sinon.stub(postsUtil, 'getPost').callsFake((a, b) => ({ post: mockPost }));
+        sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
         await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
-        postsUtilStub.restore();
-        postWithWobjValidator.validate.restore();
-        postHelper.objectIdFromDateString.restore();
+        sinon.restore();
       });
       it('should not pass postWithWobj validator validation ', async () => {
         expect(postWithWobjValidator.validate).to.returned(false);
