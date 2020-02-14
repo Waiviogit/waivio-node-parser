@@ -16,7 +16,6 @@ const create = async (data) => {
 };
 
 const addObjectFollow = async (data) => {
-  await checkAndCreate(data.user);
   try {
     const res = await UserModel.findOneAndUpdate(
       {
@@ -129,7 +128,6 @@ const checkAndCreate = async (name) => {
 
 const increaseWobjectWeight = async (data) => {
   try {
-    await checkAndCreate(data.name);
     await UserWobjectsModel.updateOne( // add weight in wobject to user, or create if it not exist
       {
         user_name: data.name,

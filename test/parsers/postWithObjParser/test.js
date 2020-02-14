@@ -1,5 +1,5 @@
 const {
-  expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper, PostModel,
+  expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper, PostModel, usersUtil,
 } = require('../../testHelper');
 const { PostFactory, UserFactory, ObjectFactory } = require('../../factories');
 const { postWithWobjValidator } = require('../../../validator');
@@ -12,7 +12,8 @@ describe('postWithObjectParser', async () => {
         mockOp,
         mockWobj,
         postsUtilStub,
-        result;
+        result,
+        userUtilStub;
       beforeEach(async () => {
         mockPost = await PostFactory.Create({ onlyData: true });
         mockWobj = await ObjectFactory.Create();
@@ -30,12 +31,14 @@ describe('postWithObjectParser', async () => {
           app: faker.address.city(),
         };
         postsUtilStub = sinon.stub(postsUtil, 'getPost').callsFake((a, b) => ({ post: mockPost }));
+        userUtilStub = sinon.stub(usersUtil, 'getUser').returns(Promise.resolve({ user: faker.random.string() }));
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
         result = await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
         postsUtilStub.restore();
+        userUtilStub.restore();
         postWithWobjValidator.validate.restore();
         postHelper.objectIdFromDateString.restore();
       });

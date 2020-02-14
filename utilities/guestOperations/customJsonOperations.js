@@ -3,8 +3,7 @@ const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestO
 const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const followObjectParser = require('parsers/followObjectParser');
-const { Post, User, CommentModel } = require('models');
-const { userHelper } = require('utilities/helpers');
+const { Post, CommentModel } = require('models');
 const { postsUtil } = require('utilities/steemApi');
 const userParsers = require('parsers/userParsers');
 const voteParser = require('parsers/voteParser');
@@ -60,29 +59,6 @@ exports.accountUpdate = async (operation) => {
     await userParsers.updateAccountParser(json);
   }
 };
-
-exports.guestCreate = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
-    if (!json) return;
-    if (!json.userId || !json.displayName || !json.json_metadata) return;
-    const { error: crError, user } = await userHelper.checkAndCreateUser(json.userId);
-    if (crError) {
-      console.error(crError);
-      return;
-    }
-    const { error: updError } = await User.updateOne(
-      { name: json.userId },
-      { json_metadata: json.json_metadata, alias: json.displayName },
-    );
-    if (updError) {
-      console.error(updError);
-      return;
-    }
-    console.log(`Guest user ${json.userId} updated!`);
-  }
-};
-
 // /////////////// //
 // Private methods //
 // /////////////// //
