@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const {
-  expect, faker, CommentModel, Comment, User,
-} = require('../../testHelper');
-const { CommentFactory } = require('../../factories');
+  expect, faker, CommentModel, Comment, User, userHelper, sinon,
+} = require('test/testHelper');
+const { CommentFactory } = require('test/factories');
 
 describe('CommentModel', async () => {
   describe('On create', () => {
@@ -11,15 +11,16 @@ describe('CommentModel', async () => {
       createdComment;
 
     beforeEach(async () => {
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       comment = await CommentFactory.Create({ onlyData: true });
       result = await CommentModel.createOrUpdate(comment);
-      createdComment = await Comment.findOne({ author: comment.author, permlink: comment.permlink }).lean();
+      createdComment = await Comment.findOne(
+        { author: comment.author, permlink: comment.permlink },
+      ).lean();
     });
-    it('should create user - author of comment ', async () => {
-      const user = await User.findOne({ name: comment.author }).lean();
-      expect(user).is.exist;
+    afterEach(async () => {
+      sinon.restore();
     });
-
     it('should create comment in DB', async () => {
       expect(createdComment).is.exist;
     });
@@ -74,11 +75,15 @@ describe('CommentModel', async () => {
       updatedComment;
 
     beforeEach(async () => {
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       mockVote = { voter: faker.name.firstName().toLowerCase(), percent: faker.random.number(10000) };
       comment = await CommentFactory.Create();
       result = await CommentModel.addVote({ ..._.pick(comment, ['author', 'permlink']), ...mockVote });
 
       updatedComment = await Comment.findOne({ ..._.pick(comment, ['author', 'permlink']) }).lean();
+    });
+    afterEach(async () => {
+      sinon.restore();
     });
     it('should increase votes count', async () => {
       expect(updatedComment.active_votes).to.has.length(1);

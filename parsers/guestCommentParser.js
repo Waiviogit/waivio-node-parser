@@ -3,7 +3,7 @@ const { guestHelpers } = require('utilities/guestOperations');
 const { postsUtil } = require('utilities/steemApi');
 
 exports.parse = async ({ operation, metadata }) => {
-  const guestInfo = guestHelpers.getFromMetadataGuestInfo({ operation, metadata });
+  const guestInfo = await guestHelpers.getFromMetadataGuestInfo({ operation, metadata });
   if (!guestInfo) return;
 
   const { post: comment, err } = await postsUtil.getPost(operation.author, operation.permlink);

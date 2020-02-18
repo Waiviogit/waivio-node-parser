@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker, userHelper,
+  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase,
 } = require('test/testHelper');
 const { UserFactory, PostFactory } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
@@ -11,6 +11,7 @@ describe('UserParsers', async () => {
     const mockMetadata = { profile: { name: 'Alias Name' } };
 
     beforeEach(async () => {
+      await dropDatabase();
       const { user: mockUser } = await UserFactory.Create();
 
       await userParsers.updateAccountParser({
@@ -48,6 +49,7 @@ describe('UserParsers', async () => {
       let usr, usr2, usr3, following, unfollowing;
 
       beforeEach(async () => {
+        await dropDatabase();
         following = faker.name.firstName();
         unfollowing = faker.name.firstName();
         await UserFactory.Create({ name: following });

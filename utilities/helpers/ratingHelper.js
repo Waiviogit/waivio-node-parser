@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { Wobj } = require('models');
-const { wobjectValidator } = require('validator');
+const wobjectValidator = require('validator/wobjectValidator');
 
 const parse = async (operation) => {
   let json;
@@ -11,7 +11,7 @@ const parse = async (operation) => {
     console.error(err);
     return;
   }
-  if (!wobjectValidator.validateRatingVote(json, operation)) {
+  if (!await wobjectValidator.validateRatingVote(json, operation)) {
     console.error('Rating vote data is not valid!');
     return;
   }

@@ -1,16 +1,15 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, followObjectParser, userParsers, User,
+  expect, sinon, faker, followObjectParser, userParsers, User, appHelper,
 } = require('test/testHelper');
 const { followUser, followWobject } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, ObjectFactory } = require('test/factories');
-const constants = require('utilities/constants');
 
 describe('customJsonOperations', async () => {
   let mockListBots;
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
-    sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
+    sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
   afterEach(() => {
     sinon.restore();

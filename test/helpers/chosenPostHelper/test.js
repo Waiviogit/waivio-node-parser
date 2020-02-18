@@ -1,8 +1,8 @@
 const {
   expect, postsUtil, sinon, App, faker, AppModel,
-} = require('../../testHelper');
-const { AppFactory } = require('../../factories');
-const { chosenPostHelper } = require('../../../utilities/helpers');
+} = require('test/testHelper');
+const { AppFactory } = require('test/factories');
+const { chosenPostHelper } = require('utilities/helpers');
 
 describe('chosenPostHelper', async () => {
   describe('on getPeriodFromBodyStr', () => {

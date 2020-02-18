@@ -9,7 +9,7 @@ const userParsers = require('parsers/userParsers');
 const voteParser = require('parsers/voteParser');
 
 exports.followUser = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -19,7 +19,7 @@ exports.followUser = async (operation) => {
 };
 
 exports.reblogPost = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -29,7 +29,7 @@ exports.reblogPost = async (operation) => {
 };
 
 exports.followWobject = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -39,7 +39,7 @@ exports.followWobject = async (operation) => {
 };
 
 exports.guestVote = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -53,7 +53,7 @@ exports.guestVote = async (operation) => {
 };
 
 exports.accountUpdate = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
     await userParsers.updateAccountParser(json);
@@ -175,7 +175,7 @@ const findOrCreatePost = async ({ author, permlink }) => {
 
   const comment = { ...post };
   comment.active_votes = [];
-  comment.guestInfo = getFromMetadataGuestInfo({
+  comment.guestInfo = await getFromMetadataGuestInfo({
     operation: comment, metadata: parseJson(comment.json_metadata),
   });
 

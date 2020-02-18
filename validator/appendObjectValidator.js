@@ -5,7 +5,7 @@ const { validateUserOnBlacklist } = require('validator/userValidator');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 
 const validate = async (data, operation) => {
-  if (!validateUserOnBlacklist(operation.author) || !validateUserOnBlacklist(_.get(data, 'field.creator'))) throw new Error("Can't append object, user in blacklist!");
+  if (!await validateUserOnBlacklist(operation.author) || !await validateUserOnBlacklist(_.get(data, 'field.creator'))) throw new Error("Can't append object, user in blacklist!");
   validateFields(data);
   await validatePostLinks(operation);
   await validateSameFields(data);

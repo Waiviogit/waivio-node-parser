@@ -1,21 +1,22 @@
-const { expect, faker } = require('../../testHelper');
-const { createObjectValidator } = require('../../../validator');
-const { ObjectTypeFactory, ObjectFactory } = require('../../factories');
-const { BLACK_LIST_BOTS } = require('../../../utilities/constants');
+const {
+  expect, faker, sinon, AppModel,
+} = require('test/testHelper');
+const { createObjectValidator } = require('validator');
+const { ObjectTypeFactory, ObjectFactory } = require('test/factories');
 
 describe('createObjectValidator', async () => {
-  let object_type,
-    mockData,
-    mockOp;
+  let objectType, mockData, mockOp, blackList;
 
   beforeEach(async () => {
+    blackList = [faker.random.string(), faker.random.string()];
+    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
     // generate valid data before all tests
-    object_type = await ObjectTypeFactory.Create();
+    objectType = await ObjectTypeFactory.Create();
     mockOp = {
       author: faker.name.firstName().toLowerCase(),
       permlink: faker.random.string(15),
-      parent_author: object_type.author,
-      parent_permlink: object_type.permlink,
+      parent_author: objectType.author,
+      parent_permlink: objectType.permlink,
     };
     mockData = {
       author_permlink: mockOp.permlink,
@@ -23,6 +24,9 @@ describe('createObjectValidator', async () => {
       creator: faker.name.firstName().toLowerCase(),
       default_name: faker.random.string(10),
     };
+  });
+  afterEach(async () => {
+    sinon.restore();
   });
   describe('on valid input', async () => {
     it('should should not throw any error', async () => {
@@ -78,18 +82,18 @@ describe('createObjectValidator', async () => {
 
     describe('when user on blacklist', async () => {
       it('should be rejected if author of operation in blacklist', async () => {
-        mockOp.author = BLACK_LIST_BOTS[faker.random.number(BLACK_LIST_BOTS.length)];
+        mockOp.author = blackList[0];
         mockData.author = mockOp.author;
         await expect(createObjectValidator.validate(mockData, mockOp)).to.be.rejected;
       });
       it('should be rejected with correct message if author of operation in blacklist', async () => {
-        mockOp.author = BLACK_LIST_BOTS[faker.random.number(BLACK_LIST_BOTS.length)];
+        mockOp.author = blackList[0];
         mockData.author = mockOp.author;
         await expect(createObjectValidator.validate(mockData, mockOp))
           .to.be.rejectedWith(Error, "Can't create object, user in blacklist!");
       });
       it('should be rejected if creator of wobject in blacklist', async () => {
-        mockData.creator = BLACK_LIST_BOTS[faker.random.number(BLACK_LIST_BOTS.length)];
+        mockData.creator = blackList[0];
         await expect(createObjectValidator.validate(mockData, mockOp)).to.be.rejected;
       });
     });

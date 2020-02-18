@@ -1,21 +1,27 @@
 const {
-  objectTypeParser, ObjectType, expect, redisGetter,
-} = require('../../testHelper');
+  objectTypeParser, ObjectType, expect, redisGetter, AppModel, faker, sinon
+} = require('test/testHelper');
 const { getMockData } = require('./mocks');
 
 describe('Object Type parser', async () => {
   describe('with valid data', async () => {
-    let mockData;
+    let mockData, blackList;
 
     beforeEach(async () => {
+      blackList = [faker.random.string(), faker.random.string()];
+      sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
       mockData = getMockData();
       await objectTypeParser.parse(mockData.operation, mockData.metadata);
     });
     it('should create new ObjectType', async () => {
-      const createdObjectType = await ObjectType.findOne({ name: mockData.metadata.wobj.name }).lean();
+      const createdObjectType = await ObjectType.findOne(
+        { name: mockData.metadata.wobj.name },
+      ).lean();
       expect(createdObjectType).to.not.be.undefined;
     });
-
+    afterEach(async () => {
+      sinon.restore();
+    });
     describe('redis', async () => {
       let redisResult;
 
