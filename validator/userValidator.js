@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { appHelper } = require('utilities/helpers');
+const appHelper = require('utilities/helpers/appHelper');
 
 /**
  * Check that user not bid-bot or other kind of bots
