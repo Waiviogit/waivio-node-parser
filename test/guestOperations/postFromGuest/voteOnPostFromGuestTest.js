@@ -1,25 +1,25 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, Post, votePostHelper, UserWobjects, User, WObject, ObjectType,
-} = require('../../testHelper');
-const constants = require('../../../utilities/constants');
+  expect, sinon, faker, Post, votePostHelper,
+  UserWobjects, User, WObject, ObjectType, AppModel, appHelper,
+} = require('test/testHelper');
+
 const mocksForVotePost = require('./mocksForVotePost');
 
 describe('On votePostHelper', async () => {
   let mockListBots;
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
-    sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
+    sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
   afterEach(() => {
     sinon.restore();
   });
   describe('when vote on post written by guest user', async () => {
-    let mocks,
-      updPost,
-      updVoter,
-      updAuthor;
+    let mocks, updPost, updVoter, updAuthor, blackList;
     beforeEach(async () => {
+      blackList = [faker.random.string(), faker.random.string()];
+      sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
       mocks = await mocksForVotePost({ proxyBot: mockListBots[0] });
     });
     describe('on valid input', async () => {

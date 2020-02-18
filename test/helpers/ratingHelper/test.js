@@ -1,9 +1,17 @@
 const {
-  expect, WObject, ratingHelper, WobjModel, sinon, faker,
-} = require('../../testHelper');
+  expect, WObject, ratingHelper, WobjModel, sinon, faker, AppModel,
+} = require('test/testHelper');
 const { AppendObject, UserFactory } = require('../../factories');
 
 describe('ratingHelper', async () => {
+  let blackList;
+  beforeEach(async () => {
+    blackList = [faker.random.string(), faker.random.string()];
+    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
+  });
+  afterEach(async () => {
+    sinon.restore();
+  });
   describe('on parse operation custom json with rating vote', async () => {
     describe('on valid operation data', async () => {
       let mockOp,
@@ -65,7 +73,12 @@ describe('ratingHelper', async () => {
           {
             name: 'rating',
             body: faker.random.string(10),
-            additionalFields: { rating_votes: [{ voter: faker.random.string(15), rate: 8 }], average_rating_weight: 8 },
+            additionalFields:
+                {
+                  rating_votes:
+                      [{ voter: faker.random.string(15), rate: 8 }],
+                  average_rating_weight: 8,
+                },
           },
         );
         wobject = wobj;

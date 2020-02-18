@@ -1,15 +1,16 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, postWithObjectParser, Post, postsUtil, commentRefGetter,
-} = require('../../testHelper');
-const { PostFactory, UserFactory, ObjectFactory } = require('../../factories');
-const constants = require('../../../utilities/constants');
+  expect, sinon, faker, postWithObjectParser, Post,
+  postsUtil, commentRefGetter, appHelper, userHelper,
+} = require('test/testHelper');
+const { PostFactory, UserFactory, ObjectFactory } = require('test/factories');
 
 describe('On postWithObjectParser', async () => {
   let mockListBots;
   beforeEach(async () => {
+    sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
     mockListBots = _.times(5, faker.name.firstName);
-    sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
+    sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
   afterEach(() => {
     sinon.restore();

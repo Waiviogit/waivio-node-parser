@@ -19,7 +19,7 @@ const parse = async (operation, metadata) => {
 };
 
 const createObjectType = async (data) => {
-  if (wobjectValidator.validateObjectType(data)) {
+  if (await wobjectValidator.validateObjectType(data)) {
     await ObjectType.create(data);
     await commentRefSetter.addWobjTypeRef(`${data.author}_${data.permlink}`, data.name);
   } else {

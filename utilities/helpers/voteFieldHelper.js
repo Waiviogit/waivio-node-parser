@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const { Wobj, User } = require('models');
-const { BLACK_LIST_BOTS } = require('utilities/constants');
+const appHelper = require('utilities/helpers/appHelper');
 const updateSpecificFieldsHelper = require('utilities/helpers/updateSpecificFieldsHelper');
-const { checkAndCreateUser } = require('utilities/helpers/userHelper');
+const userHelper = require('utilities/helpers/userHelper');
 /**
  * Handle votes on append objects(Fields).
  * DownVotes do not use in app(only "UnVote" if vote already exist)
@@ -25,9 +25,10 @@ const voteOnField = async (data) => {
     data.existingVote = field.active_votes.find((v) => v.voter === data.voter);
   }
   data.creator = field.creator;
-  await checkAndCreateUser(field.creator);
+  await userHelper.checkAndCreateUser(field.creator);
   await unVoteOnAppend(data);
-  if (data.percent > 0 && !BLACK_LIST_BOTS.includes(data.voter)) {
+  const { users } = await appHelper.getBlackListUsers();
+  if (users && data.percent > 0 && !users.includes(data.voter)) {
     await addVoteOnField(data);
   }
   await handleSpecifiedField(data.author, data.permlink, data.author_permlink);

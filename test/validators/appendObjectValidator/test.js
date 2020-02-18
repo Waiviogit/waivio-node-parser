@@ -1,17 +1,15 @@
 const {
-  expect, faker, ObjectType, WObject,
-} = require('../../testHelper');
-const { appendObjectValidator } = require('../../../validator');
-const { ObjectFactory, AppendObject } = require('../../factories');
-const { BLACK_LIST_BOTS } = require('../../../utilities/constants');
-
+  expect, faker, ObjectType, WObject, sinon, AppModel,
+} = require('test/testHelper');
+const { appendObjectValidator } = require('validator');
+const { ObjectFactory, AppendObject } = require('test/factories');
 
 describe('appendObjectValidator', async () => {
-  let wobject,
-    mockData,
-    mockOp;
+  let wobject, mockData, mockOp, blackList;
 
   beforeEach(async () => {
+    blackList = [faker.random.string(), faker.random.string()];
+    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
     wobject = await ObjectFactory.Create();
     mockData = {
       author_permlink: wobject.author_permlink,
@@ -31,6 +29,10 @@ describe('appendObjectValidator', async () => {
       permlink: faker.random.string(),
     };
   });
+  afterEach(async () => {
+    sinon.restore();
+  });
+
 
   describe('on valid input', async () => {
     it('should not throw error if all fields is exist', async () => {
@@ -161,18 +163,18 @@ describe('appendObjectValidator', async () => {
 
     describe('when user on blacklist', async () => {
       it('should be rejected if author of operation in blacklist', async () => {
-        mockOp.author = BLACK_LIST_BOTS[faker.random.number(BLACK_LIST_BOTS.length)];
+        mockOp.author = blackList[0];
         mockData.field.author = mockOp.author;
         await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
       });
       it('should be rejected with correct message if author of operation in blacklist', async () => {
-        mockOp.author = BLACK_LIST_BOTS[faker.random.number(BLACK_LIST_BOTS.length)];
+        mockOp.author = blackList[0];
         mockData.field.author = mockOp.author;
         await expect(appendObjectValidator.validate(mockData, mockOp))
           .to.be.rejectedWith(Error, "Can't append object, user in blacklist!");
       });
       it('should be rejected if creator of "append" in blacklist', async () => {
-        mockData.field.creator = BLACK_LIST_BOTS[faker.random.number(BLACK_LIST_BOTS.length)];
+        mockData.field.creator = blackList[0];
         await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
       });
     });
