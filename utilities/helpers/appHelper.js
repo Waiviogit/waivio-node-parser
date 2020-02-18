@@ -21,7 +21,7 @@ const checkAppBlacklistValidity = async (metadata) => {
 
 const getBlackListUsers = async () => {
   const { app } = await App.getOne({ name: config.app });
-  if (!app) return { error: { message: 'App not find!' } };
+  if (!app) return { error: { message: 'App not found!' } };
   return { users: app.black_list_users };
 };
 
