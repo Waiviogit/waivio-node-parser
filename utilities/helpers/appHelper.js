@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { App } = require('models');
 const { getAppData } = require('constants/appData');
+const config = require('config');
 
 const checkAppBlacklistValidity = async (metadata) => {
   // get current app (app from comment)
@@ -18,4 +19,21 @@ const checkAppBlacklistValidity = async (metadata) => {
   return _.isEmpty(ignoredApps);
 };
 
-module.exports = { checkAppBlacklistValidity };
+const getBlackListUsers = async () => {
+  const { app } = await App.getOne({ name: config.app });
+  if (!app) return { error: { message: 'App not found!' } };
+  return { users: app.black_list_users };
+};
+
+const getProxyBots = async () => {
+  const { app } = await App.getOne({ name: config.app });
+  if (!app) return ['asd09'];
+  const proxyBots = _.reduce(app.service_bots, (acc, item) => {
+    if (_.includes(item.roles, 'proxyBot')) acc.push(item.name);
+    return acc;
+  }, []);
+  if (proxyBots.length) return proxyBots;
+  return ['asd09'];
+};
+
+module.exports = { checkAppBlacklistValidity, getBlackListUsers, getProxyBots };

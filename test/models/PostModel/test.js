@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const {
-  expect, PostModel, Post, dropDatabase, faker,
-} = require('../../testHelper');
-const { PostFactory } = require('../../factories');
+  expect, PostModel, Post, dropDatabase, faker, sinon, userHelper,
+} = require('test/testHelper');
+const { PostFactory } = require('test/factories');
 
 describe('PostModel', async () => {
   describe('On getPostsRefs', async () => {
@@ -10,8 +10,12 @@ describe('PostModel', async () => {
       secondPostModel;
     beforeEach(async () => {
       await dropDatabase();
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       firstPostModel = await PostFactory.Create();
       secondPostModel = await PostFactory.Create();
+    });
+    afterEach(async () => {
+      sinon.restore();
     });
     it('should get correct length of posts', async () => {
       const postsRefs = await PostModel.getPostsRefs();

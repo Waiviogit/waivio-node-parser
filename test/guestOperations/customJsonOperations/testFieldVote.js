@@ -1,18 +1,19 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, WObject, UserWobjects, voteFieldHelper, userHelper,
+  expect, sinon, faker, WObject, UserWobjects, voteFieldHelper, userHelper, AppModel, appHelper,
 } = require('test/testHelper');
 const { guestVote } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, AppendObject, userWobjectFactory } = require('test/factories');
-const constants = require('utilities/constants');
 
 
 describe('customJsonOperations', async () => {
-  let mockListBots;
+  let mockListBots, blackList;
   beforeEach(async () => {
+    blackList = [faker.random.string(), faker.random.string()];
+    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
     sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
     mockListBots = _.times(5, faker.name.firstName);
-    sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
+    sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
   afterEach(() => {
     sinon.restore();

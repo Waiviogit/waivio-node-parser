@@ -2,13 +2,23 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
+const botSchema = new Schema({
+  name: { type: String, required: true },
+  postingKey: { type: String, required: true },
+  roles: { type: [String], required: true },
+}, { _id: false });
+
+const moderatorsSchema = new Schema({
+  name: { type: String, required: true },
+  author_permlinks: { type: [String], default: [] },
+}, { _id: false });
+
 const AppSchema = new Schema({
   name: { type: String, index: true, unique: true },
   admin: { type: String, index: true, required: true },
-  moderators: [{
-    name: { type: String, required: true },
-    author_permlinks: { type: [String], default: [] },
-  }],
+  moderators: {
+    type: [moderatorsSchema],
+  },
   supported_object_types: [{
     object_type: { type: String, index: true },
     required_fields: { type: [String], default: [] },
@@ -40,6 +50,8 @@ const AppSchema = new Schema({
     },
     default: null,
   },
+  black_list_users: { type: [String], default: [] },
+  service_bots: { type: [botSchema], default: [] },
 }, { timestamps: true });
 
 const AppModel = mongoose.model('App', AppSchema);
