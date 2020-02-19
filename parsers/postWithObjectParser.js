@@ -80,8 +80,10 @@ const createOrUpdatePost = async (data, postData) => {
   const { result: updPost, error } = await Post.update(result.post);
   if (error) return { error };
 
-  for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
-    await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });
+  if (!existing.post) {
+    for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
+      await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });
+    }
   }
   return { updPost };
 };
