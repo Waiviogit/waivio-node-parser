@@ -9,4 +9,13 @@ const getUser = async (accountName) => {
   }
 };
 
-module.exports = { getUser };
+const getUsers = async (accountNames) => {
+  try {
+    const users = await client.database.getAccounts(accountNames);
+    return { users };
+  } catch (error) {
+    return { error };
+  }
+};
+
+module.exports = { getUser, getUsers };

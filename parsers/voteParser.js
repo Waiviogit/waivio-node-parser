@@ -12,9 +12,7 @@ const parse = async (votes) => {
       .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
       .value(),
   );
-
   await Promise.all(votesOps.map(async (voteOp) => {
-    await userHelper.checkAndCreateUsers([voteOp.author, voteOp.voter]);
     await parseVoteByType(voteOp, posts);
   }));
   console.log(`Parsed votes: ${votesOps.length}`);
@@ -101,9 +99,10 @@ const getPosts = async (postsRefs) => {
 }; // get list of posts from steemit
 
 const votesFormat = async (votesOps) => {
+  let accounts = [];
   for (const voteOp of votesOps) {
     const response = await commentRefGetter.getCommentRef(`${voteOp.author}_${voteOp.permlink}`);
-
+    accounts = _.concat(accounts, voteOp.author, voteOp.voter);
     if (_.get(response, 'type')) {
       voteOp.type = response.type;
       voteOp.root_wobj = response.root_wobj;
@@ -112,6 +111,7 @@ const votesFormat = async (votesOps) => {
       voteOp.guest_author = response.guest_author;
     }
   }
+  await userHelper.checkAndCreateByArray(accounts);
   return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 

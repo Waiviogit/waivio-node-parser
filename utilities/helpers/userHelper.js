@@ -38,3 +38,17 @@ exports.checkAndCreateUsers = async (usersNames) => {
     await this.checkAndCreateUser(userName);
   }));
 };
+
+exports.checkAndCreateByArray = async (names) => {
+  const { users: steemUsers } = await usersUtil.getUsers(names);
+  for (const steremUser of steemUsers) {
+    const { user, error } = await checkAndCreate(steremUser.name);
+    if (error) return { error };
+    if (_.get(user, 'stage_version') === 0) {
+      await importUser.send(user.name);
+    }
+  }
+};
+
+
+
