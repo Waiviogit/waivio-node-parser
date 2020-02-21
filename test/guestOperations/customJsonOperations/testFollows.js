@@ -1,16 +1,15 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, followObjectParser, userParsers, User,
-} = require('../../testHelper');
-const { followUser, followWobject } = require('../../../utilities/guestOperations/customJsonOperations');
-const { UserFactory, ObjectFactory } = require('../../factories');
-const constants = require('../../../utilities/constants');
+  expect, sinon, faker, followObjectParser, userParsers, User, appHelper,
+} = require('test/testHelper');
+const { followUser, followWobject } = require('utilities/guestOperations/customJsonOperations');
+const { UserFactory, ObjectFactory } = require('test/factories');
 
 describe('customJsonOperations', async () => {
   let mockListBots;
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
-    sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
+    sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
   afterEach(() => {
     sinon.restore();
@@ -32,6 +31,24 @@ describe('customJsonOperations', async () => {
     afterEach(() => {
       userParsers.followUserParser.restore();
     });
+    describe('On unfollowUser', async () => {
+      let followerBeforeUpd;
+      beforeEach(async () => {
+        await followUser(validOp);
+        followerBeforeUpd = await User.findOne({ name: follower.name });
+        validOp.required_posting_auths = [mockListBots[0]];
+        validOp.json = JSON.stringify(['follow', { follower: follower.name, following: following.name, what: [] }]);
+        await followUser(validOp);
+      });
+      it('should remove follower from following', async () => {
+        const user = await User.findOne({ name: follower.name });
+        expect(user.users_follow).to.not.deep.eq(followerBeforeUpd.users_follow);
+      });
+      it('should decrease follower counters', async () => {
+        const user = await User.findOne({ name: following.name });
+        expect(user.followers_count).to.be.eq(0);
+      });
+    });
     describe('on valid author operation', async () => {
       beforeEach(async () => {
         await followUser(validOp);
@@ -42,6 +59,10 @@ describe('customJsonOperations', async () => {
       it('should submit follow for follower', async () => {
         const user = await User.findOne({ name: follower.name });
         expect(user.users_follow).to.include(following.name);
+      });
+      it('should increase followers count at following', async () => {
+        const user = await User.findOne({ name: following.name });
+        expect(user.followers_count).to.be.eq(1);
       });
     });
     describe('on not valid proxy bot', async () => {

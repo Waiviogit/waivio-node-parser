@@ -1,20 +1,23 @@
-const { getMocksData } = require('./mocks');
 const {
-  createObjectParser, WObject, expect, redisGetter, User, UserWobjects, wobjectHelper, sinon,
-} = require('../../testHelper');
+  createObjectParser, WObject, expect, redisGetter,
+  User, UserWobjects, wobjectHelper, sinon, userHelper, AppModel, faker,
+} = require('test/testHelper');
+const { getMocksData } = require('./mocks');
 
 describe('Object parser', async () => {
   describe('when parse valid data', async () => {
-    let mockData;
-    let wobject;
+    let mockData, wobject, blackList;
 
     beforeEach(async () => {
+      blackList = [faker.random.string(), faker.random.string()];
+      sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       mockData = await getMocksData();
       sinon.spy(wobjectHelper, 'addSupposedUpdates');
       await createObjectParser.parse(mockData.operation, mockData.metadata);
       wobject = await WObject.findOne({ author_permlink: mockData.operation.permlink }).lean();
     });
-    afterEach(async () => wobjectHelper.addSupposedUpdates.restore());
+    afterEach(async () => sinon.restore());
 
     describe('wobject', async () => {
       it('should creating in database', async () => {

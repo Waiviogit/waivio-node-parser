@@ -69,7 +69,7 @@ exports.reblogPostParser = async ({ json, account }) => {
   const author = _.get(json, '[1].author');
   const permlink = _.get(json, '[1].permlink');
   if (author && permlink && account && account !== author) {
-    const { post, error } = await Post.findOne({
+    const { post, error } = await Post.findByBothAuthors({
       author: _.get(json, '[1].author'),
       permlink: _.get(json, '[1].permlink'),
     });
@@ -86,6 +86,12 @@ exports.reblogPostParser = async ({ json, account }) => {
       });
 
     if (createPostError) return { error: createPostError };
+    const updateData = {
+      author: post.author,
+      permlink,
+      $addToSet: { reblogged_users: account },
+    };
+    await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
   }
 };

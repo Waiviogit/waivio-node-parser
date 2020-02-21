@@ -1,17 +1,16 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, faker,
-} = require('../../testHelper');
-const { accountUpdate } = require('../../../utilities/guestOperations/customJsonOperations');
-const constants = require('../../../utilities/constants');
-const { UserFactory } = require('../../factories');
-const { User: UserModel } = require('../../../models');
+  userParsers, User, expect, sinon, faker, appHelper,
+} = require('test/testHelper');
+const { accountUpdate } = require('utilities/guestOperations/customJsonOperations');
+const { UserFactory } = require('test/factories');
+const { User: UserModel } = require('models');
 
 describe('customJsonOperations', async () => {
   let mockListBots;
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
-    sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
+    sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
   afterEach(() => {
     sinon.restore();

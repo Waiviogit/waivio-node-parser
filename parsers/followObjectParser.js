@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { User, Wobj } = require('models');
+const { userHelper } = require('utilities/helpers');
 
 const parse = async (data) => {
   let json;
@@ -23,6 +24,7 @@ const parse = async (data) => {
         console.log(resultMessage);
         return (resultMessage);
       }
+      await userHelper.checkAndCreateUser(json[1].user);
       const { result } = await User.addObjectFollow(json[1]);
       if (result) {
         const resultMessage = `User ${json[1].user} now following wobject ${json[1].author_permlink}!\n`;

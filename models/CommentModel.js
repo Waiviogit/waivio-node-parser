@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const { Comment } = require('database').models;
-const UserModel = require('models/UserModel');
+const userHelper = require('utilities/helpers/userHelper');
 
 exports.createOrUpdate = async (comment) => {
-  await UserModel.checkAndCreate(comment.author); // create user in DB if it doesn't exist
+  await userHelper.checkAndCreateUser(comment.author); // create user in DB if it doesn't exist
   try {
     const newComment = await Comment.findOneAndUpdate(
       { ..._.pick(comment, ['author', 'permlink']) },

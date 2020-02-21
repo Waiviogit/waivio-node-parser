@@ -64,6 +64,7 @@ const PostSchema = new Schema({
   }],
   language: { type: String, default: 'en-US' },
   reblog_to: { type: { author: String, permlink: String } },
+  reblogged_users: { type: [String], default: [] },
 }, { strict: false, timestamps: true });
 
 PostSchema.index({ author: 1, permlink: 1 }, { unique: true });

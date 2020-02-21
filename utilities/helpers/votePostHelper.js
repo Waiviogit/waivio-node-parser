@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { Wobj, User, Post } = require('models');
 const { getWobjectsFromMetadata } = require('utilities/helpers/postByTagsHelper');
-const { validateUserOnBlacklist } = require('validator/userValidator');
+const userValidator = require('validator/userValidator');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment
@@ -10,7 +10,7 @@ const voteOnPost = async (data) => {
 
   const weight = Math.round(currentVote.rshares * 1e-6);
 
-  if (validateUserOnBlacklist([data.voter, data.post.author, data.guest_author])
+  if (await userValidator.validateUserOnBlacklist([data.voter, data.post.author, data.guest_author])
       && (data.post.author !== data.voter && data.guest_author !== data.voter)) {
     await unvoteOnPost(data);
     if (data.percent < 0) {

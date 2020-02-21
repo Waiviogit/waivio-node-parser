@@ -1,18 +1,18 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, postsUtil, Post, Comment, votePostHelper,
-} = require('../../testHelper');
-const { guestVote } = require('../../../utilities/guestOperations/customJsonOperations');
+  expect, sinon, faker, postsUtil, Post, Comment, votePostHelper, userHelper, appHelper,
+} = require('test/testHelper');
+const { guestVote } = require('utilities/guestOperations/customJsonOperations');
 const {
   UserFactory, ObjectFactory, PostFactory, CommentFactory,
-} = require('../../factories');
-const constants = require('../../../utilities/constants');
+} = require('test/factories');
 
 describe('customJsonOperations', async () => {
   let mockListBots;
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
-    sinon.stub(constants, 'WAIVIO_PROXY_BOTS').value(mockListBots);
+    sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
+    sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
   afterEach(() => {
     sinon.restore();
@@ -31,7 +31,9 @@ describe('customJsonOperations', async () => {
             additionsForMetadata: {
               wobj: {
                 wobjects: [
-                  ...wobjects.map((w) => ({ author_permlink: w.author_permlink, percent: 100 / wobjects.length })),
+                  ...wobjects.map((w) => ({
+                    author_permlink: w.author_permlink, percent: 100 / wobjects.length,
+                  })),
                 ],
               },
             },
@@ -79,7 +81,9 @@ describe('customJsonOperations', async () => {
                 additionsForMetadata: {
                   wobj: {
                     wobjects: [
-                      ...wobjects.map((w) => ({ author_permlink: w.author_permlink, percent: 100 / wobjects.length })),
+                      ...wobjects.map((w) => ({
+                        author_permlink: w.author_permlink, percent: 100 / wobjects.length,
+                      })),
                     ],
                   },
                 },
@@ -99,24 +103,25 @@ describe('customJsonOperations', async () => {
               await guestVote(validJson);
             });
             afterEach(() => {
-              votePostHelper.voteOnPost.restore();
-              postsUtil.getPost.restore();
+              sinon.restore();
             });
 
             it('should create post in DB', async () => {
-              const createdPost = await Post.findOne({ author: post.author, permlink: post.permlink });
+              const createdPost = await Post.findOne({
+                author: post.author, permlink: post.permlink,
+              });
               expect(createdPost).is.exist;
             });
             it('should call votePostHelper once', async () => {
               expect(votePostHelper.voteOnPost).to.be.calledOnce;
             });
             it('should add new vote to Post in db', async () => {
-              const upd_post = await Post.findOne({ author: post.author, permlink: post.permlink });
-              expect(upd_post.active_votes.map((v) => v.voter)).to.include(voter.name);
+              const updPost = await Post.findOne({ author: post.author, permlink: post.permlink });
+              expect(updPost.active_votes.map((v) => v.voter)).to.include(voter.name);
             });
             it('should add vote post with ZERO weight', async () => {
-              const upd_post = await Post.findOne({ author: post.author, permlink: post.permlink });
-              const vote = upd_post.active_votes.find((v) => v.voter === voter.name);
+              const updPost = await Post.findOne({ author: post.author, permlink: post.permlink });
+              const vote = updPost.active_votes.find((v) => v.voter === voter.name);
               expect(vote.weight).to.be.eq(0);
             });
           });

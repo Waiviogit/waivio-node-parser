@@ -1,14 +1,17 @@
-const { getMocksData } = require('./mocks');
 const {
-  appendObjectParser, WObject, expect, redisGetter, updateSpecificFieldsHelper, sinon,
-} = require('../../testHelper');
+  appendObjectParser, WObject, expect, redisGetter, AppModel,
+  updateSpecificFieldsHelper, sinon, usersUtil, importUser, faker,
+} = require('test/testHelper');
+const { getMocksData } = require('./mocks');
 
-describe('Append object parser,', async () => {
-  let mockData;
-  let wobject;
-  let updateSpecificFieldsHelperStub;
+describe('Append object parser', async () => {
+  let mockData, wobject, updateSpecificFieldsHelperStub, blackList;
 
   beforeEach(async () => {
+    blackList = [faker.random.string(), faker.random.string()];
+    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
+    sinon.stub(usersUtil, 'getUser').returns({ user: 'its ok' });
+    sinon.stub(importUser, 'send').returns({ response: 'its ok' });
     updateSpecificFieldsHelperStub = sinon.stub(updateSpecificFieldsHelper, 'update').callsFake(() => {});
     mockData = await getMocksData();
     await appendObjectParser.parse(mockData.operation, mockData.metadata);
@@ -16,7 +19,7 @@ describe('Append object parser,', async () => {
   });
 
   afterEach(() => {
-    updateSpecificFieldsHelperStub.restore();
+    sinon.restore();
   });
 
   it('should call "updateSpecifiedFields" once', () => {

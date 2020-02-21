@@ -3,13 +3,13 @@ const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestO
 const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const followObjectParser = require('parsers/followObjectParser');
-const { Post, User, CommentModel } = require('models');
+const { Post, CommentModel } = require('models');
 const { postsUtil } = require('utilities/steemApi');
 const userParsers = require('parsers/userParsers');
 const voteParser = require('parsers/voteParser');
 
 exports.followUser = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -19,7 +19,7 @@ exports.followUser = async (operation) => {
 };
 
 exports.reblogPost = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -29,7 +29,7 @@ exports.reblogPost = async (operation) => {
 };
 
 exports.followWobject = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -39,7 +39,7 @@ exports.followWobject = async (operation) => {
 };
 
 exports.guestVote = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
 
@@ -53,35 +53,12 @@ exports.guestVote = async (operation) => {
 };
 
 exports.accountUpdate = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
     if (!json) return;
     await userParsers.updateAccountParser(json);
   }
 };
-
-exports.guestCreate = async (operation) => {
-  if (validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
-    if (!json) return;
-    if (!json.userId || !json.displayName || !json.json_metadata) return;
-    const { error: crError } = await User.checkAndCreate(json.userId);
-    if (crError) {
-      console.error(crError);
-      return;
-    }
-    const { error: updError } = await User.updateOne(
-      { name: json.userId },
-      { json_metadata: json.json_metadata, alias: json.displayName },
-    );
-    if (updError) {
-      console.error(updError);
-      return;
-    }
-    console.log(`Guest user ${json.userId} updated!`);
-  }
-};
-
 // /////////////// //
 // Private methods //
 // /////////////// //
@@ -108,7 +85,7 @@ const voteOnPost = async ({ vote }) => {
       console.error(`Failed on vote from guest user: ${vote.voter}!`);
       return { err };
     }
-    if (dbPost) post = dbPost;
+    if (dbPost) post = dbPost.toObject();
     else if (dbComment) comment = dbComment;
   } else {
     post = existPost;
@@ -198,7 +175,7 @@ const findOrCreatePost = async ({ author, permlink }) => {
 
   const comment = { ...post };
   comment.active_votes = [];
-  comment.guestInfo = getFromMetadataGuestInfo({
+  comment.guestInfo = await getFromMetadataGuestInfo({
     operation: comment, metadata: parseJson(comment.json_metadata),
   });
 

@@ -4,20 +4,21 @@ const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const { commentRefSetter } = require('utilities/commentRefService');
 const { postWithWobjValidator } = require('validator');
 const { postsUtil } = require('utilities/steemApi');
+const { userHelper } = require('utilities/helpers');
 const { Post, Wobj } = require('models');
 const { User } = require('models');
 
 const parse = async (operation, metadata, post) => {
-  const { user, error: userError } = await User.checkAndCreate(operation.author);
-  if (userError) console.log(userError);
+  const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
+  if (userError) console.log(userError.message);
   // get info about guest account(if post had been written from "guest" through proxy bot)
-  const guestInfo = guestHelpers.getFromMetadataGuestInfo({ operation, metadata });
+  const guestInfo = await guestHelpers.getFromMetadataGuestInfo({ operation, metadata });
   const data = {
     author: operation.author,
     permlink: operation.permlink,
     wobjects: _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent > 0 && w.percent <= 100).value(),
     app: _.isString(metadata.app) ? metadata.app : '',
-    author_weight: user.wobjects_weight,
+    author_weight: _.get(user, 'wobjects_weight'),
     guestInfo,
   };
 
@@ -79,8 +80,10 @@ const createOrUpdatePost = async (data, postData) => {
   const { result: updPost, error } = await Post.update(result.post);
   if (error) return { error };
 
-  for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
-    await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });
+  if (!existing.post) {
+    for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
+      await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });
+    }
   }
   return { updPost };
 };

@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { BLACK_LIST_BOTS } = require('utilities/constants');
+const appHelper = require('utilities/helpers/appHelper');
 
 /**
  * Check that user not bid-bot or other kind of bots
@@ -7,7 +7,9 @@ const { BLACK_LIST_BOTS } = require('utilities/constants');
  * @returns {boolean} if true - user valid, else - user is bot,
  * recommended to ignore operation with bots
  */
-exports.validateUserOnBlacklist = (names = []) => {
+exports.validateUserOnBlacklist = async (names = []) => {
   const formattedNames = _.flatMap([names], (n) => n);
-  return !_.some(formattedNames, (name) => BLACK_LIST_BOTS.includes(name));
+  const { error, users } = await appHelper.getBlackListUsers();
+  if (error) return false;
+  return !_.some(formattedNames, (name) => users.includes(name));
 };

@@ -3,7 +3,8 @@ const { commentRefGetter } = require('utilities/commentRefService');
 const { validateUserOnBlacklist } = require('validator/userValidator');
 
 const validate = async (data, operation) => {
-  if (!validateUserOnBlacklist(operation.author) || !validateUserOnBlacklist(data.creator)) {
+  if (!await validateUserOnBlacklist(operation.author)
+      || !await validateUserOnBlacklist(data.creator)) {
     throw new Error("Can't create object, user in blacklist!");
   }
   validateFields(data);

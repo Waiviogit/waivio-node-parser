@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const PostModel = require('database').models.Post;
-const User = require('models/UserModel');
+const userHelper = require('utilities/helpers/userHelper');
 
 const create = async (data) => {
-  await User.checkAndCreate(data.author); // create user in DB if it doesn't exist
+  await userHelper.checkAndCreateUser(data.author); // create user in DB if it doesn't exist
 
   const newPost = new PostModel(data);
 
@@ -63,6 +63,20 @@ const getPostsRefs = async () => {
   }
 };
 
+
+const findByBothAuthors = async ({ author, permlink }) => {
+  try {
+    return {
+      post: await PostModel.findOne({
+        $or: [{ author, permlink }, { root_author: author, permlink }],
+      }).lean(),
+    };
+  } catch (error) {
+    return { error };
+  }
+};
+
+
 module.exports = {
-  create, update, findOne, getPostsRefs,
+  create, update, findOne, getPostsRefs, findByBothAuthors,
 };

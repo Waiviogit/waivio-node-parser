@@ -16,10 +16,6 @@ const create = async (data) => {
 };
 
 const addObjectFollow = async (data) => {
-  const check = await checkAndCreate(data.user);
-  if (check.error) {
-    return { error: check.error };
-  }
   try {
     const res = await UserModel.findOneAndUpdate(
       {
@@ -78,6 +74,7 @@ const addUserFollow = async ({ follower, following }) => {
     if (!res) {
       return { result: false };
     }
+    await updateOne({ name: following }, ({ $inc: { followers_count: 1 } }));
     return { result: true };
   } catch (error) {
     return { error };
@@ -103,6 +100,7 @@ const removeUserFollow = async ({ follower, following }) => {
     if (!res) {
       return { result: false };
     }
+    await updateOne({ name: following }, ({ $inc: { followers_count: -1 } }));
     return { result: true };
   } catch (error) {
     return { error };
@@ -111,20 +109,20 @@ const removeUserFollow = async ({ follower, following }) => {
 
 /**
  * Return user if it exist, or create new user and return
- * @param name Include user "name"
+ * @param name {String}
  * @returns {Promise<{user: *}|{error: *}>}
  */
-const checkAndCreate = async (name) => { // check for existing user and create if not exist
+const checkAndCreate = async (name) => {
   if (!_.isString(name)) {
     return { error: 'Name must be a string!' };
   }
   try {
-    let user = await UserModel.findOne({ name }).lean();
+    let user = await UserModel.findOne({ name }).select('+user_metadata').lean();
     if (user) return { user };
 
     user = await UserModel.create({ name });
     console.log(`User ${name} created!`);
-    return { user };
+    return { user: user.toObject() };
   } catch (error) {
     return { error };
   }
@@ -132,7 +130,6 @@ const checkAndCreate = async (name) => { // check for existing user and create i
 
 const increaseWobjectWeight = async (data) => {
   try {
-    await checkAndCreate({ name: data.name }); // check for existing user in DB
     await UserWobjectsModel.updateOne( // add weight in wobject to user, or create if it not exist
       {
         user_name: data.name,
