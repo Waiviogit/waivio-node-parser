@@ -1,9 +1,15 @@
 const {
-  expect, sinon, voteFieldHelper, postsUtil, voteParser, UserWobjects, redisGetter, ObjectType,
+  expect, sinon, voteFieldHelper, postsUtil, voteParser, UserWobjects, redisGetter, userHelper,
 } = require('../../testHelper');
 const { voteAppendObjectMocks } = require('./mocks');
 
 describe('VoteParser', async () => {
+  beforeEach(async () => {
+    sinon.stub(userHelper, 'checkAndCreateByArray').returns({ user: 'its ok' });
+  });
+  afterEach(async () => {
+    sinon.restore();
+  });
   describe('on voteAppendObject', async () => {
     describe('when voter have no weight in wobject', async () => {
       let voteFieldHelperStub;
@@ -16,11 +22,6 @@ describe('VoteParser', async () => {
         });
         postUtilStub = sinon.stub(postsUtil, 'getPost').callsFake(async () => ({ post: mocks.post }));
         await voteParser.parse([mocks.vote]);
-      });
-
-      afterEach(() => {
-        voteFieldHelperStub.restore();
-        postUtilStub.restore();
       });
 
       it('should call "voteOnField" once', async () => {

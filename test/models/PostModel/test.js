@@ -35,9 +35,13 @@ describe('PostModel', async () => {
       post;
     beforeEach(async () => {
       await dropDatabase();
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       data = await PostFactory.Create({ onlyData: true });
       const { post: createdPost } = await PostModel.create(data);
       post = createdPost;
+    });
+    afterEach(async () => {
+      sinon.restore();
     });
     it('should get error with duplicate post by author+permlink', async () => {
       const result = await PostModel.create(data);
@@ -60,6 +64,10 @@ describe('PostModel', async () => {
     let post;
     beforeEach(async () => {
       post = await PostFactory.Create();
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
+    });
+    afterEach(async () => {
+      sinon.restore();
     });
     it('should findOne post', async () => {
       const foundedPost = await PostModel.findOne({ author: post.author, permlink: post.permlink });
@@ -96,6 +104,10 @@ describe('PostModel', async () => {
       };
       result_update = await PostModel.update(data);
       upd_post = await Post.findOne({ author: post.author, permlink: post.permlink });
+      sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
+    });
+    afterEach(async () => {
+      sinon.restore();
     });
     it('should result update successfully', async () => {
       expect(result_update).is.exist;

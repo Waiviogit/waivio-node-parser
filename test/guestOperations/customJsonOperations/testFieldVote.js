@@ -12,6 +12,7 @@ describe('customJsonOperations', async () => {
     blackList = [faker.random.string(), faker.random.string()];
     sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
     sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
+    sinon.stub(userHelper, 'checkAndCreateByArray').returns({ user: 'its ok' });
     mockListBots = _.times(5, faker.name.firstName);
     sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
   });
