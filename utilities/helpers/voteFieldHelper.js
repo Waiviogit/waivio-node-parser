@@ -27,8 +27,8 @@ const voteOnField = async (data) => {
   data.creator = field.creator;
   await userHelper.checkAndCreateUser(field.creator);
   await unVoteOnAppend(data);
-  const { users } = await appHelper.getBlackListUsers();
-  if (users && data.percent > 0 && !users.includes(data.voter)) {
+  const { users = [] } = await appHelper.getBlackListUsers();
+  if (data.percent > 0 && !users.includes(data.voter)) {
     await addVoteOnField(data);
   }
   await handleSpecifiedField(data.author, data.permlink, data.author_permlink);
@@ -113,7 +113,7 @@ const upDownVoteOnAppend = async ({
  * Get real percent of vote on field and return virtual percent inside app waivio,
  * in usual format (for ex: 55.5).
  * @param {Number} percent Number from 1 to 10000
- * @returns {Number} Number from 1 to 100
+ * @returns {Number} Number from -100 to 100
  */
 const calculateVotePercent = (percent) => {
   if (percent % 10 === 0) return _.round((percent / 100), 1);
