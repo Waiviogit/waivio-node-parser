@@ -30,25 +30,15 @@ exports.checkAndCreateUser = async (userName) => {
  * if user already exists - just return
  * if user not exists or exists with ZERO "stage_v" =>
  * => start import user process on waivio-api
- * @param usersNames {[String]}
+ * @param names {[String]}
  * @returns {Promise<void>}
  */
-exports.checkAndCreateUsers = async (usersNames) => {
-  await Promise.all(usersNames.map(async (userName) => {
-    await this.checkAndCreateUser(userName);
-  }));
-};
-
 exports.checkAndCreateByArray = async (names) => {
   const { users: steemUsers } = await usersUtil.getUsers(names);
   for (const steremUser of steemUsers) {
-    const { user, error } = await checkAndCreate(steremUser.name);
-    if (error) return { error };
+    const { user } = await checkAndCreate(steremUser.name);
     if (_.get(user, 'stage_version') === 0) {
       await importUser.send(user.name);
     }
   }
 };
-
-
-

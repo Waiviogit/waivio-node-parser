@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, followObjectParser, userParsers, User, appHelper,
+  expect, sinon, faker, followObjectParser, userParsers, User, appHelper, userHelper,
 } = require('test/testHelper');
 const { followUser, followWobject } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, ObjectFactory } = require('test/factories');
@@ -10,6 +10,8 @@ describe('customJsonOperations', async () => {
   beforeEach(async () => {
     mockListBots = _.times(5, faker.name.firstName);
     sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
+    sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
+    sinon.stub(userHelper, 'checkAndCreateByArray').returns({ user: 'its ok' });
   });
   afterEach(() => {
     sinon.restore();
