@@ -50,19 +50,21 @@ describe('chosenPostValidator', async () => {
       app = await AppFactory.Create({});
     });
     it('should return true if app and user name correct', async () => {
-      const res = await chosenPostValidator.validateResponsibleUser({ app_name: app.name, user_name: app.admin });
+      const res = await chosenPostValidator.validateResponsibleUser({
+        app_name: app.name, user_name: app.admins[0],
+      });
       expect(res).to.be.true;
     });
     it('should return false if app and user name incorrect', async () => {
-      const res = await chosenPostValidator.validateResponsibleUser({ app_name: `${app.name}_inctest`, user_name: `${app.admin}incorrect_test` });
+      const res = await chosenPostValidator.validateResponsibleUser({ app_name: `${app.name}_inctest`, user_name: `${app.admins[0]}incorrect_test` });
       expect(res).to.be.false;
     });
     it('should return false if app name incorrect', async () => {
-      const res = await chosenPostValidator.validateResponsibleUser({ app_name: `${app.name}_inctest`, user_name: app.admin });
+      const res = await chosenPostValidator.validateResponsibleUser({ app_name: `${app.name}_inctest`, user_name: app.admins[0] });
       expect(res).to.be.false;
     });
     it('should return false if user name incorrect', async () => {
-      const res = await chosenPostValidator.validateResponsibleUser({ app_name: app.name, user_name: `${app.admin}_inc_test` });
+      const res = await chosenPostValidator.validateResponsibleUser({ app_name: app.name, user_name: `${app.admins[0]}_inc_test` });
       expect(res).to.be.false;
     });
   });

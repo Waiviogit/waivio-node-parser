@@ -47,7 +47,7 @@ describe('chosenPostHelper', async () => {
         mock_res_data;
       beforeEach(async () => {
         resp_user_name = faker.random.string(6);
-        app = await AppFactory.Create({ admin: resp_user_name });
+        app = await AppFactory.Create({ admins: [resp_user_name] });
         mock_op = {
           parent_author: 'mock_post_author',
           parent_permlink: 'mock_post_permlink',
@@ -117,7 +117,7 @@ describe('chosenPostHelper', async () => {
         postUtilStub;
       beforeEach(async () => {
         resp_user_name = faker.random.string(6);
-        app = await AppFactory.Create({ admin: resp_user_name });
+        app = await AppFactory.Create({ admins: [resp_user_name] });
         mock_op = {
           parent_author: faker.name.firstName(),
           parent_permlink: faker.random.string(10),
@@ -151,7 +151,7 @@ describe('chosenPostHelper', async () => {
         appModelStub;
       beforeEach(async () => {
         resp_user_name = faker.random.string(6);
-        app = await AppFactory.Create({ admin: resp_user_name });
+        app = await AppFactory.Create({ admins: [resp_user_name] });
         mock_op = {
           parent_author: faker.name.firstName(),
           parent_permlink: faker.random.string(10),
