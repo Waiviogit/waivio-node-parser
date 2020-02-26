@@ -1,11 +1,11 @@
 const { faker, App } = require('../../testHelper');
 
 const Create = async ({
-  blacklists, name, admin, moderators, topUsers,
+  blacklists, name, admins, moderators, topUsers,
 } = {}) => {
   const data = {
     name: name || faker.random.string(10),
-    admin: admin || faker.name.firstName().toLowerCase(),
+    admins: admins || [faker.name.firstName().toLowerCase()],
     moderators: moderators || [],
     topUsers: topUsers || [],
     blacklists: blacklists || {

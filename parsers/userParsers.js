@@ -13,7 +13,11 @@ exports.updateAccountParser = async (operation) => {
     }
     const { result, error } = await User.updateOne(
       { name: operation.account },
-      { json_metadata: operation.json_metadata, alias: _.get(parsedMetadata, 'profile.name', null) },
+      {
+        json_metadata: operation.json_metadata,
+        alias: _.get(parsedMetadata, 'profile.name', null),
+        profile_image: _.get(parsedMetadata, 'profile.profile_image'),
+      },
     );
 
     if (error) {
