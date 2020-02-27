@@ -24,7 +24,10 @@ const voteOnPost = async (data) => {
 
 // method also using as undo previous vote before up- or down-vote
 const unvoteOnPost = async (data) => {
-  const { post, error } = await Post.findOne({ author: _.get(data, 'guest_author', data.post.author), permlink: data.post.permlink });
+  const { post, error } = await Post.findOne({
+    author: _.get(data, 'guest_author', data.post.author),
+    permlink: data.post.permlink,
+  });
   if (!post || error) return {};
 
   const existingVote = post.active_votes.find((vote) => vote.voter === data.voter);
