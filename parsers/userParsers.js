@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { User, Post } = require('models');
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 
 exports.updateAccountParser = async (operation) => {
@@ -54,6 +55,7 @@ exports.followUserParser = async (operation) => {
     if (_.get(json, '[1].what[0]') === 'blog') { // if field "what" present - it's follow on user
       const { result } = await User.addUserFollow(json[1]);
       if (result) {
+        notificationsUtil.follow(json[1]);
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
     } else { // else if missing - unfollow
@@ -91,6 +93,9 @@ exports.reblogPostParser = async ({ json, account }) => {
       permlink,
       $addToSet: { reblogged_users: account },
     };
+    notificationsUtil.reblog(
+      { account: json[1].account, author: post.author, permlink: post.permlink },
+    );
     await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
   }

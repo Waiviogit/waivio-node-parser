@@ -7,6 +7,7 @@ const { postsUtil } = require('utilities/steemApi');
 const { userHelper } = require('utilities/helpers');
 const { Post, Wobj } = require('models');
 const { User } = require('models');
+const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
 
 const parse = async (operation, metadata, post) => {
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
@@ -55,6 +56,7 @@ const createOrUpdatePost = async (data, postData) => {
   });
 
   if (!existing.post) {
+    await notificationsUtils.post(data, postData || result.post);
     result.post.active_votes = [];
     result.post._id = postHelper.objectIdFromDateString(result.post.created || Date.now());
     await User.updateOnNewPost(
