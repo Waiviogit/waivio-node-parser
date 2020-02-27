@@ -8,10 +8,15 @@ const { User: UserModel, Post: PostModel } = require('models');
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
     let updUser;
-    const mockMetadata = { profile: { name: 'Alias Name' } };
+    const mockMetadata = {
+      profile: {
+        name: faker.name.firstName(),
+        profile_image: faker.random.string(20),
+      },
+    };
 
     beforeEach(async () => {
-      await dropDatabase();
+      // await dropDatabase();
       const { user: mockUser } = await UserFactory.Create();
 
       await userParsers.updateAccountParser({
@@ -31,7 +36,10 @@ describe('UserParsers', async () => {
       expect(updUser).to.include.key('alias');
     });
     it('should update alias name correct', () => {
-      expect(updUser.alias).to.equal('Alias Name');
+      expect(updUser.alias).to.equal(mockMetadata.profile.name);
+    });
+    it('should update "profile_image" correct', () => {
+      expect(updUser.profile_image).to.equal(mockMetadata.profile.profile_image);
     });
     it('should create user if update was on non exist user', async () => {
       await userParsers.updateAccountParser({
