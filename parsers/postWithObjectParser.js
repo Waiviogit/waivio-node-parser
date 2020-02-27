@@ -66,6 +66,7 @@ const createOrUpdatePost = async (data, postData) => {
       voter: vote.voter,
       weight: Math.round(vote.rshares * 1e-6),
       percent: vote.percent,
+      rshares: vote.rshares,
     }));
   }
   // add language to post
