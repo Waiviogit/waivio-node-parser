@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const axios = require('axios');
-const { getLastBlockNum } = require('utilities/redis/redisGetter');
+const { redisGetter } = require('utilities/redis');
 const { findOne } = require('models/PostModel');
 const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
 
@@ -9,7 +9,7 @@ const URL = HOST + BASE_URL + SET_NOTIFICATION;
 const sendNotification = async (operation) => {
   const reqData = {
     id: operation.id,
-    block: await getLastBlockNum(),
+    block: await redisGetter.getLastBlockNum(),
     data: operation.data,
   };
   request(reqData);
@@ -47,7 +47,7 @@ const follow = async ({ follower, following }) => {
   await sendNotification(operation);
 };
 
-const comment = async ({ operation, metadata }) => {
+const reply = async ({ operation, metadata }) => {
   if (_.get(metadata, 'comment.userId')) {
     operation.author = metadata.comment.userId;
   }
@@ -89,5 +89,5 @@ const witness = async (data) => {
 };
 
 module.exports = {
-  reblog, follow, comment, transfer, witness, post,
+  reblog, follow, reply, transfer, witness, post,
 };
