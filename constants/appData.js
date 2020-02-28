@@ -51,22 +51,22 @@ const waivioApi = {
 const notificationsApi = {
   production: {
     HOST: 'https://www.waivio.com',
-    BASE_URL: '/notifications',
+    BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
   },
   staging: {
     HOST: 'https://waiviodev.com',
-    BASE_URL: '/notifications',
+    BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
   },
   development: {
     HOST: 'http://localhost:4000',
-    BASE_URL: '/notifications',
+    BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
   },
   test: {
     HOST: 'http://localhost:4000',
-    BASE_URL: '/notifications',
+    BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
   },
 };
