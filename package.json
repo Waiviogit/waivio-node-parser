@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
+    "checkRestMenu": "node ./utilities/tasks/checkForIncorrectMenuItems/run.js",
     "fixEmptyWobject": "node ./utilities/tasks/appendWobjectFields/run.js",
     "fillWobjectNames": "node ./utilities/tasks/fillWobjectNames/run.js",
     "appendEmptyWobjFields": "node ./utilities/tasks/appendWobjectFields/run.js && node ./utilities/tasks/fillWobjectNames/run.js ",
