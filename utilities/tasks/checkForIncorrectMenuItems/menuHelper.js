@@ -41,4 +41,11 @@ const runTask = async () => {
   }
 };
 
-module.exports = { runTask };
+
+const deleteUndefDishes = async () => {
+  await WObject.deleteMany({ object_type: 'dish', creator: 'undefined', default_name: 'undefined' });
+};
+
+
+
+module.exports = { runTask, deleteUndefDishes };
