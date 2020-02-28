@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "scripts": {
+    "deleteUndefDishes": "node ./utilities/tasks/checkForIncorrectMenuItems/runDeleteUndef.js",
+    "checkRestMenu": "node ./utilities/tasks/checkForIncorrectMenuItems/run.js",
     "fixEmptyWobject": "node ./utilities/tasks/appendWobjectFields/run.js",
     "fillWobjectNames": "node ./utilities/tasks/fillWobjectNames/run.js",
     "appendEmptyWobjFields": "node ./utilities/tasks/appendWobjectFields/run.js && node ./utilities/tasks/fillWobjectNames/run.js ",
