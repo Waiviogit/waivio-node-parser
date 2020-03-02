@@ -24,6 +24,9 @@ const parseSwitcher = async (transactions) => {
             case 'create_claimed_account':
               await userParsers.createUser(operation[1]);
               break;
+            case 'account_create':
+              await userParsers.createUser(operation[1]);
+              break;
             case 'vote':
               votesOps.push(operation[1]);
               break;
