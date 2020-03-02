@@ -211,6 +211,14 @@ const updateOnNewPost = async (author, postCreatedTime) => {
   }
 };
 
+const findOne = async (name) => {
+  try {
+    return { user: await UserModel.findOne({ name }).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   create,
   addObjectFollow,
@@ -223,4 +231,5 @@ module.exports = {
   update,
   updateOne,
   updateOnNewPost,
+  findOne,
 };
