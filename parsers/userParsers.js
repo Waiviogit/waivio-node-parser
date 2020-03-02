@@ -55,12 +55,15 @@ exports.followUserParser = async (operation) => {
     await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
-    if (_.get(json, '[1].what[0]') === 'blog') { // if field "what" present - it's follow on user
+    const { user: follower } = await User.findOne(json[1].follower);
+    if (_.get(json, '[1].what[0]') === 'blog' // if field "what" present - it's follow on user
+        && (follower && !_.includes(follower.users_follow, json[1].following))) {
       const { result } = await User.addUserFollow(json[1]);
       if (result) {
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
-    } else { // else if missing - unfollow
+    } else if (_.get(json, '[1].what[0]') !== 'blog' // else if missing - unfollow
+        && (follower && _.includes(follower.users_follow, json[1].following))) {
       const { result } = await User.removeUserFollow(json[1]);
       if (result) {
         console.log(`User ${json[1].follower} now unfollow user ${json[1].following} !`);

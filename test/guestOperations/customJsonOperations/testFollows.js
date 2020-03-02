@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, followObjectParser, userParsers, User, appHelper, userHelper,
+  expect, sinon, faker, followObjectParser, userParsers, User, appHelper, userHelper, UserModel,
 } = require('test/testHelper');
 const { followUser, followWobject } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, ObjectFactory } = require('test/factories');
@@ -31,7 +31,7 @@ describe('customJsonOperations', async () => {
       sinon.spy(userParsers, 'followUserParser');
     });
     afterEach(() => {
-      userParsers.followUserParser.restore();
+      sinon.restore();
     });
     describe('On unfollowUser', async () => {
       let followerBeforeUpd;
@@ -50,6 +50,11 @@ describe('customJsonOperations', async () => {
         const user = await User.findOne({ name: following.name });
         expect(user.followers_count).to.be.eq(0);
       });
+      it('should not call UserModel remove following method if following not in follow_user list', async () => {
+        sinon.spy(UserModel, 'removeUserFollow');
+        await followUser(validOp);
+        expect(UserModel.removeUserFollow).to.be.not.called;
+      });
     });
     describe('on valid author operation', async () => {
       beforeEach(async () => {
@@ -61,6 +66,11 @@ describe('customJsonOperations', async () => {
       it('should submit follow for follower', async () => {
         const user = await User.findOne({ name: follower.name });
         expect(user.users_follow).to.include(following.name);
+      });
+      it('should not call follow method if follower user_follow list includes following', async () => {
+        sinon.spy(UserModel, 'addUserFollow');
+        await followUser(validOp);
+        expect(UserModel.addUserFollow).to.be.not.called;
       });
       it('should increase followers count at following', async () => {
         const user = await User.findOne({ name: following.name });
