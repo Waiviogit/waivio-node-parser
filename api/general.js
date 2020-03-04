@@ -74,8 +74,8 @@ const loadBlock = async (blockNum) => { // return true if block exist and parsed
 const changeNodeUrl = () => {
   const index = nodeUrls.indexOf(steem.config.url);
 
-  // steem.config.url = index === nodeUrls.length - 1 ? nodeUrls[ 0 ] : nodeUrls[ index + 1 ];
-  steem.api.setOptions({ url: index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1] });
+  steem.config.url = index === nodeUrls.length - 1 ? nodeUrls[ 0 ] : nodeUrls[ index + 1 ];
+  // steem.api.setOptions({ url: index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1] });
   console.error(`Node URL was changed to ${steem.config.url}`);
 };
 
