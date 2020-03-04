@@ -2,7 +2,7 @@ const _ = require('lodash');
 const { faker, Post, commentRefSetter } = require('../../testHelper');
 
 const Create = async ({
-  children, reblogged, author, additionsForMetadata = {}, onlyData, parent_permlink, additionsForPost = {}, active_votes = [], app, root_author, permlink,
+  children, reblogged, author, parent_author, additionsForMetadata = {}, onlyData, parent_permlink, additionsForPost = {}, active_votes = [], app, root_author, permlink,
 } = {}) => { // additionsForMetadata(Post) must be an Object
   const json_metadata = {
     community: 'waiviotest',
@@ -14,7 +14,7 @@ const Create = async ({
     json_metadata[key] = additionsForMetadata[key];
   }
   const post = {
-    parent_author: '', // if it's post -> parent_author not exists
+    parent_author: parent_author || '', // if it's post -> parent_author not exists
     parent_permlink: _.isNil(parent_permlink) ? faker.random.string(20) : parent_permlink,
     author: author || faker.name.firstName().toLowerCase(),
     permlink: permlink || faker.random.string(20),
