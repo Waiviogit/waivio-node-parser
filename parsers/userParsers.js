@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { User, Post } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-
+const { checkAndCreateUser } = require('utilities/helpers/userHelper');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.json_metadata) {
@@ -30,9 +30,7 @@ exports.updateAccountParser = async (operation) => {
 };
 
 exports.createUser = async (data) => {
-  await User.updateOne(
-    { name: data.new_account_name }, { json_metadata: data.json_metadata },
-  );
+  await checkAndCreateUser(data.new_account_name);
 };
 
 exports.followUserParser = async (operation) => {
