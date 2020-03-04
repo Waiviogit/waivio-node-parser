@@ -8,6 +8,7 @@ const { postByTagsHelper, chosenPostHelper } = require('utilities/helpers');
 const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 const updatePostAfterComment = require('utilities/helpers/updatePostAfterComment');
 const { chosenPostValidator } = require('validator');
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 const parse = async (operation) => { // data is operation[1] of transaction in block
   let metadata;
@@ -51,7 +52,7 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
   }
-
+  await notificationsUtil.reply({ operation, metadata });
   if (_.get(metadata, 'wobj.action')) {
     switch (metadata.wobj.action) {
       case 'createObject':
