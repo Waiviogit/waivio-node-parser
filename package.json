@@ -10,7 +10,7 @@
   "license": "ISC",
   "scripts": {
     "fixEmptyWobject": "node ./utilities/tasks/appendWobjectFields/run.js",
-    "createMissedUsers": "NODE_ENV=development RESTORE_REDIS=false START_FROM_CURRENT=false PARSE_ONLY_VOTES=false APP_NAME=waivio PORT=8082 NODE_PATH=. node ./utilities/tasks/checkAndCreateSteemUsers/run.js",
+    "createMissedUsers": "node ./utilities/tasks/checkAndCreateSteemUsers/run.js",
     "fillWobjectNames": "node ./utilities/tasks/fillWobjectNames/run.js",
     "appendEmptyWobjFields": "node ./utilities/tasks/appendWobjectFields/run.js && node ./utilities/tasks/fillWobjectNames/run.js ",
     "start": "node ./bin/service.js",
