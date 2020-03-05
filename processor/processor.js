@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { api } = require('api');
 const { restoreRedisHelper } = require('utilities/redis');
+const { parseSwitcher } = require('parsers/mainParser');
 
 const START_FROM_CURRENT = process.env.START_FROM_CURRENT === 'true';
 const RESTORE_REDIS = process.env.RESTORE_REDIS === 'true';
@@ -35,6 +36,7 @@ const runStream = async () => {
       // # param to start parse data from latest block in blockchain
       // # if set to "false" - parsing started from last_block_num(key in redis)
       startFromCurrent: START_FROM_CURRENT,
+      transactionsParserCallback: parseSwitcher,
     });
 
     if (!transactionStatus) {

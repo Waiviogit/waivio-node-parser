@@ -1,7 +1,6 @@
 const steem = require('steem');
 const bluebird = require('bluebird');
 const { nodeUrls } = require('constants/appData');
-const { parseSwitcher } = require('parsers/mainParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
@@ -9,23 +8,45 @@ const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 bluebird.promisifyAll(steem.api);
 steem.api.setOptions({ url: nodeUrls[0] });
 
+/**
+ * Base method for run stream, for side tasks pass to the key parameter key for save block
+ * num in redis, transactionsParserCallback - call back function
+ * (it must be switcher for transactions), startFromCurrent - boolean
+ * marker for start from the current block
+ * @param startFromBlock {Number}
+ * @param startFromCurrent {Boolean}
+ * @param key {String}
+ * @param finishBlock {Number}
+ * @param transactionsParserCallback {Function}
+ * @returns {Promise<boolean>}
+ */
 const getBlockNumberStream = async ({
-  startFromBlock, startFromCurrent, key = '', finishBlock = null,
+  startFromBlock, startFromCurrent, key, finishBlock,
+  transactionsParserCallback,
 }) => {
   if (startFromCurrent) {
     await loadNextBlock(
-      (await steem.api.getDynamicGlobalPropertiesAsync()).head_block_number, key, finishBlock,
+      {
+        key,
+        finishBlock,
+        transactionsParserCallback,
+        startBlock: (await steem.api.getDynamicGlobalPropertiesAsync()).head_block_number,
+      },
     );
   } else if (startFromBlock && Number.isInteger(startFromBlock)) {
     console.log(startFromBlock);
-    await loadNextBlock(startFromBlock, key, finishBlock);
+    await loadNextBlock({
+      startFromBlock, key, finishBlock, transactionsParserCallback,
+    });
   } else {
-    await loadNextBlock();
+    await loadNextBlock({ transactionsParserCallback });
   }
   return true;
 };
 
-const loadNextBlock = async (startBlock, key = '', finishBlock = null) => {
+const loadNextBlock = async ({
+  startBlock, key = '', finishBlock, transactionsParserCallback,
+}) => {
   let lastBlockNum;
 
   if (startBlock) {
@@ -37,18 +58,19 @@ const loadNextBlock = async (startBlock, key = '', finishBlock = null) => {
   } else {
     lastBlockNum = await redisGetter.getLastBlockNum();
   }
-  const loadResult = await loadBlock(lastBlockNum, key);
+  const loadResult = await loadBlock(lastBlockNum, transactionsParserCallback);
 
   if (loadResult) {
     await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
-    await loadNextBlock(lastBlockNum + 1, key);
+    await loadNextBlock({ startBlock: lastBlockNum + 1, key, transactionsParserCallback });
   } else {
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    await loadNextBlock(lastBlockNum, key);
+    await loadNextBlock({ startBlock: lastBlockNum, key, transactionsParserCallback });
   }
 };
 
-const loadBlock = async (blockNum, task) => { // return true if block exist and parsed, else - false
+// return true if block exist and parsed, else - false
+const loadBlock = async (blockNum, transactionsParserCallback) => {
   let block;
 
   /*
@@ -75,7 +97,7 @@ const loadBlock = async (blockNum, task) => { // return true if block exist and 
     return true;
   }
   console.time(block.transactions[0].block_num);
-  await parseSwitcher(block.transactions, task);
+  await transactionsParserCallback(block.transactions);
   console.timeEnd(block.transactions[0].block_num);
   return true;
 };

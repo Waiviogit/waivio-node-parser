@@ -1,5 +1,6 @@
 const { api } = require('api');
 const { redisGetter } = require('utilities/redis');
+const { usersParseSwitcher } = require('./parser');
 
 const runUserStream = async ({ startBlock, finishBlock }) => {
   try {
@@ -12,6 +13,7 @@ const runUserStream = async ({ startBlock, finishBlock }) => {
       startFromCurrent: false,
       key: 'add_users_last_block_num',
       finishBlock,
+      transactionsParserCallback: usersParseSwitcher,
     });
 
     if (!transactionStatus) {
