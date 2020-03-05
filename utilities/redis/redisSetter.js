@@ -50,10 +50,10 @@ const addObjectType = async (path, name) => {
   await postRefsClient.hsetAsync(path, 'name', name);
 };
 
-const setLastBlockNum = async (blockNum) => {
+const setLastBlockNum = async (blockNum, redisKey) => {
   if (blockNum) {
-    const key = PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
-
+    let key = PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
+    if (redisKey) key = redisKey;
     await lastBlockClient.setAsync(key, blockNum);
   }
 };

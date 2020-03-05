@@ -43,6 +43,7 @@ const parseSwitcher = async (transactions) => {
       }
     }
   }
+
   if (PARSE_ONLY_VOTES) {
     await voteParser.parse(votesOps);
   }
