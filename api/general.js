@@ -34,9 +34,8 @@ const getBlockNumberStream = async ({
       },
     );
   } else if (startFromBlock && Number.isInteger(startFromBlock)) {
-    console.log(startFromBlock);
     await loadNextBlock({
-      startFromBlock, key, finishBlock, transactionsParserCallback,
+      startBlock: startFromBlock, key, finishBlock, transactionsParserCallback,
     });
   } else {
     await loadNextBlock({ transactionsParserCallback });
