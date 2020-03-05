@@ -61,10 +61,14 @@ const loadNextBlock = async ({
 
   if (loadResult) {
     await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
-    await loadNextBlock({ startBlock: lastBlockNum + 1, key, transactionsParserCallback });
+    await loadNextBlock({
+      startBlock: lastBlockNum + 1, key, transactionsParserCallback, finishBlock,
+    });
   } else {
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    await loadNextBlock({ startBlock: lastBlockNum, key, transactionsParserCallback });
+    await loadNextBlock({
+      startBlock: lastBlockNum, key, transactionsParserCallback, finishBlock,
+    });
   }
 };
 
