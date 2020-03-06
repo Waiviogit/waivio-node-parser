@@ -112,9 +112,9 @@ describe('UserParsers', async () => {
         const user = await User.findOne({ name: following }).lean();
         expect(user.followers_count).to.be.eq(1);
       });
-      it('should decrease followers counters with unfollow operation', async () => {
-        const user = await User.findOne({ name: unfollowing }).lean();
-        expect(user.followers_count).to.be.eq(-1);
+      it('should not decrease followers counters incorrect with unfollow operation ', async () => {
+        const user = await User.findOne({ name: usr2.name }).lean();
+        expect(user.followers_count).to.be.eq(0);
       });
       it('should remove user from follow list', async () => {
         const user = await User.findOne({ name: usr2.name }).lean();
