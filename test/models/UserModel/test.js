@@ -52,11 +52,11 @@ describe('User Model', async () => {
       result = await UserModel.increaseWobjectWeight({ data: { some: faker.random.string() } });
       expect(result.error).is.exist;
     });
-    it('should create new user if it not exist', async () => {
+    it('shouldn\'t create new user if it not exist', async () => {
       data.name = faker.random.string();
       weightIncrease = await UserModel.increaseWobjectWeight(data);
       result = await User.findOne({ name: data.name });
-      expect(result).is.not.null;
+      expect(result).is.null;
     });
   });
   describe('On checkForObjectShares', async () => {
@@ -115,33 +115,33 @@ describe('User Model', async () => {
     });
   });
   describe('On removeUserFollow', async () => {
-    let follower,
-      following;
+    let follower, followings, followingUser;
     beforeEach(async () => {
       await dropDatabase();
-      following = [faker.name.firstName()];
-      follower = await UserFactory.Create({ users_follow: following });
+      followingUser = (await UserFactory.Create()).user;
+      followings = [followingUser.name];
+      follower = (await UserFactory.Create({ users_follow: followings })).user;
     });
     it('should users_follow length bigger then 0', async () => {
-      expect(follower.user.users_follow.length > 0).is.true;
+      expect(follower.users_follow.length > 0).is.true;
     });
     it('should user_follow removed successfully', async () => {
-      await UserModel.removeUserFollow({ follower: follower.user.name, following: following[0] });
-      const result = await User.findOne({ name: follower.user.name });
-      expect(result._doc.users_follow).to.not.contain(following[0]);
+      await UserModel.removeUserFollow({ follower: follower.name, following: followings[0] });
+      const result = await User.findOne({ name: follower.name });
+      expect(result._doc.users_follow).to.not.contain(followings[0]);
     });
     it('should user_follow is empty', async () => {
-      await UserModel.removeUserFollow({ follower: follower.user.name, following: following[0] });
-      const result = await User.findOne({ name: follower.user.name });
+      await UserModel.removeUserFollow({ follower: follower.name, following: followings[0] });
+      const result = await User.findOne({ name: follower.name });
       expect(result._doc.users_follow).is.empty;
     });
     it('should get error with incorrect following', async () => {
-      const result = await UserModel.removeUserFollow({ follower: follower.user.name, following });
+      const result = await UserModel.removeUserFollow({ follower: follower.name, followings });
       expect(result.error).is.exist;
     });
     it('should get error with incorrect data', async () => {
       const result = await UserModel.removeUserFollow({
-        follower: { user: faker.random.string() }, following,
+        follower: { user: faker.random.string() }, followings,
       });
       expect(result.error).is.exist;
     });
