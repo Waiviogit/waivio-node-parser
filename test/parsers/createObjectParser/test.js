@@ -52,24 +52,8 @@ describe('Object parser', async () => {
       beforeEach(async () => {
         creator = await User.findOne({ name: mockData.metadata.wobj.creator });
       });
-      it('should exist', async () => {
-        expect(creator).to.exist;
-      });
-      it('should have field "wobjects_weight"', () => {
-        expect(creator.wobjects_weight).to.exist;
-      });
-      it('should have "wobjects_weight" with value 1', () => {
-        expect(creator.wobjects_weight).to.be.eq(1);
-      });
-      it('should have weight in wobject', async () => {
-        const wobjWeight = await UserWobjects.findOne({ user_name: mockData.metadata.wobj.creator, author_permlink: wobject.author_permlink }).lean();
-
-        expect(wobjWeight).to.exist;
-      });
-      it('should have weight 1 in wobject', async () => {
-        const wobjWeight = await UserWobjects.findOne({ user_name: mockData.metadata.wobj.creator, author_permlink: wobject.author_permlink }).lean();
-
-        expect(wobjWeight.weight).to.equal(1);
+      it('shouldn\t  exist', async () => {
+        expect(creator).to.not.exist;
       });
     });
     describe('wobjectHelper addSupposedUpdates', async () => {
