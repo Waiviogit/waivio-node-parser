@@ -7,8 +7,6 @@ const usersParseSwitcher = async (transactions) => {
       for (const operation of transaction.operations) {
         switch (operation[0]) {
           case 'account_create':
-            await userParsers.createUser(operation[1]);
-            break;
           case 'create_claimed_account':
             await userParsers.createUser(operation[1]);
             break;
