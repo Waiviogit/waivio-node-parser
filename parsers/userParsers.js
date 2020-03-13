@@ -29,8 +29,14 @@ exports.updateAccountParser = async (operation) => {
   }
 };
 
+/**
+ * Create user in db after operation like "create_claimed_account" or "create_account"
+ * @param data
+ * @returns {Promise<void>}
+ */
 exports.createUser = async (data) => {
-  await checkAndCreateUser(data.new_account_name);
+  // await checkAndCreateUser(data.new_account_name);
+  await User.checkAndCreate(data.new_account_name);
 };
 
 exports.followUserParser = async (operation) => {
