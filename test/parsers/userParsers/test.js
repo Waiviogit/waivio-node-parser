@@ -8,10 +8,15 @@ const { User: UserModel, Post: PostModel } = require('models');
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
     let updUser;
-    const mockMetadata = { profile: { name: 'Alias Name' } };
+    const mockMetadata = {
+      profile: {
+        name: faker.name.firstName(),
+        profile_image: faker.random.string(20),
+      },
+    };
 
     beforeEach(async () => {
-      await dropDatabase();
+      // await dropDatabase();
       const { user: mockUser } = await UserFactory.Create();
 
       await userParsers.updateAccountParser({
@@ -31,66 +36,65 @@ describe('UserParsers', async () => {
       expect(updUser).to.include.key('alias');
     });
     it('should update alias name correct', () => {
-      expect(updUser.alias).to.equal('Alias Name');
+      expect(updUser.alias).to.equal(mockMetadata.profile.name);
     });
-    it('should create user if update was on non exist user', async () => {
+    it('should update "profile_image" correct', () => {
+      expect(updUser.profile_image).to.equal(mockMetadata.profile.profile_image);
+    });
+    it('shouldn\'t create user if update was on non exist user', async () => {
       await userParsers.updateAccountParser({
         account: 'nonexistuser',
         json_metadata: '{hello: world}',
       });
       const user = await User.findOne({ name: 'nonexistuser' });
 
-      expect(user).to.exist;
+      expect(user).to.not.exist;
     });
   });
 
   describe('on followUserParser', async () => {
     describe('on valid input data', async () => {
-      let usr, usr2, usr3, following, unfollowing;
+      let usr, usr2, following, unfollowing;
 
       beforeEach(async () => {
         await dropDatabase();
-        following = faker.name.firstName();
-        unfollowing = faker.name.firstName();
+        following = (await UserFactory.Create()).user.name;
+        unfollowing = (await UserFactory.Create()).user.name;
         await UserFactory.Create({ name: following });
         await UserFactory.Create({ name: unfollowing });
-        const { user } = await UserFactory.Create();
-        const { user: user2 } = await UserFactory.Create();
-        const { user: user3 } = await UserFactory.Create();
 
-        usr = user;
-        usr2 = user2;
-        usr3 = user3;
-        await User.updateOne({ name: user2.name }, { users_follow: ['tstusernamefllw'] });
+        usr = (await UserFactory.Create()).user;
+        usr2 = (await UserFactory.Create({ users_follow: [unfollowing] })).user;
+
         await userParsers.followUserParser({
-          required_posting_auths: [user.name],
+          required_posting_auths: [usr.name],
           json: JSON.stringify([
             'follow',
             {
-              follower: user.name,
+              follower: usr.name,
               following,
               what: ['blog'],
             },
           ]),
         });
         await userParsers.followUserParser({
-          required_posting_auths: [user2.name],
+          required_posting_auths: [usr2.name],
           json: JSON.stringify([
             'follow',
             {
-              follower: user2.name,
+              follower: usr2.name,
               following: unfollowing,
               what: [],
             },
           ]),
         });
         await userParsers.followUserParser({
-          required_posting_auths: [user2.name],
+          required_posting_auths: [usr2.name],
           json: JSON.stringify([
             'follow',
             {
-              follower: user2.name,
-              following: 'tstusernamefllw',
+              follower: usr2.name,
+              following: faker.name.firstName(),
               what: ['ignore'],
             },
           ]),
@@ -100,20 +104,16 @@ describe('UserParsers', async () => {
         const user = await User.findOne({ name: usr.name }).lean();
         expect(user.users_follow).to.include(following);
       });
-      it('should increase follower counters at folloving user', async () => {
+      it('should increase follower counters at following user', async () => {
         const user = await User.findOne({ name: following }).lean();
         expect(user.followers_count).to.be.eq(1);
       });
-      it('should decrease followers counters with unfollow operation', async () => {
-        const user = await User.findOne({ name: unfollowing }).lean();
-        expect(user.followers_count).to.be.eq(-1);
+      it('should decrease followers counters with unfollow operation ', async () => {
+        const user = await User.findOne({ name: usr2.name }).lean();
+        expect(user.followers_count).to.be.eq(0);
       });
       it('should remove user from follow list', async () => {
         const user = await User.findOne({ name: usr2.name }).lean();
-        expect(user.users_follow).to.be.empty;
-      });
-      it('should not follow if in "what" field key "ignore"', async () => {
-        const user = await User.findOne({ name: usr3.name }).lean();
         expect(user.users_follow).to.be.empty;
       });
     });

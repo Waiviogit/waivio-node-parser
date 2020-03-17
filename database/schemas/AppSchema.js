@@ -15,7 +15,7 @@ const moderatorsSchema = new Schema({
 
 const AppSchema = new Schema({
   name: { type: String, index: true, unique: true },
-  admin: { type: String, index: true, required: true },
+  admins: { type: [String], index: true, required: true },
   moderators: {
     type: [moderatorsSchema],
   },

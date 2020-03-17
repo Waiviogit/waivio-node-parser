@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { User, Post } = require('models');
-
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
+const { checkAndCreateUser } = require('utilities/helpers/userHelper');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.json_metadata) {
@@ -13,7 +14,11 @@ exports.updateAccountParser = async (operation) => {
     }
     const { result, error } = await User.updateOne(
       { name: operation.account },
-      { json_metadata: operation.json_metadata, alias: _.get(parsedMetadata, 'profile.name', null) },
+      {
+        json_metadata: operation.json_metadata,
+        alias: _.get(parsedMetadata, 'profile.name', null),
+        profile_image: _.get(parsedMetadata, 'profile.profile_image'),
+      },
     );
 
     if (error) {
@@ -24,10 +29,14 @@ exports.updateAccountParser = async (operation) => {
   }
 };
 
+/**
+ * Create user in db after operation like "create_claimed_account" or "create_account"
+ * @param data
+ * @returns {Promise<void>}
+ */
 exports.createUser = async (data) => {
-  await User.updateOne(
-    { name: data.new_account_name }, { json_metadata: data.json_metadata },
-  );
+  // await checkAndCreateUser(data.new_account_name);
+  await User.checkAndCreate(data.new_account_name);
 };
 
 exports.followUserParser = async (operation) => {
@@ -51,12 +60,16 @@ exports.followUserParser = async (operation) => {
     await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
-    if (_.get(json, '[1].what[0]') === 'blog') { // if field "what" present - it's follow on user
+    const { user: follower } = await User.findOne(json[1].follower);
+    if (_.get(json, '[1].what[0]') === 'blog' // if field "what" present - it's follow on user
+        && (follower && !_.includes(follower.users_follow, json[1].following))) {
       const { result } = await User.addUserFollow(json[1]);
       if (result) {
+        await notificationsUtil.follow(json[1]);
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
-    } else { // else if missing - unfollow
+    } else if (_.get(json, '[1].what[0]') !== 'blog' // else if missing - unfollow
+        && (follower && _.includes(follower.users_follow, json[1].following))) {
       const { result } = await User.removeUserFollow(json[1]);
       if (result) {
         console.log(`User ${json[1].follower} now unfollow user ${json[1].following} !`);
@@ -91,6 +104,9 @@ exports.reblogPostParser = async ({ json, account }) => {
       permlink,
       $addToSet: { reblogged_users: account },
     };
+    await notificationsUtil.reblog(
+      { account: json[1].account, author: post.author, permlink: post.permlink },
+    );
     await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
   }

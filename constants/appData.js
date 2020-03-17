@@ -48,11 +48,36 @@ const waivioApi = {
   },
 };
 
+const notificationsApi = {
+  production: {
+    HOST: 'https://www.waivio.com',
+    BASE_URL: '/notifications-api',
+    SET_NOTIFICATION: '/set',
+  },
+  staging: {
+    HOST: 'https://waiviodev.com',
+    BASE_URL: '/notifications-api',
+    SET_NOTIFICATION: '/set',
+  },
+  development: {
+    HOST: 'http://localhost:4000',
+    BASE_URL: '/notifications-api',
+    SET_NOTIFICATION: '/set',
+  },
+  test: {
+    HOST: 'http://localhost:4000',
+    BASE_URL: '/notifications-api',
+    SET_NOTIFICATION: '/set',
+  },
+};
+
+
 const nodeUrls = ['https://api.steemit.com', 'https://anyx.io', 'https://api.steem.house'];
 
 module.exports = {
   getAppData,
   objectImportService: objectImportService[process.env.NODE_ENV || 'development'],
   waivioApi: waivioApi[process.env.NODE_ENV || 'development'],
+  notificationsApi: notificationsApi[process.env.NODE_ENV || 'development'],
   nodeUrls,
 };
