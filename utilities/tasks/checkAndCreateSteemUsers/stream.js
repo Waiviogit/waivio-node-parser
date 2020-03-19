@@ -2,16 +2,16 @@ const { api } = require('api');
 const { redisGetter } = require('utilities/redis');
 const { usersParseSwitcher } = require('./parser');
 
-const runUserStream = async ({ startBlock, finishBlock }) => {
+const runUserStream = async ({ key, startBlock, finishBlock }) => {
   try {
     if (!startBlock) {
-      startBlock = await redisGetter.getLastBlockNum('add_users_last_block_num');
+      startBlock = await redisGetter.getLastBlockNum(key);
     }
     console.log(`START_FROM_BLOCK: ${startBlock}`);
     const transactionStatus = await api.getBlockNumberStream({
       startFromBlock: startBlock,
       startFromCurrent: false,
-      key: 'add_users_last_block_num',
+      key,
       finishBlock,
       transactionsParserCallback: usersParseSwitcher,
     });
