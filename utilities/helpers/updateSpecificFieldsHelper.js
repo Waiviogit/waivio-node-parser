@@ -1,13 +1,14 @@
 const _ = require('lodash');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { Wobj } = require('models');
+const { restaurantStatus } = require('utilities/notificationsApi/notificationsUtil');
 
 const TAG_CLOUDS_UPDATE_COUNT = 5;
 const RATINGS_UPDATE_COUNT = 4;
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
-const update = async (author, permlink, authorPermlink) => {
+const update = async (author, permlink, authorPermlink, voter) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
 
   if (error || !field) {
@@ -96,7 +97,12 @@ const update = async (author, permlink, authorPermlink) => {
         .value();
 
       if (status) {
+        await restaurantStatus(field, authorPermlink);
         await Wobj.update({ author_permlink: authorPermlink }, { status: JSON.parse(status) });
+      } else {
+        field.voter = voter;
+        await restaurantStatus(field, authorPermlink);
+        await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
       }
       break;
 
