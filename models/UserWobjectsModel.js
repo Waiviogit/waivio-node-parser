@@ -1,8 +1,8 @@
 const { UserWobjects } = require('database').models;
 
-exports.find = async (conditions) => {
+exports.find = async (condition) => {
   try {
-    return { result: await UserWobjects.find(conditions).lean() };
+    return { result: await UserWobjects.find(condition).lean() };
   } catch (error) {
     return { error };
   }
