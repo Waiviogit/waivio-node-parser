@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const axios = require('axios');
 const { redisGetter } = require('utilities/redis');
-const { findOne } = require('models/PostModel');
+const { Post, Wobj, UserWobjects } = require('models');
 const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
@@ -51,7 +51,7 @@ const reply = async ({ operation, metadata }) => {
   if (_.get(metadata, 'comment.userId')) {
     operation.author = metadata.comment.userId;
   }
-  const { post } = await findOne(
+  const { post } = await Post.findOne(
     { root_author: operation.parent_author, permlink: operation.parent_permlink },
   );
   if (!post) return;
@@ -88,6 +88,25 @@ const witness = async (data) => {
   await sendNotification(operation);
 };
 
+const restaurantStatus = async (data, permlink) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: permlink });
+  if (!wobject || ((_.get(wobject, 'status.title') === 'relisted' || _.get(wobject, 'status.title') === 'unavailable') && !data.voter)) return;
+  const { result } = await UserWobjects.find({ author_permlink: permlink, weight: { $gt: 0 } });
+  if (!result || !result.length) return;
+  data.object_name = _
+    .chain(wobject.fields)
+    .filter((field) => field.name === 'name')
+    .sortBy('weight')
+    .first()
+    .value().body;
+  data.experts = _.map(result, (expert) => expert.user_name);
+  data.author_permlink = permlink;
+  await sendNotification({
+    id: 'restaurantStatus',
+    data,
+  });
+};
+
 module.exports = {
-  reblog, follow, reply, transfer, witness, post,
+  reblog, follow, reply, transfer, witness, post, restaurantStatus,
 };

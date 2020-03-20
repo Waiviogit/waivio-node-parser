@@ -6,4 +6,5 @@ module.exports = {
   App: require('./AppModel'),
   CommentRef: require('./CommentRef'),
   CommentModel: require('./CommentModel'),
+  UserWobjects: require('./UserWobjectsModel'),
 };

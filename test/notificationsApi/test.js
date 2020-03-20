@@ -5,6 +5,7 @@ const {
 const { PostFactory } = require('test/factories');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
+const mocks = require('./mocks');
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
 
@@ -67,6 +68,38 @@ describe('On notificationsApi', async () => {
     });
     it('should not call notificationsApi method if post not exist', async () => {
       await notificationsUtil.reply({ operation });
+      expect(axios.post).to.be.not.called;
+    });
+  });
+  describe('On restaurantStatus', async () => {
+    let objectName, voter, expert;
+    beforeEach(async () => {
+      objectName = faker.random.string();
+      expert = faker.name.firstName();
+      voter = faker.name.firstName();
+    });
+    it('should call axios post with correct params if status change to available', async () => {
+      const mock = await mocks.restaurantMock({
+        objectName, status: 'relisted', expert, voter,
+      });
+      await notificationsUtil.restaurantStatus(mock.data, mock.restaurant.author_permlink);
+      expect(axios.post).to.be.calledOnceWith(URL, { id: 'restaurantStatus', block: blockNum, data: mock.data }, { headers: { API_KEY: process.env.API_KEY } });
+    });
+    it('should not send notifications if status exist and no voter in params', async () => {
+      const mock = await mocks.restaurantMock({
+        objectName, status: 'relisted', expert,
+      });
+      await notificationsUtil.restaurantStatus(mock.data, mock.restaurant.author_permlink);
+      expect(axios.post).to.be.not.called;
+    });
+    it('should send notifications if status and voter not exists', async () => {
+      const mock = await mocks.restaurantMock({ objectName, expert });
+      await notificationsUtil.restaurantStatus(mock.data, mock.restaurant.author_permlink);
+      expect(axios.post).to.be.calledOnce;
+    });
+    it('should not send notifications if wobject not exists', async () => {
+      const mock = await mocks.restaurantMock({ objectName, expert });
+      await notificationsUtil.restaurantStatus(mock.data, faker.random.string());
       expect(axios.post).to.be.not.called;
     });
   });

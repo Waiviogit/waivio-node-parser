@@ -31,7 +31,7 @@ const voteOnField = async (data) => {
   if (data.percent > 0 && !users.includes(data.voter)) {
     await addVoteOnField(data);
   }
-  await handleSpecifiedField(data.author, data.permlink, data.author_permlink);
+  await handleSpecifiedField(data.author, data.permlink, data.author_permlink, data.voter);
 };
 
 // data includes:
@@ -120,11 +120,11 @@ const calculateVotePercent = (percent) => {
   return -_.round((percent / 100), 1);
 };
 
-const handleSpecifiedField = async (author, permlink, authorPermlink) => {
+const handleSpecifiedField = async (author, permlink, authorPermlink, voter) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
 
   if (error || !field) return;
-  await updateSpecificFieldsHelper.update(author, permlink, authorPermlink);
+  await updateSpecificFieldsHelper.update(author, permlink, authorPermlink, voter);
 };
 
 module.exports = { voteOnField };
