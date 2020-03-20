@@ -93,7 +93,14 @@ const restaurantStatus = async (data, permlink) => {
   if (!wobject || ((_.get(wobject, 'status.title') === 'relisted' || _.get(wobject, 'status.title') === 'unavailable') && !data.voter)) return;
   const { result } = await UserWobjects.find({ author_permlink: permlink, weight: { $gt: 0 } });
   if (!result || !result.length) return;
+  data.object_name = _
+    .chain(wobject.fields)
+    .filter((field) => field.name === 'name')
+    .sortBy('weight')
+    .first()
+    .value().body;
   data.experts = _.map(result, (expert) => expert.user_name);
+  data.author_permlink = permlink;
   await sendNotification({
     id: 'restaurantStatus',
     data,
