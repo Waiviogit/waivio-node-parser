@@ -1,7 +1,7 @@
 const dsteem = require('dsteem');
 const _ = require('lodash');
 
-const client = new dsteem.Client('https://api.steemit.com');
+const client = new dsteem.Client('https://anyx.io');
 
 module.exports = async (author, permlink) => {
   try {
@@ -20,3 +20,4 @@ module.exports = async (author, permlink) => {
     return { err };
   }
 };
+
