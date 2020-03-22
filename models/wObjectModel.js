@@ -139,15 +139,19 @@ const getFieldsRefs = async (authorPermlink) => {
 };
 
 const getSomeFields = async (fieldName, authorPermlink) => {
+  const pipeline = [
+    { $match: { author_permlink: authorPermlink || /.*?/ } },
+    { $unwind: '$fields' },
+    { $match: { 'fields.name': fieldName || /.*?/ } },
+    { $sort: { 'fields.weight': -1 } },
+    { $group: { _id: '$author_permlink', fields: { $push: '$fields.body' } } },
+    { $project: { _id: 0, author_permlink: '$_id', fields: 1 } },
+  ];
+  if (fieldName === 'status') {
+    pipeline[2].$match['fields.weight'] = { $gt: 0 };
+  }
   try {
-    const wobjects = await WObjectModel.aggregate([
-      { $match: { author_permlink: authorPermlink || /.*?/ } },
-      { $unwind: '$fields' },
-      { $match: { 'fields.name': fieldName || /.*?/ } },
-      { $sort: { 'fields.weight': -1 } },
-      { $group: { _id: '$author_permlink', fields: { $push: '$fields.body' } } },
-      { $project: { _id: 0, author_permlink: '$_id', fields: 1 } },
-    ]);
+    const wobjects = await WObjectModel.aggregate(pipeline);
 
     return { wobjects };
   } catch (error) {

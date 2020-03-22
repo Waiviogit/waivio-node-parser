@@ -72,7 +72,7 @@ const notificationsApi = {
 };
 
 
-const nodeUrls = ['https://api.steemit.com', 'https://anyx.io', 'https://api.steem.house'];
+const nodeUrls = ['https://anyx.io', 'https://rpc.esteem.app'];
 
 module.exports = {
   getAppData,
