@@ -91,7 +91,7 @@ describe('importUpdates service', async () => {
 
     it('should call axios.post with correct data', () => {
       const secondArg = stub.getCall(0).args[1];
-      expect(secondArg).to.deep.eq({ wobjects: [{ mock: 'data' }] });
+      expect(secondArg).to.deep.eq({ wobjects: [{ mock: 'data' }], immediately: true });
     });
 
     it('should return undefined if input data is invalid', async () => {
