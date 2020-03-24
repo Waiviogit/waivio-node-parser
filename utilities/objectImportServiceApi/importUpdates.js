@@ -7,7 +7,7 @@ const send = async (wobjects) => {
   if (wobjects && Array.isArray(wobjects) && wobjects.length) {
     try {
       const { data: response } = await axios.post(URL,
-        { wobjects, immediately: true }, { headers: { API_KEY: process.env.API_KEY } });
+        { wobjects, immediately: true }, { headers: { 'api-key': process.env.API_KEY } });
 
       if (response) {
         return { response };
