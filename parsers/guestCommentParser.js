@@ -1,4 +1,4 @@
-const { CommentModel, Post } = require('models');
+const { CommentModel } = require('models');
 const { guestHelpers } = require('utilities/guestOperations');
 const { postsUtil } = require('utilities/steemApi');
 
@@ -14,8 +14,5 @@ exports.parse = async ({ operation, metadata }) => {
   delete comment.active_votes;
   const { error } = await CommentModel.createOrUpdate({ ...comment, guestInfo });
   if (error) return console.error(error);
-  await Post.update(
-    { author: comment.root_author, permlink: comment.root_permlink, $inc: { children: 1 } },
-  );
   console.log(`Guest comment created: ${operation.author}/${operation.permlink}, guest name: ${guestInfo.userId}`);
 };

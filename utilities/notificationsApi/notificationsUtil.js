@@ -47,7 +47,7 @@ const follow = async ({ follower, following }) => {
   await sendNotification(operation);
 };
 
-const reply = async ({ operation, metadata }) => {
+const reply = async ( operation, metadata ) => {
   if (_.get(metadata, 'comment.userId')) {
     operation.author = metadata.comment.userId;
   }
