@@ -39,12 +39,12 @@ const voteOnField = async (data) => {
 // existingVote:{voter, rshares_weight, weight, percent}
 const unVoteOnAppend = async (data) => {
   const { existingVote } = data;
-  if (existingVote && existingVote.percent && existingVote.rshares_weight && existingVote.weight) {
+  if (existingVote && existingVote.percent && existingVote.weight) {
     await upDownVoteOnAppend({
       ...data,
       weight: -existingVote.weight,
       percent: existingVote.percent,
-      rshares_weight: -existingVote.rshares_weight,
+      rshares_weight: -existingVote.rshares_weight || 0,
     });
   }
   await Wobj.removeVote(data);
