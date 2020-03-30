@@ -100,6 +100,11 @@ const getPosts = async (postsRefs) => {
 
 const votesFormat = async (votesOps) => {
   let accounts = [];
+  votesOps = _
+    .chain(votesOps)
+    .orderBy(['weight'], ['desc'])
+    .uniqWith((first, second) => first.author === second.author && first.permlink === second.permlink && first.voter === second.voter)
+    .value();
   for (const voteOp of votesOps) {
     const response = await commentRefGetter.getCommentRef(`${voteOp.author}_${voteOp.permlink}`);
     accounts = _.concat(accounts, voteOp.author, voteOp.voter);
@@ -112,11 +117,6 @@ const votesFormat = async (votesOps) => {
     }
   }
   await userHelper.checkAndCreateByArray(accounts);
-  votesOps = _
-    .chain(votesOps)
-    .orderBy(['weight'], ['desc'])
-    .uniqWith((first, second) => first.author === second.author && first.permlink === second.permlink && first.voter === second.voter)
-    .value();
   return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
