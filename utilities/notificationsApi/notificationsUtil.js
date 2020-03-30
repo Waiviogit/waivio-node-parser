@@ -47,7 +47,7 @@ const follow = async ({ follower, following }) => {
   await sendNotification(operation);
 };
 
-const reply = async ( operation, metadata ) => {
+const reply = async (operation, metadata) => {
   if (_.get(metadata, 'comment.userId')) {
     operation.author = metadata.comment.userId;
   }
@@ -72,17 +72,9 @@ const post = async (data, postData) => {
   await sendNotification(operation);
 };
 
-const transfer = async (data) => {
+const custom = async (data) => {
   const operation = {
-    id: 'transfer',
-    data,
-  };
-  await sendNotification(operation);
-};
-
-const witness = async (data) => {
-  const operation = {
-    id: 'account_witness_vote',
+    id: data.id,
     data,
   };
   await sendNotification(operation);
@@ -108,5 +100,5 @@ const restaurantStatus = async (data, permlink) => {
 };
 
 module.exports = {
-  reblog, follow, reply, transfer, witness, post, restaurantStatus,
+  reblog, follow, reply, custom, post, restaurantStatus,
 };

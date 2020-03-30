@@ -54,7 +54,7 @@ describe('On notificationsApi', async () => {
       await PostFactory.Create(
         { author: operation.parent_author, permlink: operation.parent_permlink },
       );
-      await notificationsUtil.reply({ operation });
+      await notificationsUtil.reply(operation);
       expect(axios.post).to.be.calledWith(URL, { id: 'comment', block: blockNum, data: operation }, { headers: { API_KEY: process.env.API_KEY } });
     });
     it('should request to notificationsApi with guest author params', async () => {
@@ -62,7 +62,7 @@ describe('On notificationsApi', async () => {
         { author: operation.parent_author, permlink: operation.parent_permlink },
       );
       const metadata = { comment: { userId: faker.name.firstName() } };
-      await notificationsUtil.reply({ operation, metadata });
+      await notificationsUtil.reply(operation, metadata);
       operation.author = metadata.comment.userId;
       expect(axios.post).to.be.calledWith(URL, { id: 'comment', block: blockNum, data: operation }, { headers: { API_KEY: process.env.API_KEY } });
     });

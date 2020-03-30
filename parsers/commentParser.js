@@ -52,7 +52,7 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
   }
-  await notificationsUtil.reply( {...operation}, metadata );
+  await notificationsUtil.reply({ ...operation }, metadata);
   if (_.get(metadata, 'wobj.action')) {
     switch (metadata.wobj.action) {
       case 'createObject':
