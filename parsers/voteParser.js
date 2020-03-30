@@ -112,6 +112,11 @@ const votesFormat = async (votesOps) => {
     }
   }
   await userHelper.checkAndCreateByArray(accounts);
+  votesOps = _
+    .chain(votesOps)
+    .orderBy(['weight'], ['desc'])
+    .uniqWith((first, second) => first.author === second.author && first.permlink === second.permlink && first.voter === second.voter)
+    .value();
   return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
