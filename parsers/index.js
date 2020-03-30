@@ -8,6 +8,7 @@ module.exports = {
   customJsonParser: require('./customJsonParser'),
   objectTypeParser: require('./objectTypeParser'),
   transferParser: require('./transferParser'),
+  withdrawParser: require('./withdrawParser'),
   commentParser: require('./commentParser'),
   userParsers: require('./userParsers'),
   voteParser: require('./voteParser'),
