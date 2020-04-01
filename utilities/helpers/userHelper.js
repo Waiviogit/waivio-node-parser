@@ -13,7 +13,7 @@ const _ = require('lodash');
  */
 exports.checkAndCreateUser = async (userName) => {
   const { user: steemUser } = await usersUtil.getUser(userName);
-  if (!steemUser) return { error: { message: 'User is not found in steem!' } };
+  if (!steemUser) return { error: { message: 'User is not found in blockchain!' } };
   const { user, error } = await checkAndCreate(userName);
   if (error) return { error };
   if (_.get(user, 'stage_version') === 0) {
