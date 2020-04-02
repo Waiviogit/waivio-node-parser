@@ -1,8 +1,9 @@
-const uuid = require('uuid/v1');
+const uuid = require('uuid');
 const _ = require('lodash');
-const { permlinkGenerator, tagsData } = require('utilities/restaurantTagsParser');
+const permlinkGenerator = require('utilities/restaurantTagsParser/permlinkGenerator');
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const { Wobj } = require('models');
+const tagsData = require('./tagsData');
 
 /*
 THIS MODULE PARSE TAGS FROM FIELDS BODY AND SENT REQUEST FOR IMPORT SERVICE
@@ -10,6 +11,7 @@ THIS MODULE PARSE TAGS FROM FIELDS BODY AND SENT REQUEST FOR IMPORT SERVICE
 
 const createTags = async ({ field, authorPermlink }) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+  if (!wobject) return;
   let appends = [];
   switch (wobject.object_type) {
     case 'restaurant':
@@ -46,7 +48,7 @@ const createTag = ({
 }) => ({
   name,
   body,
-  id: id || uuid(),
+  id: id || uuid.v1(),
   permlink: permlinkGenerator.getPermlink(authorPermlink, id ? 'category-item' : 'tag-category'),
   locale: 'en-US',
   creator: 'asd09',

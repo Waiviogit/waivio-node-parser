@@ -1,5 +1,5 @@
 module.exports = {
-  ingredientsParser: require('./ingredientsParser'),
+  tagsParser: require('./tagsParser'),
   permlinkGenerator: require('./permlinkGenerator'),
   tagsData: require('./tagsData'),
 };
