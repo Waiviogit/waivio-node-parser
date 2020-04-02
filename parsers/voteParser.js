@@ -87,7 +87,7 @@ const votePostWithObjects = async (data) => {
   }
   if (!metadata) return;
   if (!metadata.wobj) {
-    metadata.wobj = { wobjects: { ...data.wobjects } };
+    metadata.wobj = { wobjects: data.wobjects };
   }
   data.metadata = metadata;
 

@@ -1,4 +1,4 @@
-const { client, clientWaivio } = require('./createClient');
+const { client } = require('./createClient');
 
 const getPost = async (author, permlink) => {
   try {
@@ -18,7 +18,7 @@ const getPost = async (author, permlink) => {
  */
 const getVotes = async (author, permlink) => {
   try {
-    const votes = await clientWaivio.database.call('get_active_votes', [author, permlink]);
+    const votes = await client.database.call('get_active_votes', [author, permlink]);
 
     return { votes };
   } catch (err) {

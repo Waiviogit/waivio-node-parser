@@ -2,8 +2,10 @@ const steem = require('steem');
 const bluebird = require('bluebird');
 const { nodeUrls } = require('constants/appData');
 const { redisGetter, redisSetter } = require('utilities/redis');
+const { blockUtil } = require('utilities/steemApi');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
+let CURRENT_NODE_URL = nodeUrls[0];
 
 bluebird.promisifyAll(steem.api);
 steem.api.setOptions({ url: nodeUrls[0] });
@@ -74,27 +76,22 @@ const loadNextBlock = async ({
 
 // return true if block exist and parsed, else - false
 const loadBlock = async (blockNum, transactionsParserCallback) => {
-  let block;
-
   /*
     To prevent situation when vote parser went further than the main parser,
     check the current block less than last handled on main parser
      */
   if (PARSE_ONLY_VOTES) {
     const lastBlockNumMainParse = await redisGetter.getLastBlockNum('last_block_num');
-
     if (blockNum >= lastBlockNumMainParse) return false;
   }
-  try {
-    block = await steem.api.getBlockAsync(blockNum);
-  } catch (error) {
+
+  const { block, error } = await blockUtil.getBlock(blockNum, CURRENT_NODE_URL);
+  if (error) {
     console.error(error);
     changeNodeUrl();
     return false;
   }
-  if (!block) {
-    return false;
-  }
+  if (!block) return false;
   if (!block.transactions || !block.transactions[0]) {
     console.error(`EMPTY BLOCK: ${blockNum}`);
     return true;
@@ -106,11 +103,10 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
 };
 
 const changeNodeUrl = () => {
-  const index = nodeUrls.indexOf(steem.config.url);
+  const index = nodeUrls.indexOf(CURRENT_NODE_URL);
 
-  steem.config.url = index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1];
-  // steem.api.setOptions({ url: index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1] });
-  console.error(`Node URL was changed to ${steem.config.url}`);
+  CURRENT_NODE_URL = index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1];
+  console.error(`Node URL was changed to ${CURRENT_NODE_URL}`);
 };
 
 module.exports = {
