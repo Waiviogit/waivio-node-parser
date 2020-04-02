@@ -6,7 +6,7 @@ const { Wobj } = require('models');
 const tagsData = require('./resources/tagsData');
 
 /*
-THIS MODULE PARSE TAGS FROM FIELDS BODY AND SENT REQUEST FOR IMPORT SERVICE
+THIS MODULE PARSE TAGS FROM FIELDS BODY AND SEND TO IMPORT SERVICE
  */
 
 const createTags = async ({ field, authorPermlink }) => {
