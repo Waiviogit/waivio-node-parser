@@ -11,7 +11,13 @@ describe('On createTags', async () => {
   beforeEach(async () => {
     id = faker.random.string();
     object = await ObjectFactory.Create(
-      { object_type: 'dish', appends: [{ name: 'tagCategory', body: mocks.mockDish[0], id }] },
+      {
+        object_type: 'dish',
+        appends: [
+          { name: 'tagCategory', body: mocks.mockDish[0], id },
+          { name: 'name', body: faker.random.string(), id },
+        ],
+      },
     );
     sinon.stub(tagsData, 'allIngredients').value(mocks.mockTagData);
     sinon.stub(tagsData, 'dish').value(mocks.mockDish);

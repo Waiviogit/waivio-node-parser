@@ -3,7 +3,7 @@ const _ = require('lodash');
 const permlinkGenerator = require('utilities/restaurantTagsParser/permlinkGenerator');
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const { Wobj } = require('models');
-const tagsData = require('./tagsData');
+const tagsData = require('./resources/tagsData');
 
 /*
 THIS MODULE PARSE TAGS FROM FIELDS BODY AND SENT REQUEST FOR IMPORT SERVICE
@@ -11,7 +11,7 @@ THIS MODULE PARSE TAGS FROM FIELDS BODY AND SENT REQUEST FOR IMPORT SERVICE
 
 const createTags = async ({ field, authorPermlink }) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
-  if (!wobject) return;
+  if (!wobject || !_.find(wobject.fields, (obj) => obj.name === 'name')) return;
   let appends = [];
   switch (wobject.object_type) {
     case 'restaurant':
