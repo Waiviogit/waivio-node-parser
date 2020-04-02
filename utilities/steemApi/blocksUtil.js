@@ -15,8 +15,7 @@ exports.getBlock = async (blockNum, hostUrl = 'https://blocks.waivio.com') => {
       params: [blockNum],
       id: 1,
     });
-    if (!_.get(resp, 'data.result')) return { error: 'Not enough response data!' };
-    return { block: resp.data.result };
+    return { block: _.get(resp, 'data.result') };
   } catch (error) {
     return { error };
   }
