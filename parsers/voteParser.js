@@ -51,14 +51,23 @@ const voteAppendObject = async (data) => {
   });
     // ignore users with zero or negative weight in wobject
   if (!weight || weight <= 0 || error) weight = 1;
+  // voters weight in wobject
+  data.weight = weight;
 
-  const currentVote = _.chain(data.posts)
+  let currentVote = _.chain(data.posts)
     .find({ author: data.author, permlink: data.permlink })
     .get('active_votes', [])
     .find({ voter: data.voter })
     .value();
-    // voters weight in wobject
-  data.weight = weight;
+  if (!currentVote) {
+    const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
+    if (voteError || !vote) {
+      console.error(error || `Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
+    } else {
+      currentVote = vote;
+    }
+  }
+
   data.rshares_weight = Math.round(Number(currentVote.rshares) * 1e-6);
   await voteFieldHelper.voteOnField(data);
 };
@@ -119,5 +128,19 @@ const votesFormat = async (votesOps) => {
   await userHelper.checkAndCreateByArray(accounts);
   return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
+
+// Use this method when get vote from block but node still not perform this vote on database_api
+const tryReserveVote = async (author, permlink, voter, times = 10) => {
+  for (let i = 0; i < times; i++) {
+    {
+      const { votes = [], err } = await postsUtil.getVotes(author, permlink);
+      if (err) return { error: err };
+      const vote = votes.find((v) => v.voter === voter);
+      if (vote) return { vote };
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+  return { error: { message: `Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
+};
 
 module.exports = { parse, votesFormat };
