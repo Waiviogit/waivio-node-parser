@@ -1,5 +1,5 @@
 
-exports.mockTagData = {
+exports.tagsData = {
   Ingredients: {
     cheese: 'cheese',
     'cheese curds': 'cheese-curds',
