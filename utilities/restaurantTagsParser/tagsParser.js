@@ -1,9 +1,9 @@
 const uuid = require('uuid');
 const _ = require('lodash');
+const config = require('config');
 const permlinkGenerator = require('utilities/restaurantTagsParser/permlinkGenerator');
 const { importUpdates } = require('utilities/objectImportServiceApi');
-const { Wobj } = require('models');
-const tagsData = require('./resources/tagsData');
+const { Wobj, ObjectType, App } = require('models');
 
 /*
 THIS MODULE PARSE TAGS FROM FIELDS BODY AND SEND TO IMPORT SERVICE
@@ -12,34 +12,42 @@ THIS MODULE PARSE TAGS FROM FIELDS BODY AND SEND TO IMPORT SERVICE
 const createTags = async ({ field, authorPermlink }) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   if (!wobject || !_.find(wobject.fields, (obj) => obj.name === 'name')) return;
-  let appends = [];
-  switch (wobject.object_type) {
-    case 'restaurant':
-    case 'dish':
-      for (const tag of tagsData[wobject.object_type]) {
-        const tagCategory = _.find(wobject.fields,
-          (obj) => obj.name === 'tagCategory' && obj.body === tag);
-        appends = _.concat(appends, parseIngredients(
-          {
-            string: field.body,
-            authorPermlink,
-            fields: wobject.fields,
-            id: tagCategory ? tagCategory.id : null,
-            tag,
-            tagsSource: tagsData.allIngredients[tag],
-          },
-        ));
-      }
-      break;
-    default:
-      return;
-  }
-  if (appends.length) {
-    await importUpdates.send([{
-      object_type: wobject.object_type,
-      author_permlink: authorPermlink,
-      fields: appends,
-    }]);
+  if (wobject.object_type === 'dish' || wobject.object_type === 'restaurant') {
+    const { objectType } = await ObjectType.getOne({ name: wobject.object_type });
+    const tagCategories = _.find(objectType.supposed_updates, (update) => update.name === 'tagCategory');
+    const { app } = await App.getOne({ name: config.app });
+    if (!objectType || !tagCategories || !app) return;
+    let appends = [];
+
+    switch (wobject.object_type) {
+      case 'restaurant':
+      case 'dish':
+        for (const tag of tagCategories.values) {
+          const tagCategory = _.find(wobject.fields,
+            (obj) => obj.name === 'tagCategory' && obj.body === tag);
+
+          appends = _.concat(appends, parseIngredients(
+            {
+              string: field.body,
+              authorPermlink,
+              fields: wobject.fields,
+              id: tagCategory ? tagCategory.id : null,
+              tag,
+              tagsSource: app.tagsData[tag],
+            },
+          ));
+        }
+        break;
+      default:
+        return;
+    }
+    if (appends.length) {
+      await importUpdates.send([{
+        object_type: wobject.object_type,
+        author_permlink: authorPermlink,
+        fields: appends,
+      }]);
+    }
   }
 };
 

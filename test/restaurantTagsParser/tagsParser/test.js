@@ -1,26 +1,29 @@
 const _ = require('lodash');
 const {
-  expect, sinon, importUpdates, tagsData, tagsParser, faker,
+  expect, sinon, importUpdates, tagsParser, faker, AppModel,
 } = require('test/testHelper');
-const { ObjectFactory } = require('test/factories');
+const { ObjectFactory, ObjectTypeFactory } = require('test/factories');
 
 const mocks = require('./mocks');
 
 describe('On createTags', async () => {
-  let object, id;
+  let object, id, objectTypeName;
   beforeEach(async () => {
+    objectTypeName = 'dish';
     id = faker.random.string();
+    await ObjectTypeFactory.Create(
+      { name: objectTypeName, supposed_updates: [{ name: 'tagCategory', values: mocks.mockDish }] },
+    );
     object = await ObjectFactory.Create(
       {
-        object_type: 'dish',
+        object_type: objectTypeName,
         appends: [
           { name: 'tagCategory', body: mocks.mockDish[0], id },
           { name: 'name', body: faker.random.string(), id },
         ],
       },
     );
-    sinon.stub(tagsData, 'allIngredients').value(mocks.mockTagData);
-    sinon.stub(tagsData, 'dish').value(mocks.mockDish);
+    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { tagsData: mocks.tagsData } }));
     sinon.stub(importUpdates, 'send').returns(Promise.resolve('Ok'));
   });
   afterEach(async () => {
@@ -29,7 +32,7 @@ describe('On createTags', async () => {
   describe('On Success', async () => {
     let field, tag, importData;
     beforeEach(async () => {
-      tag = mocks.mockTagData.Ingredients.cheese;
+      tag = mocks.tagsData.Ingredients.cheese;
       field = {
         body: `${faker.random.string(20)} ${tag}`,
       };
