@@ -2,6 +2,8 @@ const _ = require('lodash');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { Wobj } = require('models');
 const { restaurantStatus } = require('utilities/notificationsApi/notificationsUtil');
+const { tagsParser } = require('utilities/restaurantTagsParser');
+
 
 const TAG_CLOUDS_UPDATE_COUNT = 5;
 const RATINGS_UPDATE_COUNT = 4;
@@ -15,6 +17,11 @@ const update = async (author, permlink, authorPermlink, voter) => {
     return;
   }
   switch (field.name) {
+    case 'name':
+    case 'description':
+    case 'title':
+      tagsParser.createTags({ authorPermlink, field });
+      break;
     case 'parent':
       const { wobjects: wobjParent } = await Wobj.getSomeFields('parent', authorPermlink);
 
