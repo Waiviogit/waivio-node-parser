@@ -2,6 +2,7 @@ const _ = require('lodash');
 const { Wobj, User, Post } = require('models');
 const { getWobjectsFromMetadata } = require('utilities/helpers/postByTagsHelper');
 const userValidator = require('validator/userValidator');
+const postModeration = require('utilities/moderation/postModeration');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment
@@ -54,6 +55,13 @@ const downVoteOnPost = async (data, weight) => {
       });
     }
   }
+  // check for blog(ignore) post from admin or moderator
+  await postModeration.checkDownVote({
+    voter: data.voter,
+    author: data.post.author,
+    permlink: data.post.permlink,
+    wobjects: _.get(data, 'metadata.wobj.wobjects'),
+  });
 };
 
 const upVoteOnPost = async (data, weight) => {
