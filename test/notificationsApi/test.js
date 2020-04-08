@@ -66,9 +66,9 @@ describe('On notificationsApi', async () => {
       operation.author = metadata.comment.userId;
       expect(axios.post).to.be.calledWith(URL, { id: 'comment', block: blockNum, data: operation }, { headers: { API_KEY: process.env.API_KEY } });
     });
-    it('should not call notificationsApi method if post not exist', async () => {
+    it('should call notificationsApi method if post not exist', async () => {
       await notificationsUtil.reply({ operation });
-      expect(axios.post).to.be.not.called;
+      expect(axios.post).to.be.calledOnce;
     });
   });
   describe('On restaurantStatus', async () => {
