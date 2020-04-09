@@ -21,6 +21,15 @@ const update = async (conditions, updateData) => {
   }
 };
 
+const updateMany = async (conditions, updateData) => {
+  try {
+    const result = await WObjectModel.updateMany(conditions, updateData);
+    return { result: result.nModified };
+  } catch (error) {
+    return { error };
+  }
+};
+
 const addField = async (data) => {
   try {
     const result = await WObjectModel.updateOne(
@@ -199,6 +208,19 @@ const getOne = async ({ author_permlink: authorPermlink }) => {
   }
 };
 
+const getMany = async ({ condition, select }) => {
+  try {
+    const result = await WObjectModel.find(condition).select(select).lean();
+
+    if (!result) {
+      return { error: { status: 404, message: 'Wobjects not found!' } };
+    }
+    return { wobjects: result };
+  } catch (error) {
+    return { error };
+  }
+};
+
 const pushNewPost = async ({ author_permlink: authorPermlink, post_id: postId }) => {
   try {
     const result = await WObjectModel.updateOne({ author_permlink: authorPermlink }, {
@@ -232,4 +254,6 @@ module.exports = {
   getField,
   updateField,
   pushNewPost,
+  updateMany,
+  getMany,
 };
