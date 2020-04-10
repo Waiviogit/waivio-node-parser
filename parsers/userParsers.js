@@ -1,24 +1,37 @@
 const _ = require('lodash');
 const { User, Post } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { checkAndCreateUser } = require('utilities/helpers/userHelper');
 
 exports.updateAccountParser = async (operation) => {
-  if (operation.account && operation.json_metadata) {
-    let parsedMetadata;
+  if (operation.account && (operation.json_metadata || operation.posting_json_metadata)) {
+    let parsedMetadata, parsedPostingMetadata;
 
     try {
-      parsedMetadata = JSON.parse(operation.json_metadata);
+      parsedMetadata = operation.json_metadata
+        ? JSON.parse(operation.json_metadata)
+        : null;
+      parsedPostingMetadata = operation.posting_json_metadata
+        ? JSON.parse(operation.posting_json_metadata)
+        : null;
     } catch (err) {
       console.error(`Not valid metadata on user ${operation.account}`);
     }
-    const { result, error } = await User.updateOne(
-      { name: operation.account },
-      {
+
+    const updateData = parsedPostingMetadata
+      ? {
+        posting_json_metadata: operation.posting_json_metadata,
+        alias: _.get(parsedPostingMetadata, 'profile.name', null),
+        profile_image: _.get(parsedPostingMetadata, 'profile.profile_image'),
+      }
+      : {
         json_metadata: operation.json_metadata,
         alias: _.get(parsedMetadata, 'profile.name', null),
         profile_image: _.get(parsedMetadata, 'profile.profile_image'),
-      },
+      };
+
+    const { result, error } = await User.updateOne(
+      { name: operation.account },
+      { ...updateData },
     );
 
     if (error) {
