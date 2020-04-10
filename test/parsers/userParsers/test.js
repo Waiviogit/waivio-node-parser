@@ -7,48 +7,103 @@ const { User: UserModel, Post: PostModel } = require('models');
 
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
-    let updUser;
-    const mockMetadata = {
-      profile: {
-        name: faker.name.firstName(),
-        profile_image: faker.random.string(20),
-      },
-    };
+    describe('on update json_metadata', async () => {
+      let updUser;
+      const mockMetadata = {
+        profile: {
+          name: faker.name.firstName(),
+          profile_image: faker.random.string(20),
+        },
+      };
+      const postingMetadata = JSON.stringify({ a: 1, b: 2 });
 
-    beforeEach(async () => {
-      // await dropDatabase();
-      const { user: mockUser } = await UserFactory.Create();
+      beforeEach(async () => {
+        const { user: mockUser } = await UserFactory.Create({
+          posting_json_metadata: postingMetadata,
+        });
 
-      await userParsers.updateAccountParser({
-        account: mockUser.name,
-        json_metadata: JSON.stringify(mockMetadata),
+        await userParsers.updateAccountParser({
+          account: mockUser.name,
+          json_metadata: JSON.stringify(mockMetadata),
+          posting_json_metadata: '',
+        });
+        updUser = await User.findOne({ name: mockUser.name }).lean();
       });
-      updUser = await User.findOne({ name: mockUser.name }).lean();
-    });
 
-    it('should update existing account', () => {
-      expect(updUser).to.include.key('json_metadata');
-    });
-    it('should update json_metadata correct', () => {
-      expect(updUser.json_metadata).to.equal(JSON.stringify(mockMetadata));
-    });
-    it('should update existing account and add alias key', () => {
-      expect(updUser).to.include.key('alias');
-    });
-    it('should update alias name correct', () => {
-      expect(updUser.alias).to.equal(mockMetadata.profile.name);
-    });
-    it('should update "profile_image" correct', () => {
-      expect(updUser.profile_image).to.equal(mockMetadata.profile.profile_image);
-    });
-    it('shouldn\'t create user if update was on non exist user', async () => {
-      await userParsers.updateAccountParser({
-        account: 'nonexistuser',
-        json_metadata: '{hello: world}',
+      it('should update json_metadata correct', () => {
+        expect(updUser.json_metadata).to.equal(JSON.stringify(mockMetadata));
       });
-      const user = await User.findOne({ name: 'nonexistuser' });
+      it('should not update posting metadata', () => {
+        expect(updUser.posting_json_metadata).to.eq(postingMetadata);
+      });
+      it('should update existing account and add alias key', () => {
+        expect(updUser).to.include.key('alias');
+      });
+      it('should update alias name correct', () => {
+        expect(updUser.alias).to.equal(mockMetadata.profile.name);
+      });
+      it('should update "profile_image" correct', () => {
+        expect(updUser.profile_image).to.equal(mockMetadata.profile.profile_image);
+      });
+      it('shouldn\'t create user if update was on non exist user', async () => {
+        await userParsers.updateAccountParser({
+          account: 'nonexistuser',
+          json_metadata: '{hello: world}',
+        });
+        const user = await User.findOne({ name: 'nonexistuser' });
 
-      expect(user).to.not.exist;
+        expect(user).to.not.exist;
+      });
+    });
+
+    describe('on update posting_json_metadata', async () => {
+      let updUser;
+      const mockMetadata = {
+        profile: {
+          name: faker.name.firstName(),
+          profile_image: faker.random.string(20),
+        },
+      };
+      const jsonMetadata = JSON.stringify({ a: 1, b: 2, c: 4 });
+
+      beforeEach(async () => {
+        const { user: mockUser } = await UserFactory.Create({ json_metadata: jsonMetadata });
+
+        await userParsers.updateAccountParser({
+          account: mockUser.name,
+          json_metadata: '',
+          posting_json_metadata: JSON.stringify(mockMetadata),
+        });
+        updUser = await User.findOne({ name: mockUser.name }).lean();
+      });
+
+      it('should update posting_json_metadata correct', () => {
+        expect(updUser.posting_json_metadata).to.equal(JSON.stringify(mockMetadata));
+      });
+      it('should not update casual json_metadata', () => {
+        expect(updUser.json_metadata).to.be.eq(jsonMetadata);
+      });
+
+      it('should update existing account and add alias key', () => {
+        expect(updUser).to.include.key('alias');
+      });
+      it('should update alias name correct', () => {
+        expect(updUser.alias).to.equal(mockMetadata.profile.name);
+      });
+      it('should update "profile_image" correct', () => {
+        expect(updUser.profile_image).to.equal(mockMetadata.profile.profile_image);
+      });
+      it('shouldn\'t create user if update was on non exist user', async () => {
+        const name = faker.name.firstName();
+        await userParsers.updateAccountParser({
+          account: name,
+          json_metadata: '',
+          json_metadata_metadata: '{hello: world}',
+        });
+        const user = await User.findOne({ name });
+
+        expect(user).to.not.exist;
+      });
     });
   });
 
