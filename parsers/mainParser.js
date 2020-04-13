@@ -19,6 +19,7 @@ const parseSwitcher = async (transactions) => {
               await customJsonParser.parse(operation[1]);
               break;
             case 'account_update':
+            case 'account_update2':
               await userParsers.updateAccountParser(operation[1]);
               break;
             case 'create_claimed_account':
