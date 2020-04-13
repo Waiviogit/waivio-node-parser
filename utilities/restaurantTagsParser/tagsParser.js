@@ -42,7 +42,7 @@ const createTags = async ({ field, authorPermlink }) => {
         return;
     }
     if (appends.length) {
-      importUpdates.send([{
+      await importUpdates.send([{
         object_type: wobject.object_type,
         author_permlink: authorPermlink,
         fields: appends,
