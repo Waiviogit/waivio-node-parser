@@ -20,7 +20,7 @@ const update = async (author, permlink, authorPermlink, voter) => {
     case 'name':
     case 'description':
     case 'title':
-      tagsParser.createTags({ authorPermlink, field });
+      await tagsParser.createTags({ authorPermlink, field });
       break;
     case 'parent':
       const { wobjects: wobjParent } = await Wobj.getSomeFields('parent', authorPermlink);
