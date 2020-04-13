@@ -71,16 +71,21 @@ const parseIngredients = ({
     appends.push(tagCategory);
     id = tagCategory.id;
   }
-  _.forEach(Object.keys(tagsSource), (key) => {
-    const regexp = new RegExp(`\\b(${key.toLowerCase()})\\b`, 'g');
-    if ((regexp.test(string.toString().toLowerCase()))
-        && !_.find(fields,
-          (field) => field.name === 'categoryItem' && field.body === tagsSource[key])) {
-      appends.push(createTag({
-        name: 'categoryItem', body: tagsSource[key], id, authorPermlink,
-      }));
-    }
-  });
+  try {
+    _.forEach(Object.keys(tagsSource), (key) => {
+      const regexp = new RegExp(`\\b(${key.toLowerCase()})\\b`, 'g');
+      if ((regexp.test(string.toString().toLowerCase()))
+          && !_.find(fields,
+            (field) => field.name === 'categoryItem' && field.body === tagsSource[key])) {
+        appends.push(createTag({
+          name: 'categoryItem', body: tagsSource[key], id, authorPermlink,
+        }));
+      }
+    });
+  } catch (error) {
+    return [];
+  }
+
   return appends;
 };
 
