@@ -38,6 +38,7 @@
     "sinon-chai": "^3.3.0",
     "steem": "^0.7.4",
     "util": "^0.11.1",
+    "uuid": "^7.0.3",
     "uuidv4": "^6.0.0"
   },
   "devDependencies": {

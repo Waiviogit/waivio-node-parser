@@ -27,4 +27,28 @@ const updateChosenPost = async ({
   }
 };
 
-module.exports = { getOne, updateChosenPost };
+/**
+ * Find app by moderation options.
+ * Find by userName is admin, or
+ * if userName is moder for one of wobjects from "author_permlinks"
+ * @param userName {String}
+ * @param authorPermlinks* {Array<String>}
+ * @returns {Promise<void|Object>}
+ */
+const findByModeration = async (userName, authorPermlinks) => {
+  try {
+    const condition = { $or: [{ admins: userName }] };
+    if (authorPermlinks || Array.isArray(authorPermlinks)) {
+      condition.$or.push({
+        'moderators.name': userName,
+        'moderators.author_permlinks': { $in: [...authorPermlinks] },
+      });
+    }
+    const apps = await App.find(condition).lean();
+    return { apps };
+  } catch (error) {
+    return { error };
+  }
+};
+
+module.exports = { getOne, updateChosenPost, findByModeration };

@@ -1,5 +1,7 @@
 const { expect, AppModel, faker } = require('../../testHelper');
-const { AppFactory } = require('../../factories');
+const {
+  AppFactory, UserFactory, ObjectFactory,
+} = require('../../factories');
 
 describe('App model', async () => {
   describe('On getOne', () => {
@@ -70,6 +72,41 @@ describe('App model', async () => {
         name, author, permlink, title, period: faker.random.string(),
       });
       expect(result.app.weekly_chosen_post, result.app.daily_chosen_post).to.deep.eq(app.weekly_chosen_post, app.daily_chosen_post);
+    });
+  });
+  describe('On findByModeration', async () => {
+    let admin, moderator, wobject;
+    beforeEach(async () => {
+      admin = (await UserFactory.Create()).user;
+      moderator = (await UserFactory.Create()).user;
+      wobject = await ObjectFactory.Create();
+      await AppFactory.Create({
+        admins: [admin.name],
+        moderators: [{
+          name: moderator.name,
+          author_permlinks: [wobject.author_permlink],
+        }],
+      });
+    });
+    it('Should return app by searching by userName only(admin)', async () => {
+      const result = await AppModel.findByModeration(admin.name);
+      expect(result.apps).to.be.not.empty;
+    });
+    it('Should not return app with not valid userName', async () => {
+      const result = await AppModel.findByModeration(faker.name.firstName());
+      expect(result.apps).to.be.empty;
+    });
+    it('should return app by searching by moderator and wobject', async () => {
+      const result = await AppModel.findByModeration(moderator.name, [wobject.author_permlink]);
+      expect(result.apps).to.not.be.empty;
+    });
+    it('should not return app by searching by moderator and incorrect wobject', async () => {
+      const result = await AppModel.findByModeration(moderator.name, [faker.random.string()]);
+      expect(result.apps).to.be.empty;
+    });
+    it('should not return app by searching by incorrect moderator and correct wobject', async () => {
+      const result = await AppModel.findByModeration(faker.name.firstName(), [wobject.author_permlink]);
+      expect(result.apps).to.be.empty;
     });
   });
 });

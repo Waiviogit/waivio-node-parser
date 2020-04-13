@@ -2,7 +2,7 @@ const _ = require('lodash');
 const { User, faker } = require('../../testHelper');
 
 const Create = async ({
-  name, wobjects_weight, users_follow, objects_follow, count_posts, stage_version,
+  name, wobjects_weight, users_follow, objects_follow, count_posts, stage_version, json_metadata, posting_json_metadata,
 } = {}) => {
   const userName = name || faker.name.firstName().toLowerCase();
   const existUser = await User.findOne({ name: userName }).lean();
@@ -15,6 +15,8 @@ const Create = async ({
     objects_follow: objects_follow || [],
     count_posts: _.isNil(count_posts) ? faker.random.number(10) : count_posts,
     stage_version: _.isNil(stage_version) ? faker.random.number(5) : stage_version,
+    json_metadata: json_metadata || '',
+    posting_json_metadata: posting_json_metadata || '',
   });
 
   return { user: user.toObject() };

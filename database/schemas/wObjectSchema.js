@@ -67,6 +67,7 @@ WObjectSchema.pre('save', function (next) {
 });
 
 WObjectSchema.index({ map: '2dsphere' });
+WObjectSchema.index({ parent: -1 });
 
 const wObjectModel = mongoose.model('wobject', WObjectSchema);
 

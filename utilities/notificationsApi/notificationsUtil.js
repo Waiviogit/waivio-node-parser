@@ -1,8 +1,11 @@
 const _ = require('lodash');
 const axios = require('axios');
 const { redisGetter } = require('utilities/redis');
-const { Post, Wobj, UserWobjects } = require('models');
+const {
+  Post, Wobj, UserWobjects, CommentModel,
+} = require('models');
 const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
+const { postsUtil } = require('utilities/steemApi');
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
 
@@ -51,11 +54,20 @@ const reply = async (operation, metadata) => {
   if (_.get(metadata, 'comment.userId')) {
     operation.author = metadata.comment.userId;
   }
-  const { post } = await Post.findOne(
+  let { post } = await Post.findOne(
     { root_author: operation.parent_author, permlink: operation.parent_permlink },
   );
-  if (!post) return;
-  operation.parent_author = post.author;
+  if (!post) { // if parent post - comment, find it at guest comments
+    const { comment } = await CommentModel.getOne(
+      { author: operation.parent_author, permlink: operation.parent_permlink },
+    );
+    if (comment) {
+      post = {
+        author: _.get(comment, 'guestInfo.userId'),
+      };
+    }
+  }
+  operation.parent_author = _.get(post, 'author', operation.parent_author);
   const op = {
     id: 'comment',
     data: operation,

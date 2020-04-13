@@ -13,6 +13,13 @@ const moderatorsSchema = new Schema({
   author_permlinks: { type: [String], default: [] },
 }, { _id: false });
 
+const TagsData = new Schema({
+  Ingredients: { type: Object, default: {} },
+  Cuisine: { type: Object, default: {} },
+  'Good For': { type: Object, default: {} },
+  Features: { type: Object, default: {} },
+}, { _id: false });
+
 const AppSchema = new Schema({
   name: { type: String, index: true, unique: true },
   admins: { type: [String], index: true, required: true },
@@ -52,6 +59,7 @@ const AppSchema = new Schema({
   },
   black_list_users: { type: [String], default: [] },
   service_bots: { type: [botSchema], default: [] },
+  tagsData: { type: TagsData },
 }, { timestamps: true });
 
 const AppModel = mongoose.model('App', AppSchema);
