@@ -51,6 +51,7 @@ const follow = async ({ follower, following }) => {
 };
 
 const reply = async (operation, metadata) => {
+  let replyFlag = false;
   if (_.get(metadata, 'comment.userId')) {
     operation.author = metadata.comment.userId;
   }
@@ -65,9 +66,16 @@ const reply = async (operation, metadata) => {
       post = {
         author: _.get(comment, 'guestInfo.userId'),
       };
+      replyFlag = true;
+    } else {
+      const { post: hivePost } = await postsUtil.getPost(
+        operation.parent_author, operation.parent_permlink,
+      );
+      if (hivePost.depth >= 2) replyFlag = true;
     }
   }
   operation.parent_author = _.get(post, 'author', operation.parent_author);
+  operation.reply = replyFlag;
   const op = {
     id: 'comment',
     data: operation,
