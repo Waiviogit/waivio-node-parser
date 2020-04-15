@@ -25,10 +25,12 @@ const validateFields = (data) => {
 // validate that field with the same name and body don't exist already
 const validateSameFields = async (data) => {
   const { wobject } = await Wobj.getOne({ author_permlink: data.author_permlink });
-  const foundedFields = _.map(wobject.fields, (field) => ({
-    name: field.name, body: field.body, locale: field.locale,
-  }));
-  const result = foundedFields.find((field) => _.isEqual(field, _.pick(data.field, ['body', 'locale', 'name'])));
+  const setUniqFields = ['name', 'body', 'locale'];
+  if (data.field.name === 'categoryItem') {
+    setUniqFields.push('id');
+  }
+  const foundedFields = _.map(wobject.fields, (field) => _.pick(field, setUniqFields));
+  const result = foundedFields.find((field) => _.isEqual(field, _.pick(data.field, setUniqFields)));
   if (result) {
     throw new Error("Can't append object, the same field already exists");
   }
