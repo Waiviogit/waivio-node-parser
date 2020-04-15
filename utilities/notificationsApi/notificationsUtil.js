@@ -71,7 +71,7 @@ const reply = async (operation, metadata) => {
       const { post: hivePost } = await postsUtil.getPost(
         operation.parent_author, operation.parent_permlink,
       );
-      if (hivePost.depth >= 2) replyFlag = true;
+      if (hivePost && hivePost.depth >= 2) replyFlag = true;
     }
   }
   operation.parent_author = _.get(post, 'author', operation.parent_author);
