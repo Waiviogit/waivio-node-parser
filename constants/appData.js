@@ -53,21 +53,25 @@ const notificationsApi = {
     HOST: 'https://www.waivio.com',
     BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
+    STATUS: ['relisted', 'nsfw', 'unavailable'],
   },
   staging: {
     HOST: 'https://waiviodev.com',
     BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
+    STATUS: ['relisted', 'nsfw', 'unavailable'],
   },
   development: {
     HOST: 'http://localhost:4000',
     BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
+    STATUS: ['relisted', 'nsfw', 'unavailable'],
   },
   test: {
     HOST: 'http://localhost:4000',
     BASE_URL: '/notifications-api',
     SET_NOTIFICATION: '/set',
+    STATUS: ['relisted', 'nsfw', 'unavailable'],
   },
 };
 
