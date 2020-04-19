@@ -102,10 +102,11 @@ const custom = async (data) => {
   await sendNotification(operation);
 };
 
-const restaurantStatus = async (data, permlink) => {
+const restaurantStatus = async (data, permlink, status) => {
   const { wobject } = await Wobj.getOne({ author_permlink: permlink });
-  const statusTitle = _.get(wobject, 'status.title', null);
-  if (!wobject || (_.includes(STATUS, statusTitle) && !data.voter)) return;
+  const wobjStatus = _.get(wobject, 'status.title', null);
+  if (!wobject || wobjStatus === status) return;
+
   const { result } = await UserWobjects.find({ author_permlink: permlink, weight: { $gt: 0 } });
   if (!result || !result.length) return;
   data.object_name = _
@@ -115,6 +116,9 @@ const restaurantStatus = async (data, permlink) => {
     .first()
     .value().body;
   data.experts = _.map(result, (expert) => expert.user_name);
+  data.oldStatus = wobjStatus || '';
+  data.newStatus = status || '';
+  data.experts = ['olegvladim', 'wiv01'];
   data.author_permlink = permlink;
   await sendNotification({
     id: 'restaurantStatus',
