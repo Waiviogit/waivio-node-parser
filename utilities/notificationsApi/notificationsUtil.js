@@ -118,7 +118,6 @@ const restaurantStatus = async (data, permlink, status) => {
   data.experts = _.map(result, (expert) => expert.user_name);
   data.oldStatus = wobjStatus || '';
   data.newStatus = status || '';
-  data.experts = ['olegvladim', 'wiv01'];
   data.author_permlink = permlink;
   await sendNotification({
     id: 'restaurantStatus',
