@@ -106,11 +106,12 @@ const update = async (author, permlink, authorPermlink, voter) => {
         .value();
 
       if (status) {
-        await restaurantStatus(field, authorPermlink);
+        field.voter = voter || _.get(field, 'creator', null);
+        await restaurantStatus(field, authorPermlink, JSON.parse(status).title);
         await Wobj.update({ author_permlink: authorPermlink }, { status: JSON.parse(status) });
       } else {
         field.voter = voter;
-        await restaurantStatus(field, authorPermlink);
+        await restaurantStatus(field, authorPermlink, '');
         await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
       }
       break;

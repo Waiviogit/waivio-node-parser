@@ -10,6 +10,6 @@ const appHelper = require('utilities/helpers/appHelper');
 exports.validateUserOnBlacklist = async (names = []) => {
   const formattedNames = _.flatMap([names], (n) => n);
   const { error, users } = await appHelper.getBlackListUsers();
-  if (error) return false;
+  if (error) return true;
   return !_.some(formattedNames, (name) => users.includes(name));
 };

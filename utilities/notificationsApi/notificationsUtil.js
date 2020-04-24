@@ -4,7 +4,9 @@ const { redisGetter } = require('utilities/redis');
 const {
   Post, Wobj, UserWobjects, CommentModel,
 } = require('models');
-const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
+const {
+  HOST, BASE_URL, SET_NOTIFICATION, STATUS,
+} = require('constants/appData').notificationsApi;
 const { postsUtil } = require('utilities/steemApi');
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
@@ -100,9 +102,11 @@ const custom = async (data) => {
   await sendNotification(operation);
 };
 
-const restaurantStatus = async (data, permlink) => {
+const restaurantStatus = async (data, permlink, status) => {
   const { wobject } = await Wobj.getOne({ author_permlink: permlink });
-  if (!wobject || ((_.get(wobject, 'status.title') === 'relisted' || _.get(wobject, 'status.title') === 'unavailable') && !data.voter)) return;
+  const wobjStatus = _.get(wobject, 'status.title', null);
+  if (!wobject || wobjStatus === status) return;
+
   const { result } = await UserWobjects.find({ author_permlink: permlink, weight: { $gt: 0 } });
   if (!result || !result.length) return;
   data.object_name = _
@@ -112,6 +116,8 @@ const restaurantStatus = async (data, permlink) => {
     .first()
     .value().body;
   data.experts = _.map(result, (expert) => expert.user_name);
+  data.oldStatus = wobjStatus || '';
+  data.newStatus = status || '';
   data.author_permlink = permlink;
   await sendNotification({
     id: 'restaurantStatus',
