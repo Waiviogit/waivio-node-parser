@@ -102,7 +102,7 @@ const custom = async (data) => {
   await sendNotification(operation);
 };
 
-const restaurantStatus = async (data, permlink, status) => {
+const restaurantStatus = async (data, permlink, status = undefined) => {
   const { wobject } = await Wobj.getOne({ author_permlink: permlink });
   const wobjStatus = _.get(wobject, 'status.title');
   if (!wobject || wobjStatus === status) return;
