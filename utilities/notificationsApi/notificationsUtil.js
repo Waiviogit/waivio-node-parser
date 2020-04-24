@@ -105,7 +105,7 @@ const custom = async (data) => {
 const restaurantStatus = async (data, permlink, status = undefined) => {
   const { wobject } = await Wobj.getOne({ author_permlink: permlink });
   const wobjStatus = _.get(wobject, 'status.title');
-  if (!wobject || wobjStatus === status) return;
+  if ((wobjStatus === status) || (!wobjStatus && !status)) return;
 
   const { result } = await UserWobjects.find({ author_permlink: permlink, weight: { $gt: 0 } });
   if (!result || !result.length) return;
