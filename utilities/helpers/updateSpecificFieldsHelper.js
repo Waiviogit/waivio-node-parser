@@ -128,7 +128,7 @@ const update = async (author, permlink, authorPermlink, voter) => {
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
-    if (voteData.weight > 0 || field.weight - voteData.weight < 0) return;
+    if (!_.get(voteData, 'weight') || voteData.weight > 0 || field.weight - voteData.weight < 0) return;
     await custom({
       id: 'rejectUpdate', creator: field.creator, voter, author_permlink: authorPermlink, fieldName: field.name,
     });
