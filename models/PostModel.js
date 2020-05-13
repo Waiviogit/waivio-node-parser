@@ -27,18 +27,16 @@ const findOne = async (data) => {
 
 const update = async (data) => {
   try {
-    const result = await PostModel.findOneAndUpdate(
-      {
-        author: data.author,
-        permlink: data.permlink,
-      },
-      data,
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true,
-      },
-    );
+    const result = await PostModel.findOneAndUpdate({
+      author: data.author,
+      permlink: data.permlink,
+    },
+    data,
+    {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    });
 
     return { result };
   } catch (error) {

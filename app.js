@@ -3,6 +3,7 @@ const logger = require('morgan');
 const { routes } = require('routes');
 const { runStream } = require('processor/processor');
 require('utilities/jobs');
+const { startRedisListener } = require('utilities/helpers/redisHelper');
 
 const app = express();
 
@@ -21,5 +22,7 @@ runStream().catch((err) => {
   console.log(err);
   process.exit(1);
 });
+
+startRedisListener();
 
 module.exports = app;

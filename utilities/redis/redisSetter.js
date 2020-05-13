@@ -1,4 +1,4 @@
-const { postRefsClient, lastBlockClient } = require('utilities/redis/redis');
+const { postRefsClient, lastBlockClient, expiredPostsClient } = require('utilities/redis/redis');
 const { COMMENT_REF_TYPES } = require('utilities/constants');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
@@ -58,8 +58,13 @@ const setLastBlockNum = async (blockNum, redisKey) => {
   }
 };
 
+const setExpiredPostTTL = async (name, id, timer, value = '') => {
+  await expiredPostsClient.setAsync(`expire-${name}:${id}`, value, 'EX', timer);
+};
+
 module.exports = {
   addPostWithWobj,
+  setExpiredPostTTL,
   addAppendWobj,
   setLastBlockNum,
   addWobjRef,
