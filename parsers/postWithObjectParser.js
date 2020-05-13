@@ -8,6 +8,7 @@ const { userHelper } = require('utilities/helpers');
 const { Post, Wobj } = require('models');
 const { User } = require('models');
 const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
+const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 
 const parse = async (operation, metadata, post) => {
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
@@ -63,6 +64,7 @@ const createOrUpdatePost = async (data, postData) => {
       _.get(data, 'guestInfo.userId', data.author),
       result.post.created || Date.now(),
     );
+    await setExpiredPostTTL('hivePost', `${_.get(data, 'guestInfo.userId', data.author)}/${data.permlink}`, 605000);
   } else {
     result.post.active_votes = result.post.active_votes.map((vote) => ({
       voter: vote.voter,
