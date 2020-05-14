@@ -22,7 +22,7 @@ const _ = require('lodash');
 exports.checkDownVote = async ({
   voter, author, permlink, wobjects,
 }) => {
-  console.log();
+  if (!wobjects) return;
   const { apps, error } = await App.findByModeration(voter, wobjects.map((w) => w.author_permlink));
   if (error) {
     console.error(error);
