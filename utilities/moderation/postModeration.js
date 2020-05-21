@@ -16,7 +16,7 @@ const _ = require('lodash');
  * @param voter {String}
  * @param author {String}
  * @param permlink {String}
- * @param wobjects {Array<Object>>}
+ * @param wobjects {Array<Object>}
  * @returns {Promise<void|{error}>}
  */
 exports.checkDownVote = async ({
