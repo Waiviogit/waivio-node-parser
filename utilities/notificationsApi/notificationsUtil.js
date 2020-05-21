@@ -109,12 +109,7 @@ const restaurantStatus = async (data, permlink, status = undefined) => {
 
   const { result } = await UserWobjects.find({ author_permlink: permlink, weight: { $gt: 0 } });
   if (!result || !result.length) return;
-  data.object_name = _
-    .chain(wobject.fields)
-    .filter((field) => field.name === 'name')
-    .sortBy('weight')
-    .first()
-    .value().body;
+  data.object_name = getNameFromFields(wobject.fields);
   data.experts = _.map(result, (expert) => expert.user_name);
   data.oldStatus = wobjStatus || '';
   data.newStatus = status || '';
@@ -125,6 +120,30 @@ const restaurantStatus = async (data, permlink, status = undefined) => {
   });
 };
 
+const rejectUpdate = async (data) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: data.author_permlink });
+  if (!wobject) return;
+  if (wobject.parent) {
+    const { wobject: parentWobj } = await Wobj.getOne({ author_permlink: wobject.parent });
+    if (parentWobj) {
+      data.parent_permlink = wobject.parent;
+      data.parent_name = getNameFromFields(parentWobj.fields);
+    }
+  }
+  data.object_name = getNameFromFields(wobject.fields);
+  await sendNotification({
+    id: data.id,
+    data,
+  });
+};
+
+const getNameFromFields = (fields) => _
+  .chain(fields)
+  .filter((field) => field.name === 'name')
+  .sortBy('weight')
+  .first()
+  .value().body;
+
 module.exports = {
-  reblog, follow, reply, custom, post, restaurantStatus,
+  reblog, follow, reply, custom, post, restaurantStatus, rejectUpdate,
 };
