@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { Wobj } = require('models');
-const { restaurantStatus, custom } = require('utilities/notificationsApi/notificationsUtil');
+const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const { tagsParser } = require('utilities/restaurantTagsParser');
 
 
@@ -129,7 +129,7 @@ const update = async (author, permlink, authorPermlink, voter) => {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
     if (!_.get(voteData, 'weight') || voteData.weight > 0 || field.weight - voteData.weight < 0) return;
-    await custom({
+    await rejectUpdate({
       id: 'rejectUpdate', creator: field.creator, voter, author_permlink: authorPermlink, fieldName: field.name,
     });
   }
