@@ -36,21 +36,26 @@ const parse = async (operation, metadata, post) => {
   }
 };
 
-const createOrUpdatePost = async (data, postData) => {
+const createOrUpdatePost = async (data, postData, fromTTL) => {
   let result;
   if (!postData) {
     result = await postsUtil.getPost(data.author, data.permlink); // get post from steem api
   } else {
     result = { post: postData };
   }
-  if (result.steemError || !result.post || !result.post.author) return { error: result.steemError || `Post @${data.author}/${data.permlink} not found or was deleted!` };
+  if (result.steemError) return { error: result.steemError };
+  if ((!result.post || !result.post.author) && !fromTTL) {
+    return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 15);
+  } if ((!result.post || !result.post.author) && fromTTL) {
+    return { error: `Post @${data.author}/${data.permlink} not found or was deleted!` };
+  }
 
   Object.assign(result.post, data); // assign to post fields wobjects and app
 
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) return;
   // find post in DB
-  //
+
   const existing = await Post.findOne({
     author: _.get(data, 'guestInfo.userId', data.author),
     permlink: data.permlink,
@@ -93,4 +98,4 @@ const createOrUpdatePost = async (data, postData) => {
   return { updPost };
 };
 
-module.exports = { parse };
+module.exports = { parse, createOrUpdatePost };

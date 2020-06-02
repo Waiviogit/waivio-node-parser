@@ -17,15 +17,12 @@ const getRandomInt = (min, max) => {
 };
 
 
-exports.updateExpiredPostPost = async (postData) => {
-  const author = postData.split('/')[0];
-  const permlink = postData.split('/')[1];
-
+exports.updateExpiredPost = async (author, permlink) => {
   const { post: dbPost } = await Post.findOne({ author, permlink });
   if (!dbPost || !dbPost.author) return;
 
   const { post } = await postsUtil.getPost(dbPost.root_author, permlink);
   if (!post || !post.author || parseFloat(post.total_payout_value) === 0) return;
   const { result } = await Post.update(_.pick(post, ['author', 'permlink', 'total_payout_value', 'curator_payout_value']));
-  if (result) console.log(`Post ${postData} updated after 7 days`);
+  if (result) console.log(`Post ${author}/${permlink} updated after 7 days`);
 };
