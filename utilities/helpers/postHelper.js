@@ -17,10 +17,7 @@ const getRandomInt = (min, max) => {
 };
 
 
-exports.updateExpiredPostPost = async (postData) => {
-  const author = postData.split('/')[0];
-  const permlink = postData.split('/')[1];
-
+exports.updateExpiredPostPost = async (author, permlink) => {
   const { post: dbPost } = await Post.findOne({ author, permlink });
   if (!dbPost || !dbPost.author) return;
 
