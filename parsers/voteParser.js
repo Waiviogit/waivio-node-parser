@@ -120,9 +120,17 @@ const votesFormat = async (votesOps) => {
     if (_.get(response, 'type')) {
       voteOp.type = response.type;
       voteOp.root_wobj = response.root_wobj;
-      voteOp.wobjects = response.wobjects ? JSON.parse(response.wobjects) : [];
       voteOp.name = response.name;
       voteOp.guest_author = response.guest_author;
+      let wobjects;
+      if (voteOp.wobjects) {
+        try {
+          wobjects = JSON.parse(response.wobjects);
+        } catch (e) {
+          wobjects = [];
+        }
+      }
+      voteOp.wobjects = wobjects;
     }
   }
   await userHelper.checkAndCreateByArray(accounts);
