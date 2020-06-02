@@ -12,7 +12,7 @@ const expiredDataListener = async (chan, msg) => {
       await postHelper.updateExpiredPostPost(author, permlink);
       break;
     case 'expire-notFoundPost':
-      await postWithObjectsParser.createOrUpdatePost({ author, permlink });
+      await postWithObjectsParser.createOrUpdatePost({ author, permlink }, null, true);
       break;
     default:
       break;
