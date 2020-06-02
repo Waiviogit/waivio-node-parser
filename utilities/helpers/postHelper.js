@@ -24,5 +24,5 @@ exports.updateExpiredPost = async (author, permlink) => {
   const { post } = await postsUtil.getPost(dbPost.root_author, permlink);
   if (!post || !post.author || parseFloat(post.total_payout_value) === 0) return;
   const { result } = await Post.update(_.pick(post, ['author', 'permlink', 'total_payout_value', 'curator_payout_value']));
-  if (result) console.log(`Post ${postData} updated after 7 days`);
+  if (result) console.log(`Post ${author}/${permlink} updated after 7 days`);
 };
