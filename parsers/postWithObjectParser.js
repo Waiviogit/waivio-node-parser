@@ -49,9 +49,8 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   } if ((!result.post || !result.post.author) && fromTTL) {
     return { error: `Post @${data.author}/${data.permlink} not found or was deleted!` };
   }
-
   Object.assign(result.post, data); // assign to post fields wobjects and app
-
+  if (!data.wobjects) data.wobjects = addWobjectsToPost(data.json_metadata);
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) return;
   // find post in DB
@@ -96,6 +95,14 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     }
   }
   return { updPost };
+};
+
+const addWobjectsToPost = (metadata) => {
+  try {
+    return _.chain(JSON.parse(metadata)).get('wobj.wobjects', []).filter((w) => w.percent > 0 && w.percent <= 100).value();
+  } catch (error) {
+    return [];
+  }
 };
 
 module.exports = { parse, createOrUpdatePost };
