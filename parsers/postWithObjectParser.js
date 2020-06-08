@@ -10,7 +10,7 @@ const { User } = require('models');
 const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
 const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 
-const parse = async (operation, metadata, post) => {
+const parse = async (operation, metadata, post, fromTTL) => {
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
   if (userError) console.log(userError.message);
   // get info about guest account(if post had been written from "guest" through proxy bot)
@@ -24,7 +24,7 @@ const parse = async (operation, metadata, post) => {
     guestInfo,
   };
 
-  const result = await createOrUpdatePost(data, post);
+  const result = await createOrUpdatePost(data, post, fromTTL);
 
   if (_.get(result, 'error')) {
     console.error(result.error);
@@ -50,7 +50,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     return { error: `Post @${data.author}/${data.permlink} not found or was deleted!` };
   }
   Object.assign(result.post, data); // assign to post fields wobjects and app
-  if (!data.wobjects) data.wobjects = addWobjectsToPost(data.json_metadata);
+
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) return;
   // find post in DB
@@ -97,12 +97,5 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   return { updPost };
 };
 
-const addWobjectsToPost = (metadata) => {
-  try {
-    return _.chain(JSON.parse(metadata)).get('wobj.wobjects', []).filter((w) => w.percent > 0 && w.percent <= 100).value();
-  } catch (error) {
-    return [];
-  }
-};
 
 module.exports = { parse, createOrUpdatePost };

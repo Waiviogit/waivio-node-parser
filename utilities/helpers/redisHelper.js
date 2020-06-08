@@ -1,5 +1,6 @@
 const { redis } = require('utilities/redis');
 const postHelper = require('utilities/helpers/postHelper');
+const { postsUtil } = require('utilities/steemApi');
 const postWithObjectsParser = require('parsers/postWithObjectParser');
 
 
@@ -12,10 +13,23 @@ const expiredDataListener = async (chan, msg) => {
       await postHelper.updateExpiredPost(author, permlink);
       break;
     case 'expire-notFoundPost':
-      await postWithObjectsParser.createOrUpdatePost({ author, permlink }, null, true);
+      const { post } = await postsUtil.getPost(author, permlink);
+      const metadata = parseMetadata(post);
+      await postWithObjectsParser.parse({ author, permlink }, metadata, post, true);
       break;
     default:
       break;
+  }
+};
+
+const parseMetadata = (operation) => {
+  try {
+    if (operation.json_metadata !== '') {
+      return JSON.parse(operation.json_metadata); // parse json_metadata from string to JSON
+    }
+  } catch (e) {
+    console.error(e);
+    return '';
   }
 };
 
