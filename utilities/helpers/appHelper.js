@@ -29,7 +29,7 @@ const getProxyBots = async () => {
   const { app } = await App.getOne({ name: config.app });
   if (!app) return ['asd09'];
   const proxyBots = _.reduce(app.service_bots, (acc, item) => {
-    if (_.includes(item.roles, 'proxyBot')) acc.push(item.name);
+    if (_.intersection(item.roles, ['proxyBot', 'reviewBot']).length) acc.push(item.name);
     return acc;
   }, []);
   if (proxyBots.length) return proxyBots;
