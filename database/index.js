@@ -24,5 +24,6 @@ module.exports = {
     App: require('./schemas/AppSchema'),
     CommentRef: require('./schemas/CommentRefSchema'),
     Comment: require('./schemas/CommentSchema'),
+    Subscriptions: require('./schemas/SubscriptionSchema'),
   },
 };
