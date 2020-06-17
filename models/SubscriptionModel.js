@@ -7,10 +7,7 @@ const followUser = async ({ follower, following }) => {
   });
 
   try {
-    const result = await newSubscribe.save();
-    if (!result) {
-      return { result: false };
-    }
+    await newSubscribe.save();
     return { result: true };
   } catch (error) {
     return { error };
