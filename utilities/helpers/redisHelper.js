@@ -15,7 +15,9 @@ const expiredDataListener = async (chan, msg) => {
     case 'expire-notFoundPost':
       const { post } = await postsUtil.getPost(author, permlink);
       const metadata = parseMetadata(post);
-      await postWithObjectsParser.parse({ author, permlink }, metadata, post, true);
+      await postWithObjectsParser.parse({
+        author, permlink, json_metadata: post.json_metadata, body: post.body,
+      }, metadata, post, true);
       break;
     default:
       break;

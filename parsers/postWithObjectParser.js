@@ -21,6 +21,8 @@ const parse = async (operation, metadata, post, fromTTL) => {
     wobjects: _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent > 0 && w.percent <= 100).value(),
     app: _.isString(metadata.app) ? metadata.app : '',
     author_weight: _.get(user, 'wobjects_weight'),
+    json_metadata: operation.json_metadata,
+    body: operation.body,
     guestInfo,
   };
 
