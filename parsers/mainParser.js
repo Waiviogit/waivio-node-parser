@@ -1,5 +1,6 @@
 const {
-  customJsonParser, commentParser, voteParser, userParsers, witnessVoteParser, transferParser, withdrawParser,
+  customJsonParser, commentParser, voteParser, userParsers,
+  witnessVoteParser, transferParser, withdrawParser, recoveryParser,
 } = require('parsers');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
@@ -43,6 +44,12 @@ const parseSwitcher = async (transactions) => {
               break;
             case 'transfer_to_vesting':
               await transferParser.parseVesting(operation[1]);
+              break;
+            case 'change_recovery_account':
+              await recoveryParser.parse(operation[1]);
+              break;
+            case 'transfer_from_savings':
+              await transferParser.parseSavings(operation[1]);
               break;
           }
         } else if (operation[0] === 'vote') {
