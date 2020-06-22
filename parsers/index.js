@@ -9,6 +9,7 @@ module.exports = {
   objectTypeParser: require('./objectTypeParser'),
   transferParser: require('./transferParser'),
   withdrawParser: require('./withdrawParser'),
+  recoveryParser: require('./recoveryParser'),
   commentParser: require('./commentParser'),
   userParsers: require('./userParsers'),
   voteParser: require('./voteParser'),

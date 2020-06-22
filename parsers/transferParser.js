@@ -8,4 +8,8 @@ const parseVesting = async (operation) => {
   await notificationsUtil.custom(Object.assign(operation, { id: 'transfer_to_vesting' }));
 };
 
-module.exports = { parse, parseVesting };
+const parseSavings = async (operation) => {
+  await notificationsUtil.custom(Object.assign(operation, { id: 'transfer_from_savings' }));
+};
+
+module.exports = { parse, parseVesting, parseSavings };
