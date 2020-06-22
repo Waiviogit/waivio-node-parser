@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 exports.parse = async (operation) => {
