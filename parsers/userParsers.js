@@ -3,6 +3,9 @@ const { User, Post } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 exports.updateAccountParser = async (operation) => {
+  if (operation.account && operation.owner && operation.active && operation.posting && operation.memo_key) {
+    await notificationsUtil.custom({ account: operation.account, id: 'changePassword' });
+  }
   if (operation.account && (operation.json_metadata || operation.posting_json_metadata)) {
     let parsedMetadata, parsedPostingMetadata;
 

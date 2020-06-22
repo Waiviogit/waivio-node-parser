@@ -38,6 +38,12 @@ const parseSwitcher = async (transactions) => {
             case 'withdraw_vesting':
               await withdrawParser.parse(operation[1]);
               break;
+            case 'set_withdraw_vesting_route':
+              await withdrawParser.withdrawRoutesParse(operation[1]);
+              break;
+            case 'transfer_to_vesting':
+              await transferParser.parseVesting(operation[1]);
+              break;
           }
         } else if (operation[0] === 'vote') {
           votesOps.push(operation[1]);
