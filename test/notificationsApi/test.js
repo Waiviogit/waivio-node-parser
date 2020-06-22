@@ -85,17 +85,17 @@ describe('On notificationsApi', async () => {
       await notificationsUtil.restaurantStatus(mock.data, mock.restaurant.author_permlink);
       expect(axios.post).to.be.calledOnceWith(URL, { id: 'restaurantStatus', block: blockNum, data: mock.data }, { headers: { API_KEY: process.env.API_KEY } });
     });
-    it('should not send notifications if status exist and no voter in params', async () => {
+    it('should send notifications if status and voter not exists', async () => {
       const mock = await mocks.restaurantMock({
         objectName, status: 'relisted', expert,
       });
       await notificationsUtil.restaurantStatus(mock.data, mock.restaurant.author_permlink);
-      expect(axios.post).to.be.not.called;
+      expect(axios.post).to.be.calledOnce;
     });
-    it('should send notifications if status and voter not exists', async () => {
+    it('should not send notifications if status exist and no voter in params', async () => {
       const mock = await mocks.restaurantMock({ objectName, expert });
       await notificationsUtil.restaurantStatus(mock.data, mock.restaurant.author_permlink);
-      expect(axios.post).to.be.calledOnce;
+      expect(axios.post).to.be.not.called;
     });
     it('should not send notifications if wobject not exists', async () => {
       const mock = await mocks.restaurantMock({ objectName, expert });
