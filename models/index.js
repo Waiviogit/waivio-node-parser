@@ -7,4 +7,5 @@ module.exports = {
   CommentRef: require('./CommentRef'),
   CommentModel: require('./CommentModel'),
   UserWobjects: require('./UserWobjectsModel'),
+  Subscriptions: require('./SubscriptionModel'),
 };
