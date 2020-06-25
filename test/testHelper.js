@@ -1,5 +1,6 @@
 const {
   Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel, CommentModel,
+  Subscriptions: SubscriptionModel,
 } = require('models');
 const wobjectOperations = require('utilities/tasks/appendWobjectFields/wobjectsOperations');
 const chai = require('chai');
@@ -34,6 +35,7 @@ module.exports = {
   ...require('parsers'),
   sinon: require('sinon'),
   wobjectOperations,
+  SubscriptionModel,
   ObjectTypeModel,
   dropDatabase,
   CommentModel,

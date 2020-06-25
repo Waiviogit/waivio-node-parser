@@ -95,7 +95,7 @@ const voteOnPost = async ({ vote }) => {
     post.active_votes.push({ voter: vote.voter, percent: vote.weight, rshares: 1 });
 
     let metadata;
-    if (post.json_metadata !== '') {
+    if (post.json_metadata) {
       metadata = parseJson(post.json_metadata);
       if (!_.get(metadata, 'wobj')) metadata.wobj = { wobjects: vote.wobjects };
     }

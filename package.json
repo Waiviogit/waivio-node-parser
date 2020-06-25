@@ -13,6 +13,7 @@
     "createMissedUsers": "NODE_PATH=. node ./utilities/tasks/checkAndCreateSteemUsers/run.js",
     "fillWobjectNames": "node ./utilities/tasks/fillWobjectNames/run.js",
     "appendEmptyWobjFields": "node ./utilities/tasks/appendWobjectFields/run.js && node ./utilities/tasks/fillWobjectNames/run.js ",
+    "checkWobjectParent": "node ./utilities/tasks/checkWobjectParent/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },

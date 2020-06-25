@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { User, Post } = require('models');
+const { User, Post, Subscriptions } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 exports.updateAccountParser = async (operation) => {
@@ -80,6 +80,7 @@ exports.followUserParser = async (operation) => {
     if (_.get(json, '[1].what[0]') === 'blog' // if field "what" present - it's follow on user
         && (follower && !_.includes(follower.users_follow, json[1].following))) {
       const { result } = await User.addUserFollow(json[1]);
+      await Subscriptions.followUser(json[1]);
       if (result) {
         await notificationsUtil.follow(json[1]);
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
@@ -87,6 +88,7 @@ exports.followUserParser = async (operation) => {
     } else if (_.get(json, '[1].what[0]') !== 'blog' // else if missing - unfollow
         && (follower && _.includes(follower.users_follow, json[1].following))) {
       const { result } = await User.removeUserFollow(json[1]);
+      await Subscriptions.unfollowUser(json[1]);
       if (result) {
         console.log(`User ${json[1].follower} now unfollow user ${json[1].following} !`);
       }

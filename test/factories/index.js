@@ -8,4 +8,5 @@ module.exports = {
   AppendObject: require('./AppendObject/AppendObjectFactory'),
   AppFactory: require('./App/AppFactory'),
   userWobjectFactory: require('./UserWobject/UserWobjectFactory'),
+  SubscriptionsFactory: require('./Subscriptions/SubscriptionsFactory'),
 };
