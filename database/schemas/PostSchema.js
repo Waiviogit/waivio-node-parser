@@ -11,8 +11,12 @@ const PostSchema = new Schema({
   parent_author: { type: String, default: '' },
   parent_permlink: { type: String, default: '' },
   title: { type: String, default: '' },
-  body: { type: String, default: '' },
-  json_metadata: { type: String, default: '' },
+  body: {
+    type: String, default: '', allow: '', required: true,
+  },
+  json_metadata: {
+    type: String, default: '', allow: '', required: true,
+  },
   app: { type: String },
   depth: { type: Number },
   category: { type: String },
