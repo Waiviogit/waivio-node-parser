@@ -73,6 +73,7 @@ const validateSpecifiedFields = async (data) => {
     case 'parent':
       const { wobject: parentWobject } = await Wobj.getOne({ author_permlink: data.field.body });
       if (!parentWobject) throw new Error(`Can't append parent ${data.field.body}, wobject should exist`);
+      if (data.author_permlink === data.field.body) throw new Error(`Can't append parent ${data.field.body}, wobject cannot be a parent to itself`);
       break;
     case 'newsFilter':
       let newsFilter;
