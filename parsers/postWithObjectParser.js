@@ -9,8 +9,11 @@ const { Post, Wobj } = require('models');
 const { User } = require('models');
 const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
 const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
+const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 
 const parse = async (operation, metadata, post, fromTTL) => {
+  if (!(await checkAppBlacklistValidity(metadata))) return;
+
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
   if (userError) console.log(userError.message);
   // get info about guest account(if post had been written from "guest" through proxy bot)
@@ -41,7 +44,7 @@ const parse = async (operation, metadata, post, fromTTL) => {
 const createOrUpdatePost = async (data, postData, fromTTL) => {
   let result;
   if (!postData) {
-    result = await postsUtil.getPost(data.author, data.permlink); // get post from steem api
+    result = await postsUtil.getPost(data.author, data.permlink); // get post from hive api
   } else {
     result = { post: postData };
   }
@@ -49,7 +52,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   if ((!result.post || !result.post.author) && !fromTTL) {
     return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 15);
   } if ((!result.post || !result.post.author) && fromTTL) {
-    return { error: `Post @${data.author}/${data.permlink} not found or was deleted!` };
+    return { error: `[createOrUpdatePost] Post @${data.author}/${data.permlink} not found or was deleted!` };
   }
   Object.assign(result.post, data); // assign to post fields wobjects and app
 
