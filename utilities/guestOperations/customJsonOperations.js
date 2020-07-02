@@ -148,7 +148,7 @@ const findOrCreatePost = async ({ author, permlink }) => {
   const { post, err } = await postsUtil.getPost(author, permlink);
   if (err) return { err };
   if (!post || !post.author) {
-    const errorMessage = `Trying vote on not existing post in steem: @${author}/${permlink}`;
+    const errorMessage = `[findOrCreatePost] Trying vote on not existing post in hive: @${author}/${permlink}`;
     console.error(errorMessage);
     return { err: errorMessage };
   }
@@ -161,7 +161,7 @@ const findOrCreatePost = async ({ author, permlink }) => {
     if (dbPost) return { post: dbPost };
 
     const { post: newPost, error: parsePostError } = await postWithObjectParser
-      .parse({ author, permlink }, parseJson(post.json_metadata));
+      .parse(_.pick(post, ['author', 'permlink', 'body', 'json_metadata']), parseJson(post.json_metadata));
 
     if (parsePostError) return { err: parsePostError };
     return { post: newPost };
