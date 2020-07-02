@@ -62,7 +62,7 @@ const voteAppendObject = async (data) => {
   if (!currentVote) {
     const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
     if (voteError || !vote) {
-      console.error(error || `Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
+      console.error(error || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
     } else {
       currentVote = vote;
     }
@@ -148,7 +148,7 @@ const tryReserveVote = async (author, permlink, voter, times = 10) => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
-  return { error: { message: `Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
+  return { error: { message: `[tryReserveVote]Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
 };
 
 module.exports = { parse, votesFormat };
