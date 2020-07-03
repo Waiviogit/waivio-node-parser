@@ -136,6 +136,7 @@ const parseJson = (json) => {
     return JSON.parse(json);
   } catch (error) {
     console.error(error);
+    return {};
   }
 };
 
