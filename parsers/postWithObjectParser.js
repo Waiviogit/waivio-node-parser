@@ -12,7 +12,7 @@ const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 
 const parse = async (operation, metadata, post, fromTTL) => {
-  if (!(await checkAppBlacklistValidity(metadata))) return;
+  if (!(await checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
 
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
   if (userError) console.log(userError.message);
