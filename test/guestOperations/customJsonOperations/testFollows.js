@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, followObjectParser, userParsers, User, appHelper, userHelper, UserModel,
+  expect, sinon, faker, followObjectParser, userParsers, User, appHelper, userHelper, UserModel, Subscriptions,
 } = require('test/testHelper');
 const { followUser, followWobject } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, ObjectFactory } = require('test/factories');
@@ -34,17 +34,17 @@ describe('customJsonOperations', async () => {
       sinon.restore();
     });
     describe('On unfollowUser', async () => {
-      let followerBeforeUpd;
       beforeEach(async () => {
         await followUser(validOp);
-        followerBeforeUpd = await User.findOne({ name: follower.name });
         validOp.required_posting_auths = [mockListBots[0]];
         validOp.json = JSON.stringify(['follow', { follower: follower.name, following: following.name, what: [] }]);
         await followUser(validOp);
       });
       it('should remove follower from following', async () => {
-        const user = await User.findOne({ name: follower.name });
-        expect(user.users_follow).to.not.deep.eq(followerBeforeUpd.users_follow);
+        const user = await Subscriptions.findOne(
+          { follower: follower.name, following: following.name },
+        );
+        expect(user).to.be.null;
       });
       it('should decrease follower counters', async () => {
         const user = await User.findOne({ name: following.name });
@@ -64,8 +64,10 @@ describe('customJsonOperations', async () => {
         expect(userParsers.followUserParser).to.be.calledOnce;
       });
       it('should submit follow for follower', async () => {
-        const user = await User.findOne({ name: follower.name });
-        expect(user.users_follow).to.include(following.name);
+        const result = await Subscriptions.findOne(
+          { follower: follower.name, following: following.name },
+        );
+        expect(result).to.be.exist;
       });
       it('should not call follow method if follower user_follow list includes following', async () => {
         sinon.spy(UserModel, 'addUserFollow');

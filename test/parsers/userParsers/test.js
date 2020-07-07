@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase,
+  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions,
 } = require('test/testHelper');
 const { UserFactory, PostFactory } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
@@ -156,8 +156,8 @@ describe('UserParsers', async () => {
         });
       });
       it('should add user to follow list', async () => {
-        const user = await User.findOne({ name: usr.name }).lean();
-        expect(user.users_follow).to.include(following);
+        const result = await Subscriptions.findOne({ follower: usr.name, following }).lean();
+        expect(result).to.be.exist;
       });
       it('should increase follower counters at following user', async () => {
         const user = await User.findOne({ name: following }).lean();
@@ -168,8 +168,8 @@ describe('UserParsers', async () => {
         expect(user.followers_count).to.be.eq(0);
       });
       it('should remove user from follow list', async () => {
-        const user = await User.findOne({ name: usr2.name }).lean();
-        expect(user.users_follow).to.be.empty;
+        const result = await Subscriptions.find({ follower: usr2.name }).lean();
+        expect(result).to.be.empty;
       });
     });
 

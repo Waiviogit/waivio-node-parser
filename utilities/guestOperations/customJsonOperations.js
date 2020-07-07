@@ -11,7 +11,7 @@ const voteParser = require('parsers/voteParser');
 exports.followUser = async (operation) => {
   if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
-    if (!json) return;
+    if (!json || _.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, '[1].follower')];
     await userParsers.followUserParser(operation);
@@ -21,7 +21,7 @@ exports.followUser = async (operation) => {
 exports.reblogPost = async (operation) => {
   if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
-    if (!json) return;
+    if (!json || _.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, '[1].account')];
     await userParsers.followUserParser(operation);
@@ -31,7 +31,7 @@ exports.reblogPost = async (operation) => {
 exports.followWobject = async (operation) => {
   if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
-    if (!json) return;
+    if (!json || _.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, '[1].user')];
     await followObjectParser.parse(operation);
@@ -41,7 +41,7 @@ exports.followWobject = async (operation) => {
 exports.guestVote = async (operation) => {
   if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
-    if (!json) return;
+    if (!json || _.isEmpty(json)) return;
 
     const [vote] = await voteParser.votesFormat([json]);
     if (vote.type === 'post_with_wobj' || !vote.type) {
@@ -55,7 +55,7 @@ exports.guestVote = async (operation) => {
 exports.accountUpdate = async (operation) => {
   if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
     const json = parseJson(operation.json);
-    if (!json) return;
+    if (!json || _.isEmpty(json)) return;
     await userParsers.updateAccountParser(json);
   }
 };
@@ -135,7 +135,7 @@ const parseJson = (json) => {
   try {
     return JSON.parse(json);
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     return {};
   }
 };

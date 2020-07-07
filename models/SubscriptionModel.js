@@ -26,7 +26,28 @@ const unfollowUser = async ({ follower, following }) => {
   }
 };
 
+const getFollowers = async ({ following }) => {
+  try {
+    const result = await Subscriptions.find({ following }).select('follower').lean();
+    return { users: result.map((el) => el.follower) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const getFollowings = async ({ follower }) => {
+  try {
+    const result = await Subscriptions.find({ follower }).select('following').lean();
+    return { users: result.map((el) => el.following) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+
 module.exports = {
   followUser,
   unfollowUser,
+  getFollowers,
+  getFollowings,
 };
