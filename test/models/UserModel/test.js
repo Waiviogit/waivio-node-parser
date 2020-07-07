@@ -89,63 +89,6 @@ describe('User Model', async () => {
       expect(result.error).is.exist;
     });
   });
-  describe('On addUserFollow', async () => {
-    let follower,
-      following,
-      updFollower;
-    beforeEach(async () => {
-      follower = await UserFactory.Create();
-      following = await UserFactory.Create();
-      await UserModel.addUserFollow({
-        follower: follower.user.name, following: following.user.name,
-      });
-      updFollower = await User.findOne({ name: follower.user.name });
-    });
-    it('should users_follow contains following name', async () => {
-      expect(updFollower._doc.users_follow).to.contain(following.user.name);
-    });
-    it('should check users_follow contains only one and correct user', async () => {
-      expect(updFollower.users_follow).to.deep.eq([following.user.name]);
-    });
-    it('should return error with incorrect data', async () => {
-      updFollower = await UserModel.addUserFollow({
-        follower: { user: faker.random.string() }, following,
-      });
-      expect(updFollower.error).is.exist;
-    });
-  });
-  describe('On removeUserFollow', async () => {
-    let follower, followings, followingUser;
-    beforeEach(async () => {
-      await dropDatabase();
-      followingUser = (await UserFactory.Create()).user;
-      followings = [followingUser.name];
-      follower = (await UserFactory.Create({ users_follow: followings })).user;
-    });
-    it('should users_follow length bigger then 0', async () => {
-      expect(follower.users_follow.length > 0).is.true;
-    });
-    it('should user_follow removed successfully', async () => {
-      await UserModel.removeUserFollow({ follower: follower.name, following: followings[0] });
-      const result = await User.findOne({ name: follower.name });
-      expect(result._doc.users_follow).to.not.contain(followings[0]);
-    });
-    it('should user_follow is empty', async () => {
-      await UserModel.removeUserFollow({ follower: follower.name, following: followings[0] });
-      const result = await User.findOne({ name: follower.name });
-      expect(result._doc.users_follow).is.empty;
-    });
-    it('should get error with incorrect following', async () => {
-      const result = await UserModel.removeUserFollow({ follower: follower.name, followings });
-      expect(result.error).is.exist;
-    });
-    it('should get error with incorrect data', async () => {
-      const result = await UserModel.removeUserFollow({
-        follower: { user: faker.random.string() }, followings,
-      });
-      expect(result.error).is.exist;
-    });
-  });
   describe('On addObjectFollow', async () => {
     let mockObject,
       result,

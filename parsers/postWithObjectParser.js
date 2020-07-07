@@ -54,6 +54,9 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   } if ((!result.post || !result.post.author) && fromTTL) {
     return { error: `[createOrUpdatePost] Post @${data.author}/${data.permlink} not found or was deleted!` };
   }
+
+  if (!data.body) data.body = result.post.body;
+  if (!data.json_metadata) data.json_metadata = result.post.json_metadata;
   Object.assign(result.post, data); // assign to post fields wobjects and app
 
   // validate post data

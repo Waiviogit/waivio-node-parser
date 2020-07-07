@@ -57,19 +57,10 @@ const addUserFollow = async ({ follower, following, isUnfollow = false }) => {
       { name: following },
       { $inc: { followers_count: isUnfollow ? -1 : 1 } },
     );
+    await UserModel.updateOne({ name: follower },
+      { $inc: { users_following_count: isUnfollow ? -1 : 1 } });
+
     if (!_.get(followingUpdResult, 'n')) return { result: false };
-
-    // update Follower user
-    // remove from users_follow on "unfollow"
-    // and add to users_follow on "follow"
-    const followerUpdate = isUnfollow
-      ? { $pull: { users_follow: following } }
-      : { $addToSet: { users_follow: following } };
-    const res = await UserModel.updateOne({ name: follower }, followerUpdate);
-
-    if (!res || !res.n) {
-      return { result: false };
-    }
 
     return { result: true };
   } catch (error) {
