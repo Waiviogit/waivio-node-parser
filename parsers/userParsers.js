@@ -71,6 +71,10 @@ exports.followUserParser = async (operation) => {
     console.error('Can\'t follow(reblog), follower(account) and author of operation are different');
     return;
   }
+  if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].what') && _.get(json, '[1].follower') === _.get(json, '[1].following')) {
+    console.error('Can\'t follow, follower and following are the same');
+    return;
+  }
 
   if (_.get(json, '[0]') === 'reblog') {
     await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
