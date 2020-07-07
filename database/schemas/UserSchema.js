@@ -55,6 +55,7 @@ const UserSchema = new Schema({
   last_posts_counts_by_hours: { type: [Number], default: [] },
   user_metadata: { type: UserMetadataSchema, default: () => ({}), select: false },
   last_root_post: { type: String, default: null },
+  users_following_count: { type: Number, default: 0 },
   followers_count: { type: Number, default: 0 },
   stage_version: { type: Number, default: 0, required: true },
 }, { timestamps: true });
