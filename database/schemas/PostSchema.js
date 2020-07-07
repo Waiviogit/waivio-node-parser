@@ -12,10 +12,10 @@ const PostSchema = new Schema({
   parent_permlink: { type: String, default: '' },
   title: { type: String, default: '' },
   body: {
-    type: String, default: '', allow: '', required: true,
+    type: String, default: '', allow: '',
   },
   json_metadata: {
-    type: String, default: '', allow: '', required: true,
+    type: String, default: '', allow: '',
   },
   app: { type: String },
   depth: { type: Number },

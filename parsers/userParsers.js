@@ -80,9 +80,9 @@ exports.followUserParser = async (operation) => {
     await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
-    const { user: follower } = await User.findOne(json[1].follower);
+    const { users: followers } = await Subscriptions.getFollowings({ follower: json[1].follower });
     if (_.get(json, '[1].what[0]') === 'blog' // if field "what" present - it's follow on user
-        && (follower && !_.includes(follower.users_follow, json[1].following))) {
+        && (followers && !_.includes(followers, json[1].following))) {
       const { result } = await User.addUserFollow(json[1]);
       await Subscriptions.followUser(json[1]);
       if (result) {
@@ -90,7 +90,7 @@ exports.followUserParser = async (operation) => {
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
     } else if (_.get(json, '[1].what[0]') !== 'blog' // else if missing - unfollow
-        && (follower && _.includes(follower.users_follow, json[1].following))) {
+        && (followers && _.includes(followers, json[1].following))) {
       const { result } = await User.removeUserFollow(json[1]);
       await Subscriptions.unfollowUser(json[1]);
       if (result) {
@@ -117,6 +117,8 @@ exports.reblogPostParser = async ({ json, account }) => {
           author: _.get(json, '[1].author'), // author of source post
           permlink: _.get(json, '[1].permlink'), // permlink of source post
         },
+        body: '',
+        json_metadata: '',
         ..._.pick(post, ['language', 'wobjects', 'id']),
       });
 
