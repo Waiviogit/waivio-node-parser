@@ -78,6 +78,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     );
     await setExpiredPostTTL('hivePost', `${_.get(data, 'guestInfo.userId', data.author)}/${data.permlink}`, 605000);
   } else {
+    result.post.active_votes = [...existing.post.active_votes];
     result.post.active_votes = result.post.active_votes.map((vote) => ({
       voter: vote.voter,
       weight: Math.round(vote.rshares * 1e-6),
@@ -104,6 +105,5 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   }
   return { updPost };
 };
-
 
 module.exports = { parse, createOrUpdatePost };
