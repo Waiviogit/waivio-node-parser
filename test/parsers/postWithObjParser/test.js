@@ -71,11 +71,10 @@ describe('postWithObjectParser', async () => {
         const res = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
         expect(res).to.exist;
       });
-      it('should not add wobjects with zero percent to metadata', async () => {
+      it('should add wobjects with zero percent to metadata', async () => {
         let post = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
         post = post.toObject();
-        expect(post.wobjects.map((i) => ({ author_permlink: i.author_permlink, percent: i.percent })))
-          .to.deep.eq([{ author_permlink: mockWobj.author_permlink, percent: 100 }]);
+        expect(post.wobjects).to.have.length(2);
       });
     });
 
