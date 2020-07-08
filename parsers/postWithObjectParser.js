@@ -21,7 +21,7 @@ const parse = async (operation, metadata, post, fromTTL) => {
   const data = {
     author: operation.author,
     permlink: operation.permlink,
-    wobjects: _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent > 0 && w.percent <= 100).value(),
+    wobjects: _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent >= 0 && w.percent <= 100).value(),
     app: _.isString(metadata.app) ? metadata.app : '',
     author_weight: _.get(user, 'wobjects_weight'),
     json_metadata: operation.json_metadata,
@@ -78,6 +78,10 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     );
     await setExpiredPostTTL('hivePost', `${_.get(data, 'guestInfo.userId', data.author)}/${data.permlink}`, 605000);
   } else {
+    const hiveVoters = _.map(result.post.active_votes, (el) => el.voter);
+    _.forEach(existing.post.active_votes, (el) => {
+      if (!_.includes(hiveVoters, el.voter)) result.post.active_votes.push(el);
+    });
     result.post.active_votes = result.post.active_votes.map((vote) => ({
       voter: vote.voter,
       weight: Math.round(vote.rshares * 1e-6),
@@ -104,6 +108,5 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   }
   return { updPost };
 };
-
 
 module.exports = { parse, createOrUpdatePost };

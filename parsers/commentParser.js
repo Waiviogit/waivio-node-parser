@@ -32,19 +32,29 @@ const parse = async (operation) => { // data is operation[1] of transaction in b
   }
 };
 
-const postSwitcher = async ({ operation, metadata }) => {
+const postSwitcher = async ({
+  operation, metadata, post, fromTTL = false,
+}) => {
   if (_.get(metadata.wobj, 'action') === 'createObjectType') {
     // case if user add wobjects when create post
     await objectTypeParser.parse(operation, metadata); // create new Object Type
+  } else if (_.isArray(_.get(metadata, 'wobj.wobjects'))
+      && !_.isEmpty(_.get(metadata, 'wobj.wobjects')) && _.get(metadata, 'tags', []).length) {
+    let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
+    const wobj = metadata.wobj.wobjects;
+    tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
+    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
+    metadata.wobj = { wobjects: wobj || [] };
+    return postWithObjectsParser.parse(operation, metadata, post, fromTTL);
   } else if (_.isArray(_.get(metadata, 'wobj.wobjects')) && !_.isEmpty(_.get(metadata, 'wobj.wobjects'))) {
     // create post with wobjects in database
-    await postWithObjectsParser.parse(operation, metadata);
+    await postWithObjectsParser.parse(operation, metadata, post, fromTTL);
   } else {
     // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
     const wobjects = await postByTagsHelper.wobjectsByTags(_.get(metadata, 'tags', []));
 
     metadata.wobj = { wobjects: wobjects || [] };
-    await postWithObjectsParser.parse(operation, metadata);
+    await postWithObjectsParser.parse(operation, metadata, post, fromTTL);
   }
 };
 
@@ -70,4 +80,4 @@ const commentSwitcher = async ({ operation, metadata }) => {
   await updatePostAfterComment.updateCounters(operation.author, operation.permlink);
 };
 
-module.exports = { parse };
+module.exports = { parse, postSwitcher };
