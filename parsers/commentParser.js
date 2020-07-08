@@ -36,6 +36,14 @@ const postSwitcher = async ({ operation, metadata }) => {
   if (_.get(metadata.wobj, 'action') === 'createObjectType') {
     // case if user add wobjects when create post
     await objectTypeParser.parse(operation, metadata); // create new Object Type
+  } else if (_.isArray(_.get(metadata, 'wobj.wobjects'))
+      && !_.isEmpty(_.get(metadata, 'wobj.wobjects')) && _.get(metadata, 'tags', []).length) {
+    let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
+    const wobj = metadata.wobj.wobjects;
+    tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
+    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, weight: 0 }));
+    metadata.wobj = { wobjects: wobj || [] };
+    return postWithObjectsParser.parse(operation, metadata);
   } else if (_.isArray(_.get(metadata, 'wobj.wobjects')) && !_.isEmpty(_.get(metadata, 'wobj.wobjects'))) {
     // create post with wobjects in database
     await postWithObjectsParser.parse(operation, metadata);
