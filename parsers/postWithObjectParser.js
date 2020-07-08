@@ -78,7 +78,10 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     );
     await setExpiredPostTTL('hivePost', `${_.get(data, 'guestInfo.userId', data.author)}/${data.permlink}`, 605000);
   } else {
-    result.post.active_votes = [...existing.post.active_votes];
+    const hiveVoters = _.map(result.post.active_votes, (el) => el.voter);
+    _.forEach(existing.post.active_votes, (el) => {
+      if (!_.includes(hiveVoters, el.voter)) result.post.active_votes.push(el);
+    });
     result.post.active_votes = result.post.active_votes.map((vote) => ({
       voter: vote.voter,
       weight: Math.round(vote.rshares * 1e-6),
