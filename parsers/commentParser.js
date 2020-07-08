@@ -41,7 +41,7 @@ const postSwitcher = async ({ operation, metadata }) => {
     let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
     const wobj = metadata.wobj.wobjects;
     tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
-    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, weight: 0 }));
+    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
     metadata.wobj = { wobjects: wobj || [] };
     return postWithObjectsParser.parse(operation, metadata);
   } else if (_.isArray(_.get(metadata, 'wobj.wobjects')) && !_.isEmpty(_.get(metadata, 'wobj.wobjects'))) {
