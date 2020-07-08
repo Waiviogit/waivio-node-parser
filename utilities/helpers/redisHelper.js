@@ -1,7 +1,7 @@
 const { redis } = require('utilities/redis');
 const postHelper = require('utilities/helpers/postHelper');
 const { postsUtil } = require('utilities/steemApi');
-const postWithObjectsParser = require('parsers/postWithObjectParser');
+const commentParser = require('parsers/commentParser');
 
 
 const expiredDataListener = async (chan, msg) => {
@@ -17,9 +17,15 @@ const expiredDataListener = async (chan, msg) => {
       if (err) return console.error(err.message);
       if (!post.author || !post.body) return console.log(`Post @${author}/${permlink} not found or was deleted!`);
       const metadata = parseMetadata(post);
-      await postWithObjectsParser.parse({
-        author, permlink, json_metadata: post.json_metadata, body: post.body,
-      }, metadata, post, true);
+      if (!metadata) return;
+      await commentParser.postSwitcher({
+        operation: {
+          author, permlink, json_metadata: post.json_metadata, body: post.body,
+        },
+        metadata,
+        post,
+        fromTTL: true,
+      });
       break;
     default:
       break;
