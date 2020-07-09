@@ -39,9 +39,13 @@ const wobjectsByTags = async (tags) => {
 };
 
 const getWobjectsFromMetadata = async ({ metadata } = {}) => {
-  let wobjects = _.get(metadata, 'wobj.wobjects');
+  let wobjects = _.get(metadata, 'wobj.wobjects', []);
+
   if (_.isEmpty(wobjects)) {
     wobjects = await wobjectsByTags(_.get(metadata, 'tags'));
+  } else {
+    _.forEach(_.get(metadata, 'tags', []),
+      (tag) => wobjects.push({ author_permlink: tag, percent: 0 }));
   }
   return wobjects;
 };

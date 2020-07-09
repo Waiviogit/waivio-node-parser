@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { detectPostLanguageHelper, postHelper } = require('utilities/helpers');
+const { detectPostLanguageHelper, postHelper, postByTagsHelper } = require('utilities/helpers');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const { commentRefSetter } = require('utilities/commentRefService');
 const { postWithWobjValidator } = require('validator');
@@ -13,6 +13,20 @@ const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 
 const parse = async (operation, metadata, post, fromTTL) => {
   if (!(await checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
+
+  if (_.isArray(_.get(metadata, 'wobj.wobjects'))
+      && !_.isEmpty(_.get(metadata, 'wobj.wobjects')) && _.get(metadata, 'tags', []).length) {
+    let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
+    const wobj = metadata.wobj.wobjects;
+    tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
+    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
+    metadata.wobj = { wobjects: wobj || [] };
+  } else if (_.isArray(_.get(metadata, 'wobj.wobjects'))
+      && !_.isEmpty(_.get(metadata, 'wobj.wobjects')) && _.get(metadata, 'tags', []).length) {
+    // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
+    const wobjects = await postByTagsHelper.wobjectsByTags(_.get(metadata, 'tags', []));
+    metadata.wobj = { wobjects: wobjects || [] };
+  }
 
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
   if (userError) console.log(userError.message);
