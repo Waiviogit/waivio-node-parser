@@ -86,7 +86,7 @@ const votePostWithObjects = async (data) => {
     console.error(e);
   }
   if (!metadata) return;
-  if (!metadata.wobj) {
+  if (!_.get(metadata, 'wobj.wobjects', []).length) {
     metadata.wobj = { wobjects: data.wobjects };
   }
   data.metadata = metadata;
