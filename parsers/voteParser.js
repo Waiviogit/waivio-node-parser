@@ -123,7 +123,7 @@ const votesFormat = async (votesOps) => {
       voteOp.name = response.name;
       voteOp.guest_author = response.guest_author;
       let wobjects;
-      if (voteOp.wobjects) {
+      if (response) {
         try {
           wobjects = JSON.parse(response.wobjects);
         } catch (e) {
