@@ -15,19 +15,21 @@ const expiredDataListener = async (chan, msg) => {
       }
       break;
     case 'expire-notFoundPost':
-      const { post, err } = await postsUtil.getPost(author, permlink);
-      if (err) return console.error(err.message);
-      if (!post.author || !post.body) return console.log(`Post @${author}/${permlink} not found or was deleted!`);
-      const metadata = parseMetadata(post);
-      if (!metadata) return;
-      await commentParser.postSwitcher({
-        operation: {
-          author, permlink, json_metadata: post.json_metadata, body: post.body,
-        },
-        metadata,
-        post,
-        fromTTL: true,
-      });
+      if (!process.env.PARSE_ONLY_VOTES) {
+        const { post, err } = await postsUtil.getPost(author, permlink);
+        if (err) return console.error(err.message);
+        if (!post.author || !post.body) return console.log(`Post @${author}/${permlink} not found or was deleted!`);
+        const metadata = parseMetadata(post);
+        if (!metadata) return;
+        await commentParser.postSwitcher({
+          operation: {
+            author, permlink, json_metadata: post.json_metadata, body: post.body,
+          },
+          metadata,
+          post,
+          fromTTL: true,
+        });
+      }
       break;
     default:
       break;
