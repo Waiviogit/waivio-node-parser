@@ -22,7 +22,7 @@ exports.getCommentRef = async (commentPath) => {
   } else if (_.get(mongoResult, 'commentRef.type')) {
     switch (mongoResult.commentRef.type) {
       case COMMENT_REF_TYPES.postWithWobjects:
-        await redisSetter.addPostWithWobj(commentPath, _.get(mongoResult, 'commentRef.wobjects'), null);
+        await redisSetter.addPostWithWobj(commentPath, _.get(mongoResult, 'commentRef.wobjects'), _.get(mongoResult, 'commentRef.guest_author', null));
         break;
 
       case COMMENT_REF_TYPES.createWobj:
