@@ -9,7 +9,7 @@ const _ = require('lodash');
  */
 exports.validate = ({ wobjects }) => {
   const sumPercents = _.sumBy(wobjects, 'percent');
-  if (!_.isEmpty(wobjects) && (sumPercents > 100 || sumPercents <= 0)) {
+  if (!_.isEmpty(wobjects) && (sumPercents > 101 || sumPercents < 0)) {
     console.error('Post have wobjects percent >100');
     return false;
   }
