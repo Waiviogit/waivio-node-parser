@@ -1,5 +1,5 @@
 const { runCustomStream } = require('utilities/helpers/customStreamHelper');
-const { usersParseSwitcher } = require('./parser');
+const { reblogParseSwitcher } = require('./parser');
 
 (async () => {
   await runCustomStream(
@@ -7,7 +7,8 @@ const { usersParseSwitcher } = require('./parser');
       startBlock: +process.argv[4],
       finishBlock: +process.argv[3],
       key: process.argv[2],
-      callback: usersParseSwitcher,
+      callback: reblogParseSwitcher,
     },
   );
+  process.exit();
 })();
