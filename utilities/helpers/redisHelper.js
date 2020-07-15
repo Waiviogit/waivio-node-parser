@@ -23,7 +23,13 @@ const expiredDataListener = async (chan, msg) => {
         if (!metadata) return;
         await commentParser.postSwitcher({
           operation: {
-            author, permlink, json_metadata: post.json_metadata, body: post.body,
+            author,
+            permlink,
+            json_metadata: post.json_metadata,
+            body: post.body,
+            title: post.title,
+            parent_author: post.parent_author,
+            parent_permlink: post.parent_permlink,
           },
           metadata,
           post,
