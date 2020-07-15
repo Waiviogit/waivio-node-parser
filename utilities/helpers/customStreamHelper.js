@@ -1,8 +1,9 @@
 const { api } = require('api');
 const { redisGetter } = require('utilities/redis');
-const { reblogParseSwitcher } = require('./parser');
 
-const runReblogStream = async ({ key, startBlock, finishBlock }) => {
+const runCustomStream = async ({
+  key, startBlock, finishBlock, callback,
+}) => {
   try {
     if (!startBlock) {
       startBlock = await redisGetter.getLastBlockNum(key);
@@ -13,7 +14,7 @@ const runReblogStream = async ({ key, startBlock, finishBlock }) => {
       startFromCurrent: false,
       key,
       finishBlock,
-      transactionsParserCallback: reblogParseSwitcher,
+      transactionsParserCallback: callback,
     });
 
     if (!transactionStatus) {
@@ -26,4 +27,4 @@ const runReblogStream = async ({ key, startBlock, finishBlock }) => {
   }
 };
 
-module.exports = { runReblogStream };
+module.exports = { runCustomStream };
