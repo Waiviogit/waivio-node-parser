@@ -85,11 +85,11 @@ const reply = async (operation, metadata) => {
   await sendNotification(op);
 };
 
-const post = async (data, postData) => {
-  postData.author = _.get(data, 'guestInfo.userId', data.author);
+const post = async (data) => {
+  data.author = _.get(data, 'guestInfo.userId', data.author);
   const operation = {
     id: 'comment',
-    data: postData,
+    data,
   };
   await sendNotification(operation);
 };
