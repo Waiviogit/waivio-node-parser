@@ -45,7 +45,9 @@ const getWobjectsFromMetadata = async ({ metadata } = {}) => {
     wobjects = await wobjectsByTags(_.get(metadata, 'tags'));
   } else {
     _.forEach(_.get(metadata, 'tags', []),
-      (tag) => wobjects.push({ author_permlink: tag, percent: 0 }));
+      (tag) => {
+        if (!_.includes(_.map(wobjects, 'author_permlink'), tag)) wobjects.push({ author_permlink: tag, percent: 0 });
+      });
   }
   return wobjects;
 };
