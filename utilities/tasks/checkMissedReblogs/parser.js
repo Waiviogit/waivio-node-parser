@@ -26,6 +26,7 @@ const reblogParser = async (operation, blockNum) => {
   }
   if (_.get(json, '[0]') === 'reblog' && await notInDatabase(json[1], blockNum)) {
     await reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
+    console.log(`User ${json[1].account} successfully rebloged post ${json[1].author}/${json[1].permlink}`);
   }
 };
 
