@@ -38,6 +38,11 @@ describe('On postWithObjectParser', async () => {
       mockOp = {
         author: mockPost.author,
         permlink: mockPost.permlink,
+        parent_author: mockPost.parent_author,
+        parent_permlink: mockPost.parent_permlink,
+        title: mockPost.title,
+        body: mockPost.body,
+        json_metadata: mockPost.json_metadata,
       };
       mockMetadata = {
         wobj: {
