@@ -51,7 +51,7 @@ describe('postWithObjectParser', async () => {
         expect(user.count_posts).to.be.eq(1);
       });
       it('should call "getPost" on post util with correct author and permlink', () => {
-        expect(postsUtilStub).to.be.calledWith(mockPost.author, mockPost.permlink);
+        expect(postsUtilStub.notCalled).to.be.true;
       });
       it('should pass postWithWobj validation', () => {
         expect(postWithWobjValidator.validate).to.be.returned(true);
@@ -63,9 +63,6 @@ describe('postWithObjectParser', async () => {
       it('should add post reference to mongo', async () => {
         const res = await CommentRef.findOne({ comment_path: `${mockPost.author}_${mockPost.permlink}` });
         expect(res).to.exist;
-      });
-      it('should call postHelper.objectIdFromDateString with correct params', () => {
-        expect(postHelper.objectIdFromDateString).to.be.calledWith(mockPost.created);
       });
       it('should create new post in db', async () => {
         const res = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
@@ -112,7 +109,7 @@ describe('postWithObjectParser', async () => {
         expect(upd_author.count_posts - author.count_posts).to.be.eq(1);
       });
       it('should call "getPost" on post util with correct author and permlink', () => {
-        expect(postsUtilStub).to.be.calledWith(mockPost.author, mockPost.permlink);
+        expect(postsUtilStub.notCalled).to.be.true;
       });
       it('should pass postWithWobj validation', () => {
         expect(postWithWobjValidator.validate).to.be.returned(true);
@@ -124,9 +121,6 @@ describe('postWithObjectParser', async () => {
       it('should add post reference to mongo', async () => {
         const res = await CommentRef.findOne({ comment_path: `${mockPost.author}_${mockPost.permlink}` });
         expect(res).to.exist;
-      });
-      it('should call postHelper.objectIdFromDateString with correct params', () => {
-        expect(postHelper.objectIdFromDateString).to.be.calledWith(mockPost.created);
       });
       it('should create new post in db', async () => {
         const res = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });

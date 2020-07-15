@@ -1,4 +1,5 @@
 const axios = require('axios');
+const _ = require('lodash');
 const {
   sinon, faker, expect, redisGetter,
 } = require('test/testHelper');
@@ -23,23 +24,29 @@ describe('On notificationsApi', async () => {
   describe('On post', async () => {
     let data, postData;
     beforeEach(async () => {
-      data = {
-        author: faker.name.firstName(),
-      };
-      postData = PostFactory.Create({ onlyData: true });
+      postData = await PostFactory.Create({ onlyData: true });
+      data =  _.pick(postData, ['author', 'permlink', 'parent_author', 'parent_permlink', 'title', 'json_metadata', 'body']);
     });
     it('should send request to notificationsApi with correct params', async () => {
       await notificationsUtil.post(data, postData);
       postData.author = data.author;
-      expect(axios.post).to.be.calledWith(URL, { id: 'comment', block: blockNum, data: postData }, { headers: { API_KEY: process.env.API_KEY } });
+      expect(axios.post).to.be.calledWith(URL, {
+        id: 'comment',
+        block: blockNum,
+        data,
+      }, { headers: { API_KEY: process.env.API_KEY } });
     });
     it('should send request to notificationsApi with guest user author', async () => {
       data.guestInfo = {
         userId: faker.name.firstName(),
       };
-      await notificationsUtil.post(data, postData);
+      await notificationsUtil.post(data);
       postData.author = data.guestInfo.userId;
-      expect(axios.post).to.be.calledWith(URL, { id: 'comment', block: blockNum, data: postData }, { headers: { API_KEY: process.env.API_KEY } });
+      expect(axios.post).to.be.calledWith(URL, {
+        id: 'comment',
+        block: blockNum,
+        data,
+      }, { headers: { API_KEY: process.env.API_KEY } });
     });
   });
   describe('On comment', async () => {
