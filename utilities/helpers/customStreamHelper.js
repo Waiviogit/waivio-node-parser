@@ -1,8 +1,9 @@
 const { api } = require('api');
 const { redisGetter } = require('utilities/redis');
-const { usersParseSwitcher } = require('./parser');
 
-const runUserStream = async ({ key, startBlock, finishBlock }) => {
+const runCustomStream = async ({
+  key, startBlock, finishBlock, callback,
+}) => {
   try {
     if (!startBlock) {
       startBlock = await redisGetter.getLastBlockNum(key);
@@ -13,7 +14,7 @@ const runUserStream = async ({ key, startBlock, finishBlock }) => {
       startFromCurrent: false,
       key,
       finishBlock,
-      transactionsParserCallback: usersParseSwitcher,
+      transactionsParserCallback: callback,
     });
 
     if (!transactionStatus) {
@@ -26,4 +27,4 @@ const runUserStream = async ({ key, startBlock, finishBlock }) => {
   }
 };
 
-module.exports = { runUserStream };
+module.exports = { runCustomStream };
