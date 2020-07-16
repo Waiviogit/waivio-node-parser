@@ -100,7 +100,9 @@ exports.followUserParser = async (operation) => {
   }
 };
 
-exports.reblogPostParser = async ({ json, account }) => {
+exports.reblogPostParser = async ({
+  json, account, id, fromTask = false,
+}) => {
   const author = _.get(json, '[1].author');
   const permlink = _.get(json, '[1].permlink');
   if (author && permlink && account && account !== author) {
@@ -109,18 +111,19 @@ exports.reblogPostParser = async ({ json, account }) => {
       permlink: _.get(json, '[1].permlink'),
     });
     if (error) return { error };
-    const { post: createdPost, error: createPostError } = await Post
-      .create({
-        author: account, // person who make reblog
-        permlink: `${_.get(json, '[1].author')}/${_.get(json, '[1].permlink')}`,
-        reblog_to: {
-          author: _.get(json, '[1].author'), // author of source post
-          permlink: _.get(json, '[1].permlink'), // permlink of source post
-        },
-        body: '',
-        json_metadata: '',
-        ..._.pick(post, ['language', 'wobjects', 'id']),
-      });
+    const data = {
+      author: account, // person who make reblog
+      permlink: `${_.get(json, '[1].author')}/${_.get(json, '[1].permlink')}`,
+      reblog_to: {
+        author: _.get(json, '[1].author'), // author of source post
+        permlink: _.get(json, '[1].permlink'), // permlink of source post
+      },
+      body: '',
+      json_metadata: '',
+      ..._.pick(post, ['language', 'wobjects', 'id']),
+    };
+    if (id) data._id = id;
+    const { post: createdPost, error: createPostError } = await Post.create(data);
 
     if (createPostError) return { error: createPostError };
     const updateData = {
@@ -128,9 +131,11 @@ exports.reblogPostParser = async ({ json, account }) => {
       permlink,
       $addToSet: { reblogged_users: account },
     };
-    await notificationsUtil.reblog(
-      { account: json[1].account, author: post.author, permlink: post.permlink },
-    );
+    if (!fromTask) {
+      await notificationsUtil.reblog(
+        { account: json[1].account, author: post.author, permlink: post.permlink },
+      );
+    }
     await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
   }
