@@ -14,7 +14,7 @@ const expiredDataListener = async (chan, msg) => {
       }
       break;
     case 'expire-notFoundPost':
-      if (!process.env.PARSE_ONLY_VOTES) {
+      if (process.env.PARSE_ONLY_VOTES === 'false') {
         await postHelper.createPost({
           author, permlink, fromTTL: true, commentParser,
         });
