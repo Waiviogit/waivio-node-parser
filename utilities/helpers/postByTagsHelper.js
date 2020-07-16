@@ -24,7 +24,7 @@ const wobjectsByTags = async (tags) => {
       if (wobject) {
         wobjects.push({
           author_permlink: wobject.author_permlink,
-          percent: 100 / tags.length,
+          percent: _.floor(100 / tags.length, 3),
           tagged: tag,
         });
       } else {

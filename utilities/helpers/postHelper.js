@@ -26,3 +26,38 @@ exports.updateExpiredPost = async (author, permlink) => {
   const { result } = await Post.update(_.pick(post, ['author', 'permlink', 'total_payout_value', 'curator_payout_value']));
   if (result) console.log(`Post ${author}/${permlink} updated after 7 days`);
 };
+
+exports.createPost = async ({
+  author, permlink, fromTTL = false, commentParser,
+}) => {
+  const { post, err } = await postsUtil.getPost(author, permlink);
+  if (err) return console.error(err.message);
+  if (!post.author || !post.body) return console.log(`Post @${author}/${permlink} not found or was deleted!`);
+  const metadata = this.parseMetadata(post.json_metadata);
+  if (!metadata) return;
+  await commentParser.postSwitcher({
+    operation: {
+      author,
+      permlink,
+      json_metadata: post.json_metadata,
+      body: post.body,
+      title: post.title,
+      parent_author: post.parent_author,
+      parent_permlink: post.parent_permlink,
+    },
+    metadata,
+    post,
+    fromTTL,
+  });
+};
+
+exports.parseMetadata = (metadata) => {
+  try {
+    if (metadata !== '') {
+      return JSON.parse(metadata);
+    }
+  } catch (e) {
+    console.error(e.message);
+    return '';
+  }
+};
