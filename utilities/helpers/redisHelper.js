@@ -9,7 +9,7 @@ const expiredDataListener = async (chan, msg) => {
   const permlink = data[1].split('/')[1];
   switch (data[0]) {
     case 'expire-hivePost':
-      if (!process.env.PARSE_ONLY_VOTES) {
+      if (process.env.PARSE_ONLY_VOTES === 'false') {
         await postHelper.updateExpiredPost(author, permlink);
       }
       break;
