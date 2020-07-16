@@ -20,7 +20,7 @@ const parse = async (operation, metadata, post, fromTTL) => {
     tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
     _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
     metadata.wobj = { wobjects: wobj || [] };
-  } else if (_.isEmpty(_.get(metadata, 'wobj.wobjects')) && _.get(metadata, 'tags', []).length) {
+  } else if (_.isEmpty(_.get(metadata, 'wobj.wobjects')) && (_.get(metadata, 'tags', []) && _.get(metadata, 'tags', []).length)) {
     // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
     const wobjects = await postByTagsHelper.wobjectsByTags(_.get(metadata, 'tags', []));
     metadata.wobj = { wobjects: wobjects || [] };
