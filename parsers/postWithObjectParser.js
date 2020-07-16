@@ -1,18 +1,17 @@
 const _ = require('lodash');
-const { detectPostLanguageHelper, postHelper, postByTagsHelper } = require('utilities/helpers');
+const { Post, Wobj, User } = require('models');
+const {
+  detectPostLanguageHelper, postHelper, postByTagsHelper, userHelper, appHelper,
+} = require('utilities/helpers');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const { commentRefSetter } = require('utilities/commentRefService');
 const { postWithWobjValidator } = require('validator');
 const { postsUtil } = require('utilities/steemApi');
-const { userHelper } = require('utilities/helpers');
-const { Post, Wobj } = require('models');
-const { User } = require('models');
 const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
 const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
-const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 
 const parse = async (operation, metadata, post, fromTTL) => {
-  if (!(await checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
+  if (!(await appHelper.checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
 
   if (_.isArray(_.get(metadata, 'wobj.wobjects'))
       && !_.isEmpty(_.get(metadata, 'wobj.wobjects')) && _.get(metadata, 'tags', []).length) {
@@ -66,7 +65,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   });
   if (!postData && existing.post) {
     result = await postsUtil.getPost(data.author, data.permlink); // get post from hive api
-  } else if (postData && existing.post) {
+  } else if (postData) {
     result = { post: postData };
   }
   if (_.get(result, 'steemError')) return { error: result.steemError };
@@ -78,13 +77,13 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
 
   if (!data.body && existing.post) data.body = result.post.body;
   if (!data.json_metadata && existing.post) data.json_metadata = result.post.json_metadata;
-  if (existing.post) Object.assign(result.post, data); // assign to post fields wobjects and app
+  if (existing.post || postData) Object.assign(result.post, data); // assign to post fields wobjects and app
 
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) return;
 
   let updPost, error;
-  if (!existing.post) {
+  if (!existing.post && !postData) {
     await notificationsUtils.post(data);
     data.active_votes = [];
     data._id = postHelper.objectIdFromDateString(Date.now());
@@ -108,9 +107,13 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     return { updPost, action: 'created' };
   }
   const hiveVoters = _.map(result.post.active_votes, (el) => el.voter);
-  _.forEach(existing.post.active_votes, (el) => {
-    if (!_.includes(hiveVoters, el.voter)) result.post.active_votes.push(el);
-  });
+
+  if (existing.post) {
+    _.forEach(existing.post.active_votes, (el) => {
+      if (!_.includes(hiveVoters, el.voter)) result.post.active_votes.push(el);
+    });
+  } else result.post._id = postHelper.objectIdFromDateString(result.post.created);
+
   result.post.active_votes = result.post.active_votes.map((vote) => ({
     voter: vote.voter,
     weight: Math.round(vote.rshares * 1e-6),
