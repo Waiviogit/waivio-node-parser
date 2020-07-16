@@ -1,4 +1,5 @@
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
+const { walletHelper } = require('utilities/helpers');
 
 const parse = async (operation) => {
   await notificationsUtil.custom(Object.assign(operation, { id: 'transfer' }));
@@ -6,10 +7,19 @@ const parse = async (operation) => {
 
 const parseVesting = async (operation) => {
   await notificationsUtil.custom(Object.assign(operation, { id: 'transfer_to_vesting' }));
+  const data = {
+
+  };
 };
 
-const parseSavings = async (operation) => {
+const parseFromSavings = async (operation) => {
   await notificationsUtil.custom(Object.assign(operation, { id: 'transfer_from_savings' }));
 };
 
-module.exports = { parse, parseVesting, parseSavings };
+const parseToSavings = async (operation) => {
+
+};
+
+module.exports = {
+  parse, parseVesting, parseFromSavings, parseToSavings,
+};
