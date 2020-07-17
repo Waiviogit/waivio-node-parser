@@ -17,7 +17,7 @@ const updatePayouts = async () => {
       const totalPayoutValue = _.get(doc, 'total_payout_value', 0);
       const pendingPayoutValue = _.get(doc, 'pending_payout_value', 0);
       const curatorPayoutValue = _.get(doc, 'curator_payout_value', 0);
-
+      console.log(`Now updating post ${author}/${permlink}`);
       const expiredCashOut = new Date(cashoutTime).valueOf() + 1800000 < new Date().valueOf()
           && parseFloat(pendingPayoutValue) > 0;
       const zeroValues = parseFloat(totalPayoutValue) === 0 && parseFloat(curatorPayoutValue) === 0;
