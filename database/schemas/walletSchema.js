@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const WalletSchema = new Schema({
-  account: { type: String, require: true },
+  account: { type: String, required: true },
   type: {
     type: String,
     required: true,
