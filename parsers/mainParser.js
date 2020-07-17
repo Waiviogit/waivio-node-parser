@@ -49,7 +49,10 @@ const parseSwitcher = async (transactions) => {
               await recoveryParser.parse(operation[1]);
               break;
             case 'transfer_from_savings':
-              await transferParser.parseSavings(operation[1]);
+              await transferParser.parseFromSavings(operation[1]);
+              break;
+            case 'transfer_to_savings':
+              await transferParser.parseToSavings(operation[1]);
               break;
             case 'claim_reward_balance':
               await claimRewardParser.parse(operation[1]);

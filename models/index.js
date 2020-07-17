@@ -8,4 +8,5 @@ module.exports = {
   CommentModel: require('./CommentModel'),
   UserWobjects: require('./UserWobjectsModel'),
   Subscriptions: require('./SubscriptionModel'),
+  walletModel: require('./walletModel'),
 };
