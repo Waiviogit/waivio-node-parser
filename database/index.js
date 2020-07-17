@@ -16,7 +16,7 @@ mongoose.Promise = global.Promise;
 module.exports = {
   Mongoose: mongoose,
   models: {
-    Wallet: require('./schemas/walletSchema'),
+    Wallet: require('./schemas/WalletSchema'),
     WObject: require('./schemas/wObjectSchema'),
     User: require('./schemas/UserSchema'),
     Post: require('./schemas/PostSchema'),
