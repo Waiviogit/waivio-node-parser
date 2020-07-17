@@ -4,7 +4,9 @@ const { Schema } = mongoose;
 
 const WalletSchema = new Schema({
   account: { type: String, required: true },
-  trxId: { type: String, required: true },
+  trxId: {
+    type: String, required: true, index: true, unique: true,
+  },
   type: {
     type: String,
     required: true,

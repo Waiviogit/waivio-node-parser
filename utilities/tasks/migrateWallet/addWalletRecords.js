@@ -9,22 +9,47 @@ const hiveUrl = 'https://anyx.io';
 
 exports.start = async () => {
   await co(function *iterateCursor() {
-    const cursor = User.find({ stage_version: 0 }).lean().cursor();
+    const cursor = User.find({ name: 'olegvladim' }).lean().cursor();
     for (let doc = yield cursor.next(); doc != null; doc = yield cursor.next()) {
       let wallet = yield getWalletData(doc.name, WALLET_LENGTH);
-      const userDBWallet = yield Wallet.find({ $or: [{ account: doc.name }, { to: doc.name }] });
+      const userDBWallet = yield Wallet.find(
+        { $or: [{ account: doc.name }, { $and: [{ to: doc.name }, { account: { $ne: doc.name } }] }] },
+      );
+      wallet = _.sortBy(wallet, 'timestamp');
       wallet = wallet.slice(userDBWallet.length, wallet.length);
-      for (const record of wallet){
-
-          // switch () {
-          //
-          // }
+      for (const record of wallet) {
+        const recordDB = yield Wallet.findOne({ trxId: record.trx_id });
+        if (!recordDB) {
+          let data;
+          switch (record.type) {
+            case 'transfer':
+              record.account = record.from;
+              record.trxId = record.trx_id;
+              data = record;
+              break;
+            case 'transfer_to_vesting':
+              break;
+            case 'claim_reward_balance':
+              break;
+            case 'transfer_to_savings':
+              break;
+            case 'transfer_from_savings':
+              break;
+          }
+          data = new Wallet(record);
+          console.log();
+          yield data.save();
+        }
       }
       yield User.updateOne({ _id: doc._id }, { stage_version: 1 });
     }
     console.log('task update payouts done!');
   });
 };
+
+(async () => {
+  await this.start();
+})();
 
 const getWalletData = async (name, limit) => {
   let result;
@@ -42,19 +67,16 @@ const getWalletData = async (name, limit) => {
     if (walletOperations.length === limit) break;
     lastId = _.get(result, '[0][0]');
   } while (walletOperations.length <= limit || batchSize === result.length - 1);
-  return walletOperations;
+  return formatHiveHistory(walletOperations);
 };
 
-const formatHiveHistory = (histories) => {
-  histories = _.filter(histories, (history) => _.includes(TYPES_FOR_PARSE, history[1].op[0]));
-  return _.map(histories, (history) => {
-    history[1].timestamp = Math.round(new Date(history[1].timestamp).valueOf() / 1000);
-    // eslint-disable-next-line prefer-destructuring
-    history[1].type = history[1].op[0];
-    history[1] = Object.assign(history[1], history[1].op[1]);
-    return _.omit(history[1], ['op', 'block', 'op_in_trx', 'trx_id', 'trx_in_block', 'virtual_op']);
-  });
-};
+const formatHiveHistory = (histories) => _.map(histories, (history) => {
+  history[1].timestamp = Math.round(new Date(history[1].timestamp).valueOf() / 1000);
+  // eslint-disable-next-line prefer-destructuring
+  history[1].type = history[1].op[0];
+  history[1] = Object.assign(history[1], history[1].op[1]);
+  return _.omit(history[1], ['op', 'block', 'op_in_trx', 'trx_in_block', 'virtual_op']);
+});
 
 const getAccountHistory = async (name, id) => {
   try {
