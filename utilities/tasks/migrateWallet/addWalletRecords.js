@@ -50,10 +50,6 @@ exports.start = async () => {
   });
 };
 
-(async () => {
-  await this.start();
-})();
-
 const getWalletData = async (name, limit) => {
   let result;
   const batchSize = 1000;
