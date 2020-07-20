@@ -13,27 +13,30 @@ exports.start = async () => {
     for (let doc = yield cursor.next(); doc != null; doc = yield cursor.next()) {
       let wallet = yield getWalletData(doc.name, WALLET_LENGTH);
       const userDBWallet = yield Wallet.find(
-        { $or: [{ account: doc.name }, { $and: [{ to: doc.name }, { account: { $ne: doc.name } }] }] },
-      );
-      wallet = _.sortBy(wallet, 'timestamp');
-      wallet = wallet.slice(userDBWallet.length, wallet.length);
+        {
+          $or: [{ account: doc.name },
+            { $and: [{ to: doc.name }, { account: { $ne: doc.name } }] }],
+        },
+      ).lean();
+      wallet = _.chain(userDBWallet)
+        .concat(wallet)
+        .uniqBy('trx_id')
+        .orderBy(['timestamp'], ['desc'])
+        .value();
+      wallet = wallet.slice(0, WALLET_LENGTH);
       for (const record of wallet) {
-        const recordDB = yield Wallet.findOne({ trxId: record.trx_id });
-        if (!recordDB) {
+        if (!record._id) {
           let data;
           switch (record.type) {
+            case 'transfer_to_savings':
+            case 'transfer_from_savings':
             case 'transfer':
+            case 'transfer_to_vesting':
               record.account = record.from;
-              record.trxId = record.trx_id;
               data = record;
               break;
-            case 'transfer_to_vesting':
-              break;
             case 'claim_reward_balance':
-              break;
-            case 'transfer_to_savings':
-              break;
-            case 'transfer_from_savings':
+              data = record;
               break;
           }
           data = new Wallet(record);
@@ -47,10 +50,6 @@ exports.start = async () => {
   });
 };
 
-(async () => {
-  await this.start();
-})();
-
 const getWalletData = async (name, limit) => {
   let result;
   const batchSize = 1000;
@@ -58,6 +57,7 @@ const getWalletData = async (name, limit) => {
   const walletOperations = [];
   do {
     ({ result } = await getAccountHistory(name, lastId));
+    result = _.reverse(result);
     for (const record of result) {
       if (_.includes(TYPES_FOR_PARSE, _.get(record, '[1].op[0]'))) {
         walletOperations.push(record);
