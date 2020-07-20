@@ -16,6 +16,7 @@
     "checkWobjectParent": "node ./utilities/tasks/checkWobjectParent/run.js",
     "checkMissedReblogs": "NODE_PATH=. node ./utilities/tasks/checkMissedReblogs/run.js",
     "updatePayoutsInPosts": "NODE_PATH=. node ./utilities/tasks/updatePayoutsInPosts/run.js",
+    "migrateWallet": "NODE_PATH=. node ./utilities/tasks/migrateWallet/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
