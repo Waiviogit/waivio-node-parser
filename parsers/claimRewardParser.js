@@ -9,7 +9,7 @@ const parse = async (operation, trxId) => {
     reward_steem: operation.reward_steem,
     reward_sbd: operation.reward_sbd,
     reward_vests: operation.reward_vests,
-    trxId,
+    trx_id: trxId,
   };
   await walletHelper.addToWallet(data);
 };
