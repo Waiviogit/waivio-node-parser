@@ -9,15 +9,13 @@ const hiveUrl = 'https://anyx.io';
 
 exports.start = async () => {
   await co(function *iterateCursor() {
-    const cursor = User.find({ name: 'olegvladim' }).lean().cursor();
+    const cursor = User.find({ stage_version: 0 }).lean().cursor();
     for (let doc = yield cursor.next(); doc != null; doc = yield cursor.next()) {
       let wallet = yield getWalletData(doc.name, WALLET_LENGTH);
-      const userDBWallet = yield Wallet.find(
-        {
-          $or: [{ account: doc.name },
-            { $and: [{ to: doc.name }, { account: { $ne: doc.name } }] }],
-        },
-      ).lean();
+      const userDBWallet = yield Wallet.find({
+        $or: [{ account: doc.name },
+          { $and: [{ to: doc.name }, { account: { $ne: doc.name } }] }],
+      }).lean();
       wallet = _.chain(userDBWallet)
         .concat(wallet)
         .uniqBy('trx_id')
@@ -25,25 +23,27 @@ exports.start = async () => {
         .value();
       wallet = wallet.slice(0, WALLET_LENGTH);
       for (const record of wallet) {
-        if (!record._id) {
-          let data;
-          switch (record.type) {
-            case 'transfer_to_savings':
-            case 'transfer_from_savings':
-            case 'transfer':
-            case 'transfer_to_vesting':
-              record.account = record.from;
-              data = record;
-              break;
-            case 'claim_reward_balance':
-              data = record;
-              break;
-          }
-          data = new Wallet(record);
-          console.log();
-          yield data.save();
+        const condition = { trx_id: record.trx_id };
+        if (record.to)condition.to = record.to;
+        const result = yield Wallet.findOne(condition);
+        if (result) continue;
+        let data;
+        switch (record.type) {
+          case 'transfer_to_savings':
+          case 'transfer_from_savings':
+          case 'transfer':
+          case 'transfer_to_vesting':
+            record.account = record.from;
+            data = record;
+            break;
+          case 'claim_reward_balance':
+            data = record;
+            break;
         }
+        data = new Wallet(record);
+        yield data.save();
       }
+      console.log(`Import wallet for user ${doc.name} finished`);
       yield User.updateOne({ _id: doc._id }, { stage_version: 1 });
     }
     console.log('task update payouts done!');
@@ -51,12 +51,21 @@ exports.start = async () => {
 };
 
 const getWalletData = async (name, limit) => {
-  let result;
+  let result, error, data;
   const batchSize = 1000;
   let lastId = -1;
   const walletOperations = [];
   do {
-    ({ result } = await getAccountHistory(name, lastId));
+    if (lastId === 0) break;
+    ({ result, error, data } = await getAccountHistory(name, lastId, lastId === -1 ? 1000 : (lastId < 1000 ? lastId : 1000)));
+    if (error) return [];
+    if (!_.isArray(result)) {
+      console.log(lastId);
+      console.error(data);
+      console.error(result);
+      continue;
+    }
+    lastId = _.get(result, '[0][0]');
     result = _.reverse(result);
     for (const record of result) {
       if (_.includes(TYPES_FOR_PARSE, _.get(record, '[1].op[0]'))) {
@@ -65,20 +74,19 @@ const getWalletData = async (name, limit) => {
       }
     }
     if (walletOperations.length === limit) break;
-    lastId = _.get(result, '[0][0]');
   } while (walletOperations.length <= limit || batchSize === result.length - 1);
   return formatHiveHistory(walletOperations);
 };
 
 const formatHiveHistory = (histories) => _.map(histories, (history) => {
-  history[1].timestamp = Math.round(new Date(history[1].timestamp).valueOf() / 1000);
+  history[1].timestamp = Math.round(new Date(history[1].timestamp).valueOf() / 1000) + 10800;
   // eslint-disable-next-line prefer-destructuring
   history[1].type = history[1].op[0];
   history[1] = Object.assign(history[1], history[1].op[1]);
   return _.omit(history[1], ['op', 'block', 'op_in_trx', 'trx_in_block', 'virtual_op']);
 });
 
-const getAccountHistory = async (name, id) => {
+const getAccountHistory = async (name, id, limit) => {
   try {
     const result = await axios.post(hiveUrl, {
       jsonrpc: '2.0',
@@ -86,10 +94,10 @@ const getAccountHistory = async (name, id) => {
       params: [
         'database_api',
         'get_account_history',
-        [name, id, 1000],
+        [name, id, limit],
       ],
     });
-    return { result: result.data.result };
+    return { result: result.data.result, data: result.data };
   } catch (error) {
     return { error };
   }

@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 const WalletSchema = new Schema({
   account: { type: String, required: true },
   trx_id: {
-    type: String, required: true, index: true, unique: true,
+    type: String, required: true, index: true,
   },
   type: {
     type: String,
@@ -22,11 +22,10 @@ const WalletSchema = new Schema({
   memo: { type: String },
   reward_vests: { type: String },
   timestamp: { type: Number, default: Math.round(new Date() / 1000) },
-  to: { type: String },
+  to: { type: String, index: true },
 }, { timestamps: false });
 
 WalletSchema.index({ account: 1 });
-
 const Wallet = mongoose.model('wallet', WalletSchema);
 
 module.exports = Wallet;
