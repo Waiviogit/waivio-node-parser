@@ -21,7 +21,7 @@ const WalletSchema = new Schema({
   amount: { type: String },
   memo: { type: String },
   reward_vests: { type: String },
-  timestamp: { type: Number, default: Math.round(new Date() / 1000) },
+  timestamp: { type: Number, required: true },
   to: { type: String, index: true },
 }, { timestamps: false });
 

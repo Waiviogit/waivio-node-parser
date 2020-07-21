@@ -10,6 +10,7 @@ const parse = async (operation, trxId) => {
     amount: operation.amount,
     memo: operation.memo,
     trx_id: trxId,
+    timestamp: Math.round(new Date() / 1000),
   };
   await walletHelper.addToWallet(data);
 };
@@ -22,6 +23,7 @@ const parseVesting = async (operation, trxId) => {
     to: operation.to,
     amount: operation.amount,
     trx_id: trxId,
+    timestamp: Math.round(new Date() / 1000),
   };
   await walletHelper.addToWallet(data);
 };
@@ -35,6 +37,7 @@ const parseFromSavings = async (operation, trxId) => {
     memo: operation.memo,
     request_id: operation.request_id,
     trx_id: trxId,
+    timestamp: Math.round(new Date() / 1000),
   };
   await walletHelper.addToWallet(data);
 };
@@ -46,6 +49,7 @@ const parseToSavings = async (operation, trxId) => {
     to: operation.to,
     memo: operation.memo,
     trx_id: trxId,
+    timestamp: Math.round(new Date() / 1000),
   };
   await walletHelper.addToWallet(data);
 };
