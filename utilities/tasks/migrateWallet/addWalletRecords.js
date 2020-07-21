@@ -79,7 +79,7 @@ const getFormatedHistory = async (name) => {
   const { result, error } = await getTransactionsHistory(name);
   if (error) return [];
   let hiveHistory = _.map(_.get(result, `accounts['${name}']transfer_history`, []), (history) => {
-    history[1].timestamp = Math.round(new Date(history[1].timestamp).valueOf() / 1000);
+    history[1].timestamp = Math.round(new Date(history[1].timestamp).valueOf() / 1000 + 10800);
     // eslint-disable-next-line prefer-destructuring
     history[1].type = history[1].op[0];
     history[1] = Object.assign(history[1], history[1].op[1]);
