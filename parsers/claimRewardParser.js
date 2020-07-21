@@ -10,6 +10,7 @@ const parse = async (operation, trxId) => {
     reward_sbd: operation.reward_sbd,
     reward_vests: operation.reward_vests,
     trx_id: trxId,
+    timestamp: Math.round(new Date() / 1000),
   };
   await walletHelper.addToWallet(data);
 };
