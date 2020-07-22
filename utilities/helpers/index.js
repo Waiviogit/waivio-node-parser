@@ -7,6 +7,7 @@ module.exports = {
   voteFieldHelper: require('./voteFieldHelper'),
   votePostHelper: require('./votePostHelper'),
   wobjectHelper: require('./wobjectHelper'),
+  walletHelper: require('./walletHelper'),
   ratingHelper: require('./ratingHelper'),
   postHelper: require('./postHelper'),
   userHelper: require('./userHelper'),
