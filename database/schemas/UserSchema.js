@@ -58,6 +58,8 @@ const UserSchema = new Schema({
   users_following_count: { type: Number, default: 0 },
   followers_count: { type: Number, default: 0 },
   stage_version: { type: Number, default: 0, required: true },
+  privateEmail: { type: String, default: null, select: false },
+  importedWallet: { type: Boolean, default: false },
 }, { timestamps: true });
 
 UserSchema.index({ wobjects_weight: -1 });
