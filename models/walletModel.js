@@ -25,3 +25,11 @@ exports.deleteOne = async (condition) => {
     return { error };
   }
 };
+
+exports.deleteMany = async (condition) => {
+  try {
+    return { result: await Wallet.deleteMany(condition) };
+  } catch (error) {
+    return { error };
+  }
+};
