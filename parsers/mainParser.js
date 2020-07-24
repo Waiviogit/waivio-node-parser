@@ -34,7 +34,7 @@ const parseSwitcher = async (transactions) => {
               await witnessVoteParser.parse(operation[1]);
               break;
             case 'transfer':
-              await transferParser.parse(operation[1], transaction.transaction_id);
+              await transferParser.parse(operation[1]);
               break;
             case 'withdraw_vesting':
               await withdrawParser.parse(operation[1]);
@@ -49,13 +49,10 @@ const parseSwitcher = async (transactions) => {
               await recoveryParser.parse(operation[1]);
               break;
             case 'transfer_from_savings':
-              await transferParser.parseFromSavings(operation[1], transaction.transaction_id);
-              break;
-            case 'transfer_to_savings':
-              await transferParser.parseToSavings(operation[1], transaction.transaction_id);
+              await transferParser.parseFromSavings(operation[1]);
               break;
             case 'claim_reward_balance':
-              await claimRewardParser.parse(operation[1], transaction.transaction_id);
+              await claimRewardParser.parse(operation[1]);
               break;
           }
         } else if (operation[0] === 'vote') {
