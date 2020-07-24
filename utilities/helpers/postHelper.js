@@ -22,7 +22,9 @@ exports.updateExpiredPost = async (author, permlink) => {
   if (!dbPost || !dbPost.author) return;
 
   const { post } = await postsUtil.getPost(dbPost.root_author, permlink);
-  if (!post || !post.author || parseFloat(post.total_payout_value) === 0) return;
+  if (!post || !post.author || (parseFloat(post.total_payout_value) === 0 && parseFloat(post.curator_payout_value) === 0)) {
+    return;
+  }
   const { result } = await Post.update(Object.assign(_.pick(post, ['permlink', 'total_payout_value', 'curator_payout_value', 'pending_payout_value']), { author }));
   if (result) console.log(`Post ${author}/${permlink} updated after 7 days`);
 };
