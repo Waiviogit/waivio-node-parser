@@ -1,10 +1,14 @@
 const _ = require('lodash');
 const { postsUtil } = require('utilities/steemApi');
 const { User } = require('models');
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
+  if (votes.length) {
+    await notificationsUtil.custom({ id: 'like', votes });
+  }
   const votesOps = await votesFormat(votes);
   const posts = await getPosts(
     _.chain(votesOps)
