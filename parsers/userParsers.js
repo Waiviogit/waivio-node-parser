@@ -1,5 +1,7 @@
 const _ = require('lodash');
-const { User, Post, Subscriptions } = require('models');
+const {
+  User, Post, Subscriptions, SubscribeNotifications,
+} = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 exports.updateAccountParser = async (operation) => {
@@ -138,5 +140,30 @@ exports.reblogPostParser = async ({
     }
     await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
+  }
+};
+
+exports.subscribeNotificationsParser = async (operation) => {
+  let json;
+  try {
+    json = JSON.parse(operation.json);
+  } catch (error) {
+    console.error(error);
+  }
+  if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, 'follower')) {
+    console.error('Can\'t subscribe for notifications, account and author of operation are different');
+    return;
+  }
+  const { follower, following, subscribe } = json;
+  if (subscribe) {
+    const { result, error } = await SubscribeNotifications
+      .followUserNotifications({ follower, following });
+    error && console.error(error.message);
+    result && console.log(`User ${follower} subscribe for notifications from ${following}!`);
+  } else {
+    const { result, error } = await SubscribeNotifications
+      .unFollowUserNotifications({ follower, following });
+    error && console.error(error.message);
+    result && console.log(`User ${follower} unsubscribe for notifications from ${following}!`);
   }
 };
