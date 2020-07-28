@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const {
   postByTagsHelper, importTags, expect, sinon, WobjModel, faker,
 } = require('../../testHelper');
@@ -17,7 +18,7 @@ describe('postByTagsHelper', async () => {
         wobjModelStub.restore();
       });
       it('should return array of tags', () => {
-        expect(result).to.deep.eq(input.map((tag) => ({ author_permlink: tag, tagged: tag, percent: 100 / input.length })));
+        expect(result).to.deep.eq(input.map((tag) => ({ author_permlink: tag, tagged: tag, percent: _.round(100 / input.length, 3) })));
       });
 
       it('should call Wobject model method "getOne" thrice', () => {

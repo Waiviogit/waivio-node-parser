@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const DiffMatchPatch = require('diff-match-patch');
 const { Post, Wobj, User } = require('models');
 const {
   detectPostLanguageHelper, postHelper, postByTagsHelper, userHelper, appHelper,
@@ -12,17 +13,18 @@ const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 
 const parse = async (operation, metadata, post, fromTTL) => {
   if (!(await appHelper.checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
+  const isSimplePost = _.isEmpty(_.get(metadata, 'wobj.wobjects'));
+  const postTags = _.get(metadata, 'tags', []);
 
-  if (_.isArray(_.get(metadata, 'wobj.wobjects'))
-      && !_.isEmpty(_.get(metadata, 'wobj.wobjects')) && _.get(metadata, 'tags', []).length) {
+  if (_.isArray(_.get(metadata, 'wobj.wobjects')) && !isSimplePost && postTags.length) {
     let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
     const wobj = metadata.wobj.wobjects;
     tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
     _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
     metadata.wobj = { wobjects: wobj || [] };
-  } else if (_.isEmpty(_.get(metadata, 'wobj.wobjects')) && (_.get(metadata, 'tags', []) && _.get(metadata, 'tags', []).length)) {
+  } else if (isSimplePost && postTags.length) {
     // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
-    const wobjects = await postByTagsHelper.wobjectsByTags(_.get(metadata, 'tags', []));
+    const wobjects = await postByTagsHelper.wobjectsByTags(postTags);
     metadata.wobj = { wobjects: wobjects || [] };
   }
 
@@ -45,55 +47,60 @@ const parse = async (operation, metadata, post, fromTTL) => {
     guestInfo,
   };
 
-  const result = await createOrUpdatePost(data, post, fromTTL);
+  const {
+    updPost, error, action,
+  } = await createOrUpdatePost(data, post, fromTTL);
 
-  if (_.get(result, 'error')) {
-    console.error(result.error);
-    return { error: result };
+  if (error) {
+    console.error(error);
+    return { error };
   }
-  if (_.get(result, 'updPost')) {
-    console.log(`Post with wobjects ${result.action} by ${operation.author}`);
-    return { post: result.updPost };
+  if (updPost) {
+    console.log(`Post with wobjects ${action} by ${operation.author}`);
+    return { post: updPost };
   }
 };
 
 const createOrUpdatePost = async (data, postData, fromTTL) => {
-  let result;
-  const existing = await Post.findOne({
-    author: _.get(data, 'guestInfo.userId', data.author),
-    permlink: data.permlink,
-  });
-  if (!postData && existing.post) {
-    result = await postsUtil.getPost(data.author, data.permlink); // get post from hive api
+  let hivePost, err;
+  const author = _.get(data, 'guestInfo.userId', data.author);
+  const { post } = await Post.findOne({ author, permlink: data.permlink });
+
+  if (!postData && post) {
+    ({ post: hivePost, err } = await postsUtil.getPost(data.author, data.permlink));
   } else if (postData) {
-    result = { post: postData };
+    hivePost = postData;
   }
-  if (_.get(result, 'steemError')) return { error: result.steemError };
-  if ((!_.get(result, 'post.author') && existing.post) && !fromTTL) {
-    return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 15);
-  } if ((!_.get(result, 'post.author') && existing.post) && fromTTL) {
+  if (err) return { error: err.message };
+
+  const postAuthor = _.get(hivePost, 'author');
+  if (post && !postAuthor) {
+    if (!fromTTL) {
+      return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 15);
+    }
     return { error: `[createOrUpdatePost] Post @${data.author}/${data.permlink} not found or was deleted!` };
   }
 
-  if (!data.body && existing.post) data.body = result.post.body;
-  if (!data.json_metadata && existing.post) data.json_metadata = result.post.json_metadata;
-  if (existing.post || postData) Object.assign(result.post, data); // assign to post fields wobjects and app
-
+  if (post) {
+    if (!data.body) data.body = hivePost.body;
+    if (!data.json_metadata) data.json_metadata = hivePost.json_metadata;
+  }
+  if (post || postData) Object.assign(hivePost, data);
   // validate post data
-  if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) return;
+  if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
+    return { validationError: true };
+  }
 
   let updPost, error;
-  if (!existing.post && !postData) {
+  if (!post && !postData) {
     await notificationsUtils.post(data);
     data.active_votes = [];
     data._id = postHelper.objectIdFromDateString(Date.now());
-    await User.updateOnNewPost(
-      _.get(data, 'guestInfo.userId', data.author),
-      Date.now(),
-    );
-    await setExpiredPostTTL('hivePost', `${_.get(data, 'guestInfo.userId', data.author)}/${data.permlink}`, 605000);
+    await User.updateOnNewPost(author, Date.now());
+
+    await setExpiredPostTTL('hivePost', `${author}/${data.permlink}`, 605000);
     data.language = await detectPostLanguageHelper(data);
-    data.author = _.get(data, 'guestInfo.userId', data.author);
+    data.author = author;
 
     await commentRefSetter.addPostRef(
       `${data.root_author}_${data.permlink}`,
@@ -106,30 +113,44 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     }
     return { updPost, action: 'created' };
   }
-  const hiveVoters = _.map(result.post.active_votes, (el) => el.voter);
+  const hiveVoters = _.map(hivePost.active_votes, (el) => el.voter);
 
-  if (existing.post) {
-    _.forEach(existing.post.active_votes, (el) => {
-      if (!_.includes(hiveVoters, el.voter)) result.post.active_votes.push(el);
+  if (post) {
+    _.forEach(post.active_votes, (el) => {
+      if (!_.includes(hiveVoters, el.voter)) hivePost.active_votes.push(el);
     });
-  } else result.post._id = postHelper.objectIdFromDateString(result.post.created);
+    hivePost.body = hivePost.body.substr(0, 2) === '@@'
+      ? mergePosts(post.body, hivePost.body)
+      : hivePost.body;
+  } else hivePost._id = postHelper.objectIdFromDateString(hivePost.created);
 
-  result.post.active_votes = result.post.active_votes.map((vote) => ({
+  hivePost.active_votes = hivePost.active_votes.map((vote) => ({
     voter: vote.voter,
     weight: Math.round(vote.rshares * 1e-6),
     percent: vote.percent,
     rshares: vote.rshares,
   }));
-  result.post.language = await detectPostLanguageHelper(result.post);
-  result.post.author = _.get(data, 'guestInfo.userId', data.author);
+  hivePost.language = await detectPostLanguageHelper(hivePost);
+  hivePost.author = author;
 
-  ({ result: updPost, error } = await Post.update(result.post));
+  ({ result: updPost, error } = await Post.update(hivePost));
   if (error) return { error };
   await commentRefSetter.addPostRef(
     `${data.root_author}_${data.permlink}`,
     data.wobjects, _.get(data, 'guestInfo.userId'),
   );
   return { updPost, action: 'updated' };
+};
+
+const mergePosts = (originalBody, body) => {
+  try {
+    const dmp = new DiffMatchPatch();
+    const patches = dmp.patch_fromText(body);
+    const [updatedPost] = dmp.patch_apply(patches, originalBody);
+    return updatedPost;
+  } catch (error) {
+    return body;
+  }
 };
 
 module.exports = { parse, createOrUpdatePost };
