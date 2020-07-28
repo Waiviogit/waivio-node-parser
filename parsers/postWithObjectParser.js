@@ -47,17 +47,15 @@ const parse = async (operation, metadata, post, fromTTL) => {
     guestInfo,
   };
 
-  const {
-    updPost, error, action,
-  } = await createOrUpdatePost(data, post, fromTTL);
+  const result = await createOrUpdatePost(data, post, fromTTL);
 
-  if (error) {
-    console.error(error);
-    return { error };
+  if (_.get(result, 'error')) {
+    console.error(result.error);
+    return { error: result.error };
   }
-  if (updPost) {
-    console.log(`Post with wobjects ${action} by ${operation.author}`);
-    return { post: updPost };
+  if (_.get(result, 'updPost')) {
+    console.log(`Post with wobjects ${result.action} by ${operation.author}`);
+    return { post: result.updPost };
   }
 };
 
