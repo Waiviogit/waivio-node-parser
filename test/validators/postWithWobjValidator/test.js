@@ -26,9 +26,9 @@ describe('On postWIthWobjValidator', async () => {
       beforeEach(() => {
         mockWobjects = [];
       });
-      it('should return false if sum of wobject percents greater than 100 by 1', () => {
+      it('should return false if sum of wobject percents greater than 100 by 2', () => {
         for (let i = 0; i < 4; i++) {
-          mockWobjects.push({ author_permlink: faker.random.string(15), percent: 25 });
+          mockWobjects.push({ author_permlink: faker.random.string(15), percent: 26 });
         }
         mockWobjects[0].percent++;
         expect(postWithWobjValidator.validate({ wobjects: mockWobjects })).to.be.false;
@@ -37,7 +37,7 @@ describe('On postWIthWobjValidator', async () => {
         for (let i = 0; i < 4; i++) {
           mockWobjects.push({ author_permlink: faker.random.string(15), percent: 0 });
         }
-        expect(postWithWobjValidator.validate({ wobjects: mockWobjects })).to.be.false;
+        expect(postWithWobjValidator.validate({ wobjects: mockWobjects })).to.be.true;
       });
       it('should return false if sum of wobject percents less then 0', () => {
         for (let i = 0; i < 4; i++) {

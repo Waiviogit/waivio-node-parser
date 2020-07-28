@@ -27,6 +27,7 @@
     "chai-as-promised": "^7.1.1",
     "co": "^4.6.0",
     "cron": "^1.7.2",
+    "diff-match-patch": "^1.0.5",
     "dsteem": "^0.8.7",
     "event-stream": "^4.0.1",
     "express": "^4.14.0",
