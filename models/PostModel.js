@@ -17,8 +17,7 @@ const create = async (data) => {
 const findOne = async (data) => {
   try {
     const cond = _.pick(data, [data.root_author ? 'root_author' : 'author', 'permlink']);
-    const post = await PostModel.findOne({ ...cond }).lean();
-    return { post };
+    return { post: await PostModel.findOne({ ...cond }).lean() };
   } catch (error) {
     return { error };
   }

@@ -243,7 +243,7 @@ describe('postWithObjectParser', async () => {
             wobjects: [
               { author_permlink: faker.random.string(10), percent: 33 },
               { author_permlink: faker.random.string(10), percent: 34 },
-              { author_permlink: faker.random.string(10), percent: 34 },
+              { author_permlink: faker.random.string(10), percent: 35 },
             ],
           },
           app: faker.address.city(),
