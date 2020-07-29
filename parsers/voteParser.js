@@ -6,9 +6,6 @@ const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpe
 const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
-  if (votes.length) {
-    await notificationsUtil.custom({ id: 'like', votes });
-  }
   const votesOps = await votesFormat(votes);
   const posts = await getPosts(
     _.chain(votesOps)
@@ -138,6 +135,13 @@ const votesFormat = async (votesOps) => {
     }
   }
   await userHelper.checkAndCreateByArray(accounts);
+  if (votesOps.length) {
+    await notificationsUtil
+      .custom({
+        id: 'like',
+        votes: _.filter(votesOps, (el) => el.type === 'post_with_wobj' && el.weight > 0),
+      });
+  }
   return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
