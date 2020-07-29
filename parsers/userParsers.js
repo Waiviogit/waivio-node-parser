@@ -134,9 +134,9 @@ exports.reblogPostParser = async ({
       $addToSet: { reblogged_users: account },
     };
     if (!fromTask) {
-      await notificationsUtil.reblog(
-        { account: json[1].account, author: post.author, permlink: post.permlink },
-      );
+      await notificationsUtil.reblog({
+        account: json[1].account, author: post.author, permlink: post.permlink, title: post.title,
+      });
     }
     await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
