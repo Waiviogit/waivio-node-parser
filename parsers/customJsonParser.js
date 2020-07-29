@@ -36,7 +36,7 @@ exports.parse = async (operation) => {
     case 'waivio_guest_account_update':
       await customJsonOperations.accountUpdate(operation);
       break;
-    case 'waivio_guest_subscribe_notifications':
+    case 'waivio_guest_bell':
       await customJsonOperations.subscribeNotification(operation);
       break;
   }

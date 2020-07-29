@@ -190,7 +190,7 @@ exports.subscribeNotification = async (operation) => {
     const json = parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
-    operation.required_posting_auths = [_.get(json, 'follower')];
+    operation.required_posting_auths = [_.get(json, '[1].follower')];
     await userParsers.subscribeNotificationsParser(operation);
   }
 };

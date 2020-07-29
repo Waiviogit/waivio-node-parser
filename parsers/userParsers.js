@@ -150,11 +150,11 @@ exports.subscribeNotificationsParser = async (operation) => {
   } catch (error) {
     console.error(error);
   }
-  if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, 'follower')) {
+  if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, '[1].follower')) {
     console.error('Can\'t subscribe for notifications, account and author of operation are different');
     return;
   }
-  const { follower, following, subscribe } = json;
+  const { follower, following, subscribe } = json[1];
   if (subscribe) {
     const { result, error } = await SubscribeNotifications
       .followUserNotifications({ follower, following });
