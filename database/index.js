@@ -25,6 +25,6 @@ module.exports = {
     CommentRef: require('./schemas/CommentRefSchema'),
     Comment: require('./schemas/CommentSchema'),
     Subscriptions: require('./schemas/SubscriptionSchema'),
-    SubscribeNotifications: require('./schemas/SubscribeNotificationsSchema'),
+    BellNotifications: require('./schemas/BellNotificationsSchema'),
   },
 };

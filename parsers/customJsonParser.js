@@ -14,7 +14,7 @@ exports.parse = async (operation) => {
     case 'follow':
       await userParsers.followUserParser(operation);
       break;
-    case 'subscribe_notifications':
+    case 'bell_notifications':
       await userParsers.subscribeNotificationsParser(operation);
       break;
       // guests operations below //

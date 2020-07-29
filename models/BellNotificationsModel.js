@@ -1,7 +1,7 @@
-const { SubscribeNotifications } = require('database').models;
+const { BellNotifications } = require('database').models;
 
 const followUserNotifications = async ({ follower, following }) => {
-  const newSubscribe = new SubscribeNotifications({
+  const newSubscribe = new BellNotifications({
     follower,
     following,
   });
@@ -16,7 +16,7 @@ const followUserNotifications = async ({ follower, following }) => {
 
 const unFollowUserNotifications = async ({ follower, following }) => {
   try {
-    const result = await SubscribeNotifications.deleteOne({ follower, following });
+    const result = await BellNotifications.deleteOne({ follower, following });
     if (!result || !result.n) {
       return { result: false };
     }
