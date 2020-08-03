@@ -44,10 +44,18 @@ const getFollowings = async ({ follower }) => {
   }
 };
 
+const findOne = async ({ follower, following }) => {
+  try {
+    return { user: await Subscriptions.findOne({ follower, following }).select('following').lean() };
+  } catch (error) {
+    return { error };
+  }
+};
 
 module.exports = {
   followUser,
   unfollowUser,
   getFollowers,
   getFollowings,
+  findOne,
 };

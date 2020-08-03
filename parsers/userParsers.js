@@ -82,17 +82,15 @@ exports.followUserParser = async (operation) => {
     await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
-    const { users: followers } = await Subscriptions.getFollowings({ follower: json[1].follower });
-    if (_.get(json, '[1].what[0]') === 'blog' // if field "what" present - it's follow on user
-        && (followers && !_.includes(followers, json[1].following))) {
+    const { user } = await Subscriptions.findOne(json[1]);
+    if (_.get(json, '[1].what[0]') === 'blog' && !user) { // if field "what" present - it's follow on user
       const { result } = await User.addUserFollow(json[1]);
       await Subscriptions.followUser(json[1]);
       if (result) {
         await notificationsUtil.follow(json[1]);
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
-    } else if (_.get(json, '[1].what[0]') !== 'blog' // else if missing - unfollow
-        && (followers && _.includes(followers, json[1].following))) {
+    } else if (_.get(json, '[1].what[0]') !== 'blog' && user) { // else if missing - unfollow
       const { result } = await User.removeUserFollow(json[1]);
       await Subscriptions.unfollowUser(json[1]);
       if (result) {
