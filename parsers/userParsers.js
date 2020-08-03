@@ -156,14 +156,7 @@ exports.subscribeNotificationsParser = async (operation) => {
   }
   const { follower, following, subscribe } = json[1];
   if (subscribe) {
-    const { result, error } = await BellNotifications
-      .followUserNotifications({ follower, following });
-    error && console.error(error.message);
-    result && console.log(`User ${follower} subscribe for notifications from ${following}!`);
-  } else {
-    const { result, error } = await BellNotifications
-      .unFollowUserNotifications({ follower, following });
-    error && console.error(error.message);
-    result && console.log(`User ${follower} unsubscribe for notifications from ${following}!`);
+    return BellNotifications.followUserNotifications({ follower, following });
   }
+  return BellNotifications.unFollowUserNotifications({ follower, following });
 };

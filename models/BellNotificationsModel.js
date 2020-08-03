@@ -8,7 +8,7 @@ const followUserNotifications = async ({ follower, following }) => {
 
   try {
     await newSubscribe.save();
-    return { result: true };
+    return true;
   } catch (error) {
     return { error };
   }
@@ -17,10 +17,7 @@ const followUserNotifications = async ({ follower, following }) => {
 const unFollowUserNotifications = async ({ follower, following }) => {
   try {
     const result = await BellNotifications.deleteOne({ follower, following });
-    if (!result || !result.n) {
-      return { result: false };
-    }
-    return { result: true };
+    return !!result.n;
   } catch (error) {
     return { error };
   }
