@@ -14,7 +14,9 @@ exports.parse = async (operation) => {
     case 'follow':
       await userParsers.followUserParser(operation);
       break;
-
+    case 'bell_notifications':
+      await userParsers.subscribeNotificationsParser(operation);
+      break;
       // guests operations below //
     case 'waivio_guest_update':
       // waivio_guest_update
@@ -33,6 +35,9 @@ exports.parse = async (operation) => {
       break;
     case 'waivio_guest_account_update':
       await customJsonOperations.accountUpdate(operation);
+      break;
+    case 'waivio_guest_bell':
+      await customJsonOperations.subscribeNotification(operation);
       break;
   }
 };

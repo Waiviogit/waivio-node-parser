@@ -20,7 +20,6 @@ const sendNotification = async (operation) => {
   request(reqData);
 };
 
-
 const request = async (reqData) => {
   const { API_KEY } = process.env;
   try {
@@ -30,12 +29,16 @@ const request = async (reqData) => {
   }
 };
 
-const reblog = async ({ account, author, permlink }) => {
+const reblog = async ({
+  account, author, permlink, title,
+}) => {
   const operation = {
     id: 'custom_json',
     data: {
       id: 'reblog',
-      json: { account, author, permlink },
+      json: {
+        account, author, permlink, title,
+      },
     },
   };
   await sendNotification(operation);
