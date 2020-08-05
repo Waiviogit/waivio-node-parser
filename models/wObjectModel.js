@@ -160,7 +160,9 @@ const getSomeFields = async (fieldName, authorPermlink) => {
     pipeline[2].$match['fields.weight'] = { $gt: 0 };
   }
   if (fieldName === 'parent') {
-    pipeline[2].$match['fields.weight'] = { $gt: 0 };
+    pipeline[4].$group.fields = {
+      $push: { parent: '$fields.body', active_votes: '$fields.active_votes', weight: '$fields.weight' },
+    };
   }
   try {
     const wobjects = await WObjectModel.aggregate(pipeline);

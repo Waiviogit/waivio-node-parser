@@ -1,6 +1,7 @@
 const _ = require('lodash');
+const config = require('config');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
-const { Wobj } = require('models');
+const { Wobj, App } = require('models');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const { tagsParser } = require('utilities/restaurantTagsParser');
 
@@ -22,14 +23,7 @@ const update = async (author, permlink, authorPermlink, voter) => {
       await tagsParser.createTags({ authorPermlink, field });
       break;
     case 'parent':
-      const { wobjects: [{ fields: [parent] = [null] } = {}] } = await Wobj.getSomeFields('parent', authorPermlink);
-
-      if (parent) {
-        await Wobj.update({ author_permlink: authorPermlink }, { parent });
-        await updateMapFromParent(authorPermlink, parent);
-      } else {
-        await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
-      }
+      await processingParent(authorPermlink);
       break;
 
     case 'tagCloud':
@@ -133,6 +127,95 @@ const update = async (author, permlink, authorPermlink, voter) => {
     await rejectUpdate({
       id: 'rejectUpdate', creator: field.creator, voter, author_permlink: authorPermlink, fieldName: field.name,
     });
+  }
+};
+
+const updateWobjParent = async ({ authorPermlink, parent }) => {
+  await Wobj.update({ author_permlink: authorPermlink }, { parent });
+  await updateMapFromParent(authorPermlink, parent);
+};
+
+const processingParent = async (authorPermlink) => {
+  const { app: { admins } } = await App.getOne({ name: config.app });
+  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields('parent', authorPermlink);
+  // check for admin votes
+  for (const field of fields) {
+    for (const vote of field.active_votes) {
+      if (_.includes(admins, vote.voter)) {
+        return handleAdminVoteOnParent({ authorPermlink, fields, admins });
+      }
+    }
+  }
+  if (_.get(fields, '[0].weight') > 0) {
+    await updateWobjParent({ authorPermlink, parent: fields[0].parent });
+  } else if (_.get(fields, '[0].weight') < 0) {
+    await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
+  }
+};
+
+const handleAdminVoteOnParent = async ({
+  authorPermlink, fields, admins,
+}) => {
+  const adminActions = [];
+  const noAdminAction = [];
+  // here we find out which fields the admins interacted with
+  for (const field of fields) {
+    const votedField = _.find(field.active_votes, (f) => _.includes(admins, f.voter));
+    if (votedField) {
+      votedField.timestamp = new Date(
+        parseInt(votedField._id.toString().substring(0, 8), 16) * 1000,
+      ).valueOf();
+      votedField.parent = field.parent;
+      adminActions.push(votedField);
+    } else {
+      noAdminAction.push(field);
+    }
+  }
+
+  const sortByDate = _.orderBy(adminActions, ['timestamp'], 'desc');
+
+  if (sortByDate[0].percent > 0) {
+    await updateWobjParent({ authorPermlink, parent: sortByDate[0].parent });
+  }
+
+  if (sortByDate[0].percent < 0) { // change sortByDate[0].percent < 0
+    const approved = _.filter(sortByDate, (el) => el.percent > 0);
+    // if all fields are rejected by admins
+    if (!approved.length && (!noAdminAction.length || _.get(noAdminAction, '[0].weight') < 0)) {
+      await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
+    }
+    // if there are some fields not rejected and has enough weight
+    if (!approved.length && _.get(noAdminAction, '[0].weight') > 0) {
+      await updateWobjParent({ authorPermlink, parent: noAdminAction[0].parent });
+    }
+    if (approved.length) {
+      const hasRejectLater = [];
+      const notRejected = [];
+      // here we find out whether the approval was rejected later
+      for (const element of approved) {
+        const rejected = _.find(sortByDate, (f) => (
+          f.parent === element.parent && f.percent < 0 && f.timestamp > element.timestamp
+        ));
+        rejected && hasRejectLater.push(rejected);
+        !rejected && notRejected.push(element);
+      }
+      // if admin approve wasn't reject later
+      if (!hasRejectLater.length) {
+        await updateWobjParent({ authorPermlink, parent: approved[0].parent });
+      }
+      // if has not rejected approve
+      if (hasRejectLater.length && notRejected.length) {
+        await updateWobjParent({ authorPermlink, parent: notRejected[0].parent });
+      }
+      // if all fields are rejected by admins
+      if (hasRejectLater && !notRejected.length && (!noAdminAction.length || _.get(noAdminAction, '[0].weight') < 0)) {
+        await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
+      }
+      // if there are some fields not rejected and has enough weight
+      if (hasRejectLater && !notRejected.length && _.get(noAdminAction, '[0].weight') > 0) {
+        await updateWobjParent({ authorPermlink, parent: noAdminAction[0].parent });
+      }
+    }
   }
 };
 
