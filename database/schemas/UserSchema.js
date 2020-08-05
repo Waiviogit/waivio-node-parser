@@ -3,6 +3,26 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { LANGUAGES } = require('../../utilities/constants');
 
+const UserNotificationsSchema = new Schema({
+  activationCampaign: { type: Boolean, default: true },
+  follow: { type: Boolean, default: true },
+  fillOrder: { type: Boolean, default: true },
+  mention: { type: Boolean, default: true },
+  minimalTransfer: { type: Number, default: 0 },
+  reblog: { type: Boolean, default: true },
+  reply: { type: Boolean, default: true },
+  statusChange: { type: Boolean, default: true },
+  transfer: { type: Boolean, default: true },
+  powerUp: { type: Boolean, default: true },
+  witness_vote: { type: Boolean, default: true },
+  myPost: { type: Boolean, default: false },
+  myComment: { type: Boolean, default: false },
+  myLike: { type: Boolean, default: false },
+  like: { type: Boolean, default: true },
+  downvote: { type: Boolean, default: false },
+  claimReward: { type: Boolean, default: false },
+}, { _id: false });
+
 const UserMetadataSchema = new Schema({
   notifications_last_timestamp: { type: Number, default: 0 },
   settings: {
@@ -20,6 +40,7 @@ const UserMetadataSchema = new Schema({
       type: Number, min: 1, max: 10000, default: 5000,
     }, // default percent of your upvotes
     votingPower: { type: Boolean, default: false }, // dynamic toggle of vote power on each vote
+    userNotifications: { type: UserNotificationsSchema, default: () => ({}) },
   },
   bookmarks: { type: [String], default: [] },
   drafts: {

@@ -1,5 +1,7 @@
 const _ = require('lodash');
-const { User, Post, Subscriptions } = require('models');
+const {
+  User, Post, Subscriptions, BellNotifications,
+} = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 exports.updateAccountParser = async (operation) => {
@@ -80,17 +82,15 @@ exports.followUserParser = async (operation) => {
     await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
-    const { users: followers } = await Subscriptions.getFollowings({ follower: json[1].follower });
-    if (_.get(json, '[1].what[0]') === 'blog' // if field "what" present - it's follow on user
-        && (followers && !_.includes(followers, json[1].following))) {
+    const { user } = await Subscriptions.findOne(json[1]);
+    if (_.get(json, '[1].what[0]') === 'blog' && !user) { // if field "what" present - it's follow on user
       const { result } = await User.addUserFollow(json[1]);
       await Subscriptions.followUser(json[1]);
       if (result) {
         await notificationsUtil.follow(json[1]);
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
-    } else if (_.get(json, '[1].what[0]') !== 'blog' // else if missing - unfollow
-        && (followers && _.includes(followers, json[1].following))) {
+    } else if (_.get(json, '[1].what[0]') !== 'blog' && user) { // else if missing - unfollow
       const { result } = await User.removeUserFollow(json[1]);
       await Subscriptions.unfollowUser(json[1]);
       if (result) {
@@ -132,11 +132,29 @@ exports.reblogPostParser = async ({
       $addToSet: { reblogged_users: account },
     };
     if (!fromTask) {
-      await notificationsUtil.reblog(
-        { account: json[1].account, author: post.author, permlink: post.permlink },
-      );
+      await notificationsUtil.reblog({
+        account: json[1].account, author: post.author, permlink: post.permlink, title: post.title,
+      });
     }
     await Post.update(updateData);
     if (createdPost) console.log(`User ${account} reblog post @${json[1].author}/${json[1].permlink}!`);
   }
+};
+
+exports.subscribeNotificationsParser = async (operation) => {
+  let json;
+  try {
+    json = JSON.parse(operation.json);
+  } catch (error) {
+    console.error(error);
+  }
+  if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, '[1].follower')) {
+    console.error('Can\'t subscribe for notifications, account and author of operation are different');
+    return;
+  }
+  const { follower, following, subscribe } = json[1];
+  if (subscribe) {
+    return BellNotifications.followUserNotifications({ follower, following });
+  }
+  return BellNotifications.unFollowUserNotifications({ follower, following });
 };
