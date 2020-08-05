@@ -4,7 +4,6 @@ const { Wobj } = require('models');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const { tagsParser } = require('utilities/restaurantTagsParser');
 
-
 const TAG_CLOUDS_UPDATE_COUNT = 5;
 const RATINGS_UPDATE_COUNT = 4;
 
@@ -23,11 +22,13 @@ const update = async (author, permlink, authorPermlink, voter) => {
       await tagsParser.createTags({ authorPermlink, field });
       break;
     case 'parent':
-      const { wobjects: wobjParent } = await Wobj.getSomeFields('parent', authorPermlink);
+      const { wobjects: [{ fields: [parent] = [null] } = {}] } = await Wobj.getSomeFields('parent', authorPermlink);
 
-      if (_.isArray(_.get(wobjParent, '[0].fields')) && _.get(wobjParent, '[0].fields[0]')) {
-        await Wobj.update({ author_permlink: authorPermlink }, { parent: wobjParent[0].fields[0] });
-        await updateMapFromParent(authorPermlink, wobjParent[0].fields[0]);
+      if (parent) {
+        await Wobj.update({ author_permlink: authorPermlink }, { parent });
+        await updateMapFromParent(authorPermlink, parent);
+      } else {
+        await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
       }
       break;
 

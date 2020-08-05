@@ -159,6 +159,9 @@ const getSomeFields = async (fieldName, authorPermlink) => {
   if (fieldName === 'status') {
     pipeline[2].$match['fields.weight'] = { $gt: 0 };
   }
+  if (fieldName === 'parent') {
+    pipeline[2].$match['fields.weight'] = { $gt: 0 };
+  }
   try {
     const wobjects = await WObjectModel.aggregate(pipeline);
 
