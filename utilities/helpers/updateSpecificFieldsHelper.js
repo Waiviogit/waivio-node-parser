@@ -178,7 +178,7 @@ const handleAdminVoteOnParent = async ({
     await updateWobjParent({ authorPermlink, parent: sortByDate[0].parent });
   }
 
-  if (sortByDate[0].percent < 0) { // change sortByDate[0].percent < 0
+  if (sortByDate[0].percent < 0) {
     const approved = _.filter(sortByDate, (el) => el.percent > 0);
     // if all fields are rejected by admins
     if (!approved.length && (!noAdminAction.length || _.get(noAdminAction, '[0].weight') < 0)) {
