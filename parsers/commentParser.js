@@ -4,7 +4,7 @@ const appendObjectParser = require('parsers/appendObjectParser');
 const objectTypeParser = require('parsers/objectTypeParser');
 const postWithObjectsParser = require('parsers/postWithObjectParser');
 const guestCommentParser = require('parsers/guestCommentParser');
-const { chosenPostHelper } = require('utilities/helpers');
+const { chosenPostHelper, campaignHelper } = require('utilities/helpers');
 const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 const updatePostAfterComment = require('utilities/helpers/updatePostAfterComment');
 const { chosenPostValidator } = require('validator');
@@ -47,17 +47,22 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
   }
-  await notificationsUtil.reply({ ...operation }, metadata);
-  if (_.get(metadata, 'wobj.action')) {
-    switch (metadata.wobj.action) {
-      case 'createObject':
-        await createObjectParser.parse(operation, metadata);
-        break;
-      case 'appendObject':
-        await appendObjectParser.parse(operation, metadata);
-        break;
+  const sendNotification = await campaignHelper.parseReservationConversation(operation);
+
+  if (sendNotification) {
+    await notificationsUtil.reply({ ...operation }, metadata);
+    if (_.get(metadata, 'wobj.action')) {
+      switch (metadata.wobj.action) {
+        case 'createObject':
+          await createObjectParser.parse(operation, metadata);
+          break;
+        case 'appendObject':
+          await appendObjectParser.parse(operation, metadata);
+          break;
+      }
     }
   }
+
   // look out comment for select chosen one post by specified app
   if (chosenPostValidator.checkBody(operation.body)) {
     await chosenPostHelper.updateAppChosenPost(operation);
