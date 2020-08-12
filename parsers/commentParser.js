@@ -49,17 +49,16 @@ const commentSwitcher = async ({ operation, metadata }) => {
   }
   const sendNotification = await campaignHelper.parseReservationConversation(operation);
 
-  if (sendNotification) {
-    await notificationsUtil.reply({ ...operation }, metadata);
-    if (_.get(metadata, 'wobj.action')) {
-      switch (metadata.wobj.action) {
-        case 'createObject':
-          await createObjectParser.parse(operation, metadata);
-          break;
-        case 'appendObject':
-          await appendObjectParser.parse(operation, metadata);
-          break;
-      }
+  if (sendNotification) await notificationsUtil.reply({ ...operation }, metadata);
+
+  if (_.get(metadata, 'wobj.action')) {
+    switch (metadata.wobj.action) {
+      case 'createObject':
+        await createObjectParser.parse(operation, metadata);
+        break;
+      case 'appendObject':
+        await appendObjectParser.parse(operation, metadata);
+        break;
     }
   }
 
