@@ -12,15 +12,16 @@ describe('UpdateSpecificFieldsHelper', async () => {
     wobject = await ObjectFactory.Create();
   });
   describe('on "parent" field', () => {
-    let fields;
-    let updWobj;
+    let fields, updWobj;
+    const adminName = faker.name.firstName();
+
     beforeEach(async () => {
-      await AppFactory.Create({ name: 'waiviotest', admins: ['grampo'] });
+      await AppFactory.Create({ name: 'waiviotest', admins: [adminName] });
     });
     describe('when is there no admins likes and there is no fields with positive weight', async () => {
       beforeEach(async () => {
-        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: -100 });
-        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: -10 });
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -1) });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -1) });
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
@@ -36,8 +37,8 @@ describe('UpdateSpecificFieldsHelper', async () => {
     });
     describe('when is there no admins likes and one or more fields has positive weight', async () => {
       beforeEach(async () => {
-        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: 100 });
-        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: 10000 });
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(1, 100) });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(101, 10000) });
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
@@ -55,11 +56,11 @@ describe('UpdateSpecificFieldsHelper', async () => {
       beforeEach(async () => {
         const activeVotes = [{
           _id: new ObjectID(),
-          voter: 'grampo',
+          voter: adminName,
           percent: 100,
         }];
-        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: -100, activeVotes });
-        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: 99999 });
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -10), activeVotes });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(100, 1000) });
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
@@ -76,12 +77,12 @@ describe('UpdateSpecificFieldsHelper', async () => {
       beforeEach(async () => {
         const activeVotes = [{
           _id: new ObjectID(),
-          voter: 'grampo',
+          voter: adminName,
           percent: -100,
         }];
-        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: 99999, activeVotes });
-        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: 99 });
-        const { appendObject: field3 } = await AppendObject.Create({ name: 'parent', weight: 9 });
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(100, 1000), activeVotes });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(50, 100) });
+        const { appendObject: field3 } = await AppendObject.Create({ name: 'parent', weight: _.random(1, 40) });
 
         fields = [field1, field2, field3];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
@@ -98,11 +99,11 @@ describe('UpdateSpecificFieldsHelper', async () => {
       beforeEach(async () => {
         const activeVotes = [{
           _id: new ObjectID(),
-          voter: 'grampo',
+          voter: adminName,
           percent: -100,
         }];
-        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: 99999, activeVotes });
-        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: -9 });
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(100, 1000), activeVotes });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -10) });
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
