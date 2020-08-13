@@ -137,86 +137,32 @@ const updateWobjParent = async ({ authorPermlink, parent }) => {
 
 const processingParent = async (authorPermlink) => {
   const { app: { admins } } = await App.getOne({ name: config.app });
-  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields('parent', authorPermlink);
-  // check for admin votes
-  for (const field of fields) {
-    for (const vote of field.active_votes) {
+  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields('parent', authorPermlink, true);
+
+  const voteArr = [];
+  _.map(fields, (field) => {
+    const adminVotes = [];
+    _.map(field.active_votes, (vote) => {
       if (_.includes(admins, vote.voter)) {
-        return handleAdminVoteOnParent({ authorPermlink, fields, admins });
+        adminVotes.push(vote);
+        vote.admin = true;
+        vote.timestamp = vote._id.getTimestamp().valueOf();
       }
+    });
+    if (adminVotes.length) {
+      const lastVote = _.maxBy(adminVotes, 'timestamp');
+      lastVote.percent > 0 ? voteArr.push(field) : null;
+      field.adminVote = lastVote.timestamp;
     }
-  }
-  if (_.get(fields, '[0].weight') > 0) {
-    await updateWobjParent({ authorPermlink, parent: fields[0].parent });
-  } else if (_.get(fields, '[0].weight') < 0) {
-    await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
-  }
-};
-
-const handleAdminVoteOnParent = async ({
-  authorPermlink, fields, admins,
-}) => {
-  const adminActions = [];
-  const noAdminAction = [];
-  // here we find out which fields the admins interacted with
-  for (const field of fields) {
-    const votedField = _.find(field.active_votes, (f) => _.includes(admins, f.voter));
-    if (votedField) {
-      votedField.timestamp = new Date(
-        parseInt(votedField._id.toString().substring(0, 8), 16) * 1000,
-      ).valueOf();
-      votedField.parent = field.parent;
-      adminActions.push(votedField);
-    } else {
-      noAdminAction.push(field);
+    if (!adminVotes.length) {
+      field.weight > 0 ? voteArr.push(field) : null;
     }
-  }
-
-  const sortByDate = _.orderBy(adminActions, ['timestamp'], 'desc');
-
-  if (sortByDate[0].percent > 0) {
-    await updateWobjParent({ authorPermlink, parent: sortByDate[0].parent });
-  }
-
-  if (sortByDate[0].percent < 0) {
-    const approved = _.filter(sortByDate, (el) => el.percent > 0);
-    // if all fields are rejected by admins
-    if (!approved.length && (!noAdminAction.length || _.get(noAdminAction, '[0].weight') < 0)) {
-      await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
-    }
-    // if there are some fields not rejected and has enough weight
-    if (!approved.length && _.get(noAdminAction, '[0].weight') > 0) {
-      await updateWobjParent({ authorPermlink, parent: noAdminAction[0].parent });
-    }
-    if (approved.length) {
-      const hasRejectLater = [];
-      const notRejected = [];
-      // here we find out whether the approval was rejected later
-      for (const element of approved) {
-        const rejected = _.find(sortByDate, (f) => (
-          f.parent === element.parent && f.percent < 0 && f.timestamp > element.timestamp
-        ));
-        rejected && hasRejectLater.push(rejected);
-        !rejected && notRejected.push(element);
-      }
-      // if admin approve wasn't reject later
-      if (!hasRejectLater.length) {
-        await updateWobjParent({ authorPermlink, parent: approved[0].parent });
-      }
-      // if has not rejected approve
-      if (hasRejectLater.length && notRejected.length) {
-        await updateWobjParent({ authorPermlink, parent: notRejected[0].parent });
-      }
-      // if all fields are rejected by admins
-      if (hasRejectLater && !notRejected.length && (!noAdminAction.length || _.get(noAdminAction, '[0].weight') < 0)) {
-        await Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
-      }
-      // if there are some fields not rejected and has enough weight
-      if (hasRejectLater && !notRejected.length && _.get(noAdminAction, '[0].weight') > 0) {
-        await updateWobjParent({ authorPermlink, parent: noAdminAction[0].parent });
-      }
-    }
-  }
+  });
+  if (!voteArr.length) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
+  const latestApprove = _.maxBy(voteArr, 'adminVote');
+  if (latestApprove) return updateWobjParent({ authorPermlink, parent: latestApprove.parent });
+  const biggerWeight = _.maxBy(voteArr, 'weight');
+  await updateWobjParent({ authorPermlink, parent: biggerWeight.parent });
 };
 
 const updateTagCategories = async (authorPermlink) => {
