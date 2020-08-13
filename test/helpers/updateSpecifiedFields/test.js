@@ -80,7 +80,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
           voter: adminName,
           percent: -100,
         }];
-        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(100, 1000), activeVotes });
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(101, 1000), activeVotes });
         const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(50, 100) });
         const { appendObject: field3 } = await AppendObject.Create({ name: 'parent', weight: _.random(1, 40) });
 
