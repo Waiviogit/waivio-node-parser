@@ -48,17 +48,18 @@
     "uuidv4": "^6.0.0"
   },
   "devDependencies": {
+    "bson": "^4.1.0",
     "chai": "^4.2.0",
-    "faker": "^4.1.0",
-    "mocha": "^6.1.4",
-    "nodemon": "^1.11.0",
-    "nyc": "^14.1.1",
-    "sinon": "^7.5.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.0",
     "eslint-plugin-mocha": "^5.3.0",
-    "eslint-plugin-node": "^11.0.0"
+    "eslint-plugin-node": "^11.0.0",
+    "faker": "^4.1.0",
+    "mocha": "^6.1.4",
+    "nodemon": "^1.11.0",
+    "nyc": "^14.1.1",
+    "sinon": "^7.5.0"
   },
   "homepage": "https://github.com/Waiviogit/waivio-node-parser#readme"
 }

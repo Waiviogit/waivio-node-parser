@@ -2,7 +2,7 @@ const { faker, WObject, commentRefSetter } = require('../../testHelper');
 const ObjectFactory = require('../../factories/Object/ObjectFactory');
 
 const Create = async ({
-  creator, name, weight, body, root_wobj, additionalFields = {},
+  creator, name, weight, body, root_wobj, additionalFields = {}, activeVotes
 } = {}) => {
   const appendObject = {
     name: name || 'city',
@@ -12,7 +12,7 @@ const Create = async ({
     creator: creator || faker.name.firstName().toLowerCase(),
     author: faker.name.firstName().toLowerCase(),
     permlink: faker.random.string(20),
-    active_votes: [],
+    active_votes: activeVotes || [],
   };
   for (const key in additionalFields) appendObject[key] = additionalFields[key];
 
