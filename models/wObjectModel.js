@@ -161,7 +161,7 @@ const getSomeFields = async (fieldName, authorPermlink, fieldFlag = false) => {
   }
   if (fieldFlag) {
     pipeline[4].$group.fields = {
-      $push: { parent: '$fields.body', active_votes: '$fields.active_votes', weight: '$fields.weight' },
+      $push: { body: '$fields.body', active_votes: '$fields.active_votes', weight: '$fields.weight' },
     };
   }
   try {

@@ -136,7 +136,7 @@ const updateWobjParent = async ({ authorPermlink, parent }) => {
 };
 
 const processingParent = async (authorPermlink) => {
-  const { app: { admins } } = await App.getOne({ name: config.app });
+  const { app: { admins = [] } } = await App.getOne({ name: config.app });
   const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields('parent', authorPermlink, true);
 
   const voteArr = [];
@@ -145,7 +145,6 @@ const processingParent = async (authorPermlink) => {
     _.map(field.active_votes, (vote) => {
       if (_.includes(admins, vote.voter)) {
         adminVotes.push(vote);
-        vote.admin = true;
         vote.timestamp = vote._id.getTimestamp().valueOf();
       }
     });
@@ -160,9 +159,9 @@ const processingParent = async (authorPermlink) => {
   });
   if (!voteArr.length) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
   const latestApprove = _.maxBy(voteArr, 'adminVote');
-  if (latestApprove) return updateWobjParent({ authorPermlink, parent: latestApprove.parent });
+  if (latestApprove) return updateWobjParent({ authorPermlink, parent: latestApprove.body });
   const biggerWeight = _.maxBy(voteArr, 'weight');
-  await updateWobjParent({ authorPermlink, parent: biggerWeight.parent });
+  await updateWobjParent({ authorPermlink, parent: biggerWeight.body });
 };
 
 const updateTagCategories = async (authorPermlink) => {
