@@ -139,7 +139,7 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
           );
         }
       }
-      break;
+      return;
   }
 
   if (voter && field.creator !== voter && field.weight < 0) {
