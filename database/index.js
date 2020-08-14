@@ -26,5 +26,6 @@ module.exports = {
     Comment: require('./schemas/CommentSchema'),
     Subscriptions: require('./schemas/SubscriptionSchema'),
     BellNotifications: require('./schemas/BellNotificationsSchema'),
+    Campaign: require('./schemas/CampaignSchema'),
   },
 };

@@ -1,9 +1,10 @@
 const {
   Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel, CommentModel,
-  Subscriptions: SubscriptionModel,
+  Subscriptions: SubscriptionModel, Campaign: CampaignModel,
 } = require('models');
 const wobjectOperations = require('utilities/tasks/appendWobjectFields/wobjectsOperations');
 const chai = require('chai');
+const { ObjectID } = require('bson');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 
@@ -37,11 +38,13 @@ module.exports = {
   wobjectOperations,
   SubscriptionModel,
   ObjectTypeModel,
+  CampaignModel,
   dropDatabase,
   CommentModel,
   WobjModel,
   PostModel,
   UserModel,
+  ObjectID,
   AppModel,
   Mongoose,
   expect,

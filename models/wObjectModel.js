@@ -147,7 +147,7 @@ const getFieldsRefs = async (authorPermlink) => {
   }
 };
 
-const getSomeFields = async (fieldName, authorPermlink) => {
+const getSomeFields = async (fieldName, authorPermlink, fieldFlag = false) => {
   const pipeline = [
     { $match: { author_permlink: authorPermlink || /.*?/ } },
     { $unwind: '$fields' },
@@ -158,6 +158,11 @@ const getSomeFields = async (fieldName, authorPermlink) => {
   ];
   if (fieldName === 'status') {
     pipeline[2].$match['fields.weight'] = { $gt: 0 };
+  }
+  if (fieldFlag) {
+    pipeline[4].$group.fields = {
+      $push: { body: '$fields.body', active_votes: '$fields.active_votes', weight: '$fields.weight' },
+    };
   }
   try {
     const wobjects = await WObjectModel.aggregate(pipeline);

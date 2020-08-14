@@ -25,12 +25,12 @@ exports.updateAccountParser = async (operation) => {
     const updateData = parsedPostingMetadata
       ? {
         posting_json_metadata: operation.posting_json_metadata,
-        alias: _.get(parsedPostingMetadata, 'profile.name', null),
+        alias: _.get(parsedPostingMetadata, 'profile.name', ''),
         profile_image: _.get(parsedPostingMetadata, 'profile.profile_image'),
       }
       : {
         json_metadata: operation.json_metadata,
-        alias: _.get(parsedMetadata, 'profile.name', null),
+        alias: _.get(parsedMetadata, 'profile.name', ''),
         profile_image: _.get(parsedMetadata, 'profile.profile_image'),
       };
 
