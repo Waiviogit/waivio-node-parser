@@ -1,39 +1,120 @@
 const _ = require('lodash');
 const {
-  expect, updateSpecificFieldsHelper, WObject, faker,
-} = require('../../testHelper');
-const { AppendObject, ObjectFactory } = require('../../factories/');
+  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, ObjectID,
+} = require('test/testHelper');
+const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
 
 describe('UpdateSpecificFieldsHelper', async () => {
   let wobject;
 
   beforeEach(async () => {
+    await dropDatabase();
     wobject = await ObjectFactory.Create();
   });
   describe('on "parent" field', () => {
-    let fields;
-    let updWobj;
+    let fields, updWobj;
+    const adminName = faker.name.firstName();
 
     beforeEach(async () => {
-      const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: 100 });
-      const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: 1 });
-      const { appendObject: field3 } = await AppendObject.Create({ name: 'parent', weight: -99 });
-      const { appendObject: field4 } = await AppendObject.Create({ name: 'parent', weight: 80 });
-
-      fields = [field1, field2, field3, field4];
-      await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(
-        field1.author, field1.permlink, wobject.author_permlink,
-      );
-      updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      await AppFactory.Create({ name: 'waiviotest', admins: [adminName] });
     });
+    describe('when is there no admins likes and there is no fields with positive weight', async () => {
+      beforeEach(async () => {
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -1) });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -1) });
 
-    it('should add field "parent" to wobject', async () => {
-      expect(updWobj.parent).to.exist;
+        fields = [field1, field2];
+        await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+
+      it('should leave parent field empty', async () => {
+        expect(updWobj.parent).to.be.empty;
+      });
     });
+    describe('when is there no admins likes and one or more fields has positive weight', async () => {
+      beforeEach(async () => {
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(1, 100) });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(101, 10000) });
 
-    it('should write first field "parent"', async () => {
-      expect(updWobj.parent).to.eq(fields[0].body);
+        fields = [field1, field2];
+        await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+
+      it('should write second field "parent"', async () => {
+        expect(updWobj.parent).to.be.eq(fields[1].body);
+      });
+    });
+    describe('when has admin like his field always win', async () => {
+      beforeEach(async () => {
+        const activeVotes = [{
+          _id: new ObjectID(),
+          voter: adminName,
+          percent: 100,
+        }];
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -10), activeVotes });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(100, 1000) });
+
+        fields = [field1, field2];
+        await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('should write admin field', async () => {
+        expect(updWobj.parent).to.be.eq(fields[0].body);
+      });
+    });
+    describe('if admin dislike field even if it has big weight it will loose', async () => {
+      beforeEach(async () => {
+        const activeVotes = [{
+          _id: new ObjectID(),
+          voter: adminName,
+          percent: -100,
+        }];
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(101, 1000), activeVotes });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(50, 100) });
+        const { appendObject: field3 } = await AppendObject.Create({ name: 'parent', weight: _.random(1, 40) });
+
+        fields = [field1, field2, field3];
+        await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('should write field with no dislike with bigger weight', async () => {
+        expect(updWobj.parent).to.be.eq(fields[1].body);
+      });
+    });
+    describe('if admin dislike field and other fields has weight < 0 parent will be empty string', async () => {
+      beforeEach(async () => {
+        const activeVotes = [{
+          _id: new ObjectID(),
+          voter: adminName,
+          percent: -100,
+        }];
+        const { appendObject: field1 } = await AppendObject.Create({ name: 'parent', weight: _.random(100, 1000), activeVotes });
+        const { appendObject: field2 } = await AppendObject.Create({ name: 'parent', weight: _.random(-100, -10) });
+
+        fields = [field1, field2];
+        await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('should be empty string', async () => {
+        expect(updWobj.parent).to.be.empty;
+      });
     });
   });
 
