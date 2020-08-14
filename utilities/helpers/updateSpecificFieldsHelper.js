@@ -1,33 +1,33 @@
 const _ = require('lodash');
 const config = require('config');
-const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { Wobj, App } = require('models');
-const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const { tagsParser } = require('utilities/restaurantTagsParser');
-
-const TAG_CLOUDS_UPDATE_COUNT = 5;
-const RATINGS_UPDATE_COUNT = 4;
+const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
+const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
+const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
-const update = async (author, permlink, authorPermlink, voter) => {
+const update = async (author, permlink, authorPermlink, voter, percent) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
 
   if (error || !field) {
     return;
   }
   switch (field.name) {
-    case 'name':
-    case 'description':
-    case 'title':
+    case FIELDS_NAMES.NAME:
+    case FIELDS_NAMES.DESCRIPTION:
+    case FIELDS_NAMES.TITLE:
       await tagsParser.createTags({ authorPermlink, field });
       break;
-    case 'parent':
+    case FIELDS_NAMES.PARENT:
       await processingParent(authorPermlink);
       break;
 
-    case 'tagCloud':
-      const { wobjects: wobjTagCloud } = await Wobj.getSomeFields('tagCloud', authorPermlink);
+    case FIELDS_NAMES.TAG_CLOUD:
+      const { wobjects: wobjTagCloud } = await Wobj.getSomeFields(
+        FIELDS_NAMES.TAG_CLOUD, authorPermlink,
+      );
       if (_.isArray(_.get(wobjTagCloud, '[0].fields')) && _.get(wobjTagCloud, '[0].fields[0]')) {
         await Wobj.update(
           { author_permlink: authorPermlink },
@@ -36,8 +36,10 @@ const update = async (author, permlink, authorPermlink, voter) => {
       }
       break;
 
-    case 'rating':
-      const { wobjects: wobjRating } = await Wobj.getSomeFields('rating', authorPermlink);
+    case FIELDS_NAMES.RATING:
+      const { wobjects: wobjRating } = await Wobj.getSomeFields(
+        FIELDS_NAMES.RATING, authorPermlink,
+      );
       if (_.isArray(_.get(wobjRating, '[0].fields')) && _.get(wobjRating, '[0].fields[0]')) {
         await Wobj.update(
           { author_permlink: authorPermlink },
@@ -46,15 +48,17 @@ const update = async (author, permlink, authorPermlink, voter) => {
       }
       break;
 
-    case 'newsFilter':
-      const { wobjects: wobjNewsFilter } = await Wobj.getSomeFields('newsFilter', authorPermlink);
+    case FIELDS_NAMES.NEWS_FILTER:
+      const { wobjects: wobjNewsFilter } = await Wobj.getSomeFields(
+        FIELDS_NAMES.NEWS_FILTER, authorPermlink,
+      );
       if (_.isArray(_.get(wobjNewsFilter, '[0].fields')) && _.get(wobjNewsFilter, '[0].fields[0]')) {
         let newsFilter;
 
         try {
           newsFilter = JSON.parse(wobjNewsFilter[0].fields[0]);
         } catch (newsFilterParseError) {
-          console.error(`Error on parse "newsFilter" field: ${newsFilterParseError}`);
+          console.error(`Error on parse "${FIELDS_NAMES.NEWS_FILTER}" field: ${newsFilterParseError}`);
           break;
         }
         if (validateNewsFilter(newsFilter)) {
@@ -63,14 +67,14 @@ const update = async (author, permlink, authorPermlink, voter) => {
       }
       break;
 
-    case 'map':
-      const { wobjects: wobjMap } = await Wobj.getSomeFields('map', authorPermlink);
+    case FIELDS_NAMES.MAP:
+      const { wobjects: wobjMap } = await Wobj.getSomeFields(FIELDS_NAMES.MAP, authorPermlink);
       if (_.isArray(_.get(wobjMap, '[0].fields')) && _.get(wobjMap, '[0].fields[0]')) {
         let map;
         try {
           map = JSON.parse(wobjMap[0].fields[0]);
         } catch (mapParseError) {
-          console.error(`Error on parse "map" field: ${mapParseError}`);
+          console.error(`Error on parse "${FIELDS_NAMES.MAP}" field: ${mapParseError}`);
           break;
         }
         if (map.latitude && map.longitude) {
@@ -87,8 +91,10 @@ const update = async (author, permlink, authorPermlink, voter) => {
       }
       break;
 
-    case 'status':
-      const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields('status', authorPermlink);
+    case FIELDS_NAMES.STATUS:
+      const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
+        FIELDS_NAMES.STATUS, authorPermlink,
+      );
       const status = _.chain(fields)
         .filter((f) => {
           try {
@@ -111,21 +117,43 @@ const update = async (author, permlink, authorPermlink, voter) => {
       }
       break;
 
-    case 'tagCategory':
+    case FIELDS_NAMES.TAG_CATEGORY:
       await updateTagCategories(authorPermlink);
       break;
 
-    case 'categoryItem':
+    case FIELDS_NAMES.CATEGORY_ITEM:
       await updateTagCategories(authorPermlink);
+      break;
+
+    case FIELDS_NAMES.AUTHORITY:
+      if (!voter || field.creator === voter) {
+        if (percent <= 0) {
+          await Wobj.update(
+            { author_permlink: authorPermlink },
+            { $unset: { [`authority.${field.body}`]: field.creator } },
+          );
+        } else if (!_.isNumber(percent) || percent > 0) {
+          await Wobj.update(
+            { author_permlink: authorPermlink },
+            { $addToSet: { [`authority.${field.body}`]: field.creator } },
+          );
+        }
+      }
       break;
   }
 
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
+
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
     if (!_.get(voteData, 'weight') || voteData.weight > 0 || field.weight - voteData.weight < 0) return;
+
     await rejectUpdate({
-      id: 'rejectUpdate', creator: field.creator, voter, author_permlink: authorPermlink, fieldName: field.name,
+      id: 'rejectUpdate',
+      creator: field.creator,
+      voter,
+      author_permlink: authorPermlink,
+      fieldName: field.name,
     });
   }
 };
@@ -137,7 +165,9 @@ const updateWobjParent = async ({ authorPermlink, parent }) => {
 
 const processingParent = async (authorPermlink) => {
   const { app: { admins = [] } } = await App.getOne({ name: config.app });
-  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields('parent', authorPermlink, true);
+  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
+    FIELDS_NAMES.PARENT, authorPermlink, true,
+  );
 
   const voteArr = [];
   _.map(fields, (field) => {
@@ -157,9 +187,12 @@ const processingParent = async (authorPermlink) => {
       field.weight > 0 ? voteArr.push(field) : null;
     }
   });
+
   if (!voteArr.length) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
+
   const latestApprove = _.maxBy(voteArr, 'adminVote');
   if (latestApprove) return updateWobjParent({ authorPermlink, parent: latestApprove.body });
+
   const biggerWeight = _.maxBy(voteArr, 'weight');
   await updateWobjParent({ authorPermlink, parent: biggerWeight.body });
 };
@@ -169,13 +202,13 @@ const updateTagCategories = async (authorPermlink) => {
   const { wobject: tagCategoriesWobj } = await Wobj.getOne({ author_permlink: authorPermlink });
   tagCategories = _.chain(tagCategoriesWobj)
     .get('fields', [])
-    .filter((i) => i.name === 'tagCategory' || i.name === 'categoryItem')
+    .filter((i) => i.name === FIELDS_NAMES.TAG_CATEGORY || i.name === FIELDS_NAMES.CATEGORY_ITEM)
     .groupBy('id')
   // here is array of arrays
     .reduce((result, items) => {
       let category = {};
       for (let i = 0; i < items.length; i++) {
-        if (items[i].name === 'tagCategory') [category] = items.splice(i, 1);
+        if (items[i].name === FIELDS_NAMES.TAG_CATEGORY) [category] = items.splice(i, 1);
       }
       result.push({
         ...category,
@@ -212,7 +245,7 @@ const updateMapForAllChildren = async ({ parentPermlink, map }) => {
 
   const childPermlinks = _
     .chain(childWobjects)
-    .filter((w) => !w.fields.map((f) => f.name).includes('map'))
+    .filter((w) => !w.fields.map((f) => f.name).includes(FIELDS_NAMES.MAP))
     .map((w) => w.author_permlink)
     .value();
 
