@@ -63,7 +63,7 @@ const UserSchema = new Schema({
   name: {
     type: String, index: true, unique: true, required: true,
   },
-  alias: { type: String },
+  alias: { type: String, default: '' },
   profile_image: { type: String },
   // arr of author_permlink of objects what user following
   objects_follow: { type: [String], default: [] },
