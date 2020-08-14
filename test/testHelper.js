@@ -1,6 +1,6 @@
 const {
   Wobj: WobjModel, App: AppModel, ObjectType: ObjectTypeModel, Post: PostModel, User: UserModel, CommentModel,
-  Subscriptions: SubscriptionModel,
+  Subscriptions: SubscriptionModel, Campaign: CampaignModel,
 } = require('models');
 const wobjectOperations = require('utilities/tasks/appendWobjectFields/wobjectsOperations');
 const chai = require('chai');
@@ -38,6 +38,7 @@ module.exports = {
   wobjectOperations,
   SubscriptionModel,
   ObjectTypeModel,
+  CampaignModel,
   dropDatabase,
   CommentModel,
   WobjModel,
