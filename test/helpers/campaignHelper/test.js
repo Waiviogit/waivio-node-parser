@@ -1,7 +1,7 @@
 const {
-  expect, campaignHelper, dropDatabase, faker, CampaignModel,
+  expect, campaignHelper, dropDatabase, faker, CampaignModel, config,
 } = require('test/testHelper');
-const { CampaignFactory } = require('test/factories');
+const { CampaignFactory, AppFactory } = require('test/factories');
 
 describe('Campaign Helper', async () => {
   describe('parseReservationConversation', async () => {
@@ -9,6 +9,7 @@ describe('Campaign Helper', async () => {
     beforeEach(async () => {
       await dropDatabase();
       campaign = await CampaignFactory.Create();
+      await AppFactory.Create({ name: config.app, admins: [faker.name.firstName()] });
     });
     describe('when function did not find campaign', async () => {
       beforeEach(async () => {

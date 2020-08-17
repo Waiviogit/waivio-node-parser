@@ -13,6 +13,7 @@ chai.use(sinonChai);
 const { expect } = chai;
 const faker = require('faker');
 const { Mongoose } = require('database');
+const config = require('config');
 
 faker.random.string = (length = 5) => faker.internet.password(length, false, /[a-z]/);
 
@@ -48,6 +49,7 @@ module.exports = {
   AppModel,
   Mongoose,
   expect,
+  config,
   faker,
   chai,
 };
