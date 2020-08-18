@@ -9,7 +9,6 @@ describe('Campaign Helper', async () => {
     beforeEach(async () => {
       await dropDatabase();
       campaign = await CampaignFactory.Create();
-      await AppFactory.Create({ name: config.app, admins: [faker.name.firstName()] });
     });
     describe('when function did not find campaign', async () => {
       beforeEach(async () => {
