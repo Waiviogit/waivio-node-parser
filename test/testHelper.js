@@ -4,7 +4,6 @@ const {
 } = require('models');
 const wobjectOperations = require('utilities/tasks/appendWobjectFields/wobjectsOperations');
 const chai = require('chai');
-const { ObjectID } = require('bson');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 
@@ -45,7 +44,6 @@ module.exports = {
   WobjModel,
   PostModel,
   UserModel,
-  ObjectID,
   AppModel,
   Mongoose,
   expect,

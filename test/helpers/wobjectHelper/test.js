@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  expect, sinon, importUpdates, wobjectHelper, faker, ObjectTypeModel, dropDatabase, config, WObject, ObjectID,
+  expect, sinon, importUpdates, wobjectHelper, faker, ObjectTypeModel, dropDatabase, config, WObject, postHelper,
 } = require('test/testHelper');
 const {
   ObjectTypeFactory, ObjectFactory, AppFactory, AppendObject,
@@ -133,7 +133,7 @@ describe('getWobjWinField', async () => {
   describe('when has admin like his field always win', async () => {
     beforeEach(async () => {
       const activeVotes = [{
-        _id: new ObjectID(),
+        _id: postHelper.objectIdFromDateString(new Date()),
         voter: adminName,
         percent: 100,
       }];
@@ -156,7 +156,7 @@ describe('getWobjWinField', async () => {
   describe('if admin dislike field even if it has big weight it will loose', async () => {
     beforeEach(async () => {
       const activeVotes = [{
-        _id: new ObjectID(),
+        _id: postHelper.objectIdFromDateString(new Date()),
         voter: adminName,
         percent: -100,
       }];
@@ -183,7 +183,7 @@ describe('getWobjWinField', async () => {
   describe('if admin dislike field and other fields has weight < 0 method should return false', async () => {
     beforeEach(async () => {
       const activeVotes = [{
-        _id: new ObjectID(),
+        _id: postHelper.objectIdFromDateString(new Date()),
         voter: adminName,
         percent: -100,
       }];

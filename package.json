@@ -49,7 +49,6 @@
     "uuidv4": "^6.0.0"
   },
   "devDependencies": {
-    "bson": "^4.1.0",
     "chai": "^4.2.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^14.0.0",
