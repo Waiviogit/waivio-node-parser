@@ -4,7 +4,6 @@ const {
 } = require('models');
 const wobjectOperations = require('utilities/tasks/appendWobjectFields/wobjectsOperations');
 const chai = require('chai');
-const { ObjectID } = require('bson');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 
@@ -13,6 +12,7 @@ chai.use(sinonChai);
 const { expect } = chai;
 const faker = require('faker');
 const { Mongoose } = require('database');
+const config = require('config');
 
 faker.random.string = (length = 5) => faker.internet.password(length, false, /[a-z]/);
 
@@ -44,10 +44,10 @@ module.exports = {
   WobjModel,
   PostModel,
   UserModel,
-  ObjectID,
   AppModel,
   Mongoose,
   expect,
+  config,
   faker,
   chai,
 };

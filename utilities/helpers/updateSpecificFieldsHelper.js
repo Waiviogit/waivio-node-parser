@@ -1,7 +1,7 @@
 const _ = require('lodash');
-const config = require('config');
-const { Wobj, App } = require('models');
+const { Wobj } = require('models');
 const { tagsParser } = require('utilities/restaurantTagsParser');
+const { getWobjWinField } = require('utilities/helpers/wobjectHelper');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
@@ -158,43 +158,12 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
   }
 };
 
-const updateWobjParent = async ({ authorPermlink, parent }) => {
-  await Wobj.update({ author_permlink: authorPermlink }, { parent });
-  await updateMapFromParent(authorPermlink, parent);
-};
-
 const processingParent = async (authorPermlink) => {
-  const { app: { admins = [] } } = await App.getOne({ name: config.app });
-  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
-    FIELDS_NAMES.PARENT, authorPermlink, true,
-  );
+  const result = await getWobjWinField({ fieldName: FIELDS_NAMES.PARENT, authorPermlink });
 
-  const voteArr = [];
-  _.map(fields, (field) => {
-    const adminVotes = [];
-    _.map(field.active_votes, (vote) => {
-      if (_.includes(admins, vote.voter)) {
-        adminVotes.push(vote);
-        vote.timestamp = vote._id.getTimestamp().valueOf();
-      }
-    });
-    if (adminVotes.length) {
-      const lastVote = _.maxBy(adminVotes, 'timestamp');
-      lastVote.percent > 0 ? voteArr.push(field) : null;
-      field.adminVote = lastVote.timestamp;
-    }
-    if (!adminVotes.length) {
-      field.weight > 0 ? voteArr.push(field) : null;
-    }
-  });
-
-  if (!voteArr.length) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
-
-  const latestApprove = _.maxBy(voteArr, 'adminVote');
-  if (latestApprove) return updateWobjParent({ authorPermlink, parent: latestApprove.body });
-
-  const biggerWeight = _.maxBy(voteArr, 'weight');
-  await updateWobjParent({ authorPermlink, parent: biggerWeight.body });
+  if (!result) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
+  await Wobj.update({ author_permlink: authorPermlink }, { parent: result.body });
+  await updateMapFromParent(authorPermlink, result.body);
 };
 
 const updateTagCategories = async (authorPermlink) => {

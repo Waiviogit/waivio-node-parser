@@ -3,7 +3,7 @@ const {
   FIELDS_NAMES, RATINGS_UPDATE_COUNT, OBJECT_TYPES, AUTHORITY_FIELD_ENUM,
 } = require('constants/wobjectsData');
 const {
-  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, ObjectID,
+  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper,
 } = require('test/testHelper');
 const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
 
@@ -66,7 +66,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
     describe('when has admin like his field always win', async () => {
       beforeEach(async () => {
         const activeVotes = [{
-          _id: new ObjectID(),
+          _id: postHelper.objectIdFromDateString(new Date()),
           voter: adminName,
           percent: 100,
         }];
@@ -91,7 +91,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
     describe('if admin dislike field even if it has big weight it will loose', async () => {
       beforeEach(async () => {
         const activeVotes = [{
-          _id: new ObjectID(),
+          _id: postHelper.objectIdFromDateString(new Date()),
           voter: adminName,
           percent: -100,
         }];
@@ -119,7 +119,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
     describe('if admin dislike field and other fields has weight < 0 parent will be empty string', async () => {
       beforeEach(async () => {
         const activeVotes = [{
-          _id: new ObjectID(),
+          _id: postHelper.objectIdFromDateString(new Date()),
           voter: adminName,
           percent: -100,
         }];
