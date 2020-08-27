@@ -68,7 +68,8 @@ const getWobjWinField = async ({ fieldName, authorPermlink }) => {
       field.adminVote = lastVote.timestamp;
     }
     if (!adminVotes.length) {
-      field.weight > 0 ? voteArr.push(field) : null;
+      const maxPercent = _.maxBy(field.active_votes, 'percent').percent;
+      maxPercent > 0 ? voteArr.push(field) : null;
     }
   });
   if (!voteArr.length) return false;
