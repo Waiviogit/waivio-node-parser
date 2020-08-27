@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { REFERRAL_TYPES } = require('constants/appData');
 
 const { Schema } = mongoose;
 
@@ -18,6 +19,11 @@ const TagsData = new Schema({
   Cuisine: { type: Object, default: {} },
   'Good For': { type: Object, default: {} },
   Features: { type: Object, default: {} },
+}, { _id: false });
+
+const ReferralTimersSchema = new Schema({
+  type: { type: String, enum: Object.values(REFERRAL_TYPES) },
+  duration: { type: Number, default: 90 },
 }, { _id: false });
 
 const AppSchema = new Schema({
@@ -60,6 +66,7 @@ const AppSchema = new Schema({
   black_list_users: { type: [String], default: [] },
   service_bots: { type: [botSchema], default: [] },
   tagsData: { type: TagsData },
+  referralsData: { type: [ReferralTimersSchema], default: [] },
 }, { timestamps: true });
 
 const AppModel = mongoose.model('App', AppSchema);

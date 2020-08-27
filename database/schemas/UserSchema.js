@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { REFERRAL_TYPES } = require('constants/appData');
 
 const { Schema } = mongoose;
 const { LANGUAGES } = require('../../utilities/constants');
@@ -80,7 +81,12 @@ const UserSchema = new Schema({
   followers_count: { type: Number, default: 0 },
   stage_version: { type: Number, default: 0, required: true },
   privateEmail: { type: String, default: null, select: false },
-  importedWallet: { type: Boolean, default: false },
+  referral: [{
+    agent: { type: String },
+    startedAt: { type: Date },
+    endedAt: { type: Date },
+    type: { type: String, enum: Object.values(REFERRAL_TYPES) },
+  }],
 }, { timestamps: true });
 
 UserSchema.index({ wobjects_weight: -1 });
