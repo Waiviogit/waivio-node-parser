@@ -15,19 +15,20 @@ describe('UpdateSpecificFieldsHelper', async () => {
     wobject = await ObjectFactory.Create();
   });
   describe('on "parent" field', () => {
-    let updWobj, fields = [];
+    let updWobj, fields = [], activeVotes;
     const adminName = faker.name.firstName();
 
     beforeEach(async () => {
       await AppFactory.Create({ name: 'waiviotest', admins: [adminName] });
     });
-    describe('when is there no admins likes and there is no fields with positive weight', async () => {
+    describe('when is there no admins likes and there is no fields with positive percent', async () => {
       beforeEach(async () => {
+        activeVotes = [{ percent: _.random(-100, -1) }];
         const { appendObject: field1 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(-100, -1) },
+          { name: FIELDS_NAMES.PARENT, activeVotes },
         );
         const { appendObject: field2 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(-100, -1) },
+          { name: FIELDS_NAMES.PARENT, activeVotes },
         );
 
         fields = [field1, field2];
@@ -42,13 +43,14 @@ describe('UpdateSpecificFieldsHelper', async () => {
         expect(updWobj.parent).to.be.empty;
       });
     });
-    describe('when is there no admins likes and one or more fields has positive weight', async () => {
+    describe('when is there no admins likes and one or more fields has positive percent', async () => {
       beforeEach(async () => {
+        activeVotes = [{ percent: _.random(1, 100) }];
         const { appendObject: field1 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(1, 100) },
+          { name: FIELDS_NAMES.PARENT, weight: _.random(1, 100), activeVotes },
         );
         const { appendObject: field2 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(101, 10000) },
+          { name: FIELDS_NAMES.PARENT, weight: _.random(101, 10000), activeVotes },
         );
 
         fields = [field1, field2];
@@ -65,17 +67,19 @@ describe('UpdateSpecificFieldsHelper', async () => {
     });
     describe('when has admin like his field always win', async () => {
       beforeEach(async () => {
-        const activeVotes = [{
+        activeVotes = [{
           _id: postHelper.objectIdFromDateString(new Date()),
           voter: adminName,
-          percent: 100,
+          percent: _.random(1, 100),
         }];
         const { appendObject: field1 } = await AppendObject.Create(
           { name: FIELDS_NAMES.PARENT, weight: _.random(-100, -10), activeVotes },
         );
-        const { appendObject: field2 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(100, 1000) },
-        );
+        const { appendObject: field2 } = await AppendObject.Create({
+          name: FIELDS_NAMES.PARENT,
+          weight: _.random(100, 1000),
+          activeVotes: [{ percent: _.random(1, 100) }],
+        });
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
@@ -90,19 +94,20 @@ describe('UpdateSpecificFieldsHelper', async () => {
     });
     describe('if admin dislike field even if it has big weight it will loose', async () => {
       beforeEach(async () => {
-        const activeVotes = [{
+        activeVotes = [{
           _id: postHelper.objectIdFromDateString(new Date()),
           voter: adminName,
-          percent: -100,
+          percent: _.random(-100, -1),
         }];
+        const userVotes = [{ percent: _.random(1, 100) }];
         const { appendObject: field1 } = await AppendObject.Create(
           { name: FIELDS_NAMES.PARENT, weight: _.random(101, 1000), activeVotes },
         );
         const { appendObject: field2 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(50, 100) },
+          { name: FIELDS_NAMES.PARENT, weight: _.random(50, 100), activeVotes: userVotes },
         );
         const { appendObject: field3 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(1, 40) },
+          { name: FIELDS_NAMES.PARENT, weight: _.random(1, 40), activeVotes: userVotes },
         );
 
         fields = [field1, field2, field3];
@@ -116,18 +121,19 @@ describe('UpdateSpecificFieldsHelper', async () => {
         expect(updWobj.parent).to.be.eq(fields[1].body);
       });
     });
-    describe('if admin dislike field and other fields has weight < 0 parent will be empty string', async () => {
+    describe('if admin dislike field and other fields has no votes percent > 0 parent will be empty string', async () => {
       beforeEach(async () => {
-        const activeVotes = [{
+        const userVotes = [{ percent: _.random(-100, -1) }];
+        activeVotes = [{
           _id: postHelper.objectIdFromDateString(new Date()),
           voter: adminName,
-          percent: -100,
+          percent: _.random(-100, -1),
         }];
         const { appendObject: field1 } = await AppendObject.Create(
           { name: FIELDS_NAMES.PARENT, weight: _.random(100, 1000), activeVotes },
         );
         const { appendObject: field2 } = await AppendObject.Create(
-          { name: FIELDS_NAMES.PARENT, weight: _.random(-100, -10) },
+          { name: FIELDS_NAMES.PARENT, weight: _.random(-100, -10), activeVotes: userVotes },
         );
 
         fields = [field1, field2];
