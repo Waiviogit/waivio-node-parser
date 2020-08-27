@@ -194,6 +194,14 @@ const findOne = async (name) => {
   }
 };
 
+const find = async (condition) => {
+  try {
+    return { users: await UserModel.find(condition).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   create,
   addObjectFollow,
@@ -207,4 +215,5 @@ module.exports = {
   updateOne,
   updateOnNewPost,
   findOne,
+  find,
 };

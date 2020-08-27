@@ -86,7 +86,6 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
             { author_permlink: authorPermlink },
             { map: { type: 'Point', coordinates: [map.longitude, map.latitude] } },
           );
-          await updateMapForAllChildren({ parentPermlink: authorPermlink, map });
         }
       }
       break;
@@ -163,7 +162,6 @@ const processingParent = async (authorPermlink) => {
 
   if (!result) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
   await Wobj.update({ author_permlink: authorPermlink }, { parent: result.body });
-  await updateMapFromParent(authorPermlink, result.body);
 };
 
 const updateTagCategories = async (authorPermlink) => {
@@ -189,36 +187,6 @@ const updateTagCategories = async (authorPermlink) => {
     }, [])
     .value();
   await Wobj.update({ author_permlink: authorPermlink }, { tagCategories });
-};
-
-// use on "parent" update
-const updateMapFromParent = async (authorPermlink, parentPermlink) => {
-  const { wobject, error } = await Wobj.getOne({ author_permlink: authorPermlink });
-  if (error) return { error };
-  if (!wobject.map) {
-    const parentRes = await Wobj.getOne({ author_permlink: parentPermlink });
-    if (_.get(parentRes, 'wobject.map')) {
-      return Wobj.update({ author_permlink: authorPermlink }, { map: parentRes.wobject.map });
-    }
-  }
-};
-
-// use on "map" update
-const updateMapForAllChildren = async ({ parentPermlink, map }) => {
-  const { wobjects: childWobjects, error } = await Wobj.getMany({
-    condition: { parent: parentPermlink },
-    select: '-_id author_permlink fields',
-  });
-
-  if (error) return { error };
-
-  const childPermlinks = _
-    .chain(childWobjects)
-    .filter((w) => !w.fields.map((f) => f.name).includes(FIELDS_NAMES.MAP))
-    .map((w) => w.author_permlink)
-    .value();
-
-  return Wobj.updateMany({ author_permlink: { $in: childPermlinks } }, map);
 };
 
 module.exports = { update };

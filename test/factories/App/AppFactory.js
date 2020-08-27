@@ -1,7 +1,8 @@
-const { faker, App } = require('../../testHelper');
+const { faker, App } = require('test/testHelper');
 
 const Create = async ({
   blacklists, name, admins, moderators, topUsers,
+  referralsData, blackListUsers, bots,
 } = {}) => {
   const data = {
     name: name || faker.random.string(10),
@@ -21,6 +22,9 @@ const Create = async ({
       permlink: faker.random.string(),
       title: faker.random.string(20),
     },
+    referralsData: referralsData || [],
+    black_list_users: blackListUsers || [],
+    service_bots: bots || [],
   };
 
   return App.create(data);
