@@ -2,7 +2,8 @@ const _ = require('lodash');
 const { Campaign } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
-exports.parseReservationConversation = async (operation) => {
+exports.parseReservationConversation = async (operation, metadata) => {
+  if (_.get(metadata, 'waivioRewards.type')) return false;
   const { result: campaign } = await Campaign
     .findOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } });
   if (!campaign) return true;
