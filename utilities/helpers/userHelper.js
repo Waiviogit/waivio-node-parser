@@ -83,7 +83,11 @@ exports.checkAndSetReferral = async (data) => {
 
       const { users: dbUsers } = await userModel.find({ name: { $in: [author, agent] } });
       const user = _.find(dbUsers, { name: author });
+      const agentAcc = _.find(dbUsers, { name: agent });
+
       if (!user || dbUsers.length !== 2) return { error: 'One of users not exists' };
+      if (!agentAcc.allowReferral) return { error: 'Agent not allow referral' };
+
       const { result } = await paymentHistoriesModel.findOne(
         { userName: author, type: { $in: REVIEW_DEBTS_TYPES } },
       );

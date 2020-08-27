@@ -26,7 +26,7 @@ describe('On custom json parser', async () => {
       describe('On real users', () => {
         let mockData, agent, author, result;
         beforeEach(async () => {
-          ({ user: agent } = await UserFactory.Create());
+          ({ user: agent } = await UserFactory.Create({ allowReferral: true }));
           ({ user: author } = await UserFactory.Create());
           const json = { agent: agent.name, type: REFERRAL_TYPES.REVIEWS };
           mockData = getCustomJsonData(
@@ -48,7 +48,7 @@ describe('On custom json parser', async () => {
       describe('On guest users', () => {
         let mockData, agent, author, referralsData;
         beforeEach(async () => {
-          ({ user: agent } = await UserFactory.Create());
+          ({ user: agent } = await UserFactory.Create({ allowReferral: true }));
           ({ user: author } = await UserFactory.Create());
           const json = { agent: agent.name, type: REFERRAL_TYPES.REVIEWS, guestName: author.name };
           mockData = getCustomJsonData(
@@ -153,6 +153,24 @@ describe('On custom json parser', async () => {
         });
         it('should not add referral if agent in blacklist', async () => {
           expect(result.referral).to.have.length(1);
+        });
+      });
+
+      describe('Agent not allow referral', async () => {
+        let mockData, author, result, agent;
+        beforeEach(async () => {
+          ({ user: author } = await UserFactory.Create());
+          ({ user: agent } = await UserFactory.Create({ allowReferral: false }));
+
+          const json = { agent: agent.name, type: REFERRAL_TYPES.REVIEWS };
+          mockData = getCustomJsonData(
+            { json: JSON.stringify(json), id: 'add_referral_agent', postingAuth: [author.name] },
+          );
+          await customJsonParser.parse(mockData);
+          result = await User.findOne({ name: author.name });
+        });
+        it('should not add referral if agent not allow referral', async () => {
+          expect(result.referral).to.have.length(0);
         });
       });
     });
