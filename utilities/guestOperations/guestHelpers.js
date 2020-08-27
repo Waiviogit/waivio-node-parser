@@ -4,7 +4,7 @@ const appHelper = require('utilities/helpers/appHelper');
 const METADATA_GUEST_MARKERS = 'userId,social'.split(',');
 
 exports.validateProxyBot = async (username) => {
-  const WAIVIO_PROXY_BOTS = await appHelper.getProxyBots();
+  const WAIVIO_PROXY_BOTS = await appHelper.getProxyBots(['proxyBot', 'reviewBot']);
   return WAIVIO_PROXY_BOTS.includes(username);
 };
 

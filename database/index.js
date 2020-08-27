@@ -27,5 +27,6 @@ module.exports = {
     Subscriptions: require('./schemas/SubscriptionSchema'),
     BellNotifications: require('./schemas/BellNotificationsSchema'),
     Campaign: require('./schemas/CampaignSchema'),
+    PaymentHistories: require('./schemas/PaymentHistoriesSchema'),
   },
 };

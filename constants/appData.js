@@ -78,7 +78,10 @@ const notificationsApi = {
 // valid urls of HIVE nodes for getting blocks with transactions.
 const nodeUrls = ['https://blocks.waivio.com', 'https://anyx.io', 'https://rpc.esteem.app'];
 
-const WALLET_LENGTH = 51;
+const REFERRAL_TYPES = {
+  REVIEWS: 'reviews',
+};
+
 
 module.exports = {
   getAppData,
@@ -86,5 +89,5 @@ module.exports = {
   waivioApi: waivioApi[process.env.NODE_ENV || 'development'],
   notificationsApi: notificationsApi[process.env.NODE_ENV || 'development'],
   nodeUrls,
-  WALLET_LENGTH,
+  REFERRAL_TYPES,
 };
