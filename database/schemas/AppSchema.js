@@ -9,6 +9,18 @@ const botSchema = new Schema({
   roles: { type: [String], required: true },
 }, { _id: false });
 
+const AppCommissions = new Schema({
+  campaigns_server_acc: { type: String, required: true },
+  campaigns_percent: {
+    type: Number, min: 0, max: 1, required: true,
+  },
+  index_commission_acc: { type: String, required: true },
+  index_percent: {
+    type: Number, min: 0, max: 1, required: true,
+  },
+  referral_commission_acc: { type: String, required: true },
+}, { _id: false });
+
 const moderatorsSchema = new Schema({
   name: { type: String, required: true },
   author_permlinks: { type: [String], default: [] },
@@ -66,6 +78,7 @@ const AppSchema = new Schema({
   black_list_users: { type: [String], default: [] },
   service_bots: { type: [botSchema], default: [] },
   tagsData: { type: TagsData },
+  app_commissions: { type: AppCommissions, required: true },
   referralsData: { type: [ReferralTimersSchema], default: [] },
 }, { timestamps: true });
 
