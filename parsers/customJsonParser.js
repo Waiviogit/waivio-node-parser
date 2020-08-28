@@ -5,6 +5,12 @@ const { customJsonOperations } = require('utilities/guestOperations');
 
 exports.parse = async (operation) => {
   switch (operation.id) {
+    case 'reject_referral_license':
+      await userHelper.rejectReferralStatus(operation);
+      break;
+    case 'confirm_referral_license':
+      await userHelper.confirmReferralStatus(operation);
+      break;
     case 'add_referral_agent':
       await userHelper.checkAndSetReferral(operation);
       break;

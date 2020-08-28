@@ -5,9 +5,9 @@ const userModel = require('models/UserModel');
 const paymentHistoriesModel = require('models/PaymentHistoriesModel');
 const { usersUtil } = require('utilities/steemApi');
 const appHelper = require('utilities/helpers/appHelper');
-const { REFERRAL_TYPES } = require('constants/appData');
+const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
 const { REVIEW_DEBTS_TYPES } = require('constants/campaigns');
-
+const config = require('config');
 
 /**
  * Create user in DB if it not exist,
@@ -49,44 +49,57 @@ exports.checkAndCreateByArray = async (names) => {
   }
 };
 
-
-exports.checkAndSetReferral = async (data) => {
-  let json;
+const parseJson = (json) => {
   try {
-    json = JSON.parse(data.json);
+    return JSON.parse(json);
   } catch (error) {
     console.error(error);
-    return { error };
+    return null;
   }
+};
+
+/** Set different referral types to users */
+exports.checkAndSetReferral = async (data) => {
+  const json = parseJson(data.json);
+  if (!json) return { error: 'JSON not valid' };
+
   let author = _.get(data, 'required_posting_auths[0]');
   const agent = _.get(json, 'agent');
-  const guestName = _.get(json, 'guestName');
   if (!author || !agent) return { error: 'Not valid data' };
 
+  const {
+    app: {
+      black_list_users = [],
+      service_bots = [],
+      referralsData = [],
+    },
+  } = await appHelper.getAppData(config.app);
+
+  /** Check for guest user */
+  const guestName = _.get(json, 'guestName');
   if (guestName) {
-    const bots = await appHelper.getProxyBots(['proxyBot']);
-    if (!_.includes(bots, author)) {
-      return { error: 'Author of guest info must be one of our bots' };
-    }
+    const bot = _.find(service_bots,
+      (record) => record.name === author);
+    if (!bot) return { error: 'Author of guest info must be one of our bots' };
     author = guestName;
   }
+  /** If agent in black list, dont allow referral */
+  if (_.includes(black_list_users, agent)) return { error: 'Author in black list!' };
 
-  const { users = [], referralsData = [] } = await appHelper.getBlackListUsers();
-  if (_.includes(users, agent)) {
-    return { error: 'Author in black list!' };
-  }
+  /** Find users in DB, all users must exists, and agent mustnt have referral status rejected */
+  const { users: dbUsers } = await userModel.find({ name: { $in: [author, agent] } });
+  let user = _.find(dbUsers, { name: author });
+  const agentAcc = _.find(dbUsers, { name: agent });
+  if (!user) ({ user } = await this.checkAndCreateUser(author));
+  if (!agentAcc) return { error: 'Agent account must exist' };
 
+  if (agentAcc.referralStatus === REFERRAL_STATUSES.REJECTED) return { error: 'Agent not allow referral' };
+
+  /** Switch referral types, now we have only reviews referral */
   switch (json.type) {
     case REFERRAL_TYPES.REVIEWS:
       const referralTypeData = _.find(referralsData,
         (referral) => referral.type === json.type);
-
-      const { users: dbUsers } = await userModel.find({ name: { $in: [author, agent] } });
-      const user = _.find(dbUsers, { name: author });
-      const agentAcc = _.find(dbUsers, { name: agent });
-
-      if (!user || dbUsers.length !== 2) return { error: 'One of users not exists' };
-      if (!agentAcc.allowReferral) return { error: 'Agent not allow referral' };
 
       const { result } = await paymentHistoriesModel.findOne(
         { userName: author, type: { $in: REVIEW_DEBTS_TYPES } },
@@ -95,8 +108,8 @@ exports.checkAndSetReferral = async (data) => {
       if (result || _.get(user, 'referrals', []).length) {
         return { error: 'User is not new' };
       }
-
-      await userModel.updateOne({ name: author }, {
+      /** Add referral agent to user */
+      return userModel.updateOne({ name: author }, {
         $push: {
           referral: {
             agent,
@@ -106,8 +119,59 @@ exports.checkAndSetReferral = async (data) => {
           },
         },
       });
-      break;
     default:
       break;
   }
+};
+
+const referralValidation = async (json, author, postingAuth) => {
+  const isGuest = _.get(json, 'isGuest', false);
+  if (isGuest) {
+    const { app: { service_bots = [] } } = await appHelper.getAppData(config.app);
+    const bot = _.find(service_bots,
+      (record) => record.name === author);
+    if (!bot) return { error: 'Author of guest info must be one of our bots' };
+  }
+
+  if (author !== postingAuth && !isGuest) {
+    return { error: 'User who posted json not same with user in json' };
+  }
+  return { result: true };
+};
+
+exports.confirmReferralStatus = async (data) => {
+  const json = parseJson(data.json);
+  if (!json) return { error: 'JSON not valid' };
+  const author = _.get(json, 'agent');
+
+  const { error } = await referralValidation(json, author, data.required_posting_auths[0]);
+  if (error) return { error };
+
+  /** Set user referral status */
+  return userModel.updateOne({ name: author },
+    { $set: { referralStatus: REFERRAL_STATUSES.ACTIVATED } });
+};
+
+exports.rejectReferralStatus = async (data) => {
+  const json = parseJson(data.json);
+  if (!json) return { error: 'JSON not valid' };
+  const author = _.get(json, 'agent');
+
+  const { error } = await referralValidation(json, author, data.required_posting_auths[0]);
+  if (error) return { error };
+
+  let { user } = await userModel.findOne(author);
+  if (!user) ({ user } = await this.checkAndCreateUser(author));
+  if (user.referralStatus !== REFERRAL_STATUSES.ACTIVATED) {
+    return { error: 'User must have activated status' };
+  }
+  /** Set user referral status */
+  await userModel.updateOne({ name: author },
+    { $set: { referralStatus: REFERRAL_STATUSES.REJECTED } });
+
+  /** Remove all referrals from agent */
+  await userModel.update(
+    { referral: { $elemMatch: { agent: author, endedAt: { $gt: moment.utc().toDate() } } } },
+    { $set: { 'referral.$.endedAt': new Date() } },
+  );
 };
