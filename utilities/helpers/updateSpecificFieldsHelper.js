@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { Wobj } = require('models');
 const { tagsParser } = require('utilities/restaurantTagsParser');
+const { redisGetter, redisSetter } = require('utilities/redis');
 const { getWobjWinField } = require('utilities/helpers/wobjectHelper');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
@@ -164,6 +165,23 @@ const processingParent = async (authorPermlink) => {
   await Wobj.update({ author_permlink: authorPermlink }, { parent: result.body });
 };
 
+const checkExistingTags = async (tagCategories = []) => {
+  for (const category of tagCategories) {
+    const existingTags = await redisGetter.getTagCategories(`tagCategory:${category.body}`);
+    const newTags = _
+      .filter(category.categoryItems, (o) => !_.includes(existingTags, o.name) && o.weight > 0);
+
+    if (!newTags.length) continue;
+    let counter = 0;
+    const tags = [];
+    for (let i = 0; i < newTags.length; i++) {
+      tags[counter++] = 0;
+      tags[counter++] = newTags[i].name;
+    }
+    await redisSetter.addTagCategory({ categoryName: category.body, tags });
+  }
+};
+
 const updateTagCategories = async (authorPermlink) => {
   let tagCategories = [];
   const { wobject: tagCategoriesWobj } = await Wobj.getOne({ author_permlink: authorPermlink });
@@ -186,7 +204,10 @@ const updateTagCategories = async (authorPermlink) => {
       return result;
     }, [])
     .value();
+  await checkExistingTags(tagCategories);
   await Wobj.update({ author_permlink: authorPermlink }, { tagCategories });
 };
-
+(async () => {
+  await updateTagCategories('ygv-carderos-restaurant-restaurant');
+})();
 module.exports = { update };
