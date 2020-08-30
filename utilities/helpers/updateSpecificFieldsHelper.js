@@ -207,7 +207,5 @@ const updateTagCategories = async (authorPermlink) => {
   await checkExistingTags(tagCategories);
   await Wobj.update({ author_permlink: authorPermlink }, { tagCategories });
 };
-(async () => {
-  await updateTagCategories('ygv-carderos-restaurant-restaurant');
-})();
+
 module.exports = { update };
