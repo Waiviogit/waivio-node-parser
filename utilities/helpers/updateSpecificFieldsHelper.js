@@ -172,12 +172,9 @@ const checkExistingTags = async (tagCategories = []) => {
       .filter(category.categoryItems, (o) => !_.includes(existingTags, o.name) && o.weight > 0);
 
     if (!newTags.length) continue;
-    let counter = 0;
-    const tags = [];
-    for (let i = 0; i < newTags.length; i++) {
-      tags[counter++] = 0;
-      tags[counter++] = newTags[i].name;
-    }
+    let tags = [];
+    for (const tag of newTags) tags = _.concat(tags, [0, tag.name]);
+
     await redisSetter.addTagCategory({ categoryName: category.body, tags });
   }
 };
