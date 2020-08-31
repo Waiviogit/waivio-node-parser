@@ -4,6 +4,7 @@ const { uuid } = require('uuidv4');
 const { Wobj, App } = require('models');
 const { ObjectType } = require('models');
 const { importUpdates } = require('utilities/objectImportServiceApi');
+const { MIN_PERCENT_TO_SHOW_UPDATE } = require('constants/wobjectsData');
 
 const DEFAULT_UPDATES_CREATOR = 'monterey';
 
@@ -47,6 +48,25 @@ const randomString = (length = 5) => {
   return result;
 };
 
+const calculateApprovePercent = (field) => {
+  if (_.isEmpty(field.active_votes)) return 100;
+  if (field.weight < 0) return 0;
+
+  const rejectsWeight = _.sumBy(field.active_votes, (vote) => {
+    if (vote.percent < 0) {
+      return -(+vote.weight || -1);
+    }
+  }) || 0;
+  const approvesWeight = _.sumBy(field.active_votes, (vote) => {
+    if (vote.percent > 0) {
+      return +vote.weight || 1;
+    }
+  }) || 0;
+  if (!rejectsWeight) return 100;
+  const percent = _.round((approvesWeight / (approvesWeight + rejectsWeight)) * 100, 3);
+  return percent > 0 ? percent : 0;
+};
+
 const getWobjWinField = async ({ fieldName, authorPermlink }) => {
   const { app: { admins = [] } } = await App.getOne({ name: config.app });
   const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
@@ -68,7 +88,10 @@ const getWobjWinField = async ({ fieldName, authorPermlink }) => {
       field.adminVote = lastVote.timestamp;
     }
     if (!adminVotes.length) {
-      field.weight > 0 ? voteArr.push(field) : null;
+      field.approvePercent = calculateApprovePercent(field);
+      field.weight > 0 && field.approvePercent > MIN_PERCENT_TO_SHOW_UPDATE
+        ? voteArr.push(field)
+        : null;
     }
   });
   if (!voteArr.length) return false;
