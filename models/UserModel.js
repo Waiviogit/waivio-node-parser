@@ -3,7 +3,6 @@ const moment = require('moment');
 const UserModel = require('database').models.User;
 const UserWobjectsModel = require('database').models.UserWobjects;
 
-
 const create = async (data) => {
   const newUser = new UserModel(data);
 

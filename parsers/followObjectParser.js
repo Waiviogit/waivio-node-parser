@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { User, Wobj } = require('models');
+const { User, Wobj, wobjectSubscriptionModel } = require('models');
 const { userHelper } = require('utilities/helpers');
 
 const parse = async (data) => {
@@ -26,6 +26,8 @@ const parse = async (data) => {
       }
       await userHelper.checkAndCreateUser(json[1].user);
       const { result } = await User.addObjectFollow(json[1]);
+      await wobjectSubscriptionModel
+        .followWobject({ follower: json[1].user, following: json[1].author_permlink });
       if (result) {
         const resultMessage = `User ${json[1].user} now following wobject ${json[1].author_permlink}!\n`;
         console.log(resultMessage);
@@ -33,6 +35,8 @@ const parse = async (data) => {
       }
     } else { // else if missing - unfollow
       const { result } = await User.removeObjectFollow(json[1]);
+      await wobjectSubscriptionModel
+        .unfollowWobject({ follower: json[1].user, following: json[1].author_permlink });
       if (result) {
         const resultMessage = `User ${json[1].user} now unfollow wobject ${json[1].author_permlink} !\n`;
         console.log(resultMessage);
