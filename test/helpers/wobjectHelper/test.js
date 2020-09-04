@@ -83,7 +83,7 @@ describe('addSupposedUpdates', async () => {
 });
 
 describe('getWobjWinField', async () => {
-  let wobject, returnedValue, adminName, fieldName, fields = [];
+  let wobject, returnedValue, adminName, fieldName, activeVotes, fields = [];
 
   beforeEach(async () => {
     fieldName = faker.name.firstName();
@@ -92,13 +92,14 @@ describe('getWobjWinField', async () => {
     wobject = await ObjectFactory.Create();
     await AppFactory.Create({ name: config.app, admins: [adminName] });
   });
-  describe('when is there no admins likes and there is no fields with positive weight', async () => {
+  describe('when is there no admins likes and there is no fields with positive percent', async () => {
     beforeEach(async () => {
+      activeVotes = [{ percent: _.random(-100, -1) }];
       const { appendObject: field1 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(-100, -1) },
+        { name: fieldName, activeVotes },
       );
       const { appendObject: field2 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(-100, -1) },
+        { name: fieldName, activeVotes },
       );
 
       fields = [field1, field2];
@@ -111,13 +112,14 @@ describe('getWobjWinField', async () => {
       expect(returnedValue).to.be.false;
     });
   });
-  describe('when is there no admins likes and one or more fields has positive weight', async () => {
+  describe('when is there no admins likes and one or more fields has positive percent', async () => {
     beforeEach(async () => {
+      activeVotes = [{ percent: _.random(1, 100) }];
       const { appendObject: field1 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(1, 100) },
+        { name: fieldName, weight: _.random(1, 100), activeVotes },
       );
       const { appendObject: field2 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(101, 10000) },
+        { name: fieldName, weight: _.random(101, 10000), activeVotes },
       );
 
       fields = [field1, field2];
@@ -132,17 +134,19 @@ describe('getWobjWinField', async () => {
   });
   describe('when has admin like his field always win', async () => {
     beforeEach(async () => {
-      const activeVotes = [{
+      activeVotes = [{
         _id: postHelper.objectIdFromDateString(new Date()),
         voter: adminName,
-        percent: 100,
+        percent: _.random(1, 100),
       }];
       const { appendObject: field1 } = await AppendObject.Create(
         { name: fieldName, weight: _.random(-100, -10), activeVotes },
       );
-      const { appendObject: field2 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(100, 1000) },
-      );
+      const { appendObject: field2 } = await AppendObject.Create({
+        name: fieldName,
+        weight: _.random(100, 1000),
+        activeVotes: [{ percent: _.random(1, 100) }],
+      });
 
       fields = [field1, field2];
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
@@ -155,19 +159,20 @@ describe('getWobjWinField', async () => {
   });
   describe('if admin dislike field even if it has big weight it will loose', async () => {
     beforeEach(async () => {
-      const activeVotes = [{
+      activeVotes = [{
         _id: postHelper.objectIdFromDateString(new Date()),
         voter: adminName,
-        percent: -100,
+        percent: _.random(-100, -1),
       }];
+      const userVotes = [{ percent: _.random(1, 100) }];
       const { appendObject: field1 } = await AppendObject.Create(
         { name: fieldName, weight: _.random(101, 1000), activeVotes },
       );
       const { appendObject: field2 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(50, 100) },
+        { name: fieldName, weight: _.random(50, 100), activeVotes: userVotes },
       );
       const { appendObject: field3 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(1, 40) },
+        { name: fieldName, weight: _.random(1, 40), activeVotes: userVotes },
       );
 
       fields = [field1, field2, field3];
@@ -180,18 +185,19 @@ describe('getWobjWinField', async () => {
       expect(returnedValue.body).to.be.eq(fields[1].body);
     });
   });
-  describe('if admin dislike field and other fields has weight < 0 method should return false', async () => {
+  describe('if admin dislike field and other fields has no votes percent > 0  method should return false', async () => {
     beforeEach(async () => {
-      const activeVotes = [{
+      const userVotes = [{ percent: _.random(-100, -1) }];
+      activeVotes = [{
         _id: postHelper.objectIdFromDateString(new Date()),
         voter: adminName,
-        percent: -100,
+        percent: _.random(-100, -1),
       }];
       const { appendObject: field1 } = await AppendObject.Create(
         { name: fieldName, weight: _.random(100, 1000), activeVotes },
       );
       const { appendObject: field2 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(-100, -10) },
+        { name: fieldName, weight: _.random(-100, -10), activeVotes: userVotes },
       );
 
       fields = [field1, field2];

@@ -1,8 +1,10 @@
 const { faker, App } = require('test/testHelper');
+const _ = require('lodash');
 
 const Create = async ({
   blacklists, name, admins, moderators, topUsers,
-  referralsData, blackListUsers, bots,
+  referralsData, blackListUsers, bots, campaignAcc, campaignCommission,
+  indexAcc, indexCommission, referral,
 } = {}) => {
   const data = {
     name: name || faker.random.string(10),
@@ -25,6 +27,13 @@ const Create = async ({
     referralsData: referralsData || [],
     black_list_users: blackListUsers || [],
     service_bots: bots || [],
+    app_commissions: {
+      campaigns_server_acc: campaignAcc || faker.name.firstName(),
+      campaigns_percent: _.isNumber(campaignCommission) ? campaignCommission : 0.3,
+      index_commission_acc: indexAcc || faker.name.firstName(),
+      index_percent: _.isNumber(indexCommission) ? indexCommission : 0.2,
+      referral_commission_acc: referral || faker.name.firstName(),
+    },
   };
 
   return App.create(data);

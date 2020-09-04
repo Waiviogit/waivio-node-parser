@@ -1,9 +1,10 @@
 const _ = require('lodash');
+const { REFERRAL_STATUSES } = require('constants/appData');
 const { User, faker } = require('test/testHelper');
 
 const Create = async ({
   name, wobjects_weight, users_follow, objects_follow, count_posts,
-  stage_version, json_metadata, posting_json_metadata, referral,
+  stage_version, json_metadata, posting_json_metadata, referral, referralStatus,
 } = {}) => {
   const userName = name || faker.name.firstName().toLowerCase();
   const existUser = await User.findOne({ name: userName }).lean();
@@ -19,6 +20,7 @@ const Create = async ({
     json_metadata: json_metadata || '',
     posting_json_metadata: posting_json_metadata || '',
     referral: referral || [],
+    referralStatus: referralStatus || REFERRAL_STATUSES.NOT_ACTIVATED,
   });
 
   return { user: user.toObject() };

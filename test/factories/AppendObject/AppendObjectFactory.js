@@ -1,8 +1,8 @@
-const { faker, WObject, commentRefSetter } = require('../../testHelper');
-const ObjectFactory = require('../../factories/Object/ObjectFactory');
+const { faker, WObject, commentRefSetter } = require('test/testHelper');
+const ObjectFactory = require('test/factories/Object/ObjectFactory');
 
 const Create = async ({
-  creator, name, weight, body, root_wobj, additionalFields = {}, activeVotes
+  creator, name, weight, body, root_wobj, additionalFields = {}, activeVotes,
 } = {}) => {
   const appendObject = {
     name: name || 'city',

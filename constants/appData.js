@@ -80,8 +80,14 @@ const nodeUrls = ['https://blocks.waivio.com', 'https://anyx.io', 'https://rpc.e
 
 const REFERRAL_TYPES = {
   REVIEWS: 'reviews',
+  INVITE_FRIEND: 'invite_friend',
 };
 
+const REFERRAL_STATUSES = {
+  NOT_ACTIVATED: 'notActivated',
+  ACTIVATED: 'activated',
+  REJECTED: 'rejected',
+};
 
 module.exports = {
   getAppData,
@@ -90,4 +96,5 @@ module.exports = {
   notificationsApi: notificationsApi[process.env.NODE_ENV || 'development'],
   nodeUrls,
   REFERRAL_TYPES,
+  REFERRAL_STATUSES,
 };

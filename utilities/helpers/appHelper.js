@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const App = require('models/AppModel');
-const { getAppData } = require('constants/appData');
 const config = require('config');
 
 const checkAppBlacklistValidity = async (metadata) => {
@@ -10,7 +9,7 @@ const checkAppBlacklistValidity = async (metadata) => {
   [checkApp] = checkApp.split('/');
 
   // get current "Running" app
-  const { app, error } = await App.getOne({ name: (getAppData()).appName });
+  const { app, error } = await App.getOne({ name: process.env.APP_NAME || config.app });
   if (error) return true;
 
   const re = new RegExp(`^${checkApp}$`, 'i');
@@ -32,8 +31,11 @@ const getProxyBots = async (roles) => {
     if (_.intersection(item.roles, roles).length) acc.push(item.name);
     return acc;
   }, []);
-  if (proxyBots.length) return proxyBots;
-  return [];
+  return proxyBots || [];
 };
 
-module.exports = { checkAppBlacklistValidity, getBlackListUsers, getProxyBots };
+const getAppData = async (name) => App.getOne({ name });
+
+module.exports = {
+  checkAppBlacklistValidity, getBlackListUsers, getProxyBots, getAppData,
+};
