@@ -11,4 +11,5 @@ module.exports = {
   BellNotifications: require('./BellNotificationsModel'),
   Campaign: require('./CampaignModel'),
   paymentHistoriesModel: require('./PaymentHistoriesModel'),
+  wobjectSubscriptions: require('./wobjectSubscriptionModel'),
 };
