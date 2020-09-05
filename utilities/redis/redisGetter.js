@@ -1,4 +1,4 @@
-const { postRefsClient, lastBlockClient } = require('utilities/redis/redis');
+const { postRefsClient, lastBlockClient, tagCategoriesClient } = require('utilities/redis/redis');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
@@ -13,5 +13,6 @@ const getLastBlockNum = async (key) => {
 
   return num ? parseInt(num, 10) : process.env.START_FROM_BLOCK || 29937113;
 };
+const getTagCategories = async (key) => tagCategoriesClient.zrevrangeAsync(key, 0, -1);
 
-module.exports = { getHashAll, getLastBlockNum };
+module.exports = { getHashAll, getLastBlockNum, getTagCategories };

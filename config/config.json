@@ -8,7 +8,8 @@
     "redis": {
       "wobjectsRefs": 1,
       "lastBlock": 2,
-      "expiredPosts": 8
+      "expiredPosts": 8,
+      "tagCategories": 9
     },
     "app": "waivio"
   },
@@ -21,7 +22,8 @@
     "redis": {
       "wobjectsRefs": 1,
       "lastBlock": 2,
-      "expiredPosts": 8
+      "expiredPosts": 8,
+      "tagCategories": 9
     },
     "app": "waiviodev"
   },
@@ -34,7 +36,8 @@
     "redis": {
       "wobjectsRefs": 1,
       "lastBlock": 2,
-      "expiredPosts": 8
+      "expiredPosts": 8,
+      "tagCategories": 9
     },
     "app": "waiviodev"
   },
@@ -47,7 +50,8 @@
     "redis": {
       "wobjectsRefs": 7,
       "lastBlock": 7,
-      "expiredPosts": 7
+      "expiredPosts": 7,
+      "tagCategories": 7
     },
     "app": "waiviotest"
   }

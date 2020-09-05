@@ -1,5 +1,8 @@
-const { postRefsClient, lastBlockClient, expiredPostsClient } = require('utilities/redis/redis');
+const {
+  postRefsClient, lastBlockClient, expiredPostsClient, tagCategoriesClient,
+} = require('utilities/redis/redis');
 const { COMMENT_REF_TYPES } = require('utilities/constants');
+const { FIELDS_NAMES } = require('constants/wobjectsData')
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
@@ -62,6 +65,7 @@ const setLastBlockNum = async (blockNum, redisKey) => {
 const setExpiredPostTTL = async (name, id, timer, value = '') => {
   await expiredPostsClient.setAsync(`expire-${name}:${id}`, value, 'EX', timer);
 };
+const addTagCategory = async ({ categoryName, tags }) => tagCategoriesClient.zaddAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${categoryName}`, tags);
 
 module.exports = {
   addPostWithWobj,
@@ -70,4 +74,5 @@ module.exports = {
   setLastBlockNum,
   addWobjRef,
   addObjectType,
+  addTagCategory,
 };
