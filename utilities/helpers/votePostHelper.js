@@ -3,6 +3,7 @@ const { Wobj, User, Post } = require('models');
 const { getWobjectsFromMetadata } = require('utilities/helpers/postByTagsHelper');
 const userValidator = require('validator/userValidator');
 const postModeration = require('utilities/moderation/postModeration');
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment
@@ -21,6 +22,12 @@ const voteOnPost = async (data) => {
     }
   }
   await updatePost(data);
+  await notificationsUtil
+    .custom({
+      id: 'like',
+      weight,
+      ...data,
+    });
 };
 
 // method also using as undo previous vote before up- or down-vote

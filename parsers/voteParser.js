@@ -1,7 +1,6 @@
 const _ = require('lodash');
 const { postsUtil } = require('utilities/steemApi');
 const { User } = require('models');
-const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 
@@ -135,13 +134,6 @@ const votesFormat = async (votesOps) => {
     }
   }
   await userHelper.checkAndCreateByArray(accounts);
-  if (votesOps.length) {
-    await notificationsUtil
-      .custom({
-        id: 'like',
-        votes: _.filter(votesOps, (el) => el.type === 'post_with_wobj' && el.weight > 0),
-      });
-  }
   return votesOps;
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
