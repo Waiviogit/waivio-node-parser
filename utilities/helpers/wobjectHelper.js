@@ -1,7 +1,10 @@
-const { uuid } = require('uuidv4');
 const _ = require('lodash');
+const config = require('config');
+const { uuid } = require('uuidv4');
+const { Wobj, App } = require('models');
 const { ObjectType } = require('models');
 const { importUpdates } = require('utilities/objectImportServiceApi');
+const { MIN_PERCENT_TO_SHOW_UPDATE } = require('constants/wobjectsData');
 
 const DEFAULT_UPDATES_CREATOR = 'monterey';
 
@@ -45,4 +48,56 @@ const randomString = (length = 5) => {
   return result;
 };
 
-module.exports = { randomString, addSupposedUpdates };
+const calculateApprovePercent = (field) => {
+  if (_.isEmpty(field.active_votes)) return 100;
+  if (field.weight < 0) return 0;
+
+  const rejectsWeight = _.sumBy(field.active_votes, (vote) => {
+    if (vote.percent < 0) {
+      return -(+vote.weight || -1);
+    }
+  }) || 0;
+  const approvesWeight = _.sumBy(field.active_votes, (vote) => {
+    if (vote.percent > 0) {
+      return +vote.weight || 1;
+    }
+  }) || 0;
+  if (!rejectsWeight) return 100;
+  const percent = _.round((approvesWeight / (approvesWeight + rejectsWeight)) * 100, 3);
+  return percent > 0 ? percent : 0;
+};
+
+const getWobjWinField = async ({ fieldName, authorPermlink }) => {
+  const { app: { admins = [] } } = await App.getOne({ name: config.app });
+  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
+    fieldName, authorPermlink, true,
+  );
+
+  const voteArr = [];
+  _.map(fields, (field) => {
+    const adminVotes = [];
+    _.map(field.active_votes, (vote) => {
+      if (_.includes(admins, vote.voter)) {
+        adminVotes.push(vote);
+        vote.timestamp = vote._id.getTimestamp().valueOf();
+      }
+    });
+    if (adminVotes.length) {
+      const lastVote = _.maxBy(adminVotes, 'timestamp');
+      lastVote.percent > 0 ? voteArr.push(field) : null;
+      field.adminVote = lastVote.timestamp;
+    }
+    if (!adminVotes.length) {
+      field.approvePercent = calculateApprovePercent(field);
+      field.weight > 0 && field.approvePercent > MIN_PERCENT_TO_SHOW_UPDATE
+        ? voteArr.push(field)
+        : null;
+    }
+  });
+  if (!voteArr.length) return false;
+  const latestApprove = _.maxBy(voteArr, 'adminVote');
+  if (latestApprove) return latestApprove;
+  return _.maxBy(voteArr, 'weight');
+};
+
+module.exports = { randomString, addSupposedUpdates, getWobjWinField };

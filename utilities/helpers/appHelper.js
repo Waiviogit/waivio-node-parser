@@ -1,6 +1,5 @@
 const _ = require('lodash');
-const { App } = require('models');
-const { getAppData } = require('constants/appData');
+const App = require('models/AppModel');
 const config = require('config');
 
 const checkAppBlacklistValidity = async (metadata) => {
@@ -10,7 +9,7 @@ const checkAppBlacklistValidity = async (metadata) => {
   [checkApp] = checkApp.split('/');
 
   // get current "Running" app
-  const { app, error } = await App.getOne({ name: (getAppData()).appName });
+  const { app, error } = await App.getOne({ name: process.env.APP_NAME || config.app });
   if (error) return true;
 
   const re = new RegExp(`^${checkApp}$`, 'i');
@@ -22,18 +21,21 @@ const checkAppBlacklistValidity = async (metadata) => {
 const getBlackListUsers = async () => {
   const { app } = await App.getOne({ name: config.app });
   if (!app) return { error: { message: 'App not found!' } };
-  return { users: app.black_list_users };
+  return { users: app.black_list_users, referralsData: app.referralsData };
 };
 
-const getProxyBots = async () => {
+const getProxyBots = async (roles) => {
   const { app } = await App.getOne({ name: config.app });
-  if (!app) return ['asd09'];
+  if (!app) return [];
   const proxyBots = _.reduce(app.service_bots, (acc, item) => {
-    if (_.intersection(item.roles, ['proxyBot', 'reviewBot']).length) acc.push(item.name);
+    if (_.intersection(item.roles, roles).length) acc.push(item.name);
     return acc;
   }, []);
-  if (proxyBots.length) return proxyBots;
-  return ['asd09'];
+  return proxyBots || [];
 };
 
-module.exports = { checkAppBlacklistValidity, getBlackListUsers, getProxyBots };
+const getAppData = async (name) => App.getOne({ name });
+
+module.exports = {
+  checkAppBlacklistValidity, getBlackListUsers, getProxyBots, getAppData,
+};

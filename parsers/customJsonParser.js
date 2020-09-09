@@ -1,10 +1,19 @@
 const followObjectParser = require('parsers/followObjectParser');
 const userParsers = require('parsers/userParsers');
-const { ratingHelper } = require('utilities/helpers');
+const { ratingHelper, userHelper } = require('utilities/helpers');
 const { customJsonOperations } = require('utilities/guestOperations');
 
 exports.parse = async (operation) => {
   switch (operation.id) {
+    case 'reject_referral_license':
+      await userHelper.rejectReferralStatus(operation);
+      break;
+    case 'confirm_referral_license':
+      await userHelper.confirmReferralStatus(operation);
+      break;
+    case 'add_referral_agent':
+      await userHelper.checkAndSetReferral(operation);
+      break;
     case 'follow_wobject':
       await followObjectParser.parse(operation);
       break;

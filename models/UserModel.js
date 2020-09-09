@@ -3,7 +3,6 @@ const moment = require('moment');
 const UserModel = require('database').models.User;
 const UserWobjectsModel = require('database').models.UserWobjects;
 
-
 const create = async (data) => {
   const newUser = new UserModel(data);
 
@@ -194,6 +193,14 @@ const findOne = async (name) => {
   }
 };
 
+const find = async (condition) => {
+  try {
+    return { users: await UserModel.find(condition).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   create,
   addObjectFollow,
@@ -207,4 +214,5 @@ module.exports = {
   updateOne,
   updateOnNewPost,
   findOne,
+  find,
 };

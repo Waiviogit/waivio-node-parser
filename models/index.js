@@ -9,5 +9,7 @@ module.exports = {
   UserWobjects: require('./UserWobjectsModel'),
   Subscriptions: require('./SubscriptionModel'),
   BellNotifications: require('./BellNotificationsModel'),
-  Campaign: require('./CampaignModel')
+  Campaign: require('./CampaignModel'),
+  paymentHistoriesModel: require('./PaymentHistoriesModel'),
+  wobjectSubscriptions: require('./wobjectSubscriptionModel'),
 };
