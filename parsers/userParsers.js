@@ -1,8 +1,9 @@
 const _ = require('lodash');
 const {
-  User, Post, Subscriptions, BellNotifications,
+  User, Post, Subscriptions, BellNotifications, bellWobjectModel,
 } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
+const { BELL_NOTIFICATIONS } = require('constants/parsersData');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.owner && operation.active && operation.posting && operation.memo_key) {
@@ -153,8 +154,13 @@ exports.subscribeNotificationsParser = async (operation) => {
     return;
   }
   const { follower, following, subscribe } = json[1];
-  if (subscribe) {
-    return BellNotifications.followUserNotifications({ follower, following });
+
+  switch (json[0]) {
+    case BELL_NOTIFICATIONS.USER:
+      if (subscribe) return BellNotifications.followUserNotifications({ follower, following });
+      return BellNotifications.unFollowUserNotifications({ follower, following });
+    case BELL_NOTIFICATIONS.WOBJECT:
+      if (subscribe) return bellWobjectModel.followWobjectNotifications({ follower, following });
+      return bellWobjectModel.unFollowWobjectNotifications({ follower, following });
   }
-  return BellNotifications.unFollowUserNotifications({ follower, following });
 };

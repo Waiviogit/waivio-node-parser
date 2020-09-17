@@ -26,6 +26,7 @@ module.exports = {
     Comment: require('./schemas/CommentSchema'),
     Subscriptions: require('./schemas/SubscriptionSchema'),
     BellNotifications: require('./schemas/BellNotificationsSchema'),
+    BellWobject: require('./schemas/BellWobjectSchema'),
     Campaign: require('./schemas/CampaignSchema'),
     PaymentHistories: require('./schemas/PaymentHistoriesSchema'),
     WobjectSubscriptions: require('./schemas/WobjectSubscriptionSchema'),
