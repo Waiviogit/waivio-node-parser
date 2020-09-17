@@ -2,7 +2,7 @@ const _ = require('lodash');
 const DiffMatchPatch = require('diff-match-patch');
 const { Post, Wobj, User } = require('models');
 const {
-  detectPostLanguageHelper, postHelper, postByTagsHelper, userHelper, appHelper,
+  detectPostLanguageHelper, postHelper, postByTagsHelper, userHelper, appHelper, wobjectHelper,
 } = require('utilities/helpers');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const { commentRefSetter } = require('utilities/commentRefService');
@@ -91,7 +91,8 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
 
   let updPost, error;
   if (!post && !postData) {
-    await notificationsUtils.post(data);
+    const { notificationData } = await addWobjectNames(data);
+    await notificationsUtils.post(notificationData);
     data.active_votes = [];
     data._id = postHelper.objectIdFromDateString(Date.now());
     await User.updateOnNewPost(author, Date.now());
@@ -149,6 +150,16 @@ const mergePosts = (originalBody, body) => {
   } catch (error) {
     return body;
   }
+};
+
+const addWobjectNames = async (data) => {
+  const notificationData = { ...data };
+  if (_.isEmpty(notificationData.wobjects)) return { notificationData };
+  for (const wobject of notificationData.wobjects) {
+    const field = await wobjectHelper.getWobjWinField({ authorPermlink: wobject.author_permlink, fieldName: 'name' });
+    wobject.name = _.get(field, 'body', wobject.objectName);
+  }
+  return { notificationData };
 };
 
 module.exports = { parse, createOrUpdatePost };
