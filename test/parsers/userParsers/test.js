@@ -1,9 +1,12 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions,
+  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions, WobjectSubscriptions,
 } = require('test/testHelper');
-const { UserFactory, PostFactory } = require('test/factories');
+const {
+  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory,
+} = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
+const { BELL_NOTIFICATIONS } = require('constants/parsersData');
 
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
@@ -302,6 +305,83 @@ describe('UserParsers', async () => {
         sinon.stub(Post, 'findOne').throws({ message: faker.random.string(10) });
         await userParsers.reblogPostParser(mockInput);
         expect(PostModel.create).to.be.not.called;
+      });
+    });
+  });
+
+  describe('on subscribeNotificationsParser', async () => {
+    describe('on valid input data', async () => {
+      let uSubs1, uSubs2, wSubs1, wSubs2, bell;
+      beforeEach(async () => {
+        await dropDatabase();
+        uSubs1 = await SubscriptionsFactory.Create();
+        uSubs2 = await SubscriptionsFactory.Create();
+        wSubs1 = await WobjectSubscriptionsFactory.Create();
+        wSubs2 = await WobjectSubscriptionsFactory.Create();
+        await userParsers.subscribeNotificationsParser({
+          required_posting_auths: [uSubs1.follower],
+          json: JSON.stringify([
+            BELL_NOTIFICATIONS.USER,
+            {
+              follower: uSubs1.follower,
+              following: uSubs1.following,
+              subscribe: true,
+            },
+          ]),
+        });
+        await userParsers.subscribeNotificationsParser({
+          required_posting_auths: [uSubs2.follower],
+          json: JSON.stringify([
+            BELL_NOTIFICATIONS.USER,
+            {
+              follower: uSubs2.follower,
+              following: uSubs2.following,
+              subscribe: false,
+            },
+          ]),
+        });
+        await userParsers.subscribeNotificationsParser({
+          required_posting_auths: [wSubs1.follower],
+          json: JSON.stringify([
+            BELL_NOTIFICATIONS.WOBJECT,
+            {
+              follower: wSubs1.follower,
+              following: wSubs1.following,
+              subscribe: true,
+            },
+          ]),
+        });
+        await userParsers.subscribeNotificationsParser({
+          required_posting_auths: [wSubs2.follower],
+          json: JSON.stringify([
+            BELL_NOTIFICATIONS.WOBJECT,
+            {
+              follower: wSubs2.follower,
+              following: wSubs2.following,
+              subscribe: false,
+            },
+          ]),
+        });
+      });
+      it('user bell should be true', async () => {
+        ({ bell } = await Subscriptions
+          .findOne({ follower: uSubs1.follower, following: uSubs1.following }).lean());
+        expect(bell).to.be.true;
+      });
+      it('user bell should be false', async () => {
+        ({ bell } = await Subscriptions
+          .findOne({ follower: uSubs2.follower, following: uSubs2.following }).lean());
+        expect(bell).to.be.false;
+      });
+      it('wobject bell should be true', async () => {
+        ({ bell } = await WobjectSubscriptions
+          .findOne({ follower: wSubs1.follower, following: wSubs1.following }).lean());
+        expect(bell).to.be.true;
+      });
+      it('wobject bell should be false', async () => {
+        ({ bell } = await WobjectSubscriptions
+          .findOne({ follower: wSubs2.follower, following: wSubs2.following }).lean());
+        expect(bell).to.be.false;
       });
     });
   });
