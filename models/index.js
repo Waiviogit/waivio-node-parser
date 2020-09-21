@@ -8,8 +8,6 @@ module.exports = {
   CommentModel: require('./CommentModel'),
   UserWobjects: require('./UserWobjectsModel'),
   Subscriptions: require('./SubscriptionModel'),
-  BellNotifications: require('./BellNotificationsModel'),
-  bellWobjectModel: require('./bellWobjectModel'),
   Campaign: require('./CampaignModel'),
   paymentHistoriesModel: require('./PaymentHistoriesModel'),
   wobjectSubscriptions: require('./wobjectSubscriptionModel'),

@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  User, Post, Subscriptions, BellNotifications, bellWobjectModel,
+  User, Post, Subscriptions, wobjectSubscriptions,
 } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { BELL_NOTIFICATIONS } = require('constants/parsersData');
@@ -157,10 +157,12 @@ exports.subscribeNotificationsParser = async (operation) => {
 
   switch (json[0]) {
     case BELL_NOTIFICATIONS.USER:
-      if (subscribe) return BellNotifications.followUserNotifications({ follower, following });
-      return BellNotifications.unFollowUserNotifications({ follower, following });
+      const { user } = await Subscriptions.findOne({ follower, following });
+      if (!user) return;
+      return Subscriptions.updateOne({ follower, following, bell: subscribe });
     case BELL_NOTIFICATIONS.WOBJECT:
-      if (subscribe) return bellWobjectModel.followWobjectNotifications({ follower, following });
-      return bellWobjectModel.unFollowWobjectNotifications({ follower, following });
+      const { user: wobjSubs } = await wobjectSubscriptions.findOne({ follower, following });
+      if (!wobjSubs) return;
+      return wobjectSubscriptions.updateOne({ follower, following, bell: subscribe });
   }
 };

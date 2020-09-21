@@ -52,10 +52,19 @@ const findOne = async ({ follower, following }) => {
   }
 };
 
+const updateOne = async ({ follower, following, bell }) => {
+  try {
+    return { result: await Subscriptions.updateOne({ follower, following }, { bell }) };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   followUser,
   unfollowUser,
   getFollowers,
   getFollowings,
   findOne,
+  updateOne,
 };
