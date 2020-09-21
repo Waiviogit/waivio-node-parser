@@ -159,10 +159,12 @@ exports.subscribeNotificationsParser = async (operation) => {
     case BELL_NOTIFICATIONS.USER:
       const { user } = await Subscriptions.findOne({ follower, following });
       if (!user) return;
-      return Subscriptions.updateOne({ follower, following, bell: subscribe });
+      return Subscriptions
+        .updateOne({ condition: { follower, following }, updateData: { bell: subscribe } });
     case BELL_NOTIFICATIONS.WOBJECT:
       const { user: wobjSubs } = await wobjectSubscriptions.findOne({ follower, following });
       if (!wobjSubs) return;
-      return wobjectSubscriptions.updateOne({ follower, following, bell: subscribe });
+      return wobjectSubscriptions
+        .updateOne({ condition: { follower, following }, updateData: { bell: subscribe } });
   }
 };

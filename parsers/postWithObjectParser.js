@@ -92,7 +92,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
 
   let updPost, error;
   if (!post && !postData) {
-    const { notificationData } = await addWobjectNames(data);
+    const { notificationData } = await addWobjectNames(_.cloneDeep(data));
     await notificationsUtils.post(notificationData);
     data.active_votes = [];
     data._id = postHelper.objectIdFromDateString(Date.now());
@@ -153,8 +153,7 @@ const mergePosts = (originalBody, body) => {
   }
 };
 
-const addWobjectNames = async (data) => {
-  const notificationData = { ...data };
+const addWobjectNames = async (notificationData) => {
   if (_.isEmpty(notificationData.wobjects)) return { notificationData };
   for (const wobject of notificationData.wobjects) {
     const field = await wobjectHelper

@@ -34,9 +34,9 @@ const findOne = async ({ follower, following }) => {
   }
 };
 
-const updateOne = async ({ follower, following, bell }) => {
+const updateOne = async ({ condition, updateData }) => {
   try {
-    return { result: await WobjectSubscriptions.updateOne({ follower, following }, { bell }) };
+    return { result: await WobjectSubscriptions.updateOne(condition, updateData) };
   } catch (error) {
     return { error };
   }

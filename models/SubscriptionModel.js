@@ -52,9 +52,9 @@ const findOne = async ({ follower, following }) => {
   }
 };
 
-const updateOne = async ({ follower, following, bell }) => {
+const updateOne = async ({ condition, updateData }) => {
   try {
-    return { result: await Subscriptions.updateOne({ follower, following }, { bell }) };
+    return { result: await Subscriptions.updateOne(condition, updateData) };
   } catch (error) {
     return { error };
   }
