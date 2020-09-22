@@ -318,50 +318,25 @@ describe('UserParsers', async () => {
         uSubs2 = await SubscriptionsFactory.Create();
         wSubs1 = await WobjectSubscriptionsFactory.Create();
         wSubs2 = await WobjectSubscriptionsFactory.Create();
-        await userParsers.subscribeNotificationsParser({
-          required_posting_auths: [uSubs1.follower],
-          json: JSON.stringify([
-            BELL_NOTIFICATIONS.USER,
-            {
-              follower: uSubs1.follower,
-              following: uSubs1.following,
-              subscribe: true,
-            },
-          ]),
-        });
-        await userParsers.subscribeNotificationsParser({
-          required_posting_auths: [uSubs2.follower],
-          json: JSON.stringify([
-            BELL_NOTIFICATIONS.USER,
-            {
-              follower: uSubs2.follower,
-              following: uSubs2.following,
-              subscribe: false,
-            },
-          ]),
-        });
-        await userParsers.subscribeNotificationsParser({
-          required_posting_auths: [wSubs1.follower],
-          json: JSON.stringify([
-            BELL_NOTIFICATIONS.WOBJECT,
-            {
-              follower: wSubs1.follower,
-              following: wSubs1.following,
-              subscribe: true,
-            },
-          ]),
-        });
-        await userParsers.subscribeNotificationsParser({
-          required_posting_auths: [wSubs2.follower],
-          json: JSON.stringify([
-            BELL_NOTIFICATIONS.WOBJECT,
-            {
-              follower: wSubs2.follower,
-              following: wSubs2.following,
-              subscribe: false,
-            },
-          ]),
-        });
+        const arr = [
+          { subs: uSubs1, subscribe: true, id: BELL_NOTIFICATIONS.USER },
+          { subs: uSubs2, subscribe: false, id: BELL_NOTIFICATIONS.USER },
+          { subs: wSubs1, subscribe: true, id: BELL_NOTIFICATIONS.WOBJECT },
+          { subs: wSubs2, subscribe: false, id: BELL_NOTIFICATIONS.WOBJECT },
+        ];
+        for (const el of arr) {
+          await userParsers.subscribeNotificationsParser({
+            required_posting_auths: [el.subs.follower],
+            json: JSON.stringify([
+              el.id,
+              {
+                follower: el.subs.follower,
+                following: el.subs.following,
+                subscribe: el.subscribe,
+              },
+            ]),
+          });
+        }
       });
       it('user bell should be true', async () => {
         ({ bell } = await Subscriptions
