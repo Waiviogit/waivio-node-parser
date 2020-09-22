@@ -26,7 +26,10 @@ const voteOnPost = async (data) => {
     .custom({
       id: 'like',
       weight,
-      ...data,
+      voter: data.voter,
+      author: data.author,
+      permlink: data.permlink,
+      guest_author: data.guest_author,
     });
 };
 
