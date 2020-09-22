@@ -2,6 +2,7 @@ const {
   customJsonParser, commentParser, voteParser, userParsers,
   witnessVoteParser, transferParser, withdrawParser, recoveryParser, claimRewardParser,
 } = require('parsers');
+const { MAIN_OPS } = require('constants/parsersData');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
@@ -13,49 +14,49 @@ const parseSwitcher = async (transactions) => {
       for (const operation of transaction.operations) {
         if (!PARSE_ONLY_VOTES) {
           switch (operation[0]) {
-            case 'comment':
+            case MAIN_OPS.COMMENT:
               await commentParser.parse(operation[1]);
               break;
-            case 'custom_json':
+            case MAIN_OPS.CUSTOM_JSON:
               await customJsonParser.parse(operation[1]);
               break;
-            case 'account_update':
-            case 'account_update2':
+            case MAIN_OPS.ACCOUNT_UPDATE:
+            case MAIN_OPS.ACCOUNT_UPDATE2:
               await userParsers.updateAccountParser(operation[1]);
               break;
-            case 'create_claimed_account':
-            case 'account_create':
+            case MAIN_OPS.CREATE_CLAIMED_ACCOUNT:
+            case MAIN_OPS.ACCOUNT_CREATE:
               await userParsers.createUser(operation[1]);
               break;
-            case 'vote':
+            case MAIN_OPS.VOTE:
               votesOps.push(operation[1]);
               break;
-            case 'account_witness_vote':
+            case MAIN_OPS.ACCOUNT_WITNES_VOTE:
               await witnessVoteParser.parse(operation[1]);
               break;
-            case 'transfer':
+            case MAIN_OPS.TRANSFER:
               await transferParser.parse(operation[1]);
               break;
-            case 'withdraw_vesting':
+            case MAIN_OPS.WITHDRAW_VESTING:
               await withdrawParser.parse(operation[1]);
               break;
-            case 'set_withdraw_vesting_route':
+            case MAIN_OPS.SET_WITHDRAW_VESTING_ROUTE:
               await withdrawParser.withdrawRoutesParse(operation[1]);
               break;
-            case 'transfer_to_vesting':
+            case MAIN_OPS.TRANSFER_TO_VESTING:
               await transferParser.parseVesting(operation[1]);
               break;
-            case 'change_recovery_account':
+            case MAIN_OPS.CHANGE_RECOVERY_ACCOUNT:
               await recoveryParser.parse(operation[1]);
               break;
-            case 'transfer_from_savings':
+            case MAIN_OPS.TRANSFER_FROM_SAVINGS:
               await transferParser.parseFromSavings(operation[1]);
               break;
-            case 'claim_reward_balance':
+            case MAIN_OPS.CLAIM_REWARD_BALANCE:
               await claimRewardParser.parse(operation[1]);
               break;
           }
-        } else if (operation[0] === 'vote') {
+        } else if (operation[0] === MAIN_OPS.VOTE) {
           votesOps.push(operation[1]);
         }
       }

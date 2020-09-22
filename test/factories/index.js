@@ -9,5 +9,6 @@ module.exports = {
   AppFactory: require('./App/AppFactory'),
   userWobjectFactory: require('./UserWobject/UserWobjectFactory'),
   SubscriptionsFactory: require('./Subscriptions/SubscriptionsFactory'),
+  WobjectSubscriptionsFactory: require('./WobjectSubscriptions/WobjectSubscriptionsFactory'),
   CampaignFactory: require('./Campaign/CampaignFactory'),
 };

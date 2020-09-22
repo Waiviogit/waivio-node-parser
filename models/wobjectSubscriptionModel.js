@@ -26,4 +26,22 @@ const unfollowWobject = async ({ follower, following }) => {
   }
 };
 
-module.exports = { followWobject, unfollowWobject };
+const findOne = async ({ follower, following }) => {
+  try {
+    return { user: await WobjectSubscriptions.findOne({ follower, following }).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const updateOne = async ({ condition, updateData }) => {
+  try {
+    return { result: await WobjectSubscriptions.updateOne(condition, updateData) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+module.exports = {
+  followWobject, unfollowWobject, findOne, updateOne,
+};

@@ -1,15 +1,16 @@
 const _ = require('lodash');
-const DiffMatchPatch = require('diff-match-patch');
 const { Post, Wobj, User } = require('models');
-const {
-  detectPostLanguageHelper, postHelper, postByTagsHelper, userHelper, appHelper,
-} = require('utilities/helpers');
-const guestHelpers = require('utilities/guestOperations/guestHelpers');
-const { commentRefSetter } = require('utilities/commentRefService');
-const { postWithWobjValidator } = require('validator');
+const DiffMatchPatch = require('diff-match-patch');
 const { postsUtil } = require('utilities/steemApi');
-const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
+const { postWithWobjValidator } = require('validator');
+const { FIELDS_NAMES } = require('constants/wobjectsData');
+const { commentRefSetter } = require('utilities/commentRefService');
 const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
+const guestHelpers = require('utilities/guestOperations/guestHelpers');
+const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
+const {
+  detectPostLanguageHelper, postHelper, postByTagsHelper, userHelper, appHelper, wobjectHelper,
+} = require('utilities/helpers');
 
 const parse = async (operation, metadata, post, fromTTL) => {
   if (!(await appHelper.checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
@@ -91,7 +92,8 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
 
   let updPost, error;
   if (!post && !postData) {
-    await notificationsUtils.post(data);
+    const { notificationData } = await addWobjectNames(_.cloneDeep(data));
+    await notificationsUtils.post(notificationData);
     data.active_votes = [];
     data._id = postHelper.objectIdFromDateString(Date.now());
     await User.updateOnNewPost(author, Date.now());
@@ -149,6 +151,16 @@ const mergePosts = (originalBody, body) => {
   } catch (error) {
     return body;
   }
+};
+
+const addWobjectNames = async (notificationData) => {
+  if (_.isEmpty(notificationData.wobjects)) return { notificationData };
+  for (const wobject of notificationData.wobjects) {
+    const field = await wobjectHelper
+      .getWobjWinField({ authorPermlink: wobject.author_permlink, fieldName: FIELDS_NAMES.NAME });
+    wobject.name = _.get(field, 'body', wobject.objectName);
+  }
+  return { notificationData };
 };
 
 module.exports = { parse, createOrUpdatePost };

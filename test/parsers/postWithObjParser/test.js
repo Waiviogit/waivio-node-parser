@@ -1,8 +1,12 @@
+const config = require('config');
 const {
-  expect, postWithObjectParser, Post, faker, postsUtil, sinon, User, redisGetter, CommentRef, postHelper, PostModel, usersUtil, userHelper,
-} = require('../../testHelper');
-const { PostFactory, UserFactory, ObjectFactory } = require('../../factories');
-const { postWithWobjValidator } = require('../../../validator');
+  expect, postWithObjectParser, Post, faker, postsUtil, sinon, User,
+  redisGetter, CommentRef, postHelper, PostModel, usersUtil, userHelper,
+} = require('test/testHelper');
+const {
+  PostFactory, UserFactory, ObjectFactory, AppFactory,
+} = require('test/factories');
+const { postWithWobjValidator } = require('validator');
 
 describe('postWithObjectParser', async () => {
   describe('on valid input data', async () => {
@@ -15,6 +19,7 @@ describe('postWithObjectParser', async () => {
         result,
         userUtilStub;
       beforeEach(async () => {
+        await AppFactory.Create({ name: config.app });
         mockPost = await PostFactory.Create({ onlyData: true });
         mockWobj = await ObjectFactory.Create();
         mockOp = {
@@ -83,6 +88,7 @@ describe('postWithObjectParser', async () => {
         postsUtilStub,
         author;
       beforeEach(async () => {
+        await AppFactory.Create({ name: config.app });
         const { user } = await UserFactory.Create();
         author = user;
         mockPost = await PostFactory.Create({ onlyData: true, author: author.name });
