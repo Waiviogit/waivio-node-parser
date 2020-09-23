@@ -1,10 +1,11 @@
 const _ = require('lodash');
+const config = require('config');
 const {
   expect, sinon, faker, postsUtil, Post, Comment, votePostHelper, userHelper, appHelper,
 } = require('test/testHelper');
 const { guestVote } = require('utilities/guestOperations/customJsonOperations');
 const {
-  UserFactory, ObjectFactory, PostFactory, CommentFactory,
+  UserFactory, ObjectFactory, PostFactory, CommentFactory, AppFactory,
 } = require('test/factories');
 
 describe('customJsonOperations', async () => {
@@ -77,6 +78,7 @@ describe('customJsonOperations', async () => {
 
           describe('when post exist in STEEM but not in DB', async () => {
             beforeEach(async () => {
+              await AppFactory.Create({ name: config.app });
               post = await PostFactory.Create({
                 onlyData: true,
                 additionsForMetadata: {

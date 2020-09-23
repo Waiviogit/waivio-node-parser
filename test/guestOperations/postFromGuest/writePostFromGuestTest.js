@@ -1,9 +1,12 @@
 const _ = require('lodash');
+const config = require('config');
 const {
   expect, sinon, faker, postWithObjectParser, Post,
   postsUtil, commentRefGetter, appHelper, userHelper,
 } = require('test/testHelper');
-const { PostFactory, UserFactory, ObjectFactory } = require('test/factories');
+const {
+  PostFactory, UserFactory, ObjectFactory, AppFactory,
+} = require('test/factories');
 
 describe('On postWithObjectParser', async () => {
   let mockListBots;
@@ -59,6 +62,7 @@ describe('On postWithObjectParser', async () => {
     describe('on valid input', async () => {
       let createdPost;
       beforeEach(async () => {
+        await AppFactory.Create({ name: config.app });
         sinon.stub(postsUtil, 'getPost').callsFake((a, b) => ({ post: mockPost }));
         await postWithObjectParser.parse(mockOp, mockMetadata);
         createdPost = await Post.findOne({ author: guestAuthor.name, permlink: mockPost.permlink });
