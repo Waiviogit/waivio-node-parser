@@ -89,7 +89,15 @@ const REFERRAL_STATUSES = {
   REJECTED: 'rejected',
 };
 
+const telegramApi = {
+  HOST: 'https://waiviodev.com',
+  BASE_URL: '/telegram-api',
+  SENTRY_ERROR: '/sentry',
+
+};
+
 module.exports = {
+  telegramApi,
   getAppData,
   objectImportService: objectImportService[process.env.NODE_ENV || 'development'],
   waivioApi: waivioApi[process.env.NODE_ENV || 'development'],
