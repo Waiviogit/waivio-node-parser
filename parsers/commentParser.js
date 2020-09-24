@@ -47,7 +47,8 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
   }
-  const sendNotification = await campaignHelper.parseReservationConversation(operation, metadata);
+  const sendNotification = await campaignHelper
+    .parseReservationConversation(_.cloneDeep(operation), metadata);
 
   if (sendNotification) await notificationsUtil.reply({ ...operation }, metadata);
 
