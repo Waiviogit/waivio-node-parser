@@ -74,8 +74,9 @@ const getWobjWinField = async ({ fieldName, authorPermlink }) => {
   );
 
   const voteArr = [];
-  _.map(fields, (field) => {
+  for (const field of fields) {
     const adminVotes = [];
+    if (!field.active_votes.length) continue;
     _.map(field.active_votes, (vote) => {
       if (_.includes(admins, vote.voter)) {
         adminVotes.push(vote);
@@ -93,7 +94,7 @@ const getWobjWinField = async ({ fieldName, authorPermlink }) => {
         ? voteArr.push(field)
         : null;
     }
-  });
+  }
   if (!voteArr.length) return false;
   const latestApprove = _.maxBy(voteArr, 'adminVote');
   if (latestApprove) return latestApprove;
