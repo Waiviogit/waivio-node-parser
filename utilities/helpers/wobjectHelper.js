@@ -75,14 +75,10 @@ const getWobjWinField = async ({ fieldName, authorPermlink }) => {
   );
 
   const voteArr = [];
-  if (!fields && fieldName === 'name') {
-    const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
-    if (wobject) return wobject.default_name;
-  }
   if (!fields) return false;
   for (const field of fields) {
     const adminVotes = [];
-    if (!field.active_votes.length) continue;
+    if (!field.active_votes.length) voteArr.push(field);
     _.map(field.active_votes, (vote) => {
       if (_.includes(admins, vote.voter)) {
         adminVotes.push(vote);
