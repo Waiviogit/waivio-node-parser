@@ -68,8 +68,9 @@ const calculateApprovePercent = (field) => {
 };
 
 const getWobjWinField = async ({ fieldName, authorPermlink }) => {
+  if (!fieldName || !authorPermlink) return false;
   const { app: { admins = [] } } = await App.getOne({ name: config.app });
-  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
+  const { wobjects: [{ fields } = []] } = await Wobj.getSomeFields(
     fieldName, authorPermlink, true,
   );
 
