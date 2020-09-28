@@ -12,11 +12,15 @@ exports.parseReservationConversation = async (operation, metadata) => {
     { $inc: { 'users.$.children': 1 } });
   if (_.get(metadata, 'waivioRewards.type')) return false;
   if (!reservedUser) return true;
+
+  const guestAuthor = _.get(metadata, 'comment.userId');
+  if (guestAuthor) operation.author = guestAuthor;
+
   await notificationsUtil.custom(Object.assign(operation, {
     id: 'campaignMessage',
     guideName: campaign.guideName,
     campaignName: campaign.name,
-    guestName: _.get(metadata, 'comment.userId'),
+    reservedUser: _.get(reservedUser, 'name'),
   }));
   return false;
 };
