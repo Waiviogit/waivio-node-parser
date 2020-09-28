@@ -4,8 +4,8 @@ const { commentParser } = require('parsers');
 
 
 const expiredDataListener = async (chan, msg) => {
-  if (process.env.PARSE_ONLY_VOTES === 'true') return;
   const data = msg.split(':');
+  if (process.env.PARSE_ONLY_VOTES === 'true' || !data[1]) return;
   const author = data[1].split('/')[0];
   const permlink = data[1].split('/')[1];
   switch (data[0]) {
