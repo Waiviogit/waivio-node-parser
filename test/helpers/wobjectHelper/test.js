@@ -83,7 +83,7 @@ describe('addSupposedUpdates', async () => {
 });
 
 describe('getWobjWinField', async () => {
-  let wobject, returnedValue, adminName, fieldName, activeVotes, fields = [];
+  let wobject, returnedValue, adminName, fieldName, activeVotes, fields = [], authorPermlink;
 
   beforeEach(async () => {
     fieldName = faker.name.firstName();
@@ -207,6 +207,45 @@ describe('getWobjWinField', async () => {
     });
     it('getWobjWinField should return false', async () => {
       expect(returnedValue).to.be.false;
+    });
+  });
+  describe('on call without fieldName or authorPermlink', async () => {
+    let returnedValue1, returnedValue2;
+    beforeEach(async () => {
+      fieldName = faker.random.string(10);
+      authorPermlink = faker.random.string(10);
+      returnedValue1 = await wobjectHelper
+        .getWobjWinField({ fieldName });
+      returnedValue2 = await wobjectHelper
+        .getWobjWinField({ authorPermlink });
+    });
+    it('should return false when call without authorPermlink', async () => {
+      expect(returnedValue1).to.be.false;
+    });
+    it('should return false when call without fieldName', async () => {
+      expect(returnedValue2).to.be.false;
+    });
+  });
+  describe('when field do not have active votes', async () => {
+    let field;
+    beforeEach(async () => {
+      ({ appendObject: field } = await AppendObject.Create(
+        { name: fieldName, weight: _.random(-100, 100) },
+      ));
+      await WObject.findOneAndUpdate(
+        { author_permlink: wobject.author_permlink }, { fields: [field] },
+      );
+      returnedValue = await wobjectHelper
+        .getWobjWinField({ fieldName, authorPermlink: wobject.author_permlink });
+    });
+    it('should be equal returnedValue weight to field weight', async () => {
+      expect(returnedValue.weight).to.be.eq(field.weight);
+    });
+    it('should be equal returnedValue body to field body', async () => {
+      expect(returnedValue.body).to.be.eq(field.body);
+    });
+    it('should be active_votes empty array', async () => {
+      expect(returnedValue.active_votes).to.have.length(0);
     });
   });
 });
