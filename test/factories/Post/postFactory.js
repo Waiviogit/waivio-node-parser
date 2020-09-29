@@ -1,8 +1,10 @@
+/* eslint-disable camelcase */
 const _ = require('lodash');
-const { faker, Post, commentRefSetter } = require('../../testHelper');
+const { faker, Post, commentRefSetter } = require('test/testHelper');
 
 const Create = async ({
-  children, reblogged, author, parent_author, additionsForMetadata = {}, onlyData, parent_permlink, additionsForPost = {}, active_votes = [], app, root_author, permlink,
+  children, reblogged, author, parent_author, additionsForMetadata = {}, onlyData, parent_permlink,
+  additionsForPost = {}, active_votes = [], app, root_author, permlink, wobjects,
 } = {}) => { // additionsForMetadata(Post) must be an Object
   const json_metadata = {
     community: 'waiviotest',
@@ -27,6 +29,7 @@ const Create = async ({
     createdAt: faker.date.recent(10).toString(),
     created: faker.date.recent(10).toString(),
     reblogged_users: reblogged || [],
+    wobjects: wobjects || [],
   };
   post.root_author = root_author || post.author;
   post.root_permlink = post.permlink;
