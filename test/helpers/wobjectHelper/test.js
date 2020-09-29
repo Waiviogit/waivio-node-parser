@@ -226,6 +226,15 @@ describe('getWobjWinField', async () => {
       expect(returnedValue2).to.be.false;
     });
   });
+  describe('if function can not find fields', async () => {
+    beforeEach(async () => {
+      returnedValue = await wobjectHelper
+        .getWobjWinField({ fieldName, authorPermlink: wobject.author_permlink });
+    });
+    it('should return false', async () => {
+      expect(returnedValue).to.be.false;
+    });
+  });
   describe('when field do not have active votes', async () => {
     let field;
     beforeEach(async () => {

@@ -74,8 +74,8 @@ const getWobjWinField = async ({ fieldName, authorPermlink }) => {
     fieldName, authorPermlink, true,
   );
 
-  const voteArr = [];
   if (!fields) return false;
+  const voteArr = [];
   for (const field of fields) {
     const adminVotes = [];
     if (!field.active_votes.length) {
