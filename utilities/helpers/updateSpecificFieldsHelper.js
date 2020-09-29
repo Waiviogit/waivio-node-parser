@@ -205,4 +205,4 @@ const updateTagCategories = async (authorPermlink) => {
   await Wobj.update({ author_permlink: authorPermlink }, { tagCategories });
 };
 
-module.exports = { update };
+module.exports = { update, processingParent };

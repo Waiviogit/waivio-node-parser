@@ -3,7 +3,7 @@ const {
   FIELDS_NAMES, RATINGS_UPDATE_COUNT, OBJECT_TYPES, AUTHORITY_FIELD_ENUM,
 } = require('constants/wobjectsData');
 const {
-  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper,
+  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config,
 } = require('test/testHelper');
 const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
 
@@ -473,6 +473,45 @@ describe('UpdateSpecificFieldsHelper', async () => {
       );
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).contains(field.creator);
+    });
+  });
+  describe('on processingParent', async () => {
+    let wobject, field, result;
+    beforeEach(async () => {
+      await dropDatabase();
+      await AppFactory.Create({ name: config.app });
+      wobject = await ObjectFactory.Create();
+    });
+    describe('when exist fields with positive weight with no dislikes', async () => {
+      beforeEach(async () => {
+        ({ appendObject: field } = await AppendObject.Create(
+          { name: FIELDS_NAMES.PARENT, weight: _.random(100, 1000) },
+        ));
+        await WObject.findOneAndUpdate(
+          { author_permlink: wobject.author_permlink }, { fields: [field] },
+        );
+        await updateSpecificFieldsHelper.processingParent(wobject.author_permlink);
+        result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('parent name should be same in field body and result parent', async () => {
+        expect(result.parent).to.be.eq(field.body);
+      });
+    });
+    describe('when field downvoted', async () => {
+      beforeEach(async () => {
+        const userVotes = [{ percent: _.random(-100, -1) }];
+        ({ appendObject: field } = await AppendObject.Create(
+          { name: FIELDS_NAMES.PARENT, activeVotes: userVotes },
+        ));
+        await WObject.findOneAndUpdate(
+          { author_permlink: wobject.author_permlink }, { fields: [field] },
+        );
+        await updateSpecificFieldsHelper.processingParent(wobject.author_permlink);
+        result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('parent name should be same in field body and result parent', async () => {
+        expect(result.parent).to.be.empty;
+      });
     });
   });
 });
