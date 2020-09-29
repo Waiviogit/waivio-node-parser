@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable camelcase */
 const { WObject, faker, commentRefSetter } = require('test/testHelper');
 const ObjectTypeFactory = require('test/factories/ObjectType/ObjectTypeFactory');
 
