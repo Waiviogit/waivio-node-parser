@@ -19,7 +19,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
     const adminName = faker.name.firstName();
 
     beforeEach(async () => {
-      await AppFactory.Create({ name: 'waiviotest', admins: [adminName] });
+      await AppFactory.Create({ host: config.appHost, admins: [adminName] });
     });
     describe('when is there no admins likes and there is no fields with positive percent', async () => {
       beforeEach(async () => {
@@ -479,7 +479,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
     let wobject, field, result;
     beforeEach(async () => {
       await dropDatabase();
-      await AppFactory.Create({ name: config.app });
+      await AppFactory.Create({ host: config.appHost });
       wobject = await ObjectFactory.Create();
     });
     describe('when exist fields with positive weight with no dislikes', async () => {

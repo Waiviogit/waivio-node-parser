@@ -17,7 +17,7 @@ describe('On custom json parser', async () => {
       blackListUser = faker.random.string(10);
       await AppFactory.Create({
         bots: [{ name: botName, postingKey: faker.random.string(), roles: ['proxyBot'] }],
-        name: config.app,
+        host: config.appHost,
         referralsData: [{ type: REFERRAL_TYPES.REVIEWS, duration }],
         blackListUsers: [blackListUser],
       });

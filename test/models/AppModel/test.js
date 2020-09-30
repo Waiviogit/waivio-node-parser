@@ -1,7 +1,10 @@
-const { expect, AppModel, faker } = require('../../testHelper');
+const _ = require('lodash');
+const {
+  expect, AppModel, faker, config,
+} = require('test/testHelper');
 const {
   AppFactory, UserFactory, ObjectFactory,
-} = require('../../factories');
+} = require('test/factories');
 
 describe('App model', async () => {
   describe('On getOne', () => {
@@ -25,18 +28,13 @@ describe('App model', async () => {
     });
   });
   describe('On updateChosenPost', async () => {
-    let app,
-      result,
-      name,
-      author,
-      permlink,
-      title;
+    let app, result, name, author, permlink, title;
     beforeEach(async () => {
       author = faker.name.firstName();
       permlink = faker.random.string();
       title = faker.random.string(20);
       name = faker.name.firstName();
-      app = await AppFactory.Create({ name });
+      app = await AppFactory.Create({ host: config.appHost, name });
     });
     it('should update daily post', async () => {
       result = await AppModel.updateChosenPost({
@@ -48,7 +46,7 @@ describe('App model', async () => {
       result = await AppModel.updateChosenPost({
         name, author, permlink, title,
       });
-      expect(app.weekly_chosen_post).to.deep.eq(result.app.weekly_chosen_post);
+      expect(app.weekly_chosen_post.toObject()).to.deep.eq(result.app.weekly_chosen_post.toObject());
     });
     it('should update weekly post', async () => {
       result = await AppModel.updateChosenPost({
@@ -70,7 +68,8 @@ describe('App model', async () => {
       result = await AppModel.updateChosenPost({
         name, author, permlink, title, period: faker.random.string(),
       });
-      expect(result.app.weekly_chosen_post, result.app.daily_chosen_post).to.deep.eq(app.weekly_chosen_post, app.daily_chosen_post);
+      expect(result.app.weekly_chosen_post.toObject(), result.app.daily_chosen_post.toObject())
+        .to.deep.eq(app.weekly_chosen_post.toObject(), app.daily_chosen_post.toObject());
     });
   });
   describe('On findByModeration', async () => {
@@ -81,10 +80,7 @@ describe('App model', async () => {
       wobject = await ObjectFactory.Create();
       await AppFactory.Create({
         admins: [admin.name],
-        moderators: [{
-          name: moderator.name,
-          author_permlinks: [wobject.author_permlink],
-        }],
+        moderators: [moderator.name],
       });
     });
     it('Should return app by searching by userName only(admin)', async () => {
@@ -96,16 +92,8 @@ describe('App model', async () => {
       expect(result.apps).to.be.empty;
     });
     it('should return app by searching by moderator and wobject', async () => {
-      const result = await AppModel.findByModeration(moderator.name, [wobject.author_permlink]);
+      const result = await AppModel.findByModeration(moderator.name);
       expect(result.apps).to.not.be.empty;
-    });
-    it('should not return app by searching by moderator and incorrect wobject', async () => {
-      const result = await AppModel.findByModeration(moderator.name, [faker.random.string()]);
-      expect(result.apps).to.be.empty;
-    });
-    it('should not return app by searching by incorrect moderator and correct wobject', async () => {
-      const result = await AppModel.findByModeration(faker.name.firstName(), [wobject.author_permlink]);
-      expect(result.apps).to.be.empty;
     });
   });
 });

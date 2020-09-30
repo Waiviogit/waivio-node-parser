@@ -9,6 +9,7 @@ module.exports = {
   campaignHelper: require('./campaignHelper'),
   wobjectHelper: require('./wobjectHelper'),
   ratingHelper: require('./ratingHelper'),
+  sitesHelper: require('./sitesHelper'),
   postHelper: require('./postHelper'),
   userHelper: require('./userHelper'),
   appHelper: require('./appHelper'),

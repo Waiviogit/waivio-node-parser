@@ -9,7 +9,7 @@ describe('createObjectValidator', async () => {
 
   beforeEach(async () => {
     blackList = [faker.random.string(), faker.random.string()];
-    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
+    sinon.stub(AppModel, 'findOne').returns(Promise.resolve({ result: { black_list_users: blackList } }));
     // generate valid data before all tests
     objectType = await ObjectTypeFactory.Create();
     mockOp = {

@@ -32,23 +32,33 @@ const updateChosenPost = async ({
  * Find by userName is admin, or
  * if userName is moder for one of wobjects from "author_permlinks"
  * @param userName {String}
- * @param authorPermlinks* {Array<String>}
  * @returns {Promise<void|Object>}
  */
-const findByModeration = async (userName, authorPermlinks) => {
+const findByModeration = async (userName) => {
   try {
-    const condition = { $or: [{ admins: userName }] };
-    if (authorPermlinks || Array.isArray(authorPermlinks)) {
-      condition.$or.push({
-        'moderators.name': userName,
-        'moderators.author_permlinks': { $in: [...authorPermlinks] },
-      });
-    }
-    const apps = await App.find(condition).lean();
+    const apps = await App.find({ $or: [{ admins: userName }, { moderators: userName }] }).lean();
     return { apps };
   } catch (error) {
     return { error };
   }
 };
 
-module.exports = { getOne, updateChosenPost, findByModeration };
+const findOne = async (condition) => {
+  try {
+    return { result: await App.findOne(condition, '+service_bots').lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const updateOne = async (condition, updateData) => {
+  try {
+    return { result: await App.updateOne(condition, updateData) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+module.exports = {
+  getOne, updateChosenPost, findByModeration, findOne, updateOne,
+};
