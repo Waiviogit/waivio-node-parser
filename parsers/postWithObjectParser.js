@@ -159,6 +159,10 @@ const addWobjectNames = async (notificationData) => {
   for (const wobject of notificationData.wobjects) {
     const field = await wobjectHelper
       .getWobjWinField({ authorPermlink: wobject.author_permlink, fieldName: FIELDS_NAMES.NAME });
+    /**
+     * in the case when hashtag is attached to the post we can take wobject name
+     * from tagged property, in case it regular object get name from objectName property
+     */
     if (!field) {
       const { wobject: findWobj } = await Wobj.getOne({ author_permlink: wobject.author_permlink });
       wobject.name = _.get(findWobj, 'default_name', wobject.tagged || wobject.objectName);
