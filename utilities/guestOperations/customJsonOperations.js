@@ -59,6 +59,17 @@ exports.accountUpdate = async (operation) => {
     await userParsers.updateAccountParser(json);
   }
 };
+
+exports.subscribeNotification = async (operation) => {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+    const json = parseJson(operation.json);
+    if (!json || _.isEmpty(json)) return;
+
+    operation.required_posting_auths = [_.get(json, '[1].follower')];
+    await userParsers.subscribeNotificationsParser(operation);
+  }
+};
+
 // /////////////// //
 // Private methods //
 // /////////////// //
@@ -183,14 +194,4 @@ const findOrCreatePost = async ({ author, permlink }) => {
   const { comment: newComment, error } = await CommentModel.createOrUpdate(comment);
   if (error) return { err: error };
   return { comment: newComment };
-};
-
-exports.subscribeNotification = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
-    if (!json || _.isEmpty(json)) return;
-
-    operation.required_posting_auths = [_.get(json, '[1].follower')];
-    await userParsers.subscribeNotificationsParser(operation);
-  }
 };

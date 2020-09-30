@@ -51,4 +51,22 @@ const findByModeration = async (userName, authorPermlinks) => {
   }
 };
 
-module.exports = { getOne, updateChosenPost, findByModeration };
+const findOne = async (condition) => {
+  try {
+    return { result: await App.findOne(condition) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const updateOne = async (condition, updateData) => {
+  try {
+    return { result: await App.updateOne(condition, updateData) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+module.exports = {
+  getOne, updateChosenPost, findByModeration, findOne, updateOne,
+};

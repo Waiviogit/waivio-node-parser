@@ -1,12 +1,16 @@
 const { faker, App } = require('test/testHelper');
 const _ = require('lodash');
+const { STATUSES } = require('constants/sitesData');
 
 const Create = async ({
   blacklists, name, admins, moderators, topUsers,
   referralsData, blackListUsers, bots, campaignAcc, campaignCommission,
-  indexAcc, indexCommission, referral,
+  indexAcc, indexCommission, referral, owner, host, status,
 } = {}) => {
   const data = {
+    host: host || faker.internet.domainWord(),
+    owner: owner || faker.random.string(10),
+    status: status || STATUSES.PENDING,
     name: name || faker.random.string(10),
     admins: admins || [faker.name.firstName().toLowerCase()],
     moderators: moderators || [],

@@ -1,7 +1,26 @@
 const mongoose = require('mongoose');
+const _ = require('lodash');
+const { STATUSES } = require('constants/sitesData');
 const { REFERRAL_TYPES } = require('constants/appData');
 
 const { Schema } = mongoose;
+
+const topUsersSchema = new Schema({
+  name: { type: String, required: true },
+  weight: { type: Number, default: 0 },
+}, { _id: false });
+
+const TagsData = new Schema({
+  Ingredients: { type: Object, default: {} },
+  Cuisine: { type: Object, default: {} },
+  'Good For': { type: Object, default: {} },
+  Features: { type: Object, default: {} },
+}, { _id: false });
+
+const ReferralTimersSchema = new Schema({
+  type: { type: String, enum: Object.values(REFERRAL_TYPES) },
+  duration: { type: Number, default: 90 },
+}, { _id: false });
 
 const botSchema = new Schema({
   name: { type: String, required: true },
@@ -21,66 +40,85 @@ const AppCommissions = new Schema({
   referral_commission_acc: { type: String, required: true },
 }, { _id: false });
 
-const moderatorsSchema = new Schema({
-  name: { type: String, required: true },
-  author_permlinks: { type: [String], default: [] },
+const MapPoints = new Schema({
+  topPoint: { type: [Number], required: true }, // First element - longitude(-180..180), second element - latitude(-90..90)
+  bottomPoint: { type: [Number], required: true }, // First element - longitude(-180..180), second element - latitude(-90..90)
 }, { _id: false });
 
-const TagsData = new Schema({
-  Ingredients: { type: Object, default: {} },
-  Cuisine: { type: Object, default: {} },
-  'Good For': { type: Object, default: {} },
-  Features: { type: Object, default: {} },
+const Colors = new Schema({
+  background: { type: String },
+  font: { type: String },
+  hover: { type: String },
+  header: { type: String },
+  button: { type: String },
+  border: { type: String },
+  focus: { type: String },
+  links: { type: String },
 }, { _id: false });
 
-const ReferralTimersSchema = new Schema({
-  type: { type: String, enum: Object.values(REFERRAL_TYPES) },
-  duration: { type: Number, default: 90 },
+const Configuration = new Schema({
+  configurationFields: { type: [String] },
+  desktopLogo: { type: String },
+  mobileLogo: { type: String },
+  aboutObject: { type: String },
+  desktopMap: { type: MapPoints },
+  mobileMap: { type: MapPoints },
+  colors: { type: Colors },
+
 }, { _id: false });
 
 const AppSchema = new Schema({
   name: { type: String, index: true, unique: true },
-  admins: { type: [String], index: true, required: true },
-  moderators: {
-    type: [moderatorsSchema],
+  owner: { type: String, required: true },
+  googleAnalyticsTag: { type: String, default: null },
+  beneficiary: {
+    account: { type: String, default: 'waivio' },
+    percent: { type: Number, default: 300 },
   },
-  supported_object_types: [{
-    object_type: { type: String, index: true },
-    required_fields: { type: [String], default: [] },
-
-  }],
+  configuration: { type: Configuration },
+  host: { type: String, required: true, unique: true },
+  parent: { type: mongoose.Schema.ObjectId, default: null },
+  admins: { type: [String], default: [] },
+  authority: { type: [String], default: [] },
+  moderators: { type: [String], default: [] },
+  supported_object_types: { type: [String], default: [] },
+  object_filters: { type: Object, default: {} },
+  black_list_users: { type: [String], default: [] },
+  supported_hashtags: { type: [String], default: [] },
+  canBeExtended: { type: Boolean, default: false },
+  inherited: { type: Boolean, default: true },
+  status: { type: String, default: STATUSES.PENDING, enum: Object.values(STATUSES) },
+  activatedAt: { type: Date, default: null },
+  deactivatedAt: { type: Date, default: null },
   supported_objects: { type: [String], index: true, default: [] },
-  blacklists: {
-    wobjects: { type: [], default: [] },
-    posts: [{
-      author: { type: String, required: true },
-      permlink: { type: String, required: true },
-    }],
-    users: { type: [], default: [] },
-    apps: { type: [], default: [] },
-  },
+  top_users: { type: [topUsersSchema] },
   daily_chosen_post: {
-    type: {
-      author: { type: String },
-      permlink: { type: String },
-      title: { type: String },
-    },
-    default: null,
+    author: { type: String },
+    permlink: { type: String },
+    title: { type: String },
   },
   weekly_chosen_post: {
-    type: {
-      author: { type: String },
-      permlink: { type: String },
-      title: { type: String },
-    },
-    default: null,
+    author: { type: String },
+    permlink: { type: String },
+    title: { type: String },
   },
-  black_list_users: { type: [String], default: [] },
-  service_bots: { type: [botSchema], default: [] },
-  tagsData: { type: TagsData },
-  app_commissions: { type: AppCommissions, required: true },
+  service_bots: { type: [botSchema], default: [], select: false },
+  app_commissions: { type: AppCommissions },
   referralsData: { type: [ReferralTimersSchema], default: [] },
+  tagsData: { type: TagsData },
 }, { timestamps: true });
+
+AppSchema.pre('save', async function (next) {
+  if (this.parent) {
+    const parent = await this.constructor.findOne({ _id: this.parent });
+    if (!parent) return;
+    this._doc.supported_object_types = parent.supported_object_types;
+    this._doc.object_filters = parent.object_filters;
+    if (!this.configuration) this._doc.configuration = {};
+    this._doc.configuration.configurationFields = _.get(parent, 'configuration.configurationFields', []);
+  }
+  next();
+});
 
 const AppModel = mongoose.model('App', AppSchema);
 
