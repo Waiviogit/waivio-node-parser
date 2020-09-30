@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const config = require('config');
 const {
   expect, postWithObjectParser, Post, faker, postsUtil, sinon, User,
@@ -284,6 +285,73 @@ describe('postWithObjectParser', async () => {
       it('should not create post', async () => {
         const res = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
         expect(res).to.not.exist;
+      });
+    });
+  });
+  describe('on addWobjectNames', async () => {
+    let mockPost, notificationData, wobj1, wobj2, wobjects;
+    const wobj1Name = faker.random.string(10);
+    const wobj2Name = faker.random.string(10);
+
+    describe('when wobjects are empty', async () => {
+      beforeEach(async () => {
+        mockPost = await PostFactory.Create({ onlyData: true });
+        ({ notificationData } = await postWithObjectParser.addWobjectNames(mockPost));
+      });
+      it('mockPost be deep eq to result', async () => {
+        expect(notificationData).to.be.deep.eq(mockPost);
+      });
+    });
+    describe('when all objects exists and all valid', async () => {
+      beforeEach(async () => {
+        await AppFactory.Create({ name: config.app });
+        wobj1 = await ObjectFactory.Create({ appends: [{ name: 'name', body: wobj1Name }] });
+        wobj2 = await ObjectFactory.Create({ appends: [{ name: 'name', body: wobj2Name }] });
+
+        mockPost = await PostFactory.Create({
+          onlyData: true,
+          wobjects: [
+            { author_permlink: wobj1.author_permlink },
+            { author_permlink: wobj2.author_permlink },
+          ],
+        });
+        ({ notificationData: { wobjects } } = await postWithObjectParser.addWobjectNames(mockPost));
+      });
+      it('all wobjects should have property name with appropriate name and author permlink', async () => {
+        expect(wobjects).to.have.deep.members([
+          { name: wobj1Name, author_permlink: wobj1.author_permlink },
+          { name: wobj2Name, author_permlink: wobj2.author_permlink },
+        ]);
+      });
+    });
+    describe('when function can not find field or field downvoted it take name from wobject default name', async () => {
+      beforeEach(async () => {
+        await AppFactory.Create({ name: config.app });
+        wobj1 = await ObjectFactory.Create({ objName: wobj1Name });
+        mockPost = await PostFactory
+          .Create({ onlyData: true, wobjects: [{ author_permlink: wobj1.author_permlink }] });
+        ({ notificationData: { wobjects } } = await postWithObjectParser.addWobjectNames(mockPost));
+      });
+      it('wobject name in notificationData should be eq default wobject name ', async () => {
+        expect(wobjects[0].name).to.be.eq(wobj1Name);
+      });
+    });
+    describe('when function can not find field and can not find wobject by permlink', async () => {
+      beforeEach(async () => {
+        await AppFactory.Create({ name: config.app });
+        const wobjArr = [
+          { author_permlink: faker.random.string(10), tagged: wobj1Name },
+          { author_permlink: faker.random.string(10), objectName: wobj2Name },
+        ];
+        mockPost = await PostFactory
+          .Create({ onlyData: true, wobjects: wobjArr });
+        ({ notificationData: { wobjects } } = await postWithObjectParser.addWobjectNames(mockPost));
+      });
+      it('should take name from key tagged', async () => {
+        expect(wobjects[0].name).to.be.eq(wobj1Name);
+      });
+      it('should take name from key objectName', async () => {
+        expect(wobjects[1].name).to.be.eq(wobj2Name);
       });
     });
   });
