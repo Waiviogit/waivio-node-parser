@@ -302,43 +302,6 @@ describe('postWithObjectParser', async () => {
         expect(notificationData).to.be.deep.eq(mockPost);
       });
     });
-    describe('when wobjects does not have author_permlink property return empty array of wobjects', async () => {
-      beforeEach(async () => {
-        const wobjArr = [];
-        for (let i = 0; i < _.random(5, 10); i++) {
-          wobjArr.push({ someField: faker.random.string(10) });
-        }
-        mockPost = await PostFactory.Create({ onlyData: true, wobjects: wobjArr });
-        ({ notificationData } = await postWithObjectParser.addWobjectNames(mockPost));
-      });
-      it('wobjects has to be empty array', async () => {
-        expect(notificationData.wobjects).to.have.length(0);
-      });
-    });
-    describe('when some object have author_permlink an others do not', async () => {
-      beforeEach(async () => {
-        await AppFactory.Create({ name: config.app });
-        const wobjArr = [];
-        wobj1 = await ObjectFactory.Create({ appends: [{ name: 'name', body: wobj1Name }] });
-        wobj2 = await ObjectFactory.Create({ appends: [{ name: 'name', body: wobj2Name }] });
-        for (let i = 0; i < _.random(5, 10); i++) {
-          wobjArr.push({ someField: faker.random.string(10) });
-        }
-        wobjArr.push({ author_permlink: wobj1.author_permlink });
-        wobjArr.push({ author_permlink: wobj2.author_permlink });
-        mockPost = await PostFactory.Create({ onlyData: true, wobjects: wobjArr });
-        ({ notificationData } = await postWithObjectParser.addWobjectNames(mockPost));
-      });
-      it('wobjects has to be array length 2', async () => {
-        expect(notificationData.wobjects).to.have.length(2);
-      });
-      it('wobjects names should be appropriate', async () => {
-        expect(notificationData.wobjects).to.have.deep.members([
-          { name: wobj1Name, author_permlink: wobj1.author_permlink },
-          { name: wobj2Name, author_permlink: wobj2.author_permlink },
-        ]);
-      });
-    });
     describe('when all objects exists and all valid', async () => {
       beforeEach(async () => {
         await AppFactory.Create({ name: config.app });

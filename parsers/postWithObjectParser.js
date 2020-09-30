@@ -154,7 +154,6 @@ const mergePosts = (originalBody, body) => {
 };
 
 const addWobjectNames = async (notificationData) => {
-  notificationData.wobjects = _.filter(notificationData.wobjects, (el) => el.author_permlink);
   if (_.isEmpty(notificationData.wobjects)) return { notificationData };
 
   for (const wobject of notificationData.wobjects) {
