@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const moment = require('moment');
 const {
   expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel,
 } = require('test/testHelper');
@@ -47,6 +48,12 @@ describe('On sitesHelper', async () => {
         await sitesHelper.activationActions(operation, true);
         const result = await App.findOne({ _id: app._id }).lean();
         expect(result.activatedAt).to.be.not.null;
+      });
+      it('should not activate if site deactivated > 6 month ago', async () => {
+        await App.updateOne({ _id: app._id }, { deactivatedAt: moment.utc().subtract(7, 'month'), status: STATUSES.INACTIVE });
+        await sitesHelper.activationActions(operation, true);
+        const result = await App.findOne({ _id: app._id }).lean();
+        expect(result.status).to.be.eq(STATUSES.INACTIVE);
       });
     });
 

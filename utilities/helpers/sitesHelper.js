@@ -20,9 +20,13 @@ exports.activationActions = async (operation, activate) => {
     return console.error(_.get(error, 'message', 'Cant activate, website not found'));
   }
   const updateData = activate
-    ? { status: STATUSES.ACTIVE, activatedAt: moment.utc().toDate() }
+    ? { status: STATUSES.ACTIVE, activatedAt: moment.utc().toDate(), deactivatedAt: null }
     : { status: STATUSES.INACTIVE, deactivatedAt: moment.utc().toDate() };
-  await App.updateOne({ _id: json.appId }, updateData);
+  await App.updateOne({
+    _id: json.appId,
+    $or: [{ deactivatedAt: null }, { deactivatedAt: { $gt: moment.utc().subtract(6, 'month').toDate() } }],
+  },
+  updateData);
 };
 
 exports.saveWebsiteSettings = async (operation) => {
