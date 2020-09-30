@@ -12,15 +12,9 @@ const { postWithWobjValidator } = require('validator');
 describe('postWithObjectParser', async () => {
   describe('on valid input data', async () => {
     describe('if user and post doesnt exists', async () => {
-      let mockPost,
-        mockMetadata,
-        mockOp,
-        mockWobj,
-        postsUtilStub,
-        result,
-        userUtilStub;
+      let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub, result, userUtilStub;
       beforeEach(async () => {
-        await AppFactory.Create({ name: config.app });
+        await AppFactory.Create({ host: config.appHost });
         mockPost = await PostFactory.Create({ onlyData: true });
         mockWobj = await ObjectFactory.Create();
         mockOp = {
@@ -82,14 +76,9 @@ describe('postWithObjectParser', async () => {
     });
 
     describe('if user exist, and post doesnt exist', async () => {
-      let mockPost,
-        mockMetadata,
-        mockOp,
-        mockWobj,
-        postsUtilStub,
-        author;
+      let mockPost, mockMetadata, mockOp, mockWobj, postsUtilStub, author;
       beforeEach(async () => {
-        await AppFactory.Create({ name: config.app });
+        await AppFactory.Create({ host: config.appHost });
         const { user } = await UserFactory.Create();
         author = user;
         mockPost = await PostFactory.Create({ onlyData: true, author: author.name });
@@ -304,7 +293,7 @@ describe('postWithObjectParser', async () => {
     });
     describe('when all objects exists and all valid', async () => {
       beforeEach(async () => {
-        await AppFactory.Create({ name: config.app });
+        await AppFactory.Create({ host: config.appHost });
         wobj1 = await ObjectFactory.Create({ appends: [{ name: 'name', body: wobj1Name }] });
         wobj2 = await ObjectFactory.Create({ appends: [{ name: 'name', body: wobj2Name }] });
 
@@ -326,7 +315,7 @@ describe('postWithObjectParser', async () => {
     });
     describe('when function can not find field or field downvoted it take name from wobject default name', async () => {
       beforeEach(async () => {
-        await AppFactory.Create({ name: config.app });
+        await AppFactory.Create({ host: config.appHost });
         wobj1 = await ObjectFactory.Create({ objName: wobj1Name });
         mockPost = await PostFactory
           .Create({ onlyData: true, wobjects: [{ author_permlink: wobj1.author_permlink }] });
@@ -338,7 +327,7 @@ describe('postWithObjectParser', async () => {
     });
     describe('when function can not find field and can not find wobject by permlink', async () => {
       beforeEach(async () => {
-        await AppFactory.Create({ name: config.app });
+        await AppFactory.Create({ host: config.appHost });
         const wobjArr = [
           { author_permlink: faker.random.string(10), tagged: wobj1Name },
           { author_permlink: faker.random.string(10), objectName: wobj2Name },

@@ -1,5 +1,6 @@
-const { expect, appHelper } = require('../../testHelper');
-const { AppFactory } = require('../../factories');
+const { expect, appHelper } = require('test/testHelper');
+const { AppFactory } = require('test/factories');
+const config = require('config');
 
 describe('App Helper', async () => {
   describe('Check app on blacklist validity', () => {
@@ -7,11 +8,9 @@ describe('App Helper', async () => {
 
     beforeEach(async () => {
       app = await AppFactory.Create({
-        blacklists: {
-          apps: ['apptest', 'lala', 'KeK'],
-        },
+        host: config.appHost,
+        blacklistApps: ['apptest', 'lala', 'KeK'],
       });
-      process.env.APP_NAME = app.name;
     });
     afterEach(() => {
       delete process.env.APP_NAME;

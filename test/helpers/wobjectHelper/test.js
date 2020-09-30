@@ -90,7 +90,7 @@ describe('getWobjWinField', async () => {
     adminName = faker.name.firstName();
     await dropDatabase();
     wobject = await ObjectFactory.Create();
-    await AppFactory.Create({ name: config.app, admins: [adminName] });
+    await AppFactory.Create({ host: config.appHost, admins: [adminName] });
   });
   describe('when is there no admins likes and there is no fields with positive percent', async () => {
     beforeEach(async () => {

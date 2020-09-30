@@ -78,7 +78,7 @@ describe('customJsonOperations', async () => {
 
           describe('when post exist in STEEM but not in DB', async () => {
             beforeEach(async () => {
-              await AppFactory.Create({ name: config.app });
+              await AppFactory.Create({ host: config.appHost });
               post = await PostFactory.Create({
                 onlyData: true,
                 additionsForMetadata: {
