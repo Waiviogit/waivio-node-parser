@@ -2,9 +2,17 @@ const { App, websitePayments } = require('models');
 const moment = require('moment');
 const _ = require('lodash');
 const { sitesValidator } = require('validator');
+const appHelper = require('utilities/helpers/appHelper');
+
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID,
 } = require('constants/sitesData');
+
+exports.createWebsite = async (operation) => {
+  if (!await validateServiceBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) return;
+  const json = parseJson(operation.json);
+  await App.create(json);
+};
 
 exports.activationActions = async (operation, activate) => {
   const author = _.get(operation, 'required_posting_auths[0]');
@@ -69,6 +77,12 @@ exports.parseSitePayments = async ({ operation, type, blockNum }) => {
 
 
 /** ------------------------PRIVATE METHODS--------------------------*/
+
+const validateServiceBot = async (username) => {
+  const WAIVIO_SERVICE_BOTS = await appHelper.getProxyBots(['serviceBot']);
+  return WAIVIO_SERVICE_BOTS.includes(username);
+};
+
 
 const parseJson = (json) => {
   try {
