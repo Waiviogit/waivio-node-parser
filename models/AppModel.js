@@ -59,6 +59,15 @@ const updateOne = async (condition, updateData) => {
   }
 };
 
+const create = async (data) => {
+  const app = new App(data);
+  try {
+    return { result: await app.save() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
-  getOne, updateChosenPost, findByModeration, findOne, updateOne,
+  getOne, updateChosenPost, findByModeration, findOne, updateOne, create,
 };

@@ -35,7 +35,7 @@ const parseSwitcher = async (transactions) => {
               await witnessVoteParser.parse(operation[1]);
               break;
             case MAIN_OPS.TRANSFER:
-              await transferParser.parse(operation[1]);
+              await transferParser.parse(operation[1], transaction.block_num);
               break;
             case MAIN_OPS.WITHDRAW_VESTING:
               await withdrawParser.parse(operation[1]);

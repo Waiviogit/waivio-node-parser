@@ -1,9 +1,11 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel,
+  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config,
 } = require('test/testHelper');
-const { STATUSES } = require('constants/sitesData');
+const {
+  STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
+} = require('constants/sitesData');
 const { AppFactory } = require('test/factories');
 const { settingsData, authorityData } = require('./mocks');
 
@@ -17,6 +19,54 @@ describe('On sitesHelper', async () => {
   afterEach(() => {
     sinon.restore();
   });
+  describe('On create', async () => {
+    let parent, owner, name, botName, operation;
+    beforeEach(async () => {
+      botName = faker.random.string();
+      owner = faker.random.string();
+      name = faker.random.string();
+      await dropDatabase();
+      await AppFactory.Create({
+        host: config.appHost, canBeExtended: true, inherited: false, bots: [{ name: botName, postingKey: faker.random.string(), roles: ['serviceBot'] }],
+      });
+      parent = await AppFactory.Create({ canBeExtended: true, inherited: false });
+      operation = {
+        required_posting_auths: [botName],
+        json: JSON.stringify({
+          owner, name, host: `${name}.${parent.host}`, parent: parent._id,
+        }),
+      };
+    });
+    it('should create app with correct inherited and canBeExtended flags', async () => {
+      await sitesHelper.createWebsite(operation);
+      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+      expect(myApp.inherited && !myApp.canBeExtended).to.be.true;
+    });
+    it('should create app with correct parent id', async () => {
+      await sitesHelper.createWebsite(operation);
+      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+      expect(myApp.parent.toString()).to.be.eq(parent._id.toString());
+    });
+    it('should add to app parent configuration', async () => {
+      await sitesHelper.createWebsite(operation);
+      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+      expect(myApp.configuration.configurationFields)
+        .to.be.deep.eq(parent.configuration.configurationFields);
+    });
+    it('should add to app parent ', async () => {
+      await sitesHelper.createWebsite(operation);
+      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+      expect(myApp.supported_object_types)
+        .to.be.deep.eq(parent.supported_object_types);
+    });
+    it('should not create app with another user in posting auth', async () => {
+      operation.required_posting_auths = [faker.random.string()];
+      await sitesHelper.createWebsite(operation);
+      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+      expect(myApp).to.be.null;
+    });
+  });
+
   describe('On activationActions', async () => {
     let operation;
     beforeEach(async () => {
@@ -163,6 +213,7 @@ describe('On sitesHelper', async () => {
         expect(result.authority).to.not.contains(authority);
       });
     });
+
     describe('On remove', async () => {
       beforeEach(async () => {
         await App.updateOne({ _id: app._id }, {
@@ -190,6 +241,61 @@ describe('On sitesHelper', async () => {
         await sitesHelper.websiteAuthorities(operation, 'authority', false);
         expect(AppModel.updateOne.notCalled).to.be.true;
       });
+    });
+  });
+
+  describe('On parseSitePayments', async () => {
+    let operation;
+    beforeEach(async () => {
+      await dropDatabase();
+      operation = {
+        to: FEE.account,
+        from: faker.name.firstName(),
+        amount: `${_.random(10, 20)} ${FEE.currency}`,
+      };
+    });
+    it('should create transfer record with correct operation data', async () => {
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: TRANSFER_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.from, type: PAYMENT_TYPES.TRANSFER },
+      ).lean();
+      expect(_.pick(result, ['userName', 'type', 'amount'])).to.be.deep.eq({
+        userName: operation.from, amount: parseFloat(operation.amount), type: PAYMENT_TYPES.TRANSFER,
+      });
+    });
+    it('should create refund record with correct operation data ', async () => {
+      operation.to = faker.random.string();
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: REFUND_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.to, type: PAYMENT_TYPES.REFUND },
+      ).lean();
+      expect(_.pick(result, ['userName', 'type', 'amount'])).to.be.deep.eq({
+        userName: operation.to, amount: parseFloat(operation.amount), type: PAYMENT_TYPES.REFUND,
+      });
+    });
+    it('should not create record with incorrect receiver with type transfer', async () => {
+      operation.to = faker.random.string();
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: TRANSFER_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.from, type: PAYMENT_TYPES.TRANSFER },
+      ).lean();
+      expect(result).to.be.null;
+    });
+    it('should not create record with another currency', async () => {
+      operation.amount = `${_.random(10, 20)} ${faker.random.string()}`;
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: TRANSFER_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.from, type: PAYMENT_TYPES.TRANSFER },
+      ).lean();
+      expect(result).to.be.null;
     });
   });
 });

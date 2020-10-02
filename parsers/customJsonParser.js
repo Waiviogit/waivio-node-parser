@@ -50,6 +50,9 @@ exports.parse = async (operation) => {
       await customJsonOperations.subscribeNotification(operation);
       break;
       /** WEBSITES */
+    case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:
+      await sitesHelper.createWebsite(operation);
+      break;
     case CUSTOM_JSON_OPS.ACTIVATE_CUSTOM_WEBSITE:
       await sitesHelper.activationActions(operation, true);
       break;
