@@ -1,9 +1,11 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel,
+  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments,
 } = require('test/testHelper');
-const { STATUSES } = require('constants/sitesData');
+const {
+  STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
+} = require('constants/sitesData');
 const { AppFactory } = require('test/factories');
 const { settingsData, authorityData } = require('./mocks');
 
@@ -163,6 +165,7 @@ describe('On sitesHelper', async () => {
         expect(result.authority).to.not.contains(authority);
       });
     });
+
     describe('On remove', async () => {
       beforeEach(async () => {
         await App.updateOne({ _id: app._id }, {
@@ -190,6 +193,61 @@ describe('On sitesHelper', async () => {
         await sitesHelper.websiteAuthorities(operation, 'authority', false);
         expect(AppModel.updateOne.notCalled).to.be.true;
       });
+    });
+  });
+
+  describe('On parseSitePayments', async () => {
+    let operation;
+    beforeEach(async () => {
+      await dropDatabase();
+      operation = {
+        to: FEE.account,
+        from: faker.name.firstName(),
+        amount: `${_.random(10, 20)} ${FEE.currency}`,
+      };
+    });
+    it('should create transfer record with correct operation data', async () => {
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: TRANSFER_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.from, type: PAYMENT_TYPES.TRANSFER },
+      ).lean();
+      expect(_.pick(result, ['userName', 'type', 'amount'])).to.be.deep.eq({
+        userName: operation.from, amount: parseFloat(operation.amount), type: PAYMENT_TYPES.TRANSFER,
+      });
+    });
+    it('should create refund record with correct operation data ', async () => {
+      operation.to = faker.random.string();
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: REFUND_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.to, type: PAYMENT_TYPES.REFUND },
+      ).lean();
+      expect(_.pick(result, ['userName', 'type', 'amount'])).to.be.deep.eq({
+        userName: operation.to, amount: parseFloat(operation.amount), type: PAYMENT_TYPES.REFUND,
+      });
+    });
+    it('should not create record with incorrect receiver with type transfer', async () => {
+      operation.to = faker.random.string();
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: TRANSFER_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.from, type: PAYMENT_TYPES.TRANSFER },
+      ).lean();
+      expect(result).to.be.null;
+    });
+    it('should not create record with another currency', async () => {
+      operation.amount = `${_.random(10, 20)} ${faker.random.string()}`;
+      await sitesHelper.parseSitePayments(
+        { operation, blockNum: _.random(100, 1000), type: TRANSFER_ID },
+      );
+      const result = await WebsitePayments.findOne(
+        { userName: operation.from, type: PAYMENT_TYPES.TRANSFER },
+      ).lean();
+      expect(result).to.be.null;
     });
   });
 });

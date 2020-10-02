@@ -28,5 +28,6 @@ module.exports = {
     Campaign: require('./schemas/CampaignSchema'),
     PaymentHistories: require('./schemas/PaymentHistoriesSchema'),
     WobjectSubscriptions: require('./schemas/WobjectSubscriptionSchema'),
+    WebsitePayments: require('./schemas/WebsitePaymentsSchema'),
   },
 };
