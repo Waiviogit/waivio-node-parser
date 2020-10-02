@@ -11,6 +11,8 @@ const {
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) return;
   const json = parseJson(operation.json);
+  const { result: parent } = await App.findOne({ _id: json.parent });
+  if (!parent) return;
   await App.create(json);
 };
 
