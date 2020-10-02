@@ -15,7 +15,7 @@ const createTags = async ({ field, authorPermlink }) => {
   if (wobject.object_type === 'dish' || wobject.object_type === 'restaurant') {
     const { objectType } = await ObjectType.getOne({ name: wobject.object_type });
     const tagCategories = _.find(objectType.supposed_updates, (update) => update.name === 'tagCategory');
-    const { app } = await App.getOne({ name: config.app });
+    const { result: app } = await App.findOne({ host: config.appHost });
     if (!objectType || !tagCategories || !app) return;
     let appends = [];
 

@@ -23,7 +23,7 @@ describe('On createTags', async () => {
         ],
       },
     );
-    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { tagsData: mocks.tagsData } }));
+    sinon.stub(AppModel, 'findOne').returns(Promise.resolve({ result: { tagsData: mocks.tagsData } }));
     sinon.stub(importUpdates, 'send').returns(Promise.resolve('Ok'));
   });
   afterEach(async () => {

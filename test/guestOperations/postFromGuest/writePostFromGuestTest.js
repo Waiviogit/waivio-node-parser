@@ -62,7 +62,7 @@ describe('On postWithObjectParser', async () => {
     describe('on valid input', async () => {
       let createdPost;
       beforeEach(async () => {
-        await AppFactory.Create({ name: config.app });
+        await AppFactory.Create({ host: config.appHost });
         sinon.stub(postsUtil, 'getPost').callsFake((a, b) => ({ post: mockPost }));
         await postWithObjectParser.parse(mockOp, mockMetadata);
         createdPost = await Post.findOne({ author: guestAuthor.name, permlink: mockPost.permlink });

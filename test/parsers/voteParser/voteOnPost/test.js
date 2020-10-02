@@ -7,7 +7,7 @@ describe('VoteParser', () => {
   let blackList;
   beforeEach(async () => {
     blackList = [faker.random.string(), faker.random.string()];
-    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
+    sinon.stub(AppModel, 'findOne').returns(Promise.resolve({ result: { black_list_users: blackList } }));
   });
   afterEach(async () => {
     sinon.restore();
@@ -125,10 +125,7 @@ describe('VoteParser', () => {
       });
       for (const idx of [0, 1, 2, 3, 4]) {
         describe(`For wobject ${idx + 1} `, async () => {
-          let wobject,
-            userWobjAuthor,
-            userWobjVoter,
-            object_type;
+          let wobject, userWobjAuthor, userWobjVoter, object_type;
 
           beforeEach(async () => {
             wobject = mocks.wobjects[idx];

@@ -1,9 +1,10 @@
-const { getCreateObjectTypeMocks, getCreateObjectMocks } = require('./mocks');
+const config = require('config');
 const {
   objectTypeParser, commentParser, createObjectParser, expect, sinon,
-} = require('../../testHelper');
-const updatePostAfterComment = require('../../../utilities/helpers/updatePostAfterComment');
-const { AppFactory } = require('../../factories');
+} = require('test/testHelper');
+const updatePostAfterComment = require('utilities/helpers/updatePostAfterComment');
+const { AppFactory } = require('test/factories');
+const { getCreateObjectTypeMocks, getCreateObjectMocks } = require('./mocks');
 
 describe('comment parser', async () => {
   describe('when get operation with "parent_author"', async () => {
@@ -40,15 +41,12 @@ describe('comment parser', async () => {
       });
 
       describe('createObjectType from app at blacklist', () => {
-        let mockOp,
-          app,
-          stub;
+        let mockOp, app, stub;
 
         beforeEach(async () => {
-          app = await AppFactory.Create({ blacklists: { apps: ['apptest', 'lala', 'kek'] } });
+          app = await AppFactory.Create({ host: config.appHost, blacklistApps: ['apptest', 'lala', 'kek'] });
           mockOp = await getCreateObjectTypeMocks('apptest');
           stub = sinon.stub(objectTypeParser, 'parse').callsFake(async () => ({}));
-          process.env.APP_NAME = app.name;
           await commentParser.parse(mockOp);
         });
         afterEach(() => {

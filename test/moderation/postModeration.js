@@ -21,10 +21,7 @@ describe('postModeration', async () => {
         });
         app = await AppFactory.Create({
           admins: [admin.name],
-          moderators: [{
-            name: moderator.name,
-            author_permlinks: [wobject.author_permlink],
-          }],
+          moderators: [moderator.name],
         });
       });
       describe('on vote by admin', async () => {
@@ -34,7 +31,6 @@ describe('postModeration', async () => {
             voter: admin.name,
             author: post.author,
             permlink: post.permlink,
-            wobjects: [wobject],
           });
           updPost = await Post.findOne({ _id: post._id }).lean();
         });
@@ -42,7 +38,7 @@ describe('postModeration', async () => {
           expect(updPost).to.include.all.keys(['blocked_for_apps']);
         });
         it('should add app to blocked_for_apps field', async () => {
-          expect(updPost.blocked_for_apps).to.deep.eq([app.name]);
+          expect(updPost.blocked_for_apps).to.deep.eq([app.host]);
         });
       });
       describe('on vote by moder', async () => {
@@ -52,7 +48,6 @@ describe('postModeration', async () => {
             voter: moderator.name,
             author: post.author,
             permlink: post.permlink,
-            wobjects: [wobject],
           });
           updPost = await Post.findOne({ _id: post._id }).lean();
         });
@@ -60,7 +55,7 @@ describe('postModeration', async () => {
           expect(updPost).to.include.all.keys(['blocked_for_apps']);
         });
         it('should add app to blocked_for_apps field', async () => {
-          expect(updPost.blocked_for_apps).to.deep.eq([app.name]);
+          expect(updPost.blocked_for_apps).to.deep.eq([app.host]);
         });
       });
     });

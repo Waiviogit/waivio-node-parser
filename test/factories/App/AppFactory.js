@@ -1,19 +1,29 @@
-const { faker, App } = require('test/testHelper');
+const { faker, App, ObjectID } = require('test/testHelper');
 const _ = require('lodash');
+const { STATUSES } = require('constants/sitesData');
 
 const Create = async ({
-  blacklists, name, admins, moderators, topUsers,
+  name, admins, moderators, topUsers,
   referralsData, blackListUsers, bots, campaignAcc, campaignCommission,
-  indexAcc, indexCommission, referral,
+  indexAcc, indexCommission, referral, owner, host, status, blacklistApps, parent,
+  canBeExtended, supportedTypes, inherited, configuration, deactivatedAt, activatedAt,
 } = {}) => {
   const data = {
+    host: host || faker.internet.domainWord(),
+    owner: owner || faker.random.string(10),
+    status: status || STATUSES.PENDING,
     name: name || faker.random.string(10),
     admins: admins || [faker.name.firstName().toLowerCase()],
     moderators: moderators || [],
+    parent: parent || new ObjectID(),
     topUsers: topUsers || [],
-    blacklists: blacklists || {
-      users: [], wobjects: [], posts: [], apps: [],
-    },
+    deactivatedAt: deactivatedAt || null,
+    activatedAt: activatedAt || null,
+    blacklist_apps: blacklistApps || [],
+    canBeExtended: canBeExtended || false,
+    supported_object_types: supportedTypes || ['restaurant'],
+    inherited: inherited || true,
+    configuration: configuration || { configurationFields: [faker.random.string()] },
     daily_chosen_post: {
       author: faker.name.firstName().toLowerCase(),
       permlink: faker.random.string(),

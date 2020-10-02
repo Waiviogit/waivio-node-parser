@@ -9,7 +9,7 @@ describe('appendObjectValidator', async () => {
 
   beforeEach(async () => {
     blackList = [faker.random.string(), faker.random.string()];
-    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
+    sinon.stub(AppModel, 'findOne').returns(Promise.resolve({ result: { black_list_users: blackList } }));
     wobject = await ObjectFactory.Create();
     mockData = {
       author_permlink: wobject.author_permlink,

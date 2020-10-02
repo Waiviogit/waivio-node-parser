@@ -68,12 +68,12 @@ exports.checkAndSetReferral = async (data) => {
   if (!author || !agent) return { error: 'Not valid data' };
 
   const {
-    app: {
+    result: {
       black_list_users = [],
       service_bots = [],
       referralsData = [],
     },
-  } = await appHelper.getAppData(config.app);
+  } = await appHelper.getAppData(config.appHost);
 
   /** Check for guest user */
   const guestName = _.get(json, 'guestName');
@@ -127,7 +127,7 @@ exports.checkAndSetReferral = async (data) => {
 const referralValidation = async (json, author, postingAuth) => {
   const isGuest = _.get(json, 'isGuest', false);
   if (isGuest) {
-    const { app: { service_bots = [] } } = await appHelper.getAppData(config.app);
+    const { result: { service_bots = [] } } = await appHelper.getAppData(config.appHost);
     const bot = _.find(service_bots,
       (record) => record.name === author);
     if (!bot) return { error: 'Author of guest info must be one of our bots' };

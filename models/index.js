@@ -11,4 +11,5 @@ module.exports = {
   Campaign: require('./CampaignModel'),
   paymentHistoriesModel: require('./PaymentHistoriesModel'),
   wobjectSubscriptions: require('./wobjectSubscriptionModel'),
+  websitePayments: require('./websitesPaymentsModel'),
 };

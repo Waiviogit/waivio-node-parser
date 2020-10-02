@@ -11,7 +11,8 @@
       "expiredPosts": 8,
       "tagCategories": 9
     },
-    "app": "waivio"
+    "app": "waivio",
+    "appHost": "waivio.com"
   },
   "staging": {
     "db": {
@@ -25,7 +26,8 @@
       "expiredPosts": 8,
       "tagCategories": 9
     },
-    "app": "waiviodev"
+    "app": "waiviodev",
+    "appHost": "waiviodev.com"
   },
   "development": {
     "db": {
@@ -39,7 +41,8 @@
       "expiredPosts": 8,
       "tagCategories": 9
     },
-    "app": "waiviodev"
+    "app": "waiviodev",
+    "appHost": "waiviodev.com"
   },
   "test": {
     "db": {
@@ -53,6 +56,7 @@
       "expiredPosts": 7,
       "tagCategories": 7
     },
-    "app": "waiviotest"
+    "app": "waiviotest",
+    "appHost": "waiviodev.com"
   }
 }
