@@ -7,7 +7,7 @@ const appHelper = require('utilities/helpers/appHelper');
 const { PAYMENT_TYPES, REFUND_TYPES, REFUND_STATUSES } = require('constants/sitesData');
 
 const {
-  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID,
+  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID,
 } = require('constants/sitesData');
 
 exports.createWebsite = async (operation) => {
@@ -118,6 +118,12 @@ exports.parseSitePayments = async ({ operation, type, blockNum }) => {
     blockNum,
   };
   await websitePayments.create(payment);
+  if (type === REFUND_ID) {
+    await websiteRefunds.updateOne(
+      { userName: operation.to, status: REFUND_STATUSES.PENDING },
+      { status: REFUND_STATUSES.COMPLETED },
+    );
+  }
 };
 
 

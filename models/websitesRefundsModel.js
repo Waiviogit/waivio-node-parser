@@ -24,3 +24,11 @@ exports.findOne = async (condition) => {
     return { error };
   }
 };
+
+exports.updateOne = async (condition, updateData) => {
+  try {
+    return { result: await WebsitesRefund.updateOne(condition, updateData).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
