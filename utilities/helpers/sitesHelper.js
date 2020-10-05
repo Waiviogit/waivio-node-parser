@@ -1,25 +1,27 @@
-const { App, websitePayments } = require('models');
+const { App, websitePayments, websiteRefunds } = require('models');
 const moment = require('moment');
 const _ = require('lodash');
+const Sentry = require('@sentry/node');
 const { sitesValidator } = require('validator');
 const appHelper = require('utilities/helpers/appHelper');
+const { PAYMENT_TYPES, REFUND_TYPES, REFUND_STATUSES } = require('constants/sitesData');
 
 const {
-  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID,
+  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID,
 } = require('constants/sitesData');
 
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) return;
   const json = parseJson(operation.json);
   const { result: parent } = await App.findOne({ _id: json.parent });
-  if (!parent) return;
+  if (!parent) return false;
   await App.create(json);
 };
 
 exports.activationActions = async (operation, activate) => {
   const author = _.get(operation, 'required_posting_auths[0]');
   const json = parseJson(operation.json);
-  if (!json || !author) return;
+  if (!json || !author) return false;
 
   const condition = {
     _id: json.appId,
@@ -30,7 +32,8 @@ exports.activationActions = async (operation, activate) => {
   };
   const { result, error } = await App.findOne(condition);
   if (error || !result) {
-    return console.error(_.get(error, 'message', 'Cant activate or deactivate, website not found'));
+    console.error(_.get(error, 'message', 'Cant activate or deactivate, website not found'));
+    return false;
   }
   const updateData = activate
     ? { status: STATUSES.ACTIVE, activatedAt: moment.utc().toDate(), deactivatedAt: null }
@@ -41,20 +44,60 @@ exports.activationActions = async (operation, activate) => {
 exports.saveWebsiteSettings = async (operation) => {
   const author = _.get(operation, 'required_posting_auths[0]');
   const json = parseJson(operation.json);
-  if (!json || !author) return;
+  if (!json || !author) return false;
   const { error, value } = sitesValidator.settingsSchema.validate(json);
-  if (error) return console.error(error.message);
+  if (error) {
+    Sentry.captureException(error);
+    return false;
+  }
 
   await App.updateOne({ _id: value.appId, owner: author, inherited: true }, _.omit(value, ['appId']));
+};
+
+exports.refundRequest = async (operation, blockNum) => {
+  const author = _.get(operation, 'required_posting_auths[0]');
+  const json = parseJson(operation.json);
+  if (!json || !author) return false;
+
+  const { payable: accountBalance, error } = await getAccountBalance(author);
+  if (error) {
+    Sentry.captureException(error);
+    return false;
+  }
+  if (accountBalance <= 0) return false;
+
+  const { result: refundRequest, error: refundError } = await websiteRefunds.findOne(
+    { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName: author },
+  );
+  if (refundError) {
+    Sentry.captureException(refundError);
+    return false;
+  }
+  if (refundRequest) return false;
+
+  const { error: createError, result } = await websiteRefunds.create({
+    type: REFUND_TYPES.WEBSITE_REFUND,
+    description: json.description,
+    userName: author,
+    blockNum,
+  });
+  if (createError) {
+    Sentry.captureException(createError);
+    return false;
+  }
+  return !!result;
 };
 
 exports.websiteAuthorities = async (operation, type, add) => {
   const author = _.get(operation, 'required_posting_auths[0]');
   const json = parseJson(operation.json);
-  if (!json || !author) return;
+  if (!json || !author) return false;
 
   const { error, value } = sitesValidator.authoritySchema.validate(json);
-  if (error) return console.error(error.message);
+  if (error) {
+    console.error(error.message);
+    return false;
+  }
 
   const condition = { owner: author, inherited: true, _id: value.appId };
   const updateData = add
@@ -66,7 +109,7 @@ exports.websiteAuthorities = async (operation, type, add) => {
 
 exports.parseSitePayments = async ({ operation, type, blockNum }) => {
   if ((type === TRANSFER_ID && operation.to !== FEE.account)
-      || !operation.amount.includes(FEE.currency)) return;
+      || !operation.amount.includes(FEE.currency)) return false;
 
   const payment = {
     type: PARSE_MATCHING[type],
@@ -75,6 +118,12 @@ exports.parseSitePayments = async ({ operation, type, blockNum }) => {
     blockNum,
   };
   await websitePayments.create(payment);
+  if (type === REFUND_ID) {
+    await websiteRefunds.updateOne(
+      { userName: operation.to, status: REFUND_STATUSES.PENDING },
+      { status: REFUND_STATUSES.COMPLETED },
+    );
+  }
 };
 
 
@@ -93,4 +142,27 @@ const parseJson = (json) => {
     console.error(error.message);
     return null;
   }
+};
+
+const getAccountBalance = async (account) => {
+  const { error, result: payments } = await websitePayments.find({
+    condition: { userName: account },
+    sort: { createdAt: 1 },
+  });
+  if (error) return { error };
+  let payable = 0;
+  _.map(payments, (payment) => {
+    switch (payment.type) {
+      case PAYMENT_TYPES.TRANSFER:
+        payment.balance = payable + payment.amount;
+        payable = payment.balance;
+        break;
+      case PAYMENT_TYPES.WRITE_OFF:
+      case PAYMENT_TYPES.REFUND:
+        payment.balance = payable - payment.amount;
+        payable = payment.balance;
+        break;
+    }
+  });
+  return { payable };
 };

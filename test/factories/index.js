@@ -12,4 +12,6 @@ module.exports = {
   WobjectSubscriptionsFactory: require('./WobjectSubscriptions/WobjectSubscriptionsFactory'),
   CampaignFactory: require('./Campaign/CampaignFactory'),
   WebsitePaymentsFactory: require('./WebsiteTransfers/WebsiteTransfersFactory'),
+  WebsiteRefundsFactory: require('./WebsiteRefunds/WebsiteRefundsFactory'),
+
 };

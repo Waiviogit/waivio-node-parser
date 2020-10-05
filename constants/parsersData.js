@@ -41,6 +41,7 @@ exports.CUSTOM_JSON_OPS = {
   CREATE_CUSTOM_WEBSITE: 'create_custom_website',
   ACTIVATE_CUSTOM_WEBSITE: 'active_custom_website',
   SUSPEND_CUSTOM_WEBSITE: 'suspend_custom_website',
+  WEBSITE_REFUND_REQUEST: 'website_refund_request',
 };
 
 exports.BELL_NOTIFICATIONS = {

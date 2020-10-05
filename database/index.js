@@ -29,5 +29,6 @@ module.exports = {
     PaymentHistories: require('./schemas/PaymentHistoriesSchema'),
     WobjectSubscriptions: require('./schemas/WobjectSubscriptionSchema'),
     WebsitePayments: require('./schemas/WebsitePaymentsSchema'),
+    WebsitesRefund: require('./schemas/WebsiteRefudSchema'),
   },
 };
