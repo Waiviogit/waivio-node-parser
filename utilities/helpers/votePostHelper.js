@@ -22,15 +22,17 @@ const voteOnPost = async (data) => {
     }
   }
   await updatePost(data);
-  await notificationsUtil
-    .custom({
-      id: 'like',
-      weight,
-      voter: data.voter,
-      author: data.author,
-      permlink: data.permlink,
-      guest_author: data.guest_author,
-    });
+  if (data.percent > 0) {
+    await notificationsUtil
+      .custom({
+        id: 'like',
+        weight,
+        voter: data.voter,
+        author: data.author,
+        permlink: data.permlink,
+        guest_author: data.guest_author,
+      });
+  }
 };
 
 // method also using as undo previous vote before up- or down-vote
