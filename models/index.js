@@ -12,4 +12,5 @@ module.exports = {
   paymentHistoriesModel: require('./PaymentHistoriesModel'),
   wobjectSubscriptions: require('./wobjectSubscriptionModel'),
   websitePayments: require('./websitesPaymentsModel'),
+  websiteRefunds: require('./websitesRefundsModel'),
 };

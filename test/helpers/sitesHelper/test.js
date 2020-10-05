@@ -1,12 +1,12 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config,
+  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config, WebsitesRefund,
 } = require('test/testHelper');
 const {
-  STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
+  STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES, REFUND_STATUSES,
 } = require('constants/sitesData');
-const { AppFactory } = require('test/factories');
+const { AppFactory, WebsitePaymentsFactory, WebsiteRefundsFactory } = require('test/factories');
 const { settingsData, authorityData } = require('./mocks');
 
 describe('On sitesHelper', async () => {
@@ -296,6 +296,74 @@ describe('On sitesHelper', async () => {
         { userName: operation.from, type: PAYMENT_TYPES.TRANSFER },
       ).lean();
       expect(result).to.be.null;
+    });
+  });
+
+  describe('On refundRequest', async () => {
+    let account, amount;
+    beforeEach(async () => {
+      amount = _.random(50, 100);
+      account = faker.name.firstName();
+      await WebsitePaymentsFactory.Create({ name: account, amount });
+    });
+    describe('On OK', async () => {
+      let operation;
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [account],
+          json: JSON.stringify({ userName: account }),
+        };
+      });
+      it('should return true with correct params', async () => {
+        const result = await sitesHelper.refundRequest(operation, _.random(50, 100));
+        expect(result).to.be.true;
+      });
+      it('should create refund record with refund amount < balance', async () => {
+        await sitesHelper.refundRequest(operation, _.random(50, 100));
+        const dbRecord = await WebsitesRefund.findOne(
+          { userName: account, status: REFUND_STATUSES.PENDING },
+        );
+        expect(dbRecord).to.be.exist;
+      });
+    });
+    describe('On errors', async () => {
+      let operation;
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [account],
+          json: JSON.stringify({ userName: account }),
+        };
+      });
+      it('should return false if another pending refund is exists', async () => {
+        await WebsiteRefundsFactory.Create({ name: account });
+        const result = await sitesHelper.refundRequest(operation, _.random(50, 100));
+        expect(result).to.be.false;
+      });
+      it('should not create record with another pending refund ', async () => {
+        await WebsiteRefundsFactory.Create({ name: account });
+        await sitesHelper.refundRequest(operation, _.random(50, 100));
+        const dbRecords = await WebsitesRefund.find(
+          { userName: account, status: REFUND_STATUSES.PENDING },
+        );
+        expect(dbRecords).to.have.length(1);
+      });
+      it('should return false if user has negative balance', async () => {
+        await WebsitePaymentsFactory.Create(
+          { name: account, amount: amount + 10, type: PAYMENT_TYPES.WRITE_OFF },
+        );
+        const result = await sitesHelper.refundRequest(operation, _.random(50, 100));
+        expect(result).to.be.false;
+      });
+      it('should not create record if user has negative balance', async () => {
+        await WebsitePaymentsFactory.Create(
+          { name: account, amount: amount + 10, type: PAYMENT_TYPES.WRITE_OFF },
+        );
+        await sitesHelper.refundRequest(operation, _.random(50, 100));
+        const dbRecords = await WebsitesRefund.find(
+          { userName: account, status: REFUND_STATUSES.PENDING },
+        );
+        expect(dbRecords).to.have.length(0);
+      });
     });
   });
 });

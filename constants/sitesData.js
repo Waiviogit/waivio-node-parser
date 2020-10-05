@@ -22,6 +22,16 @@ exports.PAYMENT_TYPES = {
   REFUND: 'refund',
 };
 
+exports.REFUND_TYPES = {
+  WEBSITE_REFUND: 'website_refund',
+};
+
+exports.REFUND_STATUSES = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  REJECTED: 'rejected',
+};
+
 exports.PARSE_MATCHING = {
   [this.TRANSFER_ID]: this.PAYMENT_TYPES.TRANSFER,
   [this.REFUND_ID]: this.PAYMENT_TYPES.REFUND,
