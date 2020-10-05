@@ -30,6 +30,7 @@ exports.REFUND_STATUSES = {
   PENDING: 'pending',
   COMPLETED: 'completed',
   REJECTED: 'rejected',
+  FROZEN: 'frozen',
 };
 
 exports.PARSE_MATCHING = {
