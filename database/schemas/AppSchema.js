@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
 const { STATUSES, SUPPORTED_COLORS } = require('constants/sitesData');
-const { REFERRAL_TYPES, GET_DEFAULT_COLORS } = require('constants/appData');
+const { REFERRAL_TYPES } = require('constants/appData');
 
 const { Schema } = mongoose;
 
