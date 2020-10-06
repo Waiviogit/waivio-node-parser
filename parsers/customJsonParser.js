@@ -53,6 +53,9 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:
       await sitesHelper.createWebsite(operation);
       break;
+    case CUSTOM_JSON_OPS.DELETE_CUSTOM_WEBSITE:
+      await sitesHelper.createWebsite(operation);
+      break;
     case CUSTOM_JSON_OPS.ACTIVATE_CUSTOM_WEBSITE:
       await sitesHelper.activationActions(operation, true);
       break;
