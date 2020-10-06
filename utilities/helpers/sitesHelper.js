@@ -35,7 +35,7 @@ exports.activationActions = async (operation, activate) => {
   if (!json || !author) return false;
 
   const condition = {
-    _id: json.appId,
+    host: json.host,
     owner: author,
     inherited: true,
     status: activate ? { $in: [STATUSES.PENDING, STATUSES.INACTIVE] } : STATUSES.ACTIVE,
@@ -49,7 +49,7 @@ exports.activationActions = async (operation, activate) => {
   const updateData = activate
     ? { status: STATUSES.ACTIVE, activatedAt: moment.utc().toDate(), deactivatedAt: null }
     : { status: STATUSES.INACTIVE, deactivatedAt: moment.utc().toDate() };
-  await App.updateOne({ _id: json.appId }, updateData);
+  await App.updateOne({ _id: result._id }, updateData);
 };
 
 exports.saveWebsiteSettings = async (operation) => {

@@ -100,7 +100,7 @@ describe('On sitesHelper', async () => {
     beforeEach(async () => {
       operation = {
         required_posting_auths: [author],
-        json: JSON.stringify({ appId: app._id }),
+        json: JSON.stringify({ host: app.host }),
       };
     });
 
