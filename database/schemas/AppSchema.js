@@ -46,14 +46,14 @@ const MapPoints = new Schema({
 }, { _id: false });
 
 const Colors = new Schema({
-  [SUPPORTED_COLORS.BACKGROUND]: { type: String },
-  [SUPPORTED_COLORS.FONT]: { type: String, default: null },
-  [SUPPORTED_COLORS.HOVER]: { type: String, default: null },
-  [SUPPORTED_COLORS.HEADER]: { type: String, default: null },
-  [SUPPORTED_COLORS.BUTTON]: { type: String, default: null },
-  [SUPPORTED_COLORS.BORDER]: { type: String, default: null },
-  [SUPPORTED_COLORS.FOCUS]: { type: String, default: null },
-  [SUPPORTED_COLORS.LINKS]: { type: String, default: null },
+  [SUPPORTED_COLORS.BACKGROUND]: { type: String, default: '' },
+  [SUPPORTED_COLORS.FONT]: { type: String, default: '' },
+  [SUPPORTED_COLORS.HOVER]: { type: String, default: '' },
+  [SUPPORTED_COLORS.HEADER]: { type: String, default: '' },
+  [SUPPORTED_COLORS.BUTTON]: { type: String, default: '' },
+  [SUPPORTED_COLORS.BORDER]: { type: String, default: '' },
+  [SUPPORTED_COLORS.FOCUS]: { type: String, default: '' },
+  [SUPPORTED_COLORS.LINKS]: { type: String, default: '' },
 }, { _id: false });
 
 const Configuration = new Schema({
@@ -115,7 +115,7 @@ AppSchema.pre('save', async function (next) {
     if (!parent) return;
     this._doc.supported_object_types = parent.supported_object_types;
     this._doc.object_filters = parent.object_filters;
-    if (!this.configuration) this._doc.configuration = {};
+    if (!this._doc.configuration) this._doc.configuration = {};
     this._doc.configuration.configurationFields = _.get(parent, 'configuration.configurationFields', []);
   }
   next();
