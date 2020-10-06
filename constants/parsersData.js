@@ -39,6 +39,7 @@ exports.CUSTOM_JSON_OPS = {
   WEBSITE_ADD_MODERATORS: 'custom_website_add_moderators',
   CUSTOM_WEBSITE_SETTINGS: 'custom_website_settings',
   CREATE_CUSTOM_WEBSITE: 'create_custom_website',
+  DELETE_CUSTOM_WEBSITE: 'delete_custom_website',
   ACTIVATE_CUSTOM_WEBSITE: 'active_custom_website',
   SUSPEND_CUSTOM_WEBSITE: 'suspend_custom_website',
   WEBSITE_REFUND_REQUEST: 'website_refund_request',

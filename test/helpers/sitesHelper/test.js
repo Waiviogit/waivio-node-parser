@@ -19,8 +19,8 @@ describe('On sitesHelper', async () => {
   afterEach(() => {
     sinon.restore();
   });
-  describe('On create', async () => {
-    let parent, owner, name, botName, operation;
+  describe('On create/delete', async () => {
+    let parent, owner, name, botName;
     beforeEach(async () => {
       botName = faker.random.string();
       owner = faker.random.string();
@@ -30,40 +30,68 @@ describe('On sitesHelper', async () => {
         host: config.appHost, canBeExtended: true, inherited: false, bots: [{ name: botName, postingKey: faker.random.string(), roles: ['serviceBot'] }],
       });
       parent = await AppFactory.Create({ canBeExtended: true, inherited: false });
-      operation = {
-        required_posting_auths: [botName],
-        json: JSON.stringify({
-          owner, name, host: `${name}.${parent.host}`, parent: parent._id,
-        }),
-      };
     });
-    it('should create app with correct inherited and canBeExtended flags', async () => {
-      await sitesHelper.createWebsite(operation);
-      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
-      expect(myApp.inherited && !myApp.canBeExtended).to.be.true;
+    describe('On create', async () => {
+      let operation;
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [botName],
+          json: JSON.stringify({
+            owner, name, host: `${name}.${parent.host}`, parentHost: parent.host,
+          }),
+        };
+      });
+      it('should create app with correct inherited and canBeExtended flags', async () => {
+        await sitesHelper.createWebsite(operation);
+        const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+        expect(myApp.inherited && !myApp.canBeExtended).to.be.true;
+      });
+      it('should create app with correct parent id', async () => {
+        await sitesHelper.createWebsite(operation);
+        const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+        expect(myApp.parent.toString()).to.be.eq(parent._id.toString());
+      });
+      it('should add to app parent configuration', async () => {
+        await sitesHelper.createWebsite(operation);
+        const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+        expect(myApp.configuration.configurationFields)
+          .to.be.deep.eq(parent.configuration.configurationFields);
+      });
+      it('should add to app parent ', async () => {
+        await sitesHelper.createWebsite(operation);
+        const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+        expect(myApp.supported_object_types)
+          .to.be.deep.eq(parent.supported_object_types);
+      });
+      it('should not create app with another user in posting auth', async () => {
+        operation.required_posting_auths = [faker.random.string()];
+        await sitesHelper.createWebsite(operation);
+        const myApp = await App.findOne({ host: `${name}.${parent.host}` });
+        expect(myApp).to.be.null;
+      });
     });
-    it('should create app with correct parent id', async () => {
-      await sitesHelper.createWebsite(operation);
-      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
-      expect(myApp.parent.toString()).to.be.eq(parent._id.toString());
-    });
-    it('should add to app parent configuration', async () => {
-      await sitesHelper.createWebsite(operation);
-      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
-      expect(myApp.configuration.configurationFields)
-        .to.be.deep.eq(parent.configuration.configurationFields);
-    });
-    it('should add to app parent ', async () => {
-      await sitesHelper.createWebsite(operation);
-      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
-      expect(myApp.supported_object_types)
-        .to.be.deep.eq(parent.supported_object_types);
-    });
-    it('should not create app with another user in posting auth', async () => {
-      operation.required_posting_auths = [faker.random.string()];
-      await sitesHelper.createWebsite(operation);
-      const myApp = await App.findOne({ host: `${name}.${parent.host}` });
-      expect(myApp).to.be.null;
+    describe('On delete', async () => {
+      let operation, myApp;
+      beforeEach(async () => {
+        myApp = await AppFactory.Create({
+          parent: parent._id, owner, name, host: `${name}.${parent.host}`,
+        });
+        operation = {
+          required_posting_auths: [botName],
+          json: JSON.stringify({ userName: owner, host: `${name}.${parent.host}` }),
+        };
+      });
+      it('should successfully delete website ', async () => {
+        await sitesHelper.deleteWebsite(operation);
+        const result = await App.findOne({ host: myApp.host });
+        expect(result).to.be.null;
+      });
+      it('should not delete if site has not pending status', async () => {
+        await App.updateOne({ _id: myApp._id }, { status: STATUSES.ACTIVE });
+        await sitesHelper.deleteWebsite(operation);
+        const result = await App.findOne({ host: myApp.host });
+        expect(result).to.be.exist;
+      });
     });
   });
 

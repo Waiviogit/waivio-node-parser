@@ -68,6 +68,14 @@ const create = async (data) => {
   }
 };
 
+const deleteOne = async (condition) => {
+  try {
+    return { result: await App.deleteOne(condition) };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
-  getOne, updateChosenPost, findByModeration, findOne, updateOne, create,
+  getOne, updateChosenPost, findByModeration, findOne, updateOne, create, deleteOne,
 };
