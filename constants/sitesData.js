@@ -33,6 +33,17 @@ exports.REFUND_STATUSES = {
   FROZEN: 'frozen',
 };
 
+exports.SUPPORTED_COLORS = {
+  BACKGROUND: 'background',
+  FONT: 'font',
+  HOVER: 'hover',
+  HEADER: 'header',
+  BUTTON: 'button',
+  BORDER: 'border',
+  FOCUS: 'focus',
+  LINKS: 'links',
+};
+
 exports.PARSE_MATCHING = {
   [this.TRANSFER_ID]: this.PAYMENT_TYPES.TRANSFER,
   [this.REFUND_ID]: this.PAYMENT_TYPES.REFUND,

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
-const { STATUSES } = require('constants/sitesData');
+const { STATUSES, SUPPORTED_COLORS } = require('constants/sitesData');
 const { REFERRAL_TYPES } = require('constants/appData');
 
 const { Schema } = mongoose;
@@ -46,14 +46,14 @@ const MapPoints = new Schema({
 }, { _id: false });
 
 const Colors = new Schema({
-  background: { type: String },
-  font: { type: String },
-  hover: { type: String },
-  header: { type: String },
-  button: { type: String },
-  border: { type: String },
-  focus: { type: String },
-  links: { type: String },
+  [SUPPORTED_COLORS.BACKGROUND]: { type: String },
+  [SUPPORTED_COLORS.FONT]: { type: String, default: null },
+  [SUPPORTED_COLORS.HOVER]: { type: String, default: null },
+  [SUPPORTED_COLORS.HEADER]: { type: String, default: null },
+  [SUPPORTED_COLORS.BUTTON]: { type: String, default: null },
+  [SUPPORTED_COLORS.BORDER]: { type: String, default: null },
+  [SUPPORTED_COLORS.FOCUS]: { type: String, default: null },
+  [SUPPORTED_COLORS.LINKS]: { type: String, default: null },
 }, { _id: false });
 
 const Configuration = new Schema({
