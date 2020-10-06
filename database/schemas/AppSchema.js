@@ -63,7 +63,7 @@ const Configuration = new Schema({
   aboutObject: { type: String },
   desktopMap: { type: MapPoints },
   mobileMap: { type: MapPoints },
-  colors: { type: Colors },
+  colors: { type: Colors, default: () => ({}) },
 
 }, { _id: false });
 
