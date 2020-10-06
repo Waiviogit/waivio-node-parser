@@ -4,7 +4,7 @@ const { ratingHelper, userHelper, sitesHelper } = require('utilities/helpers');
 const { customJsonOperations } = require('utilities/guestOperations');
 const { CUSTOM_JSON_OPS } = require('constants/parsersData');
 
-exports.parse = async (operation) => {
+exports.parse = async (operation, blockNum) => {
   switch (operation.id) {
     case CUSTOM_JSON_OPS.FOLLOW_WOBJECT:
       await followObjectParser.parse(operation);
@@ -53,6 +53,9 @@ exports.parse = async (operation) => {
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:
       await sitesHelper.createWebsite(operation);
       break;
+    case CUSTOM_JSON_OPS.DELETE_CUSTOM_WEBSITE:
+      await sitesHelper.createWebsite(operation);
+      break;
     case CUSTOM_JSON_OPS.ACTIVATE_CUSTOM_WEBSITE:
       await sitesHelper.activationActions(operation, true);
       break;
@@ -79,6 +82,9 @@ exports.parse = async (operation) => {
       break;
     case CUSTOM_JSON_OPS.WEBSITE_REMOVE_MODERATORS:
       await sitesHelper.websiteAuthorities(operation, 'moderators', false);
+      break;
+    case CUSTOM_JSON_OPS.WEBSITE_REFUND_REQUEST:
+      await sitesHelper.refundRequest(operation, blockNum);
       break;
   }
 };
