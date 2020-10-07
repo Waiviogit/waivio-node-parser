@@ -394,4 +394,38 @@ describe('On sitesHelper', async () => {
       });
     });
   });
+
+  describe('On createInvoice', async () => {
+    let operation, userName, amount;
+    beforeEach(async () => {
+      userName = faker.random.string();
+      amount = _.random(1, 10);
+      operation = {
+        required_posting_auths: [userName],
+        json: JSON.stringify({
+          userName, amount, host: faker.internet.domainName(), countUsers: 0,
+        }),
+      };
+    });
+    it('should create db record with correct data in params', async () => {
+      await sitesHelper.createInvoice(operation, _.random(10, 111));
+      const result = await WebsitePayments.findOne(
+        { userName, type: PAYMENT_TYPES.WRITE_OFF, amount },
+      );
+      expect(result).to.be.exist;
+    });
+    it('should return false with validation errors', async () => {
+      operation.json = JSON.stringify({ userName, amount, countUsers: 0 });
+      const result = await sitesHelper.createInvoice(operation, _.random(10, 111));
+      expect(result).to.be.false;
+    });
+    it('should not create record with not correct data', async () => {
+      operation.json = JSON.stringify({ userName, amount, countUsers: 0 });
+      await sitesHelper.createInvoice(operation, _.random(10, 111));
+      const result = await WebsitePayments.findOne(
+        { userName, type: PAYMENT_TYPES.WRITE_OFF, amount },
+      );
+      expect(result).to.be.not.exist;
+    });
+  });
 });
