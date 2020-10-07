@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  expect, sinon, faker, followObjectParser, userParsers, User, appHelper, userHelper, UserModel, Subscriptions,
+  expect, sinon, faker, followObjectParser, userParsers, User, appHelper, userHelper, UserModel, Subscriptions, WobjectSubscriptions,
 } = require('test/testHelper');
 const { followUser, followWobject } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, ObjectFactory } = require('test/factories');
@@ -127,9 +127,10 @@ describe('customJsonOperations', async () => {
       it('should call followObjectParser once', () => {
         expect(followObjectParser.parse).to.be.calledOnce;
       });
-      it('should add author permlink to user "wobjects_follow"', async () => {
-        const user = await User.findOne({ name: follower.name });
-        expect(user.objects_follow).to.include(wobject.author_permlink);
+      it('should add record to WobjectSubscriptions collection"', async () => {
+        const subscription = WobjectSubscriptions
+          .findOne({ follower: follower.name, following: wobject.author_permlink });
+        expect(subscription).to.exist;
       });
     });
     describe('on not valid proxy bot', async () => {
