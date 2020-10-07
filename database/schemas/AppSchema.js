@@ -71,6 +71,7 @@ const AppSchema = new Schema({
   name: { type: String, index: true, unique: true },
   owner: { type: String, required: true },
   googleAnalyticsTag: { type: String, default: null },
+  mainPage: { type: String },
   beneficiary: {
     account: { type: String, default: 'waivio' },
     percent: { type: Number, default: 300 },
@@ -115,9 +116,9 @@ AppSchema.pre('save', async function (next) {
     if (!parent) return;
     this._doc.supported_object_types = parent.supported_object_types;
     this._doc.object_filters = parent.object_filters;
+    this._doc.mainPage = parent.mainPage;
     if (!this._doc.configuration) this._doc.configuration = {};
     this._doc.configuration.configurationFields = _.get(parent, 'configuration.configurationFields', []);
-    // this._doc.configuration.colors = _.get(parent, 'configuration.colors', GET_DEFAULT_COLORS());
   }
   next();
 });
