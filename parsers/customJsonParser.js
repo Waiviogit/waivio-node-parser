@@ -86,5 +86,8 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.WEBSITE_REFUND_REQUEST:
       await sitesHelper.refundRequest(operation, blockNum);
       break;
+    case CUSTOM_JSON_OPS.CREATE_WEBSITE_INVOICE:
+      await sitesHelper.createInvoice(operation, blockNum);
+      break;
   }
 };

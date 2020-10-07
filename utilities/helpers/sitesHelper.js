@@ -99,6 +99,18 @@ exports.refundRequest = async (operation, blockNum) => {
   return !!result;
 };
 
+exports.createInvoice = async (operation, blockNum) => {
+  const author = _.get(operation, 'required_posting_auths[0]');
+  const json = parseJson(operation.json);
+  if (!json || !author) return false;
+
+  const { error, value } = sitesValidator.createInvoice.validate(json);
+  if (error) return false;
+
+  value.blockNum = blockNum;
+  await websitePayments.create(value);
+};
+
 exports.websiteAuthorities = async (operation, type, add) => {
   const author = _.get(operation, 'required_posting_auths[0]');
   const json = parseJson(operation.json);
