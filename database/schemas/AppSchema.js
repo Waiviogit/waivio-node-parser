@@ -68,7 +68,7 @@ const Configuration = new Schema({
 }, { _id: false });
 
 const AppSchema = new Schema({
-  name: { type: String, index: true, unique: true },
+  name: { type: String, index: true },
   owner: { type: String, required: true },
   googleAnalyticsTag: { type: String, default: null },
   mainPage: { type: String },
@@ -77,7 +77,9 @@ const AppSchema = new Schema({
     percent: { type: Number, default: 300 },
   },
   configuration: { type: Configuration, default: () => ({}) },
-  host: { type: String, required: true, unique: true },
+  host: {
+    type: String, required: true, unique: true, index: true,
+  },
   parent: { type: mongoose.Schema.ObjectId, default: null },
   admins: { type: [String], default: [] },
   authority: { type: [String], default: [] },
