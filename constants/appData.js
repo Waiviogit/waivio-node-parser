@@ -79,6 +79,7 @@ const notificationsApi = {
 const nodeUrls = ['https://blocks.waivio.com', 'https://anyx.io', 'https://rpc.esteem.app'];
 
 const REFERRAL_TYPES = {
+  REWARDS: 'rewards',
   REVIEWS: 'reviews',
   INVITE_FRIEND: 'invite_friend',
 };
