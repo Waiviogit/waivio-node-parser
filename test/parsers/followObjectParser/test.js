@@ -1,5 +1,5 @@
 const {
-  dropDatabase, expect, faker, sinon, UserModel, WobjModel, userHelper,
+  dropDatabase, expect, faker, sinon, UserModel, WobjModel, userHelper, WobjectSubscriptions,
 } = require('test/testHelper');
 const { followObjectParser } = require('parsers');
 const mock = require('./mock');
@@ -23,10 +23,6 @@ describe('followObjectParser', async () => {
     });
     afterEach(() => {
       sinon.restore();
-    });
-    it('should success follow to wobject', async () => {
-      result = await followObjectParser.parse(data);
-      expect(result).to.eq(`User ${name} now following wobject ${author_permlink}!\n`);
     });
     it('should get error with incorrect data', async () => {
       result = await followObjectParser.parse(faker.random.string(20));
@@ -76,8 +72,9 @@ describe('followObjectParser', async () => {
       sinon.restore();
     });
     it('should success unfollow', async () => {
-      result = await followObjectParser.parse(data);
-      expect(result).to.deep.eq(`User ${name} now unfollow wobject ${author_permlink} !\n`);
+      await followObjectParser.parse(data);
+      result = await WobjectSubscriptions.findOne({ follower: name, following: author_permlink });
+      expect(result).to.not.exist;
     });
   });
 });
