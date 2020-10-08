@@ -130,7 +130,7 @@ const referralValidation = async (json, author, postingAuth) => {
   if (isGuest) {
     const { result: { service_bots = [] } } = await appHelper.getAppData(config.appHost);
     const bot = _.find(service_bots,
-      (record) => record.name === author);
+      (record) => record.name === postingAuth);
     if (!bot) return { error: 'Author of guest info must be one of our bots' };
   }
 
