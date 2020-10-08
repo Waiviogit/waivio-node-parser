@@ -6,8 +6,15 @@ const { Post } = require('models');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
-  const str = `${Math.floor(timestamp / 1000).toString(16)}${getRandomInt(10000, 99999)}00000000000`;
-  return new ObjectId(str);
+  let str = `${Math.floor(timestamp / 1000).toString(16)}${getRandomInt(10000, 99999)}00000000000`;
+  let id;
+  try {
+    id = new ObjectId(str);
+  } catch (e) {
+    str = `${Math.floor(moment.utc().valueOf() / 1000).toString(16)}${getRandomInt(10000, 99999)}00000000000`;
+    id = new ObjectId(str);
+  }
+  return id;
 };
 
 const getRandomInt = (min, max) => {
@@ -15,7 +22,6 @@ const getRandomInt = (min, max) => {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
-
 
 exports.updateExpiredPost = async (author, permlink) => {
   const { post: dbPost } = await Post.findOne({ author, permlink });
