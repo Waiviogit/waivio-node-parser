@@ -96,11 +96,8 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     const { notificationData } = await addWobjectNames(_.cloneDeep(data));
     ({ post: hivePost } = await postsUtil.getPost(data.author, data.permlink));
     await notificationsUtils.post(notificationData);
-    data.active_votes = [];
-
-    const createdAt = _.get(hivePost, 'created', Date.now());
-    data._id = postHelper.objectIdFromDateString(createdAt);
-    data.createdAt = moment.utc(createdAt).toDate();
+    data.active_votes = _.get(hivePost, 'active_votes', []);
+    data._id = postHelper.objectIdFromDateString(_.get(hivePost, 'created', Date.now()));
 
     await User.updateOnNewPost(author, Date.now());
 
