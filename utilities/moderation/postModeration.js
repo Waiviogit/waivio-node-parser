@@ -16,9 +16,12 @@ const _ = require('lodash');
  * @param voter {String}
  * @param author {String}
  * @param permlink {String}
+ * @param guestAuthor
  * @returns {Promise<void|{error}>}
  */
-exports.checkDownVote = async ({ voter, author, permlink }) => {
+exports.checkDownVote = async ({
+  voter, author, permlink, guestAuthor,
+}) => {
   const { apps, error } = await App.findByModeration(voter);
   if (error) {
     console.error(error);
@@ -26,6 +29,8 @@ exports.checkDownVote = async ({ voter, author, permlink }) => {
   }
   if (!apps || _.isEmpty(apps)) return;
   return Post.update({
-    author, permlink, $addToSet: { blocked_for_apps: { $each: [...apps.map((a) => a.host)] } },
+    author: guestAuthor || author,
+    permlink,
+    $addToSet: { blocked_for_apps: { $each: [...apps.map((a) => a.host)] } },
   });
 };

@@ -71,6 +71,7 @@ const downVoteOnPost = async (data, weight) => {
   await postModeration.checkDownVote({
     voter: data.voter,
     author: data.post.author,
+    guestAuthor: data.guest_author,
     permlink: data.post.permlink,
     wobjects: _.get(data, 'metadata.wobj.wobjects'),
   });
