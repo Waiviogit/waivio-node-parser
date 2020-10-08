@@ -51,6 +51,14 @@ const findOne = async (condition) => {
   }
 };
 
+const find = async (condition) => {
+  try {
+    return { result: await App.find(condition).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 const updateOne = async (condition, updateData) => {
   try {
     return { result: await App.updateOne(condition, updateData) };
@@ -77,5 +85,5 @@ const deleteOne = async (condition) => {
 };
 
 module.exports = {
-  getOne, updateChosenPost, findByModeration, findOne, updateOne, create, deleteOne,
+  getOne, updateChosenPost, findByModeration, findOne, updateOne, create, deleteOne, find,
 };

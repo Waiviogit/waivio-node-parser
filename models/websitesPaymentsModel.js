@@ -32,3 +32,11 @@ exports.findOne = async (condition) => {
     return { error };
   }
 };
+
+exports.updateOne = async (condition, updateData) => {
+  try {
+    return { result: await WebsitePayments.updateOne(condition, updateData).lean() };
+  } catch (error) {
+    return { error };
+  }
+};

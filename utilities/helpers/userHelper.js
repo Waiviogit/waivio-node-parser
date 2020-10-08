@@ -97,6 +97,7 @@ exports.checkAndSetReferral = async (data) => {
 
   /** Switch referral types, now we have only reviews referral */
   switch (json.type) {
+    case REFERRAL_TYPES.REWARDS:
     case REFERRAL_TYPES.REVIEWS:
       const referralTypeData = _.find(referralsData,
         (referral) => referral.type === json.type);
