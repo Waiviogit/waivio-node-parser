@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const moment = require('moment');
 const { Post, Wobj, User } = require('models');
 const DiffMatchPatch = require('diff-match-patch');
 const { postsUtil } = require('utilities/steemApi');
@@ -93,9 +94,14 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   let updPost, error;
   if (!post && !postData) {
     const { notificationData } = await addWobjectNames(_.cloneDeep(data));
+    ({ post: hivePost } = await postsUtil.getPost(data.author, data.permlink));
     await notificationsUtils.post(notificationData);
     data.active_votes = [];
-    data._id = postHelper.objectIdFromDateString(Date.now());
+
+    const createdAt = _.get(hivePost, 'created', Date.now());
+    data._id = postHelper.objectIdFromDateString(createdAt);
+    data.createdAt = moment.utc(createdAt).toDate();
+
     await User.updateOnNewPost(author, Date.now());
 
     await setExpiredPostTTL('hivePost', `${author}/${data.permlink}`, 605000);
@@ -160,9 +166,9 @@ const addWobjectNames = async (notificationData) => {
     const field = await wobjectHelper
       .getWobjWinField({ authorPermlink: wobject.author_permlink, fieldName: FIELDS_NAMES.NAME });
     /**
-     * in the case when hashtag is attached to the post we can take wobject name
-     * from tagged property, in case it regular object get name from objectName property
-     */
+         * in the case when hashtag is attached to the post we can take wobject name
+         * from tagged property, in case it regular object get name from objectName property
+         */
     if (!field) {
       const { wobject: findWobj } = await Wobj.getOne({ author_permlink: wobject.author_permlink });
       wobject.name = _.get(findWobj, 'default_name', wobject.tagged || wobject.objectName);
