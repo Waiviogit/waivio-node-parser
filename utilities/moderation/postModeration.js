@@ -28,6 +28,9 @@ exports.checkDownVote = async ({
     return { error };
   }
   if (!apps || _.isEmpty(apps)) return;
+  /** Update reblogs */
+  await Post.updateMany({ permlink: `${author}/${permlink}` }, { $addToSet: { blocked_for_apps: { $each: [...apps.map((a) => a.host)] } } });
+
   return Post.update({
     author: guestAuthor || author,
     permlink,
