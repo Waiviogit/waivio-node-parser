@@ -16,8 +16,8 @@ exports.createWebsite = async (operation) => {
   const { result: parent } = await App.findOne({ host: json.parentHost, canBeExtended: true });
   if (!parent) return false;
   json.parent = parent._id;
-  const { result } = await App.findOne({ owner: operation.owner, status: STATUSES.SUSPENDED });
-  if (result) operation.status = STATUSES.SUSPENDED;
+  const { result } = await App.findOne({ owner: json.owner, status: STATUSES.SUSPENDED });
+  if (result) json.status = STATUSES.SUSPENDED;
   await App.create(json);
 };
 
