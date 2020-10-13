@@ -26,16 +26,14 @@ const createTags = async ({ field, authorPermlink }) => {
           const tagCategory = _.find(wobject.fields,
             (obj) => obj.name === 'tagCategory' && obj.body === tag);
 
-          appends = _.concat(appends, parseIngredients(
-            {
-              string: field.body,
-              authorPermlink,
-              fields: wobject.fields,
-              id: tagCategory ? tagCategory.id : null,
-              tag,
-              tagsSource: app.tagsData[tag],
-            },
-          ));
+          appends = _.concat(appends, parseIngredients({
+            string: field.body,
+            authorPermlink,
+            fields: wobject.fields,
+            id: tagCategory ? tagCategory.id : null,
+            tag,
+            tagsSource: app.tagsData[tag],
+          }));
         }
         break;
       default:
@@ -52,15 +50,19 @@ const createTags = async ({ field, authorPermlink }) => {
 };
 
 const createTag = ({
-  body, authorPermlink, name, id,
-}) => ({
-  name,
-  body,
-  id: id || uuid.v1(),
-  permlink: permlinkGenerator.getPermlink(authorPermlink, id ? 'category-item' : 'tag-category'),
-  locale: 'en-US',
-  creator: 'asd09',
-});
+  body, authorPermlink, name, id, tag,
+}) => {
+  const field = {
+    name,
+    body,
+    id: id || uuid.v1(),
+    permlink: permlinkGenerator.getPermlink(authorPermlink, id ? 'category-item' : 'tag-category'),
+    locale: 'en-US',
+    creator: 'asd09',
+  };
+  if (id) field.tagCategory = tag;
+  return field;
+};
 
 const parseIngredients = ({
   string, fields, id, authorPermlink, tag, tagsSource,
@@ -78,7 +80,7 @@ const parseIngredients = ({
           && !_.find(fields,
             (field) => field.name === 'categoryItem' && field.body === tagsSource[key])) {
         appends.push(createTag({
-          name: 'categoryItem', body: tagsSource[key], id, authorPermlink,
+          name: 'categoryItem', body: tagsSource[key], id, authorPermlink, tag,
         }));
       }
     });

@@ -11,6 +11,7 @@
   "scripts": {
     "fixEmptyWobject": "node ./utilities/tasks/appendWobjectFields/run.js",
     "createMissedUsers": "NODE_PATH=. node ./utilities/tasks/checkAndCreateSteemUsers/run.js",
+    "addTagCategoryToItems": "NODE_PATH=. node ./utilities/tasks/addTagCategories/run.js",
     "fillWobjectNames": "node ./utilities/tasks/fillWobjectNames/run.js",
     "appendEmptyWobjFields": "node ./utilities/tasks/appendWobjectFields/run.js && node ./utilities/tasks/fillWobjectNames/run.js ",
     "checkWobjectParent": "node ./utilities/tasks/checkWobjectParent/run.js",

@@ -12,8 +12,7 @@ const voteOnPost = async (data) => {
 
   const weight = Math.round(currentVote.rshares * 1e-6);
 
-  if (await userValidator.validateUserOnBlacklist([data.voter, data.post.author, data.guest_author])
-      && (data.post.author !== data.voter && data.guest_author !== data.voter)) {
+  if (await userValidator.validateUserOnBlacklist([data.voter, data.post.author, data.guest_author])) {
     await unvoteOnPost(data);
     if (data.percent < 0) {
       await downVoteOnPost(data, weight); // case for down-vote

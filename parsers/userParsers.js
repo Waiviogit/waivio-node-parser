@@ -121,7 +121,7 @@ exports.reblogPostParser = async ({
       },
       body: '',
       json_metadata: '',
-      ..._.pick(post, ['language', 'wobjects', 'id']),
+      ..._.pick(post, ['language', 'wobjects', 'id', 'blocked_for_apps']),
     };
     if (id) data._id = id;
     const { post: createdPost, error: createPostError } = await Post.create(data);

@@ -73,7 +73,16 @@ const findByBothAuthors = async ({ author, permlink }) => {
   }
 };
 
+const updateMany = async (conditions, updateData) => {
+  try {
+    return {
+      post: await PostModel.updateMany(conditions, updateData),
+    };
+  } catch (error) {
+    return { error };
+  }
+};
 
 module.exports = {
-  create, update, findOne, getPostsRefs, findByBothAuthors,
+  create, update, findOne, getPostsRefs, findByBothAuthors, updateMany
 };
