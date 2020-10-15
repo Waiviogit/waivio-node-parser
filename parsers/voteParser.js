@@ -62,10 +62,9 @@ const voteAppendObject = async (data) => {
   if (!currentVote) {
     const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
     if (voteError || !vote) {
-      console.error(error || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
-    } else {
-      currentVote = vote;
+      return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
     }
+    currentVote = vote;
   }
 
   data.rshares_weight = Math.round(Number(currentVote.rshares) * 1e-6);
@@ -145,7 +144,7 @@ const tryReserveVote = async (author, permlink, voter, times = 10) => {
       if (err) return { error: err };
       const vote = votes.find((v) => v.voter === voter);
       if (vote) return { vote };
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
   }
   return { error: { message: `[tryReserveVote]Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
