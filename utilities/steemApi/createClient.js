@@ -1,3 +1,9 @@
-const dsteem = require('dsteem');
+const dhive = require('@hiveio/dhive');
 
-module.exports = { client: new dsteem.Client('https://anyx.io') };
+const client = new dhive.Client(['https://anyx.io'], {
+  timeout: 8 * 1000,
+  failoverThreshold: 4,
+  rebrandedApi: true,
+});
+
+module.exports = { client };
