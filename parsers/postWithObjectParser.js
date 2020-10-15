@@ -66,7 +66,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   const author = _.get(data, 'guestInfo.userId', data.author);
   const { post } = await Post.findOne({ author, permlink: data.permlink });
 
-  if (!postData && post) {
+  if (!postData) {
     ({ post: hivePost, err } = await postsUtil.getPost(data.author, data.permlink));
   } else if (postData) {
     hivePost = postData;
@@ -74,7 +74,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   if (err) return { error: err.message };
 
   const postAuthor = _.get(hivePost, 'author');
-  if (post && !postAuthor) {
+  if (!postAuthor) {
     if (!fromTTL) {
       return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 15);
     }
@@ -92,11 +92,12 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   }
 
   let updPost, error;
-  if (!post && !postData) {
+  if (!post) {
     const { notificationData } = await addWobjectNames(_.cloneDeep(data));
-    ({ post: hivePost } = await postsUtil.getPost(data.author, data.permlink));
+    // ({ post: hivePost } = await postsUtil.getPost(data.author, data.permlink));
     await notificationsUtils.post(notificationData);
-    data.active_votes = _.get(hivePost, 'active_votes', []);
+    // data.active_votes = _.get(hivePost, 'active_votes', []);
+    data = Object.assign(hivePost, data);
     data._id = postHelper.objectIdFromDateString(moment.utc(_.get(hivePost, 'created', Date.now())).toDate());
 
     await User.updateOnNewPost(author, Date.now());
