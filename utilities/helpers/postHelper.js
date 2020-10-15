@@ -39,8 +39,8 @@ exports.createPost = async ({
   author, permlink, fromTTL = false, commentParser,
 }) => {
   const { post, err } = await postsUtil.getPost(author, permlink);
-  if (err) return console.error(err.message);
-  if (!post.author || !post.body) return console.log(`Post @${author}/${permlink} not found or was deleted!`);
+
+  if (err || !post.author || !post.body) return console.error(`Post @${author}/${permlink} not found or was deleted!`);
   const metadata = this.parseMetadata(post.json_metadata);
   if (!metadata) return;
   await commentParser.postSwitcher({

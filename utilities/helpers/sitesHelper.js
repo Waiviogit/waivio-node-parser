@@ -5,10 +5,9 @@ const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const Sentry = require('@sentry/node');
 const { sitesValidator } = require('validator');
 const appHelper = require('utilities/helpers/appHelper');
-const { PAYMENT_TYPES, REFUND_TYPES, REFUND_STATUSES } = require('constants/sitesData');
-
 const {
-  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID,
+  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
+  REFUND_TYPES, REFUND_STATUSES,
 } = require('constants/sitesData');
 
 exports.createWebsite = async (operation) => {
@@ -17,6 +16,8 @@ exports.createWebsite = async (operation) => {
   const { result: parent } = await App.findOne({ host: json.parentHost, canBeExtended: true });
   if (!parent) return false;
   json.parent = parent._id;
+  const { result } = await App.findOne({ owner: json.owner, status: STATUSES.SUSPENDED });
+  if (result) json.status = STATUSES.SUSPENDED;
   await App.create(json);
 };
 
