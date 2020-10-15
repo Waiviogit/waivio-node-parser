@@ -14,18 +14,18 @@ const updateCounters = async (author, permlink, parentAuthor, parentPermlink) =>
   const { post: comment, err } = await postsUtil.getPost(author, permlink);
 
   if (err) {
-    console.error(err && err.message ? err.message : err);
     const { post: parentPost, err: parentError } = await postsUtil.getPost(parentAuthor, parentPermlink);
     if (parentError) return console.error(parentError.message);
     rootAuthor = parentPost.root_author;
     rootPermlink = parentPost.root_permlink;
-  }
-  if (!comment || !comment.author) {
-    return console.error(`[Update Post counters] Comment ${author}/${permlink} not exist or was deleted!`);
+  } else {
+    if (!comment || !comment.author) {
+      return console.error(`[Update Post counters] Comment ${author}/${permlink} not exist or was deleted!`);
+    }
+    rootAuthor = comment.root_author;
+    rootPermlink = comment.root_permlink;
   }
 
-  rootAuthor = comment.root_author;
-  rootPermlink = comment.root_permlink;
   const { post, err: error } = await postsUtil.getPost(rootAuthor, rootPermlink);
   if (error) {
     console.error(error && error.message ? error.message : error);
