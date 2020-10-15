@@ -48,7 +48,6 @@ const parse = async (operation, metadata, post, fromTTL) => {
     root_author: operation.author,
     guestInfo,
   };
-
   const result = await createOrUpdatePost(data, post, fromTTL);
 
   if (_.get(result, 'error')) {
@@ -71,10 +70,10 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   } else if (postData) {
     hivePost = postData;
   }
-  if (err) return { error: err.message };
+  // if (err) return { error: err.message };
 
   const postAuthor = _.get(hivePost, 'author');
-  if (!postAuthor) {
+  if (!postAuthor || err) {
     if (!fromTTL) {
       return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 15);
     }

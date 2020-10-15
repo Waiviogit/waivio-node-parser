@@ -5,19 +5,28 @@ const { Post } = require('database').models;
  * Update post "children" counter by comment "author" and "permlink"
  * @param author Author of comment on post
  * @param permlink Permlink of comment on post
+ * @param parentAuthor
+ * @param parentPermlink
  * @returns {Promise<void>}
  */
-const updateCounters = async (author, permlink) => {
+const updateCounters = async (author, permlink, parentAuthor, parentPermlink) => {
+  let rootAuthor, rootPermlink;
   const { post: comment, err } = await postsUtil.getPost(author, permlink);
+
   if (err) {
     console.error(err && err.message ? err.message : err);
-    return;
+    const { post: parentPost, err: parentError } = await postsUtil.getPost(parentAuthor, parentPermlink);
+    if (parentError) return console.error(parentError.message);
+    rootAuthor = parentPost.root_author;
+    rootPermlink = parentPost.root_permlink;
   }
   if (!comment || !comment.author) {
     return console.error(`[Update Post counters] Comment ${author}/${permlink} not exist or was deleted!`);
   }
 
-  const { post, err: error } = await postsUtil.getPost(comment.root_author, comment.root_permlink);
+  rootAuthor = comment.root_author;
+  rootPermlink = comment.root_permlink;
+  const { post, err: error } = await postsUtil.getPost(rootAuthor, rootPermlink);
   if (error) {
     console.error(error && error.message ? error.message : error);
     return;
