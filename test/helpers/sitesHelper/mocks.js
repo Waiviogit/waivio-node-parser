@@ -15,10 +15,10 @@ exports.settingsData = ({
   return data;
 };
 
-exports.authorityData = ({ author, appId, names }) => ({
+exports.authorityData = ({ author, host, names }) => ({
   required_posting_auths: [author || faker.random.string()],
   json: JSON.stringify({
-    appId: appId || faker.random.string(),
+    host: host || faker.random.string(),
     names: names || [faker.random.string()],
   }),
 });

@@ -245,7 +245,23 @@ const pushNewPost = async ({ author_permlink: authorPermlink, post_id: postId })
   }
 };
 
+const find = async (condition, select, sort = {}, skip = 0, limit) => {
+  try {
+    return {
+      result: await WObjectModel
+        .find(condition, select)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
+  find,
   getOne,
   create,
   update,

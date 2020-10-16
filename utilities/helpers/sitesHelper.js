@@ -1,4 +1,6 @@
-const { App, websitePayments, websiteRefunds } = require('models');
+const {
+  App, websitePayments, websiteRefunds, Wobj,
+} = require('models');
 const moment = require('moment');
 const _ = require('lodash');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
@@ -9,6 +11,7 @@ const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
   REFUND_TYPES, REFUND_STATUSES,
 } = require('constants/sitesData');
+const { FIELDS_NAMES } = require('constants/wobjectsData');
 
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) return;
@@ -112,12 +115,13 @@ exports.websiteAuthorities = async (operation, type, add) => {
     return false;
   }
 
-  const condition = { owner: author, inherited: true, _id: value.appId };
+  const condition = { owner: author, inherited: true, host: value.host };
   const updateData = add
     ? { $addToSet: { [type]: { $each: value.names } } }
     : { $pullAll: { [type]: value.names } };
 
   await App.updateOne(condition, updateData);
+  if (type === 'authority') await this.updateSupportedObjects({ host: value.host });
 };
 
 exports.parseSitePayments = async ({ operation, type, blockNum }) => {
@@ -152,6 +156,79 @@ exports.parseSitePayments = async ({ operation, type, blockNum }) => {
         await websitePayments.updateOne({ _id: app._id }, { status });
       }
   }
+};
+
+/** Update supported objects for website, find objects by all conditions,
+ *  map coordinates, authorities, object filter */
+exports.updateSupportedObjects = async ({ host, app }) => {
+  if (!app)({ result: app } = await App.findOne({ host }));
+
+  if (!app) {
+    await sendSentryNotification();
+    return Sentry.captureException({ error: { message: `Some problems with updateSupportedObject for app ${host}` } });
+  }
+  if (!(app.inherited && !app.canBeExtended)) return;
+  const authorities = _.get(app, 'authority', []);
+  const orMapCond = [], orTagsCond = [];
+  if (app.mapCoordinates.length) {
+    app.mapCoordinates.forEach((points) => {
+      orMapCond.push({
+        map: {
+          $geoWithin: {
+            $box: [points.bottomPoint, points.topPoint],
+          },
+        },
+      });
+    });
+  }
+  if (app.object_filters && Object.keys(app.object_filters).length) {
+    for (const type of Object.keys(app.object_filters)) {
+      const typesCond = [];
+      for (const category of Object.keys(app.object_filters[type])) {
+        if (app.object_filters[type][category].length) {
+          typesCond.push({
+            fields: {
+              $elemMatch: {
+                name: FIELDS_NAMES.CATEGORY_ITEM,
+                body: { $in: app.object_filters[type][category] },
+                tagCategory: category,
+              },
+            },
+          });
+        }
+      }
+      if (typesCond.length)orTagsCond.push({ $and: [{ object_type: type }, { $or: typesCond }] });
+    }
+  }
+  const condition = {
+    $and: [{
+      $or: [{
+        $expr: {
+          $gt: [
+            { $size: { $setIntersection: ['$authority.ownership', authorities] } },
+            0,
+          ],
+        },
+      }, {
+        $expr: {
+          $gt: [
+            { $size: { $setIntersection: ['$authority.administrative', authorities] } },
+            0,
+          ],
+        },
+      }],
+    }],
+    object_type: { $in: app.supported_object_types },
+  };
+  if (orMapCond.length)condition.$and[0].$or.push(...orMapCond);
+  if (orTagsCond.length) condition.$and.push({ $or: orTagsCond });
+
+  const { result, error } = await Wobj.find(condition);
+  if (error) {
+    await sendSentryNotification();
+    return Sentry.captureException(error);
+  }
+  await App.updateOne({ _id: app._id }, { $set: { supported_objects: _.map(result, 'author_permlink') } });
 };
 
 
