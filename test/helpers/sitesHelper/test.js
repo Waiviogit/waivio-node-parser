@@ -210,7 +210,7 @@ describe('On sitesHelper', async () => {
     let operation, authority;
     beforeEach(async () => {
       authority = faker.name.firstName();
-      operation = authorityData({ author, appId: app._id, names: [authority] });
+      operation = authorityData({ author, host: app.host, names: [authority] });
     });
     describe('On add', async () => {
       it('should add moderators with correct data', async () => {

@@ -115,7 +115,7 @@ exports.websiteAuthorities = async (operation, type, add) => {
     return false;
   }
 
-  const condition = { owner: author, inherited: true, _id: value.host };
+  const condition = { owner: author, inherited: true, host: value.host };
   const updateData = add
     ? { $addToSet: { [type]: { $each: value.names } } }
     : { $pullAll: { [type]: value.names } };

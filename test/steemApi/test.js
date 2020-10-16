@@ -26,7 +26,7 @@ describe('Steem API', async () => {
         result = await postsUtil.getPost('kkkkkkkkk', 'kkkkkkkkk');
       });
       it('should return error', () => {
-        expect(result).to.has.key('error');
+        expect(result).to.has.key('err');
       });
     });
   });
