@@ -51,7 +51,7 @@ describe('postWithObjectParser', async () => {
         expect(user.count_posts).to.be.eq(1);
       });
       it('should call "getPost" on post util with correct author and permlink', () => {
-        expect(postsUtilStub.notCalled).to.be.true;
+        expect(postsUtilStub.calledOnce).to.be.true;
       });
       it('should pass postWithWobj validation', () => {
         expect(postWithWobjValidator.validate).to.be.returned(true);
@@ -105,7 +105,7 @@ describe('postWithObjectParser', async () => {
         expect(upd_author.count_posts - author.count_posts).to.be.eq(1);
       });
       it('should call "getPost" on post util with correct author and permlink', () => {
-        expect(postsUtilStub.notCalled).to.be.true;
+        expect(postsUtilStub.calledOnce).to.be.true;
       });
       it('should pass postWithWobj validation', () => {
         expect(postWithWobjValidator.validate).to.be.returned(true);

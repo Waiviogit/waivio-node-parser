@@ -13,7 +13,7 @@ exports.settingsSchema = Joi.object().keys({
 }).options(options);
 
 exports.authoritySchema = Joi.object().keys({
-  appId: Joi.string().required(),
+  host: Joi.string().required(),
   names: Joi.array().items(Joi.string()).min(1).required(),
 }).options(options);
 
