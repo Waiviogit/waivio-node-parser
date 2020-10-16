@@ -37,6 +37,7 @@ exports.AUTHORITY_FIELD_ENUM = {
 
 exports.OBJECT_TYPES = {
   HASHTAG: 'hashtag',
+  RESTAURANT: 'restaurant',
 };
 
 exports.TAG_CLOUDS_UPDATE_COUNT = 5;

@@ -2,7 +2,7 @@ const { faker, WObject, commentRefSetter } = require('test/testHelper');
 const ObjectFactory = require('test/factories/Object/ObjectFactory');
 
 const Create = async ({
-  creator, name, weight, body, root_wobj, additionalFields = {}, activeVotes,
+  creator, name, weight, body, root_wobj, additionalFields = {}, activeVotes, object_type,
 } = {}) => {
   const appendObject = {
     name: name || 'city',
@@ -20,7 +20,7 @@ const Create = async ({
   let wobject = await WObject.findOne({ author_permlink: root_wobj });
 
   if (!wobject) {
-    wobject = await ObjectFactory.Create({ author_permlink: root_wobj, fields: [appendObject] });
+    wobject = await ObjectFactory.Create({ author_permlink: root_wobj, fields: [appendObject], object_type });
   }
   await WObject.updateOne({ author_permlink: root_wobj }, { $addToSet: { fields: appendObject } });
   await commentRefSetter.addAppendWobj(

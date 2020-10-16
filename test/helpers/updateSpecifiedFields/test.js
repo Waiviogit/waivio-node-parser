@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const {
-  FIELDS_NAMES, RATINGS_UPDATE_COUNT, OBJECT_TYPES, AUTHORITY_FIELD_ENUM,
+  FIELDS_NAMES, RATINGS_UPDATE_COUNT, AUTHORITY_FIELD_ENUM, OBJECT_TYPES,
 } = require('constants/wobjectsData');
 const {
-  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config,
+  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config, App,
 } = require('test/testHelper');
 const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
 
@@ -12,7 +12,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
   beforeEach(async () => {
     await dropDatabase();
-    wobject = await ObjectFactory.Create();
+    wobject = await ObjectFactory.Create({ object_type: OBJECT_TYPES.RESTAURANT });
   });
   describe('on "parent" field', () => {
     let updWobj, fields = [], activeVotes;
@@ -306,132 +306,15 @@ describe('UpdateSpecificFieldsHelper', async () => {
     });
   });
 
-  describe('on "tagCategory" field', async () => {
-    let updWobj;
-    beforeEach(async () => {
-      const [id1, id2] = [faker.random.string(10), faker.random.string(10)];
-      const tagWobjects = [
-        await ObjectFactory.Create({ object_type: OBJECT_TYPES.HASHTAG }),
-        await ObjectFactory.Create({ object_type: OBJECT_TYPES.HASHTAG }),
-        await ObjectFactory.Create({ object_type: OBJECT_TYPES.HASHTAG }),
-      ];
-
-      const { appendObject: category1 } = await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.TAG_CATEGORY,
-        body: faker.random.string(),
-        additionalFields: { id: id1 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.CATEGORY_ITEM,
-        body: tagWobjects[0].author_permlink,
-        additionalFields: { id: id1 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.CATEGORY_ITEM,
-        body: tagWobjects[1].author_permlink,
-        additionalFields: { id: id1 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.TAG_CATEGORY,
-        body: faker.random.string(),
-        additionalFields: { id: id2 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.CATEGORY_ITEM,
-        body: tagWobjects[2].author_permlink,
-        additionalFields: { id: id2 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.TAG_CATEGORY,
-        body: faker.random.string(),
-        additionalFields: { id: faker.random.string() },
-      });
-
-      await updateSpecificFieldsHelper.update(category1.author, category1.permlink, wobject.author_permlink);
-      updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
-    });
-    it('should create field "tagCategories" on wobject root', async () => {
-      expect(updWobj.tagCategories).to.exist;
-    });
-    it('should create field "tagCategories" on wobject root with correct length', async () => {
-      expect(updWobj.tagCategories.length).to.be.eq(3);
-    });
-  });
-
-  describe('on "categoryItem" field', async () => {
-    let updWobj;
-    beforeEach(async () => {
-      const [id1, id2] = [faker.random.string(10), faker.random.string(10)];
-      const tagWobjects = [
-        await ObjectFactory.Create({ object_type: OBJECT_TYPES.HASHTAG }),
-        await ObjectFactory.Create({ object_type: OBJECT_TYPES.HASHTAG }),
-        await ObjectFactory.Create({ object_type: OBJECT_TYPES.HASHTAG }),
-      ];
-
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.TAG_CATEGORY,
-        body: faker.random.string(),
-        additionalFields: { id: id1 },
-      });
-      const { appendObject: categoryItem1 } = await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.CATEGORY_ITEM,
-        body: tagWobjects[0].author_permlink,
-        additionalFields: { id: id1 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.CATEGORY_ITEM,
-        body: tagWobjects[1].author_permlink,
-        additionalFields: { id: id1 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.TAG_CATEGORY,
-        body: faker.random.string(),
-        additionalFields: { id: id2 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.CATEGORY_ITEM,
-        body: tagWobjects[2].author_permlink,
-        additionalFields: { id: id2 },
-      });
-      await AppendObject.Create({
-        root_wobj: wobject.author_permlink,
-        name: FIELDS_NAMES.TAG_CATEGORY,
-        body: faker.random.string(),
-        additionalFields: { id: faker.random.string() },
-      });
-
-      await updateSpecificFieldsHelper.update(
-        categoryItem1.author, categoryItem1.permlink, wobject.author_permlink,
-      );
-      updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
-    });
-    it('should create field "tagCategories" on wobject root', async () => {
-      expect(updWobj.tagCategories).to.exist;
-    });
-    it('should create field "tagCategories" on wobject root with correct length', async () => {
-      expect(updWobj.tagCategories.length).to.be.eq(3);
-    });
-  });
-
   describe('on authority field', async () => {
-    let field;
+    let field, app;
     beforeEach(async () => {
-      ({ appendObject: field } = await AppendObject.Create({
+      ({ appendObject: field, wobject } = await AppendObject.Create({
         root_wobj: wobject.author_permlink,
         name: FIELDS_NAMES.AUTHORITY,
         body: AUTHORITY_FIELD_ENUM.ADMINISTRATIVE,
       }));
+      app = await AppFactory.Create({ authority: [] });
     });
     it('should add creator to authority array when he create field', async () => {
       await updateSpecificFieldsHelper.update(
@@ -462,7 +345,7 @@ describe('UpdateSpecificFieldsHelper', async () => {
         field.author, field.permlink, wobject.author_permlink, field.creator, _.random(-1, -100),
       );
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
-      expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).to.be.undefined;
+      expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).to.be.empty;
     });
     it('should not add creator to authority array when another user downVote it ', async () => {
       await WObject.updateOne({ author_permlink: wobject.author_permlink },
@@ -473,6 +356,35 @@ describe('UpdateSpecificFieldsHelper', async () => {
       );
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).contains(field.creator);
+    });
+    it('should add supported object to app when authority claim authority', async () => {
+      await App.updateOne({ $set: { authority: [field.creator] } });
+      await updateSpecificFieldsHelper.update(
+        field.author, field.permlink, wobject.author_permlink,
+      );
+      const result = await App.findOne({ _id: app._id });
+      expect(result.supported_objects).to.include(wobject.author_permlink);
+    });
+    it('should remove supported object from app when authority downvote his field', async () => {
+      await WObject.updateOne({ author_permlink: wobject.author_permlink },
+        { $push: { [`authority.${AUTHORITY_FIELD_ENUM.ADMINISTRATIVE}`]: field.creator } });
+      await App.updateOne({ $set: { authority: [field.creator], supported_objects: [wobject.author_permlink] } });
+      await updateSpecificFieldsHelper.update(
+        field.author, field.permlink, wobject.author_permlink, field.creator, _.random(-1, -100),
+      );
+      const result = await App.findOne({ _id: app._id });
+      expect(result.supported_objects).to.not.include(wobject.author_permlink);
+    });
+    it('should not remove object from supported if another authority still claim it', async () => {
+      const anotherAuthority = faker.random.string();
+      await WObject.updateOne({ author_permlink: wobject.author_permlink },
+        { $set: { [`authority.${AUTHORITY_FIELD_ENUM.ADMINISTRATIVE}`]: [field.creator, anotherAuthority] } });
+      await App.updateOne({ $set: { authority: [field.creator, anotherAuthority], supported_objects: [wobject.author_permlink] } });
+      await updateSpecificFieldsHelper.update(
+        field.author, field.permlink, wobject.author_permlink, field.creator, _.random(-1, -100),
+      );
+      const result = await App.findOne({ _id: app._id });
+      expect(result.supported_objects).to.include(wobject.author_permlink);
     });
   });
   describe('on processingParent', async () => {

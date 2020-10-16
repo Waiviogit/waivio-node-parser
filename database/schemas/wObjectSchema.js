@@ -30,6 +30,7 @@ const WObjectSchema = new Schema({
     body: { type: String },
     weight: { type: Number, default: 1 },
     locale: { type: String, default: 'en-US' },
+    tagCategory: { type: String },
     creator: { type: String },
     author: String,
     // author+permlink is link to appendObject COMMENT(or to create object post if it's first field)
