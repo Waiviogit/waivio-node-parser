@@ -32,3 +32,12 @@ exports.updateOne = async (condition, updateData) => {
     return { error };
   }
 };
+
+exports.deleteOne = async (condition) => {
+  try {
+    return { result: await WebsitesRefund.deleteOne(condition).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
