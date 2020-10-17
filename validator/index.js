@@ -7,4 +7,5 @@ module.exports = {
   wobjectValidator: require('./wobjectValidator'),
   userValidator: require('./userValidator'),
   sitesValidator: require('./sitesValidator'),
+  objectBotsValidator: require('./validateObjectBots'),
 };
