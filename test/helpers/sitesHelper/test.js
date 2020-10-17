@@ -1,13 +1,14 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config, WebsitesRefund,
+  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config, WebsitesRefund, objectBotsValidator,
 } = require('test/testHelper');
 const {
   STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES, REFUND_STATUSES,
 } = require('constants/sitesData');
 const { AppFactory, WebsitePaymentsFactory, WebsiteRefundsFactory } = require('test/factories');
 const { settingsData, authorityData } = require('./mocks');
+
 
 describe('On sitesHelper', async () => {
   let author, app;
@@ -396,14 +397,18 @@ describe('On sitesHelper', async () => {
   });
 
   describe('On createInvoice', async () => {
-    let operation, userName, amount;
+    let operation, userName, amount, host;
     beforeEach(async () => {
+      host = faker.internet.domainName();
+      sinon.stub(objectBotsValidator, 'validate').returns(Promise.resolve(true));
       userName = faker.random.string();
+      await AppFactory.Create({ host, owner: userName });
       amount = _.random(1, 10);
+      await WebsitePaymentsFactory.Create({ amount, name: userName });
       operation = {
         required_posting_auths: [userName],
         json: JSON.stringify({
-          userName, amount, host: faker.internet.domainName(), countUsers: 0,
+          userName, amount, host, countUsers: 0,
         }),
       };
     });
@@ -426,6 +431,19 @@ describe('On sitesHelper', async () => {
         { userName, type: PAYMENT_TYPES.WRITE_OFF, amount },
       );
       expect(result).to.be.not.exist;
+    });
+    it('should not change status if payable >= debt', async () => {
+      await sitesHelper.createInvoice(operation, _.random(10, 111));
+      const result = await App.findOne({ host });
+      expect(result.status).to.be.eq(STATUSES.PENDING);
+    });
+    it('should change site status with amount > payable', async () => {
+      await WebsitePaymentsFactory.Create(
+        { amount: 1, name: userName, type: PAYMENT_TYPES.WRITE_OFF },
+      );
+      await sitesHelper.createInvoice(operation, _.random(10, 111));
+      const result = await App.findOne({ host });
+      expect(result.status).to.be.eq(STATUSES.SUSPENDED);
     });
   });
 });

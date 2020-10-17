@@ -5,7 +5,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const Sentry = require('@sentry/node');
-const { sitesValidator } = require('validator');
+const { sitesValidator, objectBotsValidator } = require('validator');
 const appHelper = require('utilities/helpers/appHelper');
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
@@ -95,13 +95,14 @@ exports.refundRequest = async (operation, blockNum) => {
 exports.createInvoice = async (operation, blockNum) => {
   const author = _.get(operation, 'required_posting_auths[0]');
   const json = parseJson(operation.json);
-  if (!json || !author) return false;
+  if (!json || !author || !await objectBotsValidator.validate(author, 'serviceBot')) return false;
 
   const { error, value } = sitesValidator.createInvoice.validate(json);
   if (error) return false;
 
   value.blockNum = blockNum;
   await websitePayments.create(value);
+  await checkForSuspended(value.userName);
 };
 
 exports.websiteAuthorities = async (operation, type, add) => {
@@ -249,6 +250,21 @@ const parseJson = (json) => {
   }
 };
 
+const checkForSuspended = async (userName) => {
+  const { result: app } = await App.findOne(
+    { owner: userName, inherited: true, status: STATUSES.SUSPENDED },
+  );
+
+  const { payable } = await getAccountBalance(userName);
+
+  if (app || payable < 0) {
+    await App.updateMany({ owner: userName, inherited: true }, { status: STATUSES.SUSPENDED });
+    await websiteRefunds.deleteOne(
+      { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName: userName },
+    );
+  }
+};
+
 const getAccountBalance = async (account) => {
   const { error, result: payments } = await websitePayments.find({
     condition: { userName: account },
@@ -271,6 +287,7 @@ const getAccountBalance = async (account) => {
   });
   return { payable };
 };
+
 
 const captureException = async (error) => {
   await sendSentryNotification();
