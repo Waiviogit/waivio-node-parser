@@ -5,8 +5,8 @@ const { Wobj, App } = require('models');
 const { ObjectType } = require('models');
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const {
-  MIN_PERCENT_TO_SHOW_UPDATE, VOTE_STATUSES, REQUIREDFIELDS_PARENT,
-  ADMIN_ROLES, categorySwitcher, FIELDS_NAMES, ARRAY_FIELDS, INDEPENDENT_FIELDS,
+  MIN_PERCENT_TO_SHOW_UPDATE, VOTE_STATUSES, INDEPENDENT_FIELDS,
+  ADMIN_ROLES, categorySwitcher, FIELDS_NAMES, ARRAY_FIELDS,
 } = require('constants/wobjectsData');
 
 const DEFAULT_UPDATES_CREATOR = 'monterey';
@@ -283,18 +283,6 @@ const getFieldsToDisplay = (fields, locale, filter, permlink, ownership) => {
   return winningFields;
 };
 
-const getParentInfo = async ({
-  locale, app, parent,
-}) => {
-  if (parent) {
-    if (!parent) return '';
-    parent = await processWobjects({
-      locale, fields: REQUIREDFIELDS_PARENT, wobjects: [_.omit(parent, 'parent')], returnArray: false, app,
-    });
-  } else parent = '';
-  return parent;
-};
-
 /** Parse wobjects to get its winning */
 const processWobjects = async ({
   wobjects, fields, locale = 'en-US',
@@ -303,10 +291,7 @@ const processWobjects = async ({
   const filteredWobj = [];
   if (!_.isArray(wobjects)) return filteredWobj;
   const admins = _.get(app, 'admins', []);
-  let parents = [];
-  const parentPermlinks = _.chain(wobjects).map('parent').compact().uniq()
-    .value();
-  if (parentPermlinks.length) ({ wobjects: parents } = await Wobj.getMany({ condition: { author_permlink: { $in: parentPermlinks } } }));
+
   for (let obj of wobjects) {
     const exposedFields = [];
     obj.parent = '';
@@ -332,10 +317,6 @@ const processWobjects = async ({
     obj = _.omit(obj, ['map']);
     Object.assign(obj,
       getFieldsToDisplay(obj.fields, locale, fields, obj.author_permlink, !!ownership.length));
-    if (_.isString(obj.parent)) {
-      const parent = _.find(parents, { author_permlink: obj.parent });
-      obj.parent = await getParentInfo({ locale, app, parent });
-    }
     obj.exposedFields = exposedFields;
     obj = _.omit(obj, ['fields', 'latest_posts', 'last_posts_counts_by_hours', 'tagCategories', 'children']);
     filteredWobj.push(obj);

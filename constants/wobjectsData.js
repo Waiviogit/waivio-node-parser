@@ -64,10 +64,6 @@ exports.VOTE_STATUSES = {
   REJECTED: 'rejected',
 };
 
-exports.REQUIREDFIELDS_PARENT = [
-  this.FIELDS_NAMES.MAP,
-];
-
 exports.TAG_CLOUDS_UPDATE_COUNT = 5;
 exports.RATINGS_UPDATE_COUNT = 4;
 exports.MIN_PERCENT_TO_SHOW_UPDATE = 70;

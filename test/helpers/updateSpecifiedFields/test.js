@@ -8,7 +8,8 @@ const {
 const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
 
 describe('UpdateSpecificFieldsHelper', async () => {
-  let wobject;
+  let wobject, parent;
+  const map = { latitude: _.random(-90, 90), longitude: _.random(-180, 180) };
 
   beforeEach(async () => {
     await dropDatabase();
@@ -145,6 +146,101 @@ describe('UpdateSpecificFieldsHelper', async () => {
       });
       it('should be empty string', async () => {
         expect(updWobj.parent).to.be.empty;
+      });
+    });
+    describe('if parent has map in fields and child not', async () => {
+      beforeEach(async () => {
+        parent = await ObjectFactory.Create();
+        activeVotes = [{ percent: _.random(1, 100) }];
+        const { appendObject: field1 } = await AppendObject.Create(
+          {
+            weight: _.random(1, 100),
+            body: parent.author_permlink,
+            name: FIELDS_NAMES.PARENT,
+            activeVotes,
+            root_wobj: wobject.author_permlink,
+          },
+        );
+        await AppendObject.Create(
+          {
+            weight: _.random(1, 100),
+            body: JSON.stringify(map),
+            name: FIELDS_NAMES.MAP,
+            activeVotes,
+            root_wobj: parent.author_permlink,
+          },
+        );
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('should be same coordinates at map as a win field parent', async () => {
+        expect(updWobj.map.coordinates).to.be.deep.eq(Object.values(map).reverse());
+      });
+    });
+    describe('if parent has map in fields and child has too', async () => {
+      beforeEach(async () => {
+        parent = await ObjectFactory.Create();
+
+        activeVotes = [{ percent: _.random(1, 100) }];
+        const { appendObject: field1 } = await AppendObject.Create(
+          {
+            root_wobj: wobject.author_permlink,
+            weight: _.random(1, 100),
+            body: parent.author_permlink,
+            name: FIELDS_NAMES.PARENT,
+            activeVotes,
+          },
+        );
+        await AppendObject.Create(
+          {
+            root_wobj: wobject.author_permlink,
+            weight: _.random(1, 100),
+            body: JSON.stringify(map),
+            name: FIELDS_NAMES.MAP,
+            activeVotes,
+          },
+        );
+        await AppendObject.Create(
+          {
+            root_wobj: parent.author_permlink,
+            weight: _.random(1, 100),
+            body: JSON.stringify(map),
+            name: FIELDS_NAMES.MAP,
+            activeVotes,
+          },
+        );
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('map should be null', async () => {
+        expect(updWobj.map).to.be.null;
+      });
+    });
+    describe('if parent has no map', async () => {
+      beforeEach(async () => {
+        parent = await ObjectFactory.Create();
+
+        activeVotes = [{ percent: _.random(1, 100) }];
+        const { appendObject: field1 } = await AppendObject.Create(
+          {
+            root_wobj: wobject.author_permlink,
+            weight: _.random(1, 100),
+            body: parent.author_permlink,
+            name: FIELDS_NAMES.PARENT,
+            activeVotes,
+          },
+        );
+        await updateSpecificFieldsHelper.update(
+          field1.author, field1.permlink, wobject.author_permlink,
+        );
+        updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      });
+      it('map should be null', async () => {
+        expect(updWobj.map).to.be.null;
       });
     });
   });

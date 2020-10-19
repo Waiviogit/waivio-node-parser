@@ -181,17 +181,21 @@ const updateSitesObjects = async (userName) => {
 const processingParent = async (authorPermlink, app) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   const processedWobject = await processWobjects({
-    wobjects: [wobject], app, fields: [FIELDS_NAMES.PARENT], returnArray: false,
+    wobjects: [{ ...wobject }], app, fields: [FIELDS_NAMES.PARENT], returnArray: false,
   });
   if (!_.get(processedWobject, 'parent')) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
   await Wobj.update(
     { author_permlink: authorPermlink },
-    { parent: processedWobject.parent.author_permlink },
+    { parent: processedWobject.parent },
   );
   const hasMap = _.find(wobject.fields, (field) => field.name === FIELDS_NAMES.MAP);
   if (hasMap) return;
-  if (_.get(processedWobject.parent, 'map')) {
-    const map = parseMap(processedWobject.parent);
+  const { wobject: parent } = await Wobj.getOne({ author_permlink: processedWobject.parent });
+  const processedParent = await processWobjects({
+    wobjects: [parent], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
+  });
+  if (_.get(processedParent, 'map')) {
+    const map = parseMap(processedParent);
     if (validateMap(map)) {
       await Wobj.update(
         { author_permlink: authorPermlink },
