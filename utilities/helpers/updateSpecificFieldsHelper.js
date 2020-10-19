@@ -7,6 +7,7 @@ const { processWobjects } = require('utilities/helpers/wobjectHelper');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
+const siteHelper = require('utilities/helpers/sitesHelper');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -86,6 +87,7 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
         }
       }
       break;
+
     case FIELDS_NAMES.STATUS:
       const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
         FIELDS_NAMES.STATUS, authorPermlink,
@@ -125,7 +127,7 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
         if (percent <= 0) {
           await Wobj.update(
             { author_permlink: authorPermlink },
-            { $unset: { [`authority.${field.body}`]: field.creator } },
+            { $pull: { [`authority.${field.body}`]: field.creator } },
           );
         } else if (!_.isNumber(percent) || percent > 0) {
           await Wobj.update(
@@ -133,6 +135,7 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
             { $addToSet: { [`authority.${field.body}`]: field.creator } },
           );
         }
+        await updateSitesObjects(field.creator);
       }
       return;
   }
@@ -166,6 +169,13 @@ const parseMap = (wobject) => {
     map.longitude = Number(map.longitude);
   }
   return map;
+};
+const updateSitesObjects = async (userName) => {
+  const { result } = await App.find({ authority: userName });
+  if (!_.get(result, 'length')) return;
+  await Promise.all(result.map(async (app) => {
+    await siteHelper.updateSupportedObjects({ app, host: app.host });
+  }));
 };
 
 const processingParent = async (authorPermlink, app) => {
@@ -228,7 +238,6 @@ const updateTagCategories = async (authorPermlink) => {
     }, [])
     .value();
   await checkExistingTags(tagCategories);
-  // await Wobj.update({ author_permlink: authorPermlink }, { tagCategories });
 };
 
 const setMapToChildren = async (authorPermlink, map) => {

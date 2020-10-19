@@ -96,6 +96,7 @@ const AppSchema = new Schema({
   deactivatedAt: { type: Date, default: null },
   supported_objects: { type: [String], index: true, default: [] },
   top_users: { type: [topUsersSchema] },
+  mapCoordinates: { type: [MapPoints], default: [] },
   daily_chosen_post: {
     author: { type: String },
     permlink: { type: String },

@@ -4,7 +4,7 @@ const { STATUSES } = require('constants/sitesData');
 
 const Create = async ({
   name, admins, moderators, topUsers,
-  referralsData, blackListUsers, bots, campaignAcc, campaignCommission,
+  referralsData, blackListUsers, bots, campaignAcc, campaignCommission, authority,
   indexAcc, indexCommission, referral, owner, host, status, blacklistApps, parent,
   canBeExtended, supportedTypes, inherited, configuration, deactivatedAt, activatedAt,
 } = {}) => {
@@ -15,6 +15,7 @@ const Create = async ({
     name: name || faker.random.string(10),
     admins: admins || [faker.name.firstName().toLowerCase()],
     moderators: moderators || [],
+    authority: authority || [],
     parent: parent || new ObjectID(),
     topUsers: topUsers || [],
     deactivatedAt: deactivatedAt || null,

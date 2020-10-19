@@ -84,6 +84,15 @@ const deleteOne = async (condition) => {
   }
 };
 
+const updateMany = async (condition, updateData) => {
+  try {
+    const result = await App.updateMany(condition, updateData);
+    return { result: result.nModified };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
-  getOne, updateChosenPost, findByModeration, findOne, updateOne, create, deleteOne, find,
+  getOne, updateChosenPost, updateMany, findByModeration, findOne, updateOne, create, deleteOne, find,
 };
