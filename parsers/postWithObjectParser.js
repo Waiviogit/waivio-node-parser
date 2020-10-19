@@ -158,14 +158,14 @@ const mergePosts = (originalBody, body) => {
 
 const addWobjectNames = async (notificationData) => {
   if (_.isEmpty(notificationData.wobjects)) return { notificationData };
-
+  // const { result } = await Wobj.find({ author_permlink: { $in: _.map(notificationData.wobjects, 'author_permlink') } }); #TODO change getWinField
   for (const wobject of notificationData.wobjects) {
     const field = await wobjectHelper
       .getWobjWinField({ authorPermlink: wobject.author_permlink, fieldName: FIELDS_NAMES.NAME });
     /**
-         * in the case when hashtag is attached to the post we can take wobject name
-         * from tagged property, in case it regular object get name from objectName property
-         */
+     * in the case when hashtag is attached to the post we can take wobject name
+     * from tagged property, in case it regular object get name from objectName property
+     */
     if (!field) {
       const { wobject: findWobj } = await Wobj.getOne({ author_permlink: wobject.author_permlink });
       wobject.name = _.get(findWobj, 'default_name', wobject.tagged || wobject.objectName);
