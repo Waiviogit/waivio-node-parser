@@ -346,12 +346,16 @@ describe('UpdateSpecificFieldsHelper', async () => {
   describe('on "map" field', () => {
     const fields = [];
     let updWobj;
+    const child1 = faker.random.string();
+    const child2 = faker.random.string();
+    const child3 = faker.random.string();
 
     beforeEach(async () => {
       const mockBody = () => JSON.stringify({
         longitude: faker.random.number({ min: -180, max: 180 }),
         latitude: faker.random.number({ min: -90, max: 90 }),
       });
+      const children = [child1, child2, child3];
       const weight = [1, -99, 80, 10];
       let field;
       for (const num of weight) {
@@ -359,6 +363,19 @@ describe('UpdateSpecificFieldsHelper', async () => {
           { name: FIELDS_NAMES.MAP, weight: num, body: (mockBody()) },
         ));
         fields.push(field);
+      }
+      for (const el of children) {
+        await ObjectFactory.Create({ objParent: wobject.author_permlink, author_permlink: el });
+        if (el === child1) {
+          await AppendObject.Create(
+            {
+              root_wobj: child1,
+              weight: _.random(1, 100),
+              body: JSON.stringify(map),
+              name: FIELDS_NAMES.MAP,
+            },
+          );
+        }
       }
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
       await updateSpecificFieldsHelper.update(
@@ -374,6 +391,21 @@ describe('UpdateSpecificFieldsHelper', async () => {
     it('should write top field "map" to root of wobject', async () => {
       const mockBody = JSON.parse(fields[2].body);
       expect(updWobj.map).to.deep.equal({ type: 'Point', coordinates: [mockBody.longitude, mockBody.latitude] });
+    });
+
+    it('should not update map because child1 has field map', async () => {
+      const result = await WObject.findOne({ author_permlink: child1 }).lean();
+      expect(result.map).to.be.null;
+    });
+    it('should set parent map for child2', async () => {
+      const mockBody = JSON.parse(fields[2].body);
+      const result = await WObject.findOne({ author_permlink: child2 }).lean();
+      expect(result.map).to.deep.equal({ type: 'Point', coordinates: [mockBody.longitude, mockBody.latitude] });
+    });
+    it('should set parent map for child3', async () => {
+      const mockBody = JSON.parse(fields[2].body);
+      const result = await WObject.findOne({ author_permlink: child3 }).lean();
+      expect(result.map).to.deep.equal({ type: 'Point', coordinates: [mockBody.longitude, mockBody.latitude] });
     });
   });
 

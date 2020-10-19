@@ -191,6 +191,7 @@ const processingParent = async (authorPermlink, app) => {
   const hasMap = _.find(wobject.fields, (field) => field.name === FIELDS_NAMES.MAP);
   if (hasMap) return;
   const { wobject: parent } = await Wobj.getOne({ author_permlink: processedWobject.parent });
+  if (!parent) return;
   const processedParent = await processWobjects({
     wobjects: [parent], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
   });
