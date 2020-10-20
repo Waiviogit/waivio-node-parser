@@ -45,6 +45,7 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     if (!account || !post) continue;
     const voteWeight = vote.weight / 100;
     const decreasedPercent = ((voteWeight * 2) / 100);
+    // here we find out what was the votingPower before vote
     const votingPower = (100 * account.voting_power) / (100 - decreasedPercent);
 
     const vests = parseFloat(account.vesting_shares)
@@ -62,6 +63,8 @@ const calculateVotePower = async ({ votesOps, posts }) => {
       percent: vote.weight,
       rshares: Math.round(rShares),
     });
+    // such vote will not affect total payout
+    if (!rShares) continue;
     // net_rshares sum of all post active_votes rshares negative and positive
     const tRShares = parseFloat(post.net_rshares) + rShares;
     const s = parseFloat(rewardFund.content_constant);
