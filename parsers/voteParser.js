@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { postsUtil } = require('utilities/steemApi');
-const { User } = require('models');
+const { postsUtil, usersUtil } = require('utilities/steemApi');
+const { User, Post } = require('models');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 
@@ -12,8 +12,9 @@ const parse = async (votes) => {
       .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
       .value(),
   );
+  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
   await Promise.all(votesOps.map(async (voteOp) => {
-    await parseVoteByType(voteOp, posts);
+    await parseVoteByType(voteOp, postsWithVotes);
   }));
   console.log(`Parsed votes: ${votesOps.length}`);
 };
@@ -97,14 +98,17 @@ const getPosts = async (postsRefs) => {
   const posts = [];
 
   await Promise.all(postsRefs.map(async (postRef) => {
-    const { post } = await postsUtil.getPost(postRef.author, postRef.permlink);
+    const { post } = await Post.findOne({
+      author: postRef.author,
+      permlink: postRef.permlink,
+    });
 
     if (post) {
       posts.push(post);
     }
   }));
   return posts;
-}; // get list of posts from steemit
+}; // get list of posts from db
 
 const votesFormat = async (votesOps) => {
   let accounts = [];

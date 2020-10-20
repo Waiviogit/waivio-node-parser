@@ -17,6 +17,9 @@ const expiredDataListener = async (chan, msg) => {
         author, permlink, fromTTL: true, commentParser,
       });
       break;
+    case 'expire-updatePostVotes':
+      await postHelper.updatePostVotes(author, permlink);
+      break;
     default:
       break;
   }
