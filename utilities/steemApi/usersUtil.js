@@ -24,7 +24,8 @@ const calculateVotePower = async ({ votesOps, posts }) => {
 
   for (const vote of votesOps) {
     const account = _.find(users, (el) => el.name === vote.voter);
-    if (!account) continue;
+    const post = _.find(posts, (p) => p.author === vote.author && p.permlink === vote.permlink);
+    if (!account || !post) continue;
     const voteWeight = vote.weight / 100;
     const decreasedPercent = ((voteWeight * 2) / 100);
     const votingPower = (100 * account.voting_power) / (100 - decreasedPercent);
@@ -38,8 +39,7 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     const rShares = Math.abs((vests * power * 100)) > 50000000
       ? (vests * power * 100) - 50000000
       : 0;
-    const post = _.find(posts, (p) => p.author === vote.author && p.permlink === vote.permlink);
-    if (!post) continue;
+
     post.active_votes.push({
       voter: vote.voter,
       percent: vote.weight,
