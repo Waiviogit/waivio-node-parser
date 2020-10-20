@@ -49,23 +49,25 @@ const voteAppendObject = async (data) => {
     name: data.voter,
     author_permlink: data.author_permlink,
   });
-    // ignore users with zero or negative weight in wobject
+  // ignore users with zero or negative weight in wobject
   if (!weight || weight <= 0 || error) weight = 1;
   // voters weight in wobject
   data.weight = weight;
 
-  // let currentVote = _.chain(data.posts)
-  //   .find({ author: data.author, permlink: data.permlink })
-  //   .get('active_votes', [])
-  //   .find({ voter: data.voter })
-  //   .value();
-
-  const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
-  if (voteError || !vote) {
-    return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
+  let currentVote = _.chain(data.posts)
+    .find({ author: data.author, permlink: data.permlink })
+    .get('active_votes', [])
+    .find({ voter: data.voter })
+    .value();
+  if (!currentVote) {
+    const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
+    if (voteError || !vote) {
+      return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
+    }
+    currentVote = vote;
   }
 
-  data.rshares_weight = Math.round(Number(vote.rshares) * 1e-6);
+  data.rshares_weight = Math.round(Number(currentVote.rshares) * 1e-6);
   await voteFieldHelper.voteOnField(data);
 };
 
