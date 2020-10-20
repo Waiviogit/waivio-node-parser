@@ -82,7 +82,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
      */
   if (PARSE_ONLY_VOTES) {
     const lastBlockNumMainParse = await redisGetter.getLastBlockNum('last_block_num');
-    if (blockNum >= lastBlockNumMainParse) return false;
+    if (blockNum >= lastBlockNumMainParse - 1) return false;
   }
 
   const { block, error } = await blockUtil.getBlock(blockNum, CURRENT_NODE_URL);

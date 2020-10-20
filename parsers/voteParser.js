@@ -36,7 +36,7 @@ const parseVoteByType = async (voteOp, posts) => {
       voter: voteOp.voter,
       percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
       author_permlink: voteOp.root_wobj,
-      posts,
+      // posts,
     });
   }
 };
@@ -54,20 +54,18 @@ const voteAppendObject = async (data) => {
   // voters weight in wobject
   data.weight = weight;
 
-  let currentVote = _.chain(data.posts)
-    .find({ author: data.author, permlink: data.permlink })
-    .get('active_votes', [])
-    .find({ voter: data.voter })
-    .value();
-  if (!currentVote) {
-    const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
-    if (voteError || !vote) {
-      return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
-    }
-    currentVote = vote;
+  // let currentVote = _.chain(data.posts)
+  //   .find({ author: data.author, permlink: data.permlink })
+  //   .get('active_votes', [])
+  //   .find({ voter: data.voter })
+  //   .value();
+
+  const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
+  if (voteError || !vote) {
+    return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
   }
 
-  data.rshares_weight = Math.round(Number(currentVote.rshares) * 1e-6);
+  data.rshares_weight = Math.round(Number(vote.rshares) * 1e-6);
   await voteFieldHelper.voteOnField(data);
 };
 
@@ -78,7 +76,7 @@ const votePostWithObjects = async (data) => {
 
   let metadata;
   try {
-    if (data.post.json_metadata !== '') {
+    if (_.get(data, 'post.json_metadata') !== '') {
       metadata = JSON.parse(data.post.json_metadata); // parse json_metadata from string to JSON
     }
   } catch (e) {
