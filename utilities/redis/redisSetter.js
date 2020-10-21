@@ -67,7 +67,7 @@ const setExpiredPostTTL = async (name, id, timer, value = '') => {
 };
 const addTagCategory = async ({ categoryName, tags }) => tagCategoriesClient.zaddAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${categoryName}`, tags);
 
-const setCurrentPriceInfo = async (data) => lastBlockClient.hsetAsync('current_price_info', data);
+const setCurrentPriceInfo = async (data) => lastBlockClient.hmsetAsync('current_price_info', data);
 
 module.exports = {
   addPostWithWobj,
