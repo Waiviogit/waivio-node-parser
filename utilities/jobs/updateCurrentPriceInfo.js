@@ -4,7 +4,7 @@ const { updatePriceInfo } = require('utilities/redis');
 /**
  * Cron to update price info
  */
-const job = new CronJob('*/10 * * * *', async () => {
+const job = new CronJob('*/1 * * * *', async () => {
   await updatePriceInfo.update();
 }, null, false, null, null, true);
 
