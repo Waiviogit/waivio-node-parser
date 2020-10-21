@@ -1,4 +1,6 @@
 const _ = require('lodash');
+const { getHashAll } = require('utilities/redis/redisGetter');
+const { lastBlockClient } = require('utilities/redis/redis');
 const { client } = require('./createClient');
 
 const getUser = async (accountName) => {
@@ -23,22 +25,22 @@ const parseToFloat = (balance) => parseFloat(balance.match(/.\d*.\d*/)[0]);
 const getCurrentPriceInfo = async () => {
   const sbdMedian = await client.database.call('get_current_median_history_price', []);
   const rewardFund = await client.database.call('get_reward_fund', ['post']);
-  const props = await client.database.getDynamicGlobalProperties();
   return {
     currentPrice: parseToFloat(sbdMedian.base) / parseToFloat(sbdMedian.quote),
     rewardFund,
-    props,
   };
 };
 
 const calculateVotePower = async ({ votesOps, posts }) => {
-  const { users, error } = await getUsers(_.map(votesOps, 'voter'));
+  if (_.isEmpty(posts)) return [];
+  const names = _.chain(votesOps).filter((v) => !!v.type).map('voter').value();
+  const { users, error } = await getUsers(names);
+
   if (error) {
     console.error(`${error.message}`);
     return posts;
   }
-  const { rewardFund, currentPrice: price } = await getCurrentPriceInfo();
-
+  const priceInfo = await getHashAll('current_price_info', lastBlockClient);
   for (const vote of votesOps) {
     const account = _.find(users, (el) => el.name === vote.voter);
     const post = _.find(posts, (p) => p.author === vote.author && p.permlink === vote.permlink);
@@ -67,11 +69,12 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     if (!rShares) continue;
     // net_rshares sum of all post active_votes rshares negative and positive
     const tRShares = parseFloat(post.net_rshares) + rShares;
-    const s = parseFloat(rewardFund.content_constant);
+    const s = parseFloat(priceInfo.content_constant);
     const tClaims = (tRShares * (tRShares + (2 * s))) / (tRShares + (4 * s));
 
-    const rewards = parseFloat(rewardFund.reward_balance) / parseFloat(rewardFund.recent_claims);
-    const postValue = tClaims * rewards * price; // *price - to calculate in HBD
+    const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
+    // *price - to calculate in HBD
+    const postValue = tClaims * rewards * parseFloat(priceInfo.price);
 
     post.net_rshares = Math.round(tRShares);
     post.pending_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
@@ -79,4 +82,6 @@ const calculateVotePower = async ({ votesOps, posts }) => {
   return posts;
 };
 
-module.exports = { getUser, getUsers, calculateVotePower };
+module.exports = {
+  getUser, getUsers, calculateVotePower, getCurrentPriceInfo,
+};
