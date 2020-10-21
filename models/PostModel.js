@@ -23,7 +23,6 @@ const findOne = async (data) => {
   }
 };
 
-
 const update = async (data) => {
   try {
     const result = await PostModel.findOneAndUpdate({
@@ -60,7 +59,6 @@ const getPostsRefs = async () => {
   }
 };
 
-
 const findByBothAuthors = async ({ author, permlink }) => {
   try {
     return {
@@ -83,6 +81,14 @@ const updateMany = async (conditions, updateData) => {
   }
 };
 
+const getManyPosts = async (postsRefs) => {
+  try {
+    return { posts: await PostModel.find({ $or: [...postsRefs] }).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
-  create, update, findOne, getPostsRefs, findByBothAuthors, updateMany
+  create, update, findOne, getPostsRefs, findByBothAuthors, updateMany, getManyPosts,
 };
