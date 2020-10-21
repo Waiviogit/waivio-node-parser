@@ -4,4 +4,5 @@ module.exports = {
   redisGetter: require('./redisGetter'),
   redisSetter: require('./redisSetter'),
   unusedKeysCollector: require('./unusedKeysCollector'),
+  updatePriceInfo: require('./updatePriceInfo'),
 };
