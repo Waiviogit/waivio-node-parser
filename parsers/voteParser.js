@@ -6,10 +6,11 @@ const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
   const votesOps = await votesFormat(votes);
-  const posts = await getPosts(
+  const { posts = [] } = await Post.getManyPosts(
     _.chain(votesOps)
       .filter((v) => !!v.type)
       .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
+      .map((v) => ({ author: v.author, permlink: v.permlink }))
       .value(),
   );
   const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
@@ -93,22 +94,6 @@ const votePostWithObjects = async (data) => {
 
   await votePostHelper.voteOnPost(data);
 };
-
-const getPosts = async (postsRefs) => {
-  const posts = [];
-
-  await Promise.all(postsRefs.map(async (postRef) => {
-    const { post } = await Post.findOne({
-      author: postRef.author,
-      permlink: postRef.permlink,
-    });
-
-    if (post) {
-      posts.push(post);
-    }
-  }));
-  return posts;
-}; // get list of posts from db
 
 const votesFormat = async (votesOps) => {
   let accounts = [];

@@ -37,7 +37,7 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     console.error(`${error.message}`);
     return posts;
   }
-  const { rewardFund } = await getCurrentPriceInfo();
+  const { rewardFund, currentPrice: price } = await getCurrentPriceInfo();
 
   for (const vote of votesOps) {
     const account = _.find(users, (el) => el.name === vote.voter);
@@ -71,7 +71,7 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     const tClaims = (tRShares * (tRShares + (2 * s))) / (tRShares + (4 * s));
 
     const rewards = parseFloat(rewardFund.reward_balance) / parseFloat(rewardFund.recent_claims);
-    const postValue = tClaims * rewards; // *price - to calculate in HBD
+    const postValue = tClaims * rewards * price; // *price - to calculate in HBD
 
     post.net_rshares = Math.round(tRShares);
     post.pending_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
