@@ -1,6 +1,9 @@
 const _ = require('lodash');
 const moment = require('moment');
-const { Post, Wobj, User } = require('models');
+const config = require('config');
+const {
+  Post, Wobj, User, App,
+} = require('models');
 const DiffMatchPatch = require('diff-match-patch');
 const { postsUtil } = require('utilities/steemApi');
 const { postWithWobjValidator } = require('validator');
@@ -158,20 +161,17 @@ const mergePosts = (originalBody, body) => {
 
 const addWobjectNames = async (notificationData) => {
   if (_.isEmpty(notificationData.wobjects)) return { notificationData };
-  // const { result } = await Wobj.find({ author_permlink: { $in: _.map(notificationData.wobjects, 'author_permlink') } }); #TODO change getWinField
+  const { result } = await Wobj.find({ author_permlink: { $in: _.map(notificationData.wobjects, 'author_permlink') } });
+  const { result: app } = await App.findOne({ host: config.appHost });
+  const processed = await wobjectHelper
+    .processWobjects({ wobjects: result, fields: [FIELDS_NAMES.NAME], app });
   for (const wobject of notificationData.wobjects) {
-    const field = await wobjectHelper
-      .getWobjWinField({ authorPermlink: wobject.author_permlink, fieldName: FIELDS_NAMES.NAME });
     /**
      * in the case when hashtag is attached to the post we can take wobject name
      * from tagged property, in case it regular object get name from objectName property
      */
-    if (!field) {
-      const { wobject: findWobj } = await Wobj.getOne({ author_permlink: wobject.author_permlink });
-      wobject.name = _.get(findWobj, 'default_name', wobject.tagged || wobject.objectName);
-      continue;
-    }
-    wobject.name = _.get(field, 'body', wobject.tagged || wobject.objectName);
+    const wobjWithName = _.find(processed, (w) => w.author_permlink === wobject.author_permlink);
+    wobject.name = _.get(wobjWithName, 'name', _.get(wobjWithName, 'default_name', wobject.tagged || wobject.objectName));
   }
   return { notificationData };
 };
