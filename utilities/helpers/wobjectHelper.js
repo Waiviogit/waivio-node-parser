@@ -1,7 +1,5 @@
 const _ = require('lodash');
-const config = require('config');
 const { uuid } = require('uuidv4');
-const { Wobj, App } = require('models');
 const { ObjectType } = require('models');
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const {
@@ -50,66 +48,6 @@ const randomString = (length = 5) => {
   }
   return result;
 };
-
-const calculateApprove = (field) => {
-  if (_.isEmpty(field.active_votes)) return 100;
-  if (field.weight < 0) return 0;
-
-  const rejectsWeight = _.sumBy(field.active_votes, (vote) => {
-    if (vote.percent < 0) {
-      return -(+vote.weight || -1);
-    }
-  }) || 0;
-  const approvesWeight = _.sumBy(field.active_votes, (vote) => {
-    if (vote.percent > 0) {
-      return +vote.weight || 1;
-    }
-  }) || 0;
-  if (!rejectsWeight) return 100;
-  const percent = _.round((approvesWeight / (approvesWeight + rejectsWeight)) * 100, 3);
-  return percent > 0 ? percent : 0;
-};
-
-const getWobjWinField = async ({ fieldName, authorPermlink }) => {
-  if (!fieldName || !authorPermlink) return false;
-  const { result: { admins = [] } } = await App.findOne({ host: config.appHost });
-  const { wobjects: [{ fields } = []] } = await Wobj.getSomeFields(
-    fieldName, authorPermlink, true,
-  );
-
-  if (!fields) return false;
-  const voteArr = [];
-  for (const field of fields) {
-    const adminVotes = [];
-    if (!field.active_votes.length) {
-      voteArr.push(field);
-      continue;
-    }
-    _.map(field.active_votes, (vote) => {
-      if (_.includes(admins, vote.voter)) {
-        adminVotes.push(vote);
-        vote.timestamp = vote._id.getTimestamp().valueOf();
-      }
-    });
-    if (adminVotes.length) {
-      const lastVote = _.maxBy(adminVotes, 'timestamp');
-      lastVote.percent > 0 ? voteArr.push(field) : null;
-      field.adminVote = lastVote.timestamp;
-    }
-    if (!adminVotes.length) {
-      field.approvePercent = calculateApprove(field);
-      field.weight > 0 && field.approvePercent > MIN_PERCENT_TO_SHOW_UPDATE
-        ? voteArr.push(field)
-        : null;
-    }
-  }
-  if (!voteArr.length) return false;
-  const latestApprove = _.maxBy(voteArr, 'adminVote');
-  if (latestApprove) return latestApprove;
-  return _.maxBy(voteArr, 'weight');
-};
-
-// copy from api
 
 const calculateApprovePercent = (field) => {
   if (_.isEmpty(field.active_votes)) return 100;
@@ -325,6 +263,4 @@ const processWobjects = async ({
   return filteredWobj;
 };
 
-module.exports = {
-  randomString, addSupposedUpdates, getWobjWinField, processWobjects,
-};
+module.exports = { randomString, addSupposedUpdates, processWobjects };
