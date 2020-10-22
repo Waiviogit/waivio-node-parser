@@ -111,7 +111,7 @@ const updatePost = async (data) => {
 
   data.post.author = _.get(data, 'guest_author', data.post.author);
   await Post.update(data.post); // update post info in DB
-  await setExpiredPostTTL('updatePostVotes', `${_.get(data, 'guest_author', data.post.author)}/${data.permlink}`, 15);
+  await setExpiredPostTTL('updatePostVotes', `${_.get(data, 'guest_author', data.post.author)}/${data.permlink}`, 30);
 };
 
 module.exports = { voteOnPost };
