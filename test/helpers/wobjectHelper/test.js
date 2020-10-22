@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const {
-  expect, sinon, importUpdates, wobjectHelper, faker, ObjectTypeModel, dropDatabase, config, WObject, postHelper,
+  expect, sinon, importUpdates, wobjectHelper, faker, ObjectTypeModel, dropDatabase, config,
+  WObject, postHelper,
 } = require('test/testHelper');
 const {
   ObjectTypeFactory, ObjectFactory, AppFactory, AppendObject,
@@ -84,10 +85,9 @@ describe('addSupposedUpdates', async () => {
 });
 
 describe('processWobjects', async () => {
-  let wobject, returnedValue, adminName, fieldName, activeVotes, fields = [], authorPermlink, app;
+  let wobject, returnedValue, adminName, activeVotes, fields = [], app;
 
   beforeEach(async () => {
-    fieldName = faker.name.firstName();
     adminName = faker.name.firstName();
     await dropDatabase();
     wobject = await ObjectFactory.Create();
@@ -206,7 +206,6 @@ describe('processWobjects', async () => {
       expect(returnedValue.name).to.be.eq(fields[1].body);
     });
   });
-  // #TODO
   describe('if admin dislike field and other fields has no votes percent > 0  method should return false', async () => {
     beforeEach(async () => {
       const userVotes = [{ percent: _.random(-100, -1) }];
@@ -216,10 +215,10 @@ describe('processWobjects', async () => {
         percent: _.random(-100, -1),
       }];
       const { appendObject: field1 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(100, 1000), activeVotes },
+        { name: FIELDS_NAMES.NAME, weight: _.random(100, 1000), activeVotes },
       );
       const { appendObject: field2 } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(-100, -10), activeVotes: userVotes },
+        { name: FIELDS_NAMES.NAME, weight: _.random(-100, -10), activeVotes: userVotes },
       );
 
       fields = [field1, field2];
@@ -228,59 +227,12 @@ describe('processWobjects', async () => {
         { fields },
         { new: true },
       );
-      returnedValue = await wobjectHelper
-        .getWobjWinField({ fieldName, authorPermlink: wobject.author_permlink });
+      returnedValue = await wobjectHelper.processWobjects({
+        fields: [FIELDS_NAMES.NAME], wobjects: [wobject], app, returnArray: false,
+      });
     });
-    it('getWobjWinField should return false', async () => {
-      expect(returnedValue).to.be.false;
-    });
-  });
-  describe('on call without fieldName or authorPermlink', async () => {
-    let returnedValue1, returnedValue2;
-    beforeEach(async () => {
-      fieldName = faker.random.string(10);
-      authorPermlink = faker.random.string(10);
-      returnedValue1 = await wobjectHelper
-        .getWobjWinField({ fieldName });
-      returnedValue2 = await wobjectHelper
-        .getWobjWinField({ authorPermlink });
-    });
-    it('should return false when call without authorPermlink', async () => {
-      expect(returnedValue1).to.be.false;
-    });
-    it('should return false when call without fieldName', async () => {
-      expect(returnedValue2).to.be.false;
-    });
-  });
-  describe('if function can not find fields', async () => {
-    beforeEach(async () => {
-      returnedValue = await wobjectHelper
-        .getWobjWinField({ fieldName, authorPermlink: wobject.author_permlink });
-    });
-    it('should return false', async () => {
-      expect(returnedValue).to.be.false;
-    });
-  });
-  describe('when field do not have active votes', async () => {
-    let field;
-    beforeEach(async () => {
-      ({ appendObject: field } = await AppendObject.Create(
-        { name: fieldName, weight: _.random(-100, 100) },
-      ));
-      await WObject.findOneAndUpdate(
-        { author_permlink: wobject.author_permlink }, { fields: [field] },
-      );
-      returnedValue = await wobjectHelper
-        .getWobjWinField({ fieldName, authorPermlink: wobject.author_permlink });
-    });
-    it('should be equal returnedValue weight to field weight', async () => {
-      expect(returnedValue.weight).to.be.eq(field.weight);
-    });
-    it('should be equal returnedValue body to field body', async () => {
-      expect(returnedValue.body).to.be.eq(field.body);
-    });
-    it('should be active_votes empty array', async () => {
-      expect(returnedValue.active_votes).to.have.length(0);
+    it('should wobject not have property name', async () => {
+      expect(returnedValue).to.not.have.property('name');
     });
   });
 });
