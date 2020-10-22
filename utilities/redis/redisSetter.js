@@ -2,7 +2,7 @@ const {
   postRefsClient, lastBlockClient, expiredPostsClient, tagCategoriesClient,
 } = require('utilities/redis/redis');
 const { COMMENT_REF_TYPES } = require('utilities/constants');
-const { FIELDS_NAMES } = require('constants/wobjectsData')
+const { FIELDS_NAMES } = require('constants/wobjectsData');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
@@ -67,6 +67,8 @@ const setExpiredPostTTL = async (name, id, timer, value = '') => {
 };
 const addTagCategory = async ({ categoryName, tags }) => tagCategoriesClient.zaddAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${categoryName}`, tags);
 
+const setCurrentPriceInfo = async (data) => lastBlockClient.hmsetAsync('current_price_info', data);
+
 module.exports = {
   addPostWithWobj,
   setExpiredPostTTL,
@@ -75,4 +77,5 @@ module.exports = {
   addWobjRef,
   addObjectType,
   addTagCategory,
+  setCurrentPriceInfo,
 };

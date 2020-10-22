@@ -4,6 +4,7 @@ const { getWobjectsFromMetadata } = require('utilities/helpers/postByTagsHelper'
 const userValidator = require('validator/userValidator');
 const postModeration = require('utilities/moderation/postModeration');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
+const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment
@@ -99,9 +100,6 @@ const upVoteOnPost = async (data, weight) => {
 };
 
 const updatePost = async (data) => {
-  const { post: postInDb, error } = await Post.findOne({ author: _.get(data, 'guest_author', data.post.author), permlink: data.post.permlink });
-  if (!postInDb || error) return {};
-
   data.post.wobjects = await getWobjectsFromMetadata(data);
   data.post.app = _.get(data, 'metadata.app', '');
   data.post.active_votes = data.post.active_votes.map((vote) => ({
@@ -110,13 +108,10 @@ const updatePost = async (data) => {
     percent: vote.percent,
     rshares: vote.rshares,
   }));
-  postInDb.active_votes.forEach((dbVote) => {
-    if (!data.post.active_votes.find((v) => v.voter === dbVote.voter)) {
-      data.post.active_votes.push(dbVote);
-    }
-  });
+
   data.post.author = _.get(data, 'guest_author', data.post.author);
   await Post.update(data.post); // update post info in DB
+  await setExpiredPostTTL('updatePostVotes', `${_.get(data, 'guest_author', data.post.author)}/${data.permlink}`, 15);
 };
 
 module.exports = { voteOnPost };

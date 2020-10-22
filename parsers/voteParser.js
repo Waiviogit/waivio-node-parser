@@ -1,19 +1,21 @@
 const _ = require('lodash');
-const { postsUtil } = require('utilities/steemApi');
-const { User } = require('models');
+const { postsUtil, usersUtil } = require('utilities/steemApi');
+const { User, Post } = require('models');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
   const votesOps = await votesFormat(votes);
-  const posts = await getPosts(
+  const { posts = [] } = await Post.getManyPosts(
     _.chain(votesOps)
       .filter((v) => !!v.type)
       .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
+      .map((v) => ({ author: v.author, permlink: v.permlink }))
       .value(),
   );
+  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
   await Promise.all(votesOps.map(async (voteOp) => {
-    await parseVoteByType(voteOp, posts);
+    await parseVoteByType(voteOp, postsWithVotes);
   }));
   console.log(`Parsed votes: ${votesOps.length}`);
 };
@@ -36,7 +38,7 @@ const parseVoteByType = async (voteOp, posts) => {
       voter: voteOp.voter,
       percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
       author_permlink: voteOp.root_wobj,
-      posts,
+      // posts,
     });
   }
 };
@@ -49,7 +51,7 @@ const voteAppendObject = async (data) => {
     name: data.voter,
     author_permlink: data.author_permlink,
   });
-    // ignore users with zero or negative weight in wobject
+  // ignore users with zero or negative weight in wobject
   if (!weight || weight <= 0 || error) weight = 1;
   // voters weight in wobject
   data.weight = weight;
@@ -78,7 +80,7 @@ const votePostWithObjects = async (data) => {
 
   let metadata;
   try {
-    if (data.post.json_metadata !== '') {
+    if (_.get(data, 'post.json_metadata') !== '') {
       metadata = JSON.parse(data.post.json_metadata); // parse json_metadata from string to JSON
     }
   } catch (e) {
@@ -92,19 +94,6 @@ const votePostWithObjects = async (data) => {
 
   await votePostHelper.voteOnPost(data);
 };
-
-const getPosts = async (postsRefs) => {
-  const posts = [];
-
-  await Promise.all(postsRefs.map(async (postRef) => {
-    const { post } = await postsUtil.getPost(postRef.author, postRef.permlink);
-
-    if (post) {
-      posts.push(post);
-    }
-  }));
-  return posts;
-}; // get list of posts from steemit
 
 const votesFormat = async (votesOps) => {
   let accounts = [];
