@@ -58,6 +58,7 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
       voter: vote.voter,
       percent: vote.weight,
       rshares: Math.round(rShares),
+      weight: Math.round(rShares * 1e-6),
     });
     // such vote will not affect total payout
     if (!rShares) continue;
