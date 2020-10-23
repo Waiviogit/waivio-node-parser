@@ -5,7 +5,8 @@ const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpe
 const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
-  const votesOps = await votesFormat(votes);
+  if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
+  const { votesOps, hiveAccounts } = await votesFormat(votes);
   const { posts = [] } = await Post.getManyPosts(
     _.chain(votesOps)
       .filter((v) => !!v.type)
@@ -13,7 +14,7 @@ const parse = async (votes) => {
       .map((v) => ({ author: v.author, permlink: v.permlink }))
       .value(),
   );
-  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
+  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts, hiveAccounts });
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithVotes);
   }));
@@ -121,8 +122,8 @@ const votesFormat = async (votesOps) => {
       voteOp.wobjects = wobjects;
     }
   }
-  await userHelper.checkAndCreateByArray(accounts);
-  return votesOps;
+  const { hiveAccounts } = await userHelper.checkAndCreateByArray(_.uniq(accounts));
+  return { votesOps, hiveAccounts };
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
 // Use this method when get vote from block but node still not perform this vote on database_api

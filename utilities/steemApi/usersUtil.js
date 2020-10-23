@@ -31,18 +31,12 @@ const getCurrentPriceInfo = async () => {
   };
 };
 
-const calculateVotePower = async ({ votesOps, posts }) => {
+const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   if (_.isEmpty(posts)) return [];
-  const names = _.chain(votesOps).filter((v) => !!v.type).map('voter').value();
-  const { users, error } = await getUsers(names);
 
-  if (error) {
-    console.error(`${error.message}`);
-    return posts;
-  }
   const priceInfo = await getHashAll('current_price_info', lastBlockClient);
   for (const vote of votesOps) {
-    const account = _.find(users, (el) => el.name === vote.voter);
+    const account = _.find(hiveAccounts, (el) => el.name === vote.voter);
     const post = _.find(posts, (p) => p.author === vote.author && p.permlink === vote.permlink);
     if (!account || !post) continue;
     const voteWeight = vote.weight / 100;
@@ -64,6 +58,7 @@ const calculateVotePower = async ({ votesOps, posts }) => {
       voter: vote.voter,
       percent: vote.weight,
       rshares: Math.round(rShares),
+      weight: Math.round(rShares * 1e-6),
     });
     // such vote will not affect total payout
     if (!rShares) continue;
