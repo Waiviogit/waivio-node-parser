@@ -3,8 +3,9 @@ const { WObject, faker, commentRefSetter } = require('test/testHelper');
 const ObjectTypeFactory = require('test/factories/ObjectType/ObjectTypeFactory');
 
 const Create = async ({
-  onlyData, appends = [], author_permlink: root_permlink, object_type, objName,
+  onlyData, appends = [], author_permlink: root_permlink, object_type, objName, objParent,
 } = {}) => {
+  const parent = objParent || '';
   const created_object_type = await ObjectTypeFactory.Create({ name: object_type });
   const default_name = objName || faker.address.city().toLowerCase();
   const is_posting_open = true;
@@ -16,6 +17,7 @@ const Create = async ({
 
   if (onlyData) {
     return {
+      parent,
       author_permlink,
       author,
       creator,
@@ -26,6 +28,7 @@ const Create = async ({
     };
   }
   const wobject = await WObject.create({
+    parent,
     author_permlink,
     author,
     creator,

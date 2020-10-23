@@ -313,7 +313,7 @@ describe('postWithObjectParser', async () => {
         ]);
       });
     });
-    describe('when function can not find field or field downvoted it take name from wobject default name', async () => {
+    describe('when function can not find name or field downvoted it take name from wobject default name', async () => {
       beforeEach(async () => {
         await AppFactory.Create({ host: config.appHost });
         wobj1 = await ObjectFactory.Create({ objName: wobj1Name });
