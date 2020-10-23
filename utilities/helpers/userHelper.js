@@ -47,6 +47,7 @@ exports.checkAndCreateByArray = async (names) => {
       await importUser.send(user.name);
     }
   }
+  return { hiveAccounts: steemUsers };
 };
 
 const parseJson = (json) => {
