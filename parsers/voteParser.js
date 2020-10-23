@@ -5,6 +5,7 @@ const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpe
 const { commentRefGetter } = require('utilities/commentRefService');
 
 const parse = async (votes) => {
+  if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
   const { votesOps, hiveAccounts } = await votesFormat(votes);
   const { posts = [] } = await Post.getManyPosts(
     _.chain(votesOps)
