@@ -261,4 +261,4 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
-module.exports = { update, processingParent };
+module.exports = { update, processingParent, parseMap };
