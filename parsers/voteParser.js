@@ -39,6 +39,7 @@ const parseVoteByType = async (voteOp, posts) => {
       voter: voteOp.voter,
       percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
       author_permlink: voteOp.root_wobj,
+      rshares: voteOp.rshares,
       // posts,
     });
   }
@@ -56,21 +57,15 @@ const voteAppendObject = async (data) => {
   if (!weight || weight <= 0 || error) weight = 1;
   // voters weight in wobject
   data.weight = weight;
-
-  let currentVote = _.chain(data.posts)
-    .find({ author: data.author, permlink: data.permlink })
-    .get('active_votes', [])
-    .find({ voter: data.voter })
-    .value();
-  if (!currentVote) {
+  if (!data.rshares) {
     const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
     if (voteError || !vote) {
       return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
     }
-    currentVote = vote;
+    data.rshares = _.get(vote, 'rshares', 0);
   }
 
-  data.rshares_weight = Math.round(Number(currentVote.rshares) * 1e-6);
+  data.rshares_weight = Math.round(Number(data.rshares) * 1e-6);
   await voteFieldHelper.voteOnField(data);
 };
 
@@ -140,4 +135,19 @@ const tryReserveVote = async (author, permlink, voter, times = 10) => {
   return { error: { message: `[tryReserveVote]Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
 };
 
-module.exports = { parse, votesFormat };
+const customJSONAppendVote = async (operation) => {
+  let json;
+  try {
+    json = JSON.parse(operation.json);
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+  // check author of operation and voter
+  if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')) !== _.get(json, 'voter')) {
+    console.error('Can\'t vote, account and author of operation are different');
+  }
+  await parse([json]);
+};
+
+module.exports = { parse, votesFormat, customJSONAppendVote };

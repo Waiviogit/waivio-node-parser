@@ -32,13 +32,12 @@ const getCurrentPriceInfo = async () => {
 };
 
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
-  if (_.isEmpty(posts)) return [];
 
   const priceInfo = await getHashAll('current_price_info', lastBlockClient);
   for (const vote of votesOps) {
     const account = _.find(hiveAccounts, (el) => el.name === vote.voter);
     const post = _.find(posts, (p) => p.author === vote.author && p.permlink === vote.permlink);
-    if (!account || !post) continue;
+    if (!account) continue;
     const voteWeight = vote.weight / 100;
     const decreasedPercent = ((voteWeight * 2) / 100);
     // here we find out what was the votingPower before vote
@@ -53,7 +52,10 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     const rShares = Math.abs((vests * power * 100)) > 50000000
       ? (vests * power * 100) - 50000000
       : 0;
-
+    if (!post) {
+      vote.rshares = rShares || 1;
+      continue;
+    }
     post.active_votes.push({
       voter: vote.voter,
       percent: vote.weight,
