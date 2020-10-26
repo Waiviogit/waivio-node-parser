@@ -1,8 +1,9 @@
 const _ = require('lodash');
+const config = require('config');
 const { Wobj, App } = require('models');
 const { tagsParser } = require('utilities/restaurantTagsParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
-const { getWobjWinField } = require('utilities/helpers/wobjectHelper');
+const { processWobjects } = require('utilities/helpers/wobjectHelper');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
@@ -12,6 +13,7 @@ const siteHelper = require('utilities/helpers/sitesHelper');
 // "author_permlink" it's identity of WOBJECT
 const update = async (author, permlink, authorPermlink, voter, percent) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
+  const { result: app } = await App.findOne({ host: config.appHost });
 
   if (error || !field) {
     return;
@@ -23,7 +25,7 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
       await tagsParser.createTags({ authorPermlink, field });
       break;
     case FIELDS_NAMES.PARENT:
-      await processingParent(authorPermlink);
+      await processingParent(authorPermlink, app);
       break;
 
     case FIELDS_NAMES.TAG_CLOUD:
@@ -70,24 +72,18 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
       break;
 
     case FIELDS_NAMES.MAP:
-      const { wobjects: wobjMap } = await Wobj.getSomeFields(FIELDS_NAMES.MAP, authorPermlink);
-      if (_.isArray(_.get(wobjMap, '[0].fields')) && _.get(wobjMap, '[0].fields[0]')) {
-        let map;
-        try {
-          map = JSON.parse(wobjMap[0].fields[0]);
-        } catch (mapParseError) {
-          console.error(`Error on parse "${FIELDS_NAMES.MAP}" field: ${mapParseError}`);
-          break;
-        }
-        if (map.latitude && map.longitude) {
-          map.latitude = Number(map.latitude);
-          map.longitude = Number(map.longitude);
-        }
-        if (validateMap(map)) {
+      const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+      const { map } = await processWobjects({
+        wobjects: [wobject], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
+      });
+      if (map) {
+        const parsedMap = parseMap(map);
+        if (validateMap(parsedMap)) {
           await Wobj.update(
             { author_permlink: authorPermlink },
-            { map: { type: 'Point', coordinates: [map.longitude, map.latitude] } },
+            { map: { type: 'Point', coordinates: [parsedMap.longitude, parsedMap.latitude] } },
           );
+          await setMapToChildren(authorPermlink, parsedMap);
         }
       }
       break;
@@ -160,6 +156,20 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
   }
 };
 
+const parseMap = (map) => {
+  let parsedMap;
+  try {
+    parsedMap = JSON.parse(map);
+  } catch (mapParseError) {
+    console.error(`Error on parse "${FIELDS_NAMES.MAP}" field: ${mapParseError}`);
+    return;
+  }
+  if (parsedMap.latitude && parsedMap.longitude) {
+    parsedMap.latitude = Number(parsedMap.latitude);
+    parsedMap.longitude = Number(parsedMap.longitude);
+  }
+  return parsedMap;
+};
 const updateSitesObjects = async (userName) => {
   const { result } = await App.find({ authority: userName });
   if (!_.get(result, 'length')) return;
@@ -168,11 +178,34 @@ const updateSitesObjects = async (userName) => {
   }));
 };
 
-const processingParent = async (authorPermlink) => {
-  const result = await getWobjWinField({ fieldName: FIELDS_NAMES.PARENT, authorPermlink });
-
-  if (!result) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
-  await Wobj.update({ author_permlink: authorPermlink }, { parent: result.body });
+const processingParent = async (authorPermlink, app) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+  const processedWobject = await processWobjects({
+    wobjects: [{ ...wobject }], app, fields: [FIELDS_NAMES.PARENT], returnArray: false,
+  });
+  const hasMap = _.find(wobject.fields, (field) => field.name === FIELDS_NAMES.MAP);
+  // update data when there is no parent
+  const updateData = hasMap ? { parent: '' } : { parent: '', map: null };
+  if (!_.get(processedWobject, 'parent')) return Wobj.update({ author_permlink: authorPermlink }, updateData);
+  await Wobj.update(
+    { author_permlink: authorPermlink },
+    { parent: processedWobject.parent },
+  );
+  if (hasMap) return;
+  const { wobject: parent } = await Wobj.getOne({ author_permlink: processedWobject.parent });
+  if (!parent) return;
+  const { map } = await processWobjects({
+    wobjects: [parent], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
+  });
+  if (map) {
+    const parsedMap = parseMap(map);
+    if (validateMap(parsedMap)) {
+      await Wobj.update(
+        { author_permlink: authorPermlink },
+        { map: { type: 'Point', coordinates: [parsedMap.longitude, parsedMap.latitude] } },
+      );
+    }
+  }
 };
 
 const checkExistingTags = async (tagCategories = []) => {
@@ -214,4 +247,18 @@ const updateTagCategories = async (authorPermlink) => {
   await checkExistingTags(tagCategories);
 };
 
-module.exports = { update, processingParent };
+const setMapToChildren = async (authorPermlink, map) => {
+  const { wobjects: children } = await Wobj
+    .getMany({
+      condition: { parent: authorPermlink, 'fields.name': { $ne: 'map' } },
+      select: 'author_permlink',
+    });
+  if (!_.isEmpty(children)) {
+    await Wobj.updateMany(
+      { author_permlink: { $in: _.map(children, 'author_permlink') } },
+      { map: { type: 'Point', coordinates: [map.longitude, map.latitude] } },
+    );
+  }
+};
+
+module.exports = { update, processingParent, parseMap };

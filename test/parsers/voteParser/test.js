@@ -13,23 +13,17 @@ describe('VoteParser', async () => {
   describe('on voteAppendObject', async () => {
     describe('when voter have no weight in wobject', async () => {
       let voteFieldHelperStub;
-      let postUtilStub;
       let mocks;
 
       beforeEach(async () => {
         mocks = await voteAppendObjectMocks();
         voteFieldHelperStub = sinon.stub(voteFieldHelper, 'voteOnField').callsFake(async () => {
         });
-        postUtilStub = sinon.stub(postsUtil, 'getPost').callsFake(async () => ({ post: mocks.post }));
         await voteParser.parse([mocks.vote]);
       });
 
       it('should call "voteOnField" once', async () => {
         expect(voteFieldHelperStub.calledOnce).to.be.true;
-      });
-
-      it('should call "getPost" once', async () => {
-        expect(postUtilStub.calledOnce).to.be.true;
       });
 
       it('should call "voteOnField" with params', async () => {
@@ -51,7 +45,6 @@ describe('VoteParser', async () => {
 
     describe('when voter have weight in wobject', async () => {
       let voteFieldHelperStub;
-      let postUtilStub;
       let mocks;
       let redisResp;
 
@@ -64,7 +57,6 @@ describe('VoteParser', async () => {
           weight: 9999,
         });
         voteFieldHelperStub = sinon.stub(voteFieldHelper, 'voteOnField').callsFake(async () => {});
-        postUtilStub = sinon.stub(postsUtil, 'getPost').callsFake(async () => ({ post: mocks.post }));
         await voteParser.parse([mocks.vote]);
       });
 
@@ -75,10 +67,6 @@ describe('VoteParser', async () => {
 
       it('should call "voteField" once', async () => {
         expect(voteFieldHelperStub.calledOnce).to.be.true;
-      });
-
-      it('should call "getPost" once', async () => {
-        expect(postUtilStub.calledOnce).to.be.true;
       });
 
       it('should call "voteField" with params', async () => {

@@ -69,3 +69,24 @@ exports.parseMetadata = (metadata) => {
     return '';
   }
 };
+
+exports.updatePostVotes = async (author, permlink) => {
+  const { post: postInDb, error } = await Post.findOne({ author, permlink });
+  if (!postInDb || error) return;
+  const { post } = await postsUtil.getPost(author, permlink);
+  if (!post) return;
+
+  post.active_votes = post.active_votes.map((vote) => ({
+    voter: vote.voter,
+    weight: Math.round(vote.rshares * 1e-6),
+    percent: vote.percent,
+    rshares: vote.rshares,
+  }));
+  _.forEach(postInDb.active_votes, (dbVote) => {
+    if (dbVote.voter.includes('_')) {
+      post.active_votes.push(dbVote);
+    }
+  });
+
+  await Post.update(post);
+};

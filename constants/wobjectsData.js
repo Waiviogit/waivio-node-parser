@@ -27,6 +27,7 @@ exports.FIELDS_NAMES = {
   WORK_TIME: 'workTime',
   CHART_ID: 'chartid',
   PAGE_CONTENT: 'pageContent',
+  LIST_ITEM: 'listItem',
 };
 
 exports.AUTHORITY_FIELD_ENUM = {
@@ -34,10 +35,33 @@ exports.AUTHORITY_FIELD_ENUM = {
   OWNERSHIP: 'ownership',
 };
 
-
 exports.OBJECT_TYPES = {
   HASHTAG: 'hashtag',
+  LIST: 'list',
+  PAGE: 'page',
   RESTAURANT: 'restaurant',
+  DISH: 'dish',
+  DRINK: 'drink',
+  BUSINESS: 'business',
+  PRODUCT: 'product',
+  SERVICE: 'service',
+  COMPANY: 'company',
+  PERSON: 'person',
+  PLACE: 'place',
+  CRYPTO: 'crypto',
+  HOTEL: 'hotel',
+};
+
+exports.ADMIN_ROLES = {
+  OWNER: 'owner',
+  ADMIN: 'admin',
+  OWNERSHIP: 'ownership',
+  ADMINISTRATIVE: 'administrative',
+};
+
+exports.VOTE_STATUSES = {
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
 };
 
 exports.TAG_CLOUDS_UPDATE_COUNT = 5;
