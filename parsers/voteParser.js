@@ -62,7 +62,7 @@ const voteAppendObject = async (data) => {
     if (voteError || !vote) {
       return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
     }
-    data.rshares = _.get(vote, 'rshares', 0);
+    data.rshares = _.get(vote, 'rshares', 1);
   }
 
   data.rshares_weight = Math.round(Number(data.rshares) * 1e-6);
