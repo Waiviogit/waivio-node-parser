@@ -1,11 +1,13 @@
 const {
-  expect, sinon, voteFieldHelper, postsUtil, voteParser, UserWobjects, redisGetter, userHelper,
-} = require('../../testHelper');
+  expect, sinon, voteFieldHelper, voteParser, UserWobjects, redisGetter, userHelper,
+} = require('test/testHelper');
 const { voteAppendObjectMocks } = require('./mocks');
 
 describe('VoteParser', async () => {
+  let mocks;
   beforeEach(async () => {
-    sinon.stub(userHelper, 'checkAndCreateByArray').returns({ user: 'its ok' });
+    mocks = await voteAppendObjectMocks();
+    sinon.stub(userHelper, 'checkAndCreateByArray').returns({ hiveAccounts: [{ name: mocks.vote.voter }] });
   });
   afterEach(async () => {
     sinon.restore();
@@ -13,10 +15,8 @@ describe('VoteParser', async () => {
   describe('on voteAppendObject', async () => {
     describe('when voter have no weight in wobject', async () => {
       let voteFieldHelperStub;
-      let mocks;
 
       beforeEach(async () => {
-        mocks = await voteAppendObjectMocks();
         voteFieldHelperStub = sinon.stub(voteFieldHelper, 'voteOnField').callsFake(async () => {
         });
         await voteParser.parse([mocks.vote]);
@@ -35,8 +35,8 @@ describe('VoteParser', async () => {
           percent: mocks.vote.weight,
           voter: mocks.vote.voter,
           weight: 1,
-          posts: [mocks.post],
-          rshares_weight: mocks.post.active_votes[0].rshares * 1e-6,
+          rshares_weight: 0,
+          rshares: 1,
         };
 
         expect(voteFieldHelperStub.args[0][0]).to.deep.eq(data);
@@ -45,11 +45,11 @@ describe('VoteParser', async () => {
 
     describe('when voter have weight in wobject', async () => {
       let voteFieldHelperStub;
-      let mocks;
+
       let redisResp;
 
       beforeEach(async () => {
-        mocks = await voteAppendObjectMocks();
+        // mocks = await voteAppendObjectMocks();
         redisResp = await redisGetter.getHashAll(`${mocks.vote.author}_${mocks.vote.permlink}`);
         await UserWobjects.create({
           user_name: mocks.vote.voter,
@@ -62,7 +62,6 @@ describe('VoteParser', async () => {
 
       afterEach(() => {
         voteFieldHelperStub.restore();
-        postUtilStub.restore();
       });
 
       it('should call "voteField" once', async () => {
@@ -77,8 +76,8 @@ describe('VoteParser', async () => {
           percent: mocks.vote.weight,
           voter: mocks.vote.voter,
           weight: 9999,
-          posts: [mocks.post],
-          rshares_weight: mocks.post.active_votes[0].rshares * 1e-6,
+          rshares_weight: 0,
+          rshares: 1,
         };
 
         expect(voteFieldHelperStub.args[0][0]).to.deep.eq(data);
