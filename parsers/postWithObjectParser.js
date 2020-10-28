@@ -78,7 +78,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   const postAuthor = _.get(hivePost, 'author');
   if (!postAuthor || err) {
     if (!fromTTL) {
-      return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 30);
+      return setExpiredPostTTL('notFoundPost', `${data.author}/${data.permlink}`, 120);
     }
     return { error: `[createOrUpdatePost] Post @${data.author}/${data.permlink} not found or was deleted!` };
   }
