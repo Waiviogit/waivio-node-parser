@@ -71,7 +71,7 @@ exports.parseMetadata = (metadata) => {
 };
 
 exports.updatePostVotes = async (author, permlink) => {
-  const { post: postInDb, error } = await Post.findOne({ author, permlink });
+  const { post: postInDb, error } = await Post.findOne({ root_author: author, permlink });
   if (!postInDb || error) return;
   const { post } = await postsUtil.getPost(author, permlink);
   if (!post) return;

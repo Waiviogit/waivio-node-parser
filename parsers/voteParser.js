@@ -11,7 +11,7 @@ const parse = async (votes) => {
     _.chain(votesOps)
       .filter((v) => !!v.type)
       .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
-      .map((v) => ({ author: v.author, permlink: v.permlink }))
+      .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
       .value(),
   );
   const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts, hiveAccounts });
@@ -71,7 +71,7 @@ const voteAppendObject = async (data) => {
 
 // data include: posts, metadata, voter, percent, author, permlink, guest_author
 const votePostWithObjects = async (data) => {
-  data.post = data.posts.find((p) => p.author === data.author && p.permlink === data.permlink);
+  data.post = data.posts.find((p) => (p.author === data.author || p.author === data.guest_author)  && p.permlink === data.permlink);
   if (!data.post) return;
 
   let metadata;

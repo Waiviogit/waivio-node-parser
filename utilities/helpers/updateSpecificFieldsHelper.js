@@ -73,17 +73,17 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
 
     case FIELDS_NAMES.MAP:
       const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
-      const wobjMap = await processWobjects({
+      const { map } = await processWobjects({
         wobjects: [wobject], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
       });
-      if (wobjMap && _.get(wobjMap, 'map')) {
-        const map = parseMap(wobjMap);
-        if (validateMap(map)) {
+      if (map) {
+        const parsedMap = parseMap(map);
+        if (validateMap(parsedMap)) {
           await Wobj.update(
             { author_permlink: authorPermlink },
-            { map: { type: 'Point', coordinates: [map.longitude, map.latitude] } },
+            { map: { type: 'Point', coordinates: [parsedMap.longitude, parsedMap.latitude] } },
           );
-          await setMapToChildren(authorPermlink, map);
+          await setMapToChildren(authorPermlink, parsedMap);
         }
       }
       break;
@@ -156,19 +156,19 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
   }
 };
 
-const parseMap = (wobject) => {
-  let map;
+const parseMap = (map) => {
+  let parsedMap;
   try {
-    map = JSON.parse(wobject.map);
+    parsedMap = JSON.parse(map);
   } catch (mapParseError) {
     console.error(`Error on parse "${FIELDS_NAMES.MAP}" field: ${mapParseError}`);
     return;
   }
-  if (map.latitude && map.longitude) {
-    map.latitude = Number(map.latitude);
-    map.longitude = Number(map.longitude);
+  if (parsedMap.latitude && parsedMap.longitude) {
+    parsedMap.latitude = Number(parsedMap.latitude);
+    parsedMap.longitude = Number(parsedMap.longitude);
   }
-  return map;
+  return parsedMap;
 };
 const updateSitesObjects = async (userName) => {
   const { result } = await App.find({ authority: userName });
@@ -183,24 +183,26 @@ const processingParent = async (authorPermlink, app) => {
   const processedWobject = await processWobjects({
     wobjects: [{ ...wobject }], app, fields: [FIELDS_NAMES.PARENT], returnArray: false,
   });
-  if (!_.get(processedWobject, 'parent')) return Wobj.update({ author_permlink: authorPermlink }, { parent: '' });
+  const hasMap = _.find(wobject.fields, (field) => field.name === FIELDS_NAMES.MAP);
+  // update data when there is no parent
+  const updateData = hasMap ? { parent: '' } : { parent: '', map: null };
+  if (!_.get(processedWobject, 'parent')) return Wobj.update({ author_permlink: authorPermlink }, updateData);
   await Wobj.update(
     { author_permlink: authorPermlink },
     { parent: processedWobject.parent },
   );
-  const hasMap = _.find(wobject.fields, (field) => field.name === FIELDS_NAMES.MAP);
   if (hasMap) return;
   const { wobject: parent } = await Wobj.getOne({ author_permlink: processedWobject.parent });
   if (!parent) return;
-  const processedParent = await processWobjects({
+  const { map } = await processWobjects({
     wobjects: [parent], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
   });
-  if (_.get(processedParent, 'map')) {
-    const map = parseMap(processedParent);
-    if (validateMap(map)) {
+  if (map) {
+    const parsedMap = parseMap(map);
+    if (validateMap(parsedMap)) {
       await Wobj.update(
         { author_permlink: authorPermlink },
-        { map: { type: 'Point', coordinates: [map.longitude, map.latitude] } },
+        { map: { type: 'Point', coordinates: [parsedMap.longitude, parsedMap.latitude] } },
       );
     }
   }
@@ -259,4 +261,4 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
-module.exports = { update, processingParent };
+module.exports = { update, processingParent, parseMap };
