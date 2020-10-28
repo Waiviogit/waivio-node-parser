@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { getHashAll } = require('utilities/redis/redisGetter');
 const { lastBlockClient } = require('utilities/redis/redis');
+const { VOTE_TYPES } = require('constants/parsersData');
 const { client } = require('./createClient');
 
 const getUser = async (accountName) => {
@@ -35,13 +36,16 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll('current_price_info', lastBlockClient);
 
   for (const vote of votesOps) {
+    if (!vote.type) continue;
     const account = _.find(hiveAccounts, (el) => el.name === vote.voter);
     const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author) && p.permlink === vote.permlink);
     if (!account) continue;
     const voteWeight = vote.weight / 100;
     const decreasedPercent = ((voteWeight * 2) / 100);
     // here we find out what was the votingPower before vote
-    const votingPower = (100 * account.voting_power) / (100 - decreasedPercent);
+    const votingPower = vote.type === VOTE_TYPES.APPEND_WOBJ
+      ? account.voting_power
+      : (100 * account.voting_power) / (100 - decreasedPercent);
 
     const vests = parseFloat(account.vesting_shares)
       + parseFloat(account.received_vesting_shares) - parseFloat(account.delegated_vesting_shares);

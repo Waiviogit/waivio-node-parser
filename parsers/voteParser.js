@@ -1,8 +1,9 @@
 const _ = require('lodash');
-const { postsUtil, usersUtil } = require('utilities/steemApi');
 const { User, Post } = require('models');
-const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
+const { VOTE_TYPES } = require('constants/parsersData');
+const { postsUtil, usersUtil } = require('utilities/steemApi');
 const { commentRefGetter } = require('utilities/commentRefService');
+const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -22,7 +23,7 @@ const parse = async (votes) => {
 };
 
 const parseVoteByType = async (voteOp, posts) => {
-  if (voteOp.type === 'post_with_wobj') {
+  if (voteOp.type === VOTE_TYPES.POST_WITH_WOBJ) {
     await votePostWithObjects({
       author: voteOp.author, // author and permlink - identity of field
       permlink: voteOp.permlink,
@@ -32,7 +33,7 @@ const parseVoteByType = async (voteOp, posts) => {
       guest_author: voteOp.guest_author,
       posts,
     });
-  } else if (voteOp.type === 'append_wobj') {
+  } else if (voteOp.type === VOTE_TYPES.APPEND_WOBJ) {
     await voteAppendObject({
       author: voteOp.author, // author and permlink - identity of field
       permlink: voteOp.permlink,

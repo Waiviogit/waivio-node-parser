@@ -51,3 +51,8 @@ exports.BELL_NOTIFICATIONS = {
   USER: 'bell_notifications',
   WOBJECT: 'bell_wobject',
 };
+
+exports.VOTE_TYPES = {
+  APPEND_WOBJ: 'append_wobj',
+  POST_WITH_WOBJ: 'post_with_wobj',
+};
