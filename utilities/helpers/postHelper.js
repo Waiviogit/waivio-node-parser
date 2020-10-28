@@ -75,8 +75,8 @@ exports.updatePostVotes = async (author, permlink) => {
   if (!postInDb || error) return;
   const { post } = await postsUtil.getPost(author, permlink);
   if (!post) return;
-
-  post.active_votes = post.active_votes.map((vote) => ({
+  post.author = postInDb.author;
+  post.active_votes = _.map(post.active_votes, (vote) => ({
     voter: vote.voter,
     weight: Math.round(vote.rshares * 1e-6),
     percent: vote.percent,
