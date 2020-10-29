@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { User, Post } = require('models');
+const { jsonVoteValidator } = require('validator');
 const { VOTE_TYPES } = require('constants/parsersData');
 const { postsUtil, usersUtil } = require('utilities/steemApi');
 const { commentRefGetter } = require('utilities/commentRefService');
@@ -72,7 +73,7 @@ const voteAppendObject = async (data) => {
 
 // data include: posts, metadata, voter, percent, author, permlink, guest_author
 const votePostWithObjects = async (data) => {
-  data.post = data.posts.find((p) => (p.author === data.author || p.author === data.guest_author)  && p.permlink === data.permlink);
+  data.post = data.posts.find((p) => (p.author === data.author || p.author === data.guest_author) && p.permlink === data.permlink);
   if (!data.post) return;
 
   let metadata;
@@ -148,7 +149,9 @@ const customJSONAppendVote = async (operation) => {
   if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')) !== _.get(json, 'voter')) {
     console.error('Can\'t vote, account and author of operation are different');
   }
-  await parse([json]);
+  const { error, value } = jsonVoteValidator.voteSchema.validate(json);
+  if (error) return;
+  await parse([value]);
 };
 
 module.exports = { parse, votesFormat, customJSONAppendVote };
