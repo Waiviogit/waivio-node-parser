@@ -102,7 +102,7 @@ const upVoteOnPost = async (data, weight) => {
 const updatePost = async (data) => {
   data.post.wobjects = await getWobjectsFromMetadata(data);
   data.post.app = _.get(data, 'metadata.app', '');
-  data.post.active_votes = data.post.active_votes.map((vote) => ({
+  data.post.active_votes = _.map(data.post.active_votes, (vote) => ({
     voter: vote.voter,
     weight: Math.round(vote.rshares * 1e-6),
     percent: vote.percent,
