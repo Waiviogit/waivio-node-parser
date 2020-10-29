@@ -151,6 +151,7 @@ const customJSONAppendVote = async (operation) => {
   }
   const { error, value } = jsonVoteValidator.voteSchema.validate(json);
   if (error) return;
+  value.json = true;
   await parse([value]);
 };
 

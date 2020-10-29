@@ -43,7 +43,7 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     const voteWeight = vote.weight / 100;
     const decreasedPercent = ((voteWeight * 2) / 100);
     // here we find out what was the votingPower before vote
-    const votingPower = vote.type === VOTE_TYPES.APPEND_WOBJ
+    const votingPower = vote.type === VOTE_TYPES.APPEND_WOBJ && vote.json
       ? account.voting_power
       : (100 * account.voting_power) / (100 - decreasedPercent);
 
