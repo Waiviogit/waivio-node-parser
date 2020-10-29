@@ -44,9 +44,15 @@ exports.CUSTOM_JSON_OPS = {
   SUSPEND_CUSTOM_WEBSITE: 'suspend_custom_website',
   WEBSITE_REFUND_REQUEST: 'website_refund_request',
   CREATE_WEBSITE_INVOICE: 'create_website_invoice',
+  VOTE_APPEND: 'vote_append_object',
 };
 
 exports.BELL_NOTIFICATIONS = {
   USER: 'bell_notifications',
   WOBJECT: 'bell_wobject',
+};
+
+exports.VOTE_TYPES = {
+  APPEND_WOBJ: 'append_wobj',
+  POST_WITH_WOBJ: 'post_with_wobj',
 };

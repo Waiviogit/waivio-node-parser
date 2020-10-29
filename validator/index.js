@@ -8,4 +8,5 @@ module.exports = {
   userValidator: require('./userValidator'),
   sitesValidator: require('./sitesValidator'),
   objectBotsValidator: require('./validateObjectBots'),
+  jsonVoteValidator: require('./jsonVoteValidator'),
 };
