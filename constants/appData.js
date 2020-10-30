@@ -76,7 +76,7 @@ const notificationsApi = {
 };
 
 // valid urls of HIVE nodes for getting blocks with transactions.
-const nodeUrls = ['https://blocks.waivio.com', 'https://anyx.io', 'https://rpc.esteem.app'];
+const nodeUrls = ['https://api.hive.blog', 'https://rpc.esteem.app', 'https://api.openhive.network'];
 
 const REFERRAL_TYPES = {
   REWARDS: 'rewards',
