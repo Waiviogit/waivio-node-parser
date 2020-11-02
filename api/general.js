@@ -5,10 +5,10 @@ const { redisGetter, redisSetter } = require('utilities/redis');
 const { blockUtil } = require('utilities/steemApi');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
-let CURRENT_NODE_URL = nodeUrls[1];
+let CURRENT_NODE_URL = nodeUrls[0];
 
 bluebird.promisifyAll(steem.api);
-steem.api.setOptions({ url: nodeUrls[1] });
+steem.api.setOptions({ url: nodeUrls[0] });
 
 /**
  * Base method for run stream, for side tasks pass to the key parameter key for save block
