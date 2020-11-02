@@ -1,5 +1,6 @@
 const followObjectParser = require('parsers/followObjectParser');
 const userParsers = require('parsers/userParsers');
+const voteParsers = require('parsers/voteParser');
 const { ratingHelper, userHelper, sitesHelper } = require('utilities/helpers');
 const { customJsonOperations } = require('utilities/guestOperations');
 const { CUSTOM_JSON_OPS } = require('constants/parsersData');
@@ -17,6 +18,9 @@ exports.parse = async (operation, blockNum) => {
       break;
     case CUSTOM_JSON_OPS.BELL_NOTIFICATIONS:
       await userParsers.subscribeNotificationsParser(operation);
+      break;
+    case CUSTOM_JSON_OPS.VOTE_APPEND:
+      await voteParsers.customJSONAppendVote(operation);
       break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:

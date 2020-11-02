@@ -102,7 +102,7 @@ const upVoteOnPost = async (data, weight) => {
 const updatePost = async (data) => {
   data.post.wobjects = await getWobjectsFromMetadata(data);
   data.post.app = _.get(data, 'metadata.app', '');
-  data.post.active_votes = data.post.active_votes.map((vote) => ({
+  data.post.active_votes = _.map(data.post.active_votes, (vote) => ({
     voter: vote.voter,
     weight: Math.round(vote.rshares * 1e-6),
     percent: vote.percent,
@@ -111,7 +111,7 @@ const updatePost = async (data) => {
 
   data.post.author = _.get(data, 'guest_author', data.post.author);
   await Post.update(data.post); // update post info in DB
-  await setExpiredPostTTL('updatePostVotes', `${_.get(data, 'guest_author', data.post.author)}/${data.permlink}`, 30);
+  await setExpiredPostTTL('updatePostVotes', `${data.author}/${data.permlink}`, 30);
 };
 
 module.exports = { voteOnPost };

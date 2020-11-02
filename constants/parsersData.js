@@ -31,12 +31,12 @@ exports.CUSTOM_JSON_OPS = {
   WAIVIO_GUEST_REBLOG: 'waivio_guest_reblog',
   WAIVIO_GUEST_ACCOUNT_UPDATE: 'waivio_guest_account_update',
   WAIVIO_GUEST_BELL: 'waivio_guest_bell',
-  WEBSITE_REMOVE_AUTHORITIES: 'custom_website_remove_authorities',
-  WEBSITE_ADD_AUTHORITIES: 'custom_website_add_authorities',
-  WEBSITE_REMOVE_ADMINISTRATORS: 'custom_website_remove_administrators',
-  WEBSITE_ADD_ADMINISTRATORS: 'custom_website_add_administrators',
-  WEBSITE_REMOVE_MODERATORS: 'custom_website_remove_moderators',
-  WEBSITE_ADD_MODERATORS: 'custom_website_add_moderators',
+  WEBSITE_REMOVE_AUTHORITIES: 'website_remove_authorities',
+  WEBSITE_ADD_AUTHORITIES: 'website_add_authorities',
+  WEBSITE_REMOVE_ADMINISTRATORS: 'website_remove_administrators',
+  WEBSITE_ADD_ADMINISTRATORS: 'website_add_administrators',
+  WEBSITE_REMOVE_MODERATORS: 'website_remove_moderators',
+  WEBSITE_ADD_MODERATORS: 'website_add_moderators',
   CUSTOM_WEBSITE_SETTINGS: 'custom_website_settings',
   CREATE_CUSTOM_WEBSITE: 'create_custom_website',
   DELETE_CUSTOM_WEBSITE: 'delete_custom_website',
@@ -44,9 +44,15 @@ exports.CUSTOM_JSON_OPS = {
   SUSPEND_CUSTOM_WEBSITE: 'suspend_custom_website',
   WEBSITE_REFUND_REQUEST: 'website_refund_request',
   CREATE_WEBSITE_INVOICE: 'create_website_invoice',
+  VOTE_APPEND: 'vote_append_object',
 };
 
 exports.BELL_NOTIFICATIONS = {
   USER: 'bell_notifications',
   WOBJECT: 'bell_wobject',
+};
+
+exports.VOTE_TYPES = {
+  APPEND_WOBJ: 'append_wobj',
+  POST_WITH_WOBJ: 'post_with_wobj',
 };

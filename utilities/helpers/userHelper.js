@@ -40,6 +40,8 @@ exports.checkAndCreateUser = async (userName) => {
  * @returns {Promise<void>}
  */
 exports.checkAndCreateByArray = async (names) => {
+  if (_.isEmpty(names)) return { hiveAccounts: [] };
+
   const { users: steemUsers = [] } = await usersUtil.getUsers(names);
   for (const steemUser of steemUsers) {
     const { user } = await userModel.checkAndCreate(steemUser.name);
