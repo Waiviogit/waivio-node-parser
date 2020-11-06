@@ -17,6 +17,7 @@
     "checkWobjectParent": "node ./utilities/tasks/checkWobjectParent/run.js",
     "checkMissedReblogs": "NODE_PATH=. node ./utilities/tasks/checkMissedReblogs/run.js",
     "checkMissedPosts": "NODE_PATH=. node ./utilities/tasks/checkMissedPosts/run.js",
+    "missedGuestComments": "NODE_PATH=. node ./utilities/tasks/missedGuestComments/run.js",
     "updatePayoutsInPosts": "NODE_PATH=. node ./utilities/tasks/updatePayoutsInPosts/run.js",
     "migrateWallet": "NODE_PATH=. node ./utilities/tasks/migrateWallet/run.js",
     "setMapToChildren": "NODE_PATH=. node ./utilities/tasks/setMapToChildren/run.js",
