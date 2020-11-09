@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const followObjectParser = require('parsers/followObjectParser');
@@ -110,7 +111,7 @@ const voteOnPost = async ({ vote }) => {
       metadata = parseJson(post.json_metadata);
       if (!_.get(metadata, 'wobj')) metadata.wobj = { wobjects: vote.wobjects };
     }
-
+    if (vote.weight > 0) await notificationsUtil.custom({ id: 'like', likes: [{ ...vote, weight: 0 }] });
     return votePostHelper.voteOnPost({
       post,
       metadata,
