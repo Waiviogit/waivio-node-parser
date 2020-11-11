@@ -1,16 +1,11 @@
 const _ = require('lodash');
 const { Wobj } = require('models');
 const wobjectValidator = require('validator/wobjectValidator');
+const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
 
 const parse = async (operation) => {
-  let json;
-
-  try {
-    json = JSON.parse(operation.json);
-  } catch (err) {
-    console.error(err);
-    return;
-  }
+  const json = parseJson(operation.json);
+  if (_.isEmpty(json)) return;
   if (!await wobjectValidator.validateRatingVote(json, operation)) {
     console.error('Rating vote data is not valid!');
     return;
@@ -32,4 +27,23 @@ const parse = async (operation) => {
   await Wobj.updateField(author, permlink, authorPermlink, 'average_rating_weight', _.meanBy(ratingVotes, 'rate'));
 };
 
-module.exports = { parse };
+const parseGuest = async (operation) => {
+  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
+    const json = parseJson(operation.json);
+    if (_.isEmpty(json)) return;
+
+    operation.required_posting_auths = [_.get(json, 'guestName')];
+
+    await parse(operation);
+  }
+};
+
+const parseJson = (json) => {
+  try {
+    return JSON.parse(json);
+  } catch (error) {
+    return {};
+  }
+};
+
+module.exports = { parse, parseGuest };
