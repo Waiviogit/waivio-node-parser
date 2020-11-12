@@ -1,11 +1,11 @@
 const _ = require('lodash');
+const { postsUtil, usersUtil } = require('utilities/steemApi');
 const { User, Post } = require('models');
+const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
+const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
 const { VOTE_TYPES } = require('constants/parsersData');
-const { postsUtil, usersUtil } = require('utilities/steemApi');
-const { commentRefGetter } = require('utilities/commentRefService');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
