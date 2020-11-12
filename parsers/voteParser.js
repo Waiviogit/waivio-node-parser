@@ -4,6 +4,7 @@ const { jsonVoteValidator } = require('validator');
 const { VOTE_TYPES } = require('constants/parsersData');
 const { postsUtil, usersUtil } = require('utilities/steemApi');
 const { commentRefGetter } = require('utilities/commentRefService');
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 
 const parse = async (votes) => {
@@ -17,10 +18,21 @@ const parse = async (votes) => {
       .value(),
   );
   const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts, hiveAccounts });
+  await sendLikeNotification(votesOps);
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithVotes);
   }));
   console.log(`Parsed votes: ${votesOps.length}`);
+};
+
+const sendLikeNotification = async (votes) => {
+  const likes = _.chain(votes)
+    .filter((v) => v.type === VOTE_TYPES.POST_WITH_WOBJ && v.weight > 0 && v.rshares >= 0)
+    .forEach((v) => {
+      v.weight = Math.round(v.rshares * 1e-6);
+    })
+    .value();
+  await notificationsUtil.custom({ id: 'like', likes });
 };
 
 const parseVoteByType = async (voteOp, posts) => {

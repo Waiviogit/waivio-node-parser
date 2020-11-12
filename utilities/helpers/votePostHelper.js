@@ -3,7 +3,6 @@ const { Wobj, User, Post } = require('models');
 const { getWobjectsFromMetadata } = require('utilities/helpers/postByTagsHelper');
 const userValidator = require('validator/userValidator');
 const postModeration = require('utilities/moderation/postModeration');
-const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 
 const voteOnPost = async (data) => {
@@ -22,17 +21,6 @@ const voteOnPost = async (data) => {
     }
   }
   await updatePost(data);
-  if (data.percent > 0) {
-    await notificationsUtil
-      .custom({
-        id: 'like',
-        weight,
-        voter: data.voter,
-        author: data.author,
-        permlink: data.permlink,
-        guest_author: data.guest_author,
-      });
-  }
 };
 
 // method also using as undo previous vote before up- or down-vote

@@ -64,6 +64,7 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
       vote.rshares = rShares || 1;
       continue;
     }
+    vote.rshares = rShares;
     post.active_votes.push({
       voter: vote.voter,
       percent: vote.weight,
