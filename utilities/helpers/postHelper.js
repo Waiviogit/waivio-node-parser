@@ -3,7 +3,7 @@ const moment = require('moment');
 const { ObjectId } = require('mongoose').Types;
 const { Post, CommentModel } = require('models');
 const { postsUtil } = require('utilities/steemApi');
-const { guestHelpers } = require('utilities/guestOperations');
+const guestHelpers = require('utilities/guestOperations/guestHelpers');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
