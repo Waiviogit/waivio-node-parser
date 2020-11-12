@@ -1,8 +1,9 @@
-const moment = require('moment');
 const _ = require('lodash');
+const moment = require('moment');
 const { ObjectId } = require('mongoose').Types;
+const { Post, CommentModel } = require('models');
 const { postsUtil } = require('utilities/steemApi');
-const { Post } = require('models');
+const { guestHelpers } = require('utilities/guestOperations');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -89,4 +90,21 @@ exports.updatePostVotes = async (author, permlink) => {
   });
 
   await Post.update(post);
+};
+
+exports.guestCommentFromTTL = async (author, permlink) => {
+  let metadata;
+  const { post: comment, err } = await postsUtil.getPost(author, permlink);
+  if (err || !comment) return;
+  try {
+    metadata = JSON.parse(comment.json_metadata);
+  } catch (error) { }
+  const guestInfo = await guestHelpers.getFromMetadataGuestInfo(
+    { operation: { author }, metadata },
+  );
+  if (!guestInfo) return;
+  delete comment.active_votes;
+  const { error } = await CommentModel.createOrUpdate({ ...comment, guestInfo });
+  if (error) return console.error(error);
+  console.log(`Guest comment created: ${author}/${permlink}, guest name: ${guestInfo.userId}`);
 };

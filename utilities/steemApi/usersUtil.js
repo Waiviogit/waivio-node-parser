@@ -24,12 +24,16 @@ const getUsers = async (accountNames) => {
 const parseToFloat = (balance) => parseFloat(balance.match(/.\d*.\d*/)[0]);
 
 const getCurrentPriceInfo = async () => {
-  const sbdMedian = await client.database.call('get_current_median_history_price', []);
-  const rewardFund = await client.database.call('get_reward_fund', ['post']);
-  return {
-    currentPrice: parseToFloat(sbdMedian.base) / parseToFloat(sbdMedian.quote),
-    rewardFund,
-  };
+  try {
+    const sbdMedian = await client.database.call('get_current_median_history_price', []);
+    const rewardFund = await client.database.call('get_reward_fund', ['post']);
+    return {
+      currentPrice: parseToFloat(sbdMedian.base) / parseToFloat(sbdMedian.quote),
+      rewardFund,
+    };
+  } catch (error) {
+    return { error };
+  }
 };
 
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
