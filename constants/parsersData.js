@@ -22,6 +22,7 @@ exports.CUSTOM_JSON_OPS = {
   ADD_REFERRAL_AGENT: 'add_referral_agent',
   FOLLOW_WOBJECT: 'follow_wobject',
   WOBJ_RATING: 'wobj_rating',
+  WOBJ_RATING_GUEST: 'waivio_guest_wobj_rating',
   FOLLOW: 'follow',
   BELL_NOTIFICATIONS: 'bell_notifications',
   WAIVIO_GUEST_UPDATE: 'waivio_guest_update',
