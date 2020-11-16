@@ -227,9 +227,6 @@ describe('ratingHelper', async () => {
       it('should not call method "updateField" on wobject model', () => {
         expect(WobjModel.updateField).to.not.be.called;
       });
-      it('should log to console message error', () => {
-        expect(console.error).to.be.called;
-      });
     });
   });
 });

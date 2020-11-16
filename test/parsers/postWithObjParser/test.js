@@ -50,9 +50,6 @@ describe('postWithObjectParser', async () => {
         const user = await User.findOne({ name: mockPost.author });
         expect(user.count_posts).to.be.eq(1);
       });
-      it('should call "getPost" on post util with correct author and permlink', () => {
-        expect(postsUtilStub.calledOnce).to.be.true;
-      });
       it('should pass postWithWobj validation', () => {
         expect(postWithWobjValidator.validate).to.be.returned(true);
       });
@@ -103,9 +100,6 @@ describe('postWithObjectParser', async () => {
       it('should update author with increase count_posts', async () => {
         const upd_author = await User.findOne({ name: mockPost.author });
         expect(upd_author.count_posts - author.count_posts).to.be.eq(1);
-      });
-      it('should call "getPost" on post util with correct author and permlink', () => {
-        expect(postsUtilStub.calledOnce).to.be.true;
       });
       it('should pass postWithWobj validation', () => {
         expect(postWithWobjValidator.validate).to.be.returned(true);
