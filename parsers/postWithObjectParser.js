@@ -113,22 +113,18 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     return { error: `[createOrUpdatePost] Post @${data.author}/${data.permlink} not found or was deleted!` };
   }
 
-  if (post) {
-    if (!data.body) data.body = hivePost.body;
-    if (!data.json_metadata) data.json_metadata = hivePost.json_metadata;
-  }
-  if (post || postData) Object.assign(hivePost, data);
+  if (!data.body) data.body = hivePost.body;
+  if (!data.json_metadata) data.json_metadata = hivePost.json_metadata;
+  Object.assign(hivePost, data);
 
   const hiveVoters = _.map(hivePost.active_votes, (el) => el.voter);
 
-  if (post) {
-    _.forEach(post.active_votes, (el) => {
-      if (!_.includes(hiveVoters, el.voter)) hivePost.active_votes.push(el);
-    });
-    hivePost.body = hivePost.body.substr(0, 2) === '@@'
-      ? mergePosts(post.body, hivePost.body)
-      : hivePost.body;
-  } else hivePost._id = postHelper.objectIdFromDateString(hivePost.created);
+  _.forEach(post.active_votes, (el) => {
+    if (!_.includes(hiveVoters, el.voter)) hivePost.active_votes.push(el);
+  });
+  hivePost.body = hivePost.body.substr(0, 2) === '@@'
+    ? mergePosts(post.body, hivePost.body)
+    : hivePost.body;
 
   hivePost.active_votes = hivePost.active_votes.map((vote) => ({
     voter: vote.voter,
