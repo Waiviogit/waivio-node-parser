@@ -68,13 +68,43 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
   const author = _.get(data, 'guestInfo.userId', data.author);
   const { post } = await Post.findOne({ author, permlink: data.permlink });
 
+  // validate post data
+  if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
+    return { validationError: true };
+  }
+
+  let updPost, error;
+  if (!post) {
+    data.depth = 0;
+    data.author = author;
+    data.reblogged_by = [];
+    data.root_title = data.title;
+    data.language = await detectPostLanguageHelper(data);
+    data.cashout_time = moment().add(7, 'days').toISOString();
+    data.url = `/${data.parent_permlink}/@${data.root_author}/${data.permlink}`;
+    data._id = postHelper.objectIdFromDateString(moment.utc(Date.now()).toDate());
+
+    await User.updateOnNewPost(author, Date.now());
+    await setExpiredPostTTL('hivePost', `${author}/${data.permlink}`, 605000);
+    await commentRefSetter.addPostRef(
+      `${data.root_author}_${data.permlink}`,
+      data.wobjects, _.get(data, 'guestInfo.userId'),
+    );
+    ({ result: updPost, error } = await Post.update(data));
+    if (error) return { error };
+    for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
+      await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });
+    }
+    const { notificationData } = await addWobjectNames(_.cloneDeep(data));
+    await notificationsUtils.post(notificationData);
+    return { updPost, action: 'created' };
+  }
+
   if (!postData) {
     ({ post: hivePost, err } = await postsUtil.getPost(data.author, data.permlink));
   } else if (postData) {
     hivePost = postData;
   }
-  // if (err) return { error: err.message };
-
   const postAuthor = _.get(hivePost, 'author');
   if (!postAuthor || err) {
     if (!fromTTL) {
@@ -88,37 +118,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     if (!data.json_metadata) data.json_metadata = hivePost.json_metadata;
   }
   if (post || postData) Object.assign(hivePost, data);
-  // validate post data
-  if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
-    return { validationError: true };
-  }
 
-  let updPost, error;
-  if (!post) {
-    const { notificationData } = await addWobjectNames(_.cloneDeep(data));
-    // ({ post: hivePost } = await postsUtil.getPost(data.author, data.permlink));
-    await notificationsUtils.post(notificationData);
-    // data.active_votes = _.get(hivePost, 'active_votes', []);
-    data = Object.assign(hivePost, data);
-    data._id = postHelper.objectIdFromDateString(moment.utc(_.get(hivePost, 'created', Date.now())).toDate());
-
-    await User.updateOnNewPost(author, Date.now());
-
-    await setExpiredPostTTL('hivePost', `${author}/${data.permlink}`, 605000);
-    data.language = await detectPostLanguageHelper(data);
-    data.author = author;
-
-    await commentRefSetter.addPostRef(
-      `${data.root_author}_${data.permlink}`,
-      data.wobjects, _.get(data, 'guestInfo.userId'),
-    );
-    ({ result: updPost, error } = await Post.update(data));
-    if (error) return { error };
-    for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
-      await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });
-    }
-    return { updPost, action: 'created' };
-  }
   const hiveVoters = _.map(hivePost.active_votes, (el) => el.voter);
 
   if (post) {
