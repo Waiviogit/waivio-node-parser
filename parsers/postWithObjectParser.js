@@ -80,6 +80,7 @@ const createOrUpdatePost = async (data, postData, fromTTL) => {
     data.reblogged_by = [];
     data.root_title = data.title;
     data.language = await detectPostLanguageHelper(data);
+    data.created = moment().format('YYYY-MM-DDTHH:mm:ss');
     data.cashout_time = moment().add(7, 'days').toISOString();
     data.url = `/${data.parent_permlink}/@${data.root_author}/${data.permlink}`;
     data._id = postHelper.objectIdFromDateString(moment.utc(Date.now()).toDate());
