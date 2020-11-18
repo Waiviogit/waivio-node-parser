@@ -53,6 +53,9 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.WAIVIO_GUEST_BELL:
       await customJsonOperations.subscribeNotification(operation);
       break;
+    case CUSTOM_JSON_OPS.WOBJ_RATING_GUEST:
+      await ratingHelper.parseGuest(operation);
+      break;
       /** WEBSITES */
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:
       await sitesHelper.createWebsite(operation);
