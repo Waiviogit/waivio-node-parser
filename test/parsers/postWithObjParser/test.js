@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const config = require('config');
 const {
   expect, postWithObjectParser, Post, faker, postsUtil, sinon, User,
@@ -34,13 +33,11 @@ describe('postWithObjectParser', async () => {
         userUtilStub = sinon.stub(usersUtil, 'getUser').returns(Promise.resolve({ user: faker.random.string() }));
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
+        sinon.spy(postHelper, 'parseBodyWobjects');
         result = await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
-        postsUtilStub.restore();
-        userUtilStub.restore();
-        postWithWobjValidator.validate.restore();
-        postHelper.objectIdFromDateString.restore();
+        sinon.restore();
       });
       it('should create user "author" of post', async () => {
         const user = await User.findOne({ name: mockPost.author });
@@ -69,6 +66,9 @@ describe('postWithObjectParser', async () => {
         let post = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
         post = post.toObject();
         expect(post.wobjects).to.have.length(2);
+      });
+      it('should call parseBodyWobjects once', async () => {
+        expect(postHelper.parseBodyWobjects).to.be.calledOnce;
       });
     });
 
@@ -142,6 +142,7 @@ describe('postWithObjectParser', async () => {
         sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
+        sinon.spy(postHelper, 'parseBodyWobjects');
         await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
@@ -173,6 +174,9 @@ describe('postWithObjectParser', async () => {
       it('should update post with new "body"', async () => {
         const res = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
         expect(res.body).to.be.eq(mockPost.body);
+      });
+      it('should call parseBodyWobjects once', async () => {
+        expect(postHelper.parseBodyWobjects).to.be.calledOnce;
       });
     });
   });
@@ -335,133 +339,6 @@ describe('postWithObjectParser', async () => {
       });
       it('should take name from key objectName', async () => {
         expect(wobjects[1].name).to.be.eq(wobj2Name);
-      });
-    });
-  });
-
-  describe('On parseBodyWobjects', async () => {
-    let mockHashtag, mockHashtag2, metadata, wobjects, mockObject;
-    beforeEach(async () => {
-      mockObject = await ObjectFactory.Create();
-      mockHashtag = await ObjectFactory.Create({ object_type: 'hashtag' });
-      mockHashtag2 = await ObjectFactory.Create({ object_type: 'hashtag' });
-    });
-    describe('case isSimplePost && postTags.length', async () => {
-      it('should one hash tag have percent 100', async () => {
-        metadata = { tags: [mockHashtag.author_permlink] };
-        wobjects = await postWithObjectParser.parseBodyWobjects(metadata);
-        expect(wobjects).to.be.deep.eq([{
-          author_permlink: mockHashtag.author_permlink,
-          percent: 100,
-          tagged: mockHashtag.author_permlink,
-        }]);
-      });
-    });
-    describe('case wobj.wobjects && !isSimplePost && postTags.length', async () => {
-      beforeEach(async () => {
-        metadata = {
-          wobj: {
-            wobjects: [
-              { author_permlink: mockObject.author_permlink, percent: 100 },
-              { author_permlink: faker.random.string(10), percent: 0 },
-            ],
-          },
-          tags: [mockHashtag.author_permlink, mockHashtag2.author_permlink],
-        };
-      });
-      it('should be deep eq to mocks tags should add with percent 0', async () => {
-        const mocks = [{
-          author_permlink: mockObject.author_permlink,
-          percent: 100,
-        },
-        {
-          author_permlink: metadata.wobj.wobjects[1].author_permlink,
-          percent: 0,
-        },
-        {
-          author_permlink: mockHashtag.author_permlink,
-          percent: 0,
-        },
-        {
-          author_permlink: mockHashtag2.author_permlink,
-          percent: 0,
-        }];
-        wobjects = await postWithObjectParser.parseBodyWobjects(metadata);
-        expect(wobjects).to.be.deep.eq(mocks);
-      });
-    });
-    describe('case we have links in body on waivio wobj', async () => {
-      let bodyWobject, body;
-      beforeEach(async () => {
-        bodyWobject = await ObjectFactory.Create();
-        metadata = {
-          wobj: {
-            wobjects: [
-              { author_permlink: mockObject.author_permlink, percent: 100 },
-              { author_permlink: faker.random.string(10), percent: 0 },
-            ],
-          },
-          tags: [mockHashtag.author_permlink],
-        };
-        body = `${faker.random.string()}https://waivio.com/object/${bodyWobject.author_permlink}${_.sample(['/', ' ', ':', ',', '.', ';', ')', '?'])}${faker.random.string()}`;
-      });
-      it('should deep eq object when metadata has wobjects and tags', async () => {
-        const mocks = [{
-          author_permlink: mockObject.author_permlink,
-          percent: 50,
-        },
-        {
-          author_permlink: metadata.wobj.wobjects[1].author_permlink,
-          percent: 0,
-        },
-        {
-          author_permlink: bodyWobject.author_permlink,
-          percent: 50,
-        },
-        {
-          author_permlink: mockHashtag.author_permlink,
-          percent: 0,
-        }];
-        wobjects = await postWithObjectParser.parseBodyWobjects(metadata, body);
-        expect(wobjects).to.be.deep.eq(mocks);
-      });
-      it('should deep eq object when metadata has wobjects', async () => {
-        metadata = _.omit(metadata, ['tags']);
-        const mocks = [{
-          author_permlink: mockObject.author_permlink,
-          percent: 50,
-        },
-        {
-          author_permlink: metadata.wobj.wobjects[1].author_permlink,
-          percent: 0,
-        },
-        {
-          author_permlink: bodyWobject.author_permlink,
-          percent: 50,
-        }];
-        wobjects = await postWithObjectParser.parseBodyWobjects(metadata, body);
-        expect(wobjects).to.be.deep.eq(mocks);
-      });
-      it('should deep eq object when metadata has tags', async () => {
-        metadata = _.omit(metadata, ['wobj']);
-        const mocks = [{
-          author_permlink: bodyWobject.author_permlink,
-          percent: 100,
-        }, {
-          author_permlink: mockHashtag.author_permlink,
-          percent: 0,
-        }];
-        wobjects = await postWithObjectParser.parseBodyWobjects(metadata, body);
-        expect(wobjects).to.be.deep.eq(mocks);
-      });
-      it('should deep eq object when no metadata', async () => {
-        metadata = _.omit(metadata, ['tags']);
-        const mocks = [{
-          author_permlink: bodyWobject.author_permlink,
-          percent: 100,
-        }];
-        wobjects = await postWithObjectParser.parseBodyWobjects({}, body);
-        expect(wobjects).to.be.deep.eq(mocks);
       });
     });
   });
