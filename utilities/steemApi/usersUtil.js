@@ -74,7 +74,7 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     // such vote will not affect total payout
     if (!rShares) continue;
     // net_rshares sum of all post active_votes rshares negative and positive
-    const tRShares = parseFloat(post.net_rshares) + rShares;
+    const tRShares = parseFloat(_.get(post, 'net_rshares', 0)) + rShares;
     const s = parseFloat(priceInfo.content_constant);
     const tClaims = (tRShares * (tRShares + (2 * s))) / (tRShares + (4 * s));
 
