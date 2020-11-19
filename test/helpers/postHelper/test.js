@@ -1,6 +1,8 @@
 const _ = require('lodash');
-const { postHelper, faker, expect } = require('test/testHelper');
-const { ObjectFactory } = require('test/factories');
+const {
+  postHelper, faker, expect, dropDatabase, RelatedAlbum,
+} = require('test/testHelper');
+const { ObjectFactory, RelatedFactory } = require('test/factories');
 
 describe('On postHelper', async () => {
   describe('On parseBodyWobjects', async () => {
@@ -127,6 +129,26 @@ describe('On postHelper', async () => {
         wobjects = await postHelper.parseBodyWobjects({}, body);
         expect(wobjects).to.be.deep.eq(mocks);
       });
+    });
+  });
+
+  describe('On addToRelated', async () => {
+    let mockObject, body, image;
+    beforeEach(async () => {
+      await dropDatabase();
+      body = faker.random.string();
+      mockObject = await ObjectFactory.Create();
+      await RelatedFactory.Create({ id: mockObject.author_permlink, body });
+    });
+    it('should not add to collection, if record already exists', async () => {
+      await postHelper.addToRelated([mockObject], [body]);
+      image = await RelatedAlbum.find({}).lean();
+      expect(image).to.has.length(1);
+    });
+    it('should add to collection, if record does not exists', async () => {
+      await postHelper.addToRelated([mockObject], [faker.random.string()]);
+      image = await RelatedAlbum.find({}).lean();
+      expect(image).to.has.length(2);
     });
   });
 });

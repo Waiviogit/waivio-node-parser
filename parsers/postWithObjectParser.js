@@ -2,7 +2,7 @@ const _ = require('lodash');
 const moment = require('moment');
 const config = require('config');
 const {
-  Post, Wobj, User, App, relatedAlbum,
+  Post, Wobj, User, App,
 } = require('models');
 const DiffMatchPatch = require('diff-match-patch');
 const { postsUtil } = require('utilities/steemApi');
@@ -82,7 +82,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     }
     const { notificationData } = await addWobjectNames(_.cloneDeep(data));
     await notificationsUtils.post(notificationData);
-    await addToRelated(data.wobjects, metadata.image);
+    await postHelper.addToRelated(data.wobjects, metadata.image);
     return { updPost, action: 'created' };
   }
 
@@ -131,7 +131,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     `${data.root_author}_${data.permlink}`,
     data.wobjects, _.get(data, 'guestInfo.userId'),
   );
-  await addToRelated(data.wobjects, metadata.image);
+  await postHelper.addToRelated(data.wobjects, metadata.image);
   return { updPost, action: 'updated' };
 };
 
@@ -161,20 +161,6 @@ const addWobjectNames = async (notificationData) => {
     wobject.name = _.get(wobjWithName, 'name', _.get(wobjWithName, 'default_name', wobject.tagged || wobject.objectName));
   }
   return { notificationData };
-};
-
-const addToRelated = async (wobjects, images) => {
-  if (_.isEmpty(wobjects) || _.isEmpty(images)) return;
-  for (const wobject of wobjects) {
-    for (const el of images) {
-      const { image } = await relatedAlbum
-        .findOne({ authorPermlink: wobject.author_permlink, body: el });
-      if (!image) {
-        await relatedAlbum
-          .addImageToRelated({ authorPermlink: wobject.author_permlink, body: el });
-      }
-    }
-  }
 };
 
 module.exports = {

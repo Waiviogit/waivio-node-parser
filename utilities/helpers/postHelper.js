@@ -1,7 +1,9 @@
 const _ = require('lodash');
 const moment = require('moment');
+const {
+  Post, CommentModel, Wobj, relatedAlbum,
+} = require('models');
 const { ObjectId } = require('mongoose').Types;
-const { Post, CommentModel, Wobj } = require('models');
 const { postsUtil } = require('utilities/steemApi');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
@@ -155,4 +157,18 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     metadata.wobj = { wobjects: wobjects || [] };
   }
   return _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent >= 0 && w.percent <= 100).value();
+};
+
+exports.addToRelated = async (wobjects, images) => {
+  if (_.isEmpty(wobjects) || _.isEmpty(images)) return;
+  for (const wobject of wobjects) {
+    for (const el of images) {
+      const { image } = await relatedAlbum
+        .findOne({ id: wobject.author_permlink, body: el });
+      if (!image) {
+        await relatedAlbum
+          .addImageToRelated({ id: wobject.author_permlink, body: el });
+      }
+    }
+  }
 };

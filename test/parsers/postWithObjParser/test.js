@@ -34,6 +34,7 @@ describe('postWithObjectParser', async () => {
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
         sinon.spy(postHelper, 'parseBodyWobjects');
+        sinon.spy(postHelper, 'addToRelated');
         result = await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
@@ -69,6 +70,9 @@ describe('postWithObjectParser', async () => {
       });
       it('should call parseBodyWobjects once', async () => {
         expect(postHelper.parseBodyWobjects).to.be.calledOnce;
+      });
+      it('should call addToRelated once', async () => {
+        expect(postHelper.addToRelated).to.be.calledOnce;
       });
     });
 
@@ -143,6 +147,7 @@ describe('postWithObjectParser', async () => {
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
         sinon.spy(postHelper, 'parseBodyWobjects');
+        sinon.spy(postHelper, 'addToRelated');
         await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
@@ -177,6 +182,9 @@ describe('postWithObjectParser', async () => {
       });
       it('should call parseBodyWobjects once', async () => {
         expect(postHelper.parseBodyWobjects).to.be.calledOnce;
+      });
+      it('should call addToRelated once', async () => {
+        expect(postHelper.addToRelated).to.be.calledOnce;
       });
     });
   });
