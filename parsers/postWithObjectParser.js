@@ -13,7 +13,7 @@ const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
 const {
-  detectPostLanguageHelper, postByTagsHelper, userHelper, appHelper, wobjectHelper,
+  detectPostLanguageHelper, userHelper, appHelper, wobjectHelper, postHelper,
 } = require('utilities/helpers');
 
 const parse = async (operation, metadata, post, fromTTL) => {
@@ -55,7 +55,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
 
   let updPost, error;
   if (!post) {
-    data.wobjects = await parseBodyWobjects(metadata, data.body);
+    data.wobjects = await postHelper.parseBodyWobjects(metadata, data.body);
     // validate post data
     if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
       return { validationError: true };
@@ -110,7 +110,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
   hivePost.body = hivePost.body.substr(0, 2) === '@@'
     ? mergePosts(post.body, hivePost.body)
     : hivePost.body;
-  data.wobjects = await parseBodyWobjects(metadata, hivePost.body);
+  data.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
     return { validationError: true };
@@ -131,53 +131,6 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     data.wobjects, _.get(data, 'guestInfo.userId'),
   );
   return { updPost, action: 'updated' };
-};
-
-/**
- * in first part of method we search for links on waivio objects, and check if they in metadata,
- * if not add them to wobj.wobjects and recount wobject percent
- * in second part we check weather post has wobjects or just tags and make calculations
- */
-const parseBodyWobjects = async (metadata, postBody = '') => {
-  const bodyLinks = postBody.match(/waivio\.com\/object\/[a-z0-9-]+$|waivio\.com\/object\/.*[\/)?:;,. ]/gm);
-  if (!_.isEmpty(bodyLinks)) {
-    const metadataWobjects = _.concat(
-      _.get(metadata, 'tags', []),
-      _.map(_.get(metadata, 'wobj.wobjects', []), 'author_permlink'),
-    );
-    const wobj = _.get(metadata, 'wobj.wobjects', []);
-    for (const link of bodyLinks) {
-      const authorPermlink = _.get(link.match(/waivio\.com\/object\/([a-z0-9-]+)[\/)?:;,. ]/), '[1]', _.get(link.match(/waivio\.com\/object\/([a-z0-9-]+$)/), '[1]'));
-      if (authorPermlink && !_.includes(metadataWobjects, authorPermlink)) {
-        const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
-        if (!wobject) continue;
-        wobj.push({ author_permlink: wobject.author_permlink });
-      }
-    }
-    if (!_.isEmpty(wobj)) {
-      const wobjWithPercent = _.filter(wobj, (w) => w.percent !== 0);
-      _.forEach(wobj, (w) => {
-        if (w.percent !== 0) w.percent = Math.floor(100 / wobjWithPercent.length);
-      });
-      metadata.wobj = { wobjects: wobj };
-    }
-  }
-
-  const isSimplePost = _.isEmpty(_.get(metadata, 'wobj.wobjects'));
-  const postTags = _.get(metadata, 'tags', []);
-
-  if (_.isArray(_.get(metadata, 'wobj.wobjects')) && !isSimplePost && postTags.length) {
-    let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
-    const wobj = metadata.wobj.wobjects;
-    tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
-    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
-    metadata.wobj = { wobjects: wobj || [] };
-  } else if (isSimplePost && postTags.length) {
-    // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
-    const wobjects = await postByTagsHelper.wobjectsByTags(postTags);
-    metadata.wobj = { wobjects: wobjects || [] };
-  }
-  return _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent >= 0 && w.percent <= 100).value();
 };
 
 const mergePosts = (originalBody, body) => {
@@ -209,5 +162,5 @@ const addWobjectNames = async (notificationData) => {
 };
 
 module.exports = {
-  parse, createOrUpdatePost, addWobjectNames, parseBodyWobjects,
+  parse, createOrUpdatePost, addWobjectNames,
 };
