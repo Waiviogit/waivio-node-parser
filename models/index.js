@@ -13,5 +13,5 @@ module.exports = {
   wobjectSubscriptions: require('./wobjectSubscriptionModel'),
   websitePayments: require('./websitesPaymentsModel'),
   websiteRefunds: require('./websitesRefundsModel'),
-  relatedAlbumModel: require('./relatedAlbumModel'),
+  relatedAlbum: require('./relatedAlbumModel'),
 };

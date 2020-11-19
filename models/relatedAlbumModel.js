@@ -9,3 +9,11 @@ exports.addImageToRelated = async ({ authorPermlink, body }) => {
     return { error };
   }
 };
+
+exports.findOne = async (condition, select) => {
+  try {
+    return { image: await RelatedAlbum.findOne(condition, select).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
