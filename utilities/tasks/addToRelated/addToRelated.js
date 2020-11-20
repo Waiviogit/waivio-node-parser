@@ -5,7 +5,6 @@ const postHelper = require('utilities/helpers/postHelper');
 module.exports = async () => {
   const wobjects = WObject.find({}).lean().cursor();
 
-  console.time('add to related task time:');
   for await (const wobj of wobjects) {
     const posts = Post.find({ 'wobjects.author_permlink': wobj.author_permlink }).lean().cursor();
     for await (const post of posts) {
@@ -14,7 +13,6 @@ module.exports = async () => {
       await postHelper.addToRelated([wobj], metadata.image);
     }
   }
-  console.timeEnd('add to related task time:');
   console.log('task completed');
 };
 
