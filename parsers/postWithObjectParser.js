@@ -82,7 +82,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     }
     const { notificationData } = await addWobjectNames(_.cloneDeep(data));
     await notificationsUtils.post(notificationData);
-    await postHelper.addToRelated(data.wobjects, metadata.image);
+    await postHelper.addToRelated(data.wobjects, metadata.image, `${data.author}_${data.permlink}`);
     return { updPost, action: 'created' };
   }
 
@@ -131,7 +131,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     `${data.root_author}_${data.permlink}`,
     data.wobjects, _.get(data, 'guestInfo.userId'),
   );
-  await postHelper.addToRelated(data.wobjects, metadata.image);
+  await postHelper.addToRelated(data.wobjects, metadata.image, `${data.author}_${data.permlink}`);
   return { updPost, action: 'updated' };
 };
 

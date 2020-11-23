@@ -159,16 +159,14 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
   return _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent >= 0 && w.percent <= 100).value();
 };
 
-exports.addToRelated = async (wobjects, images) => {
-  if (_.isEmpty(wobjects) || _.isEmpty(images)) return;
+exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
+  if (_.isEmpty(wobjects)) return;
+  images = _.filter(images, (img) => img.match(/^https:\/\//));
   for (const wobject of wobjects) {
-    for (const el of images) {
-      const { image } = await relatedAlbum
-        .findOne({ id: wobject.author_permlink, body: el });
-      if (!image) {
-        await relatedAlbum
-          .addImageToRelated({ id: wobject.author_permlink, body: el });
-      }
-    }
+    await relatedAlbum.update({
+      images,
+      postAuthorPermlink,
+      wobjAuthorPermlink: wobject.author_permlink,
+    });
   }
 };

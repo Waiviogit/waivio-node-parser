@@ -1,18 +1,15 @@
 const { RelatedAlbum } = require('database').models;
 
-exports.addImageToRelated = async ({ id, body }) => {
-  const newImage = new RelatedAlbum({ id, body });
+exports.update = async (data) => {
   try {
-    await newImage.save();
-    return { result: true };
-  } catch (error) {
-    return { error };
-  }
-};
+    const result = await RelatedAlbum.findOneAndUpdate({
+      wobjAuthorPermlink: data.wobjAuthorPermlink,
+      postAuthorPermlink: data.postAuthorPermlink,
+    },
+    data,
+    { upsert: true, new: true });
 
-exports.findOne = async (condition, select) => {
-  try {
-    return { image: await RelatedAlbum.findOne(condition, select).lean() };
+    return { result };
   } catch (error) {
     return { error };
   }
