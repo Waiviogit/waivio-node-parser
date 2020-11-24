@@ -161,7 +161,7 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
 
 exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
   if (_.isEmpty(wobjects)) return;
-  images = _.filter(images, (img) => img.match(/^https:\/\//));
+  images = _.filter(images, (img) => typeof img === 'string' && img.match(/^https:\/\//));
 
   if (_.isEmpty(images)) {
     for (const el of wobjects) {
