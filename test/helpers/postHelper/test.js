@@ -133,22 +133,38 @@ describe('On postHelper', async () => {
   });
 
   describe('On addToRelated', async () => {
-    let mockObject, body, image;
+    let wobjAuthorPermlink, postAuthorPermlink, mockObject, image;
     beforeEach(async () => {
       await dropDatabase();
-      body = faker.random.string();
-      mockObject = await ObjectFactory.Create();
-      await RelatedFactory.Create({ id: mockObject.author_permlink, body });
+      wobjAuthorPermlink = faker.random.string();
+      postAuthorPermlink = faker.random.string();
+      mockObject = await ObjectFactory.Create({ author_permlink: wobjAuthorPermlink });
     });
-    it('should not add to collection, if record already exists', async () => {
-      await postHelper.addToRelated([mockObject], [body]);
-      image = await RelatedAlbum.find({}).lean();
-      expect(image).to.has.length(1);
+    it('should not add to collection, if images are empty', async () => {
+      await postHelper.addToRelated([mockObject], [], postAuthorPermlink);
+      image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
+      expect(image).to.not.exist;
     });
-    it('should add to collection, if record does not exists', async () => {
-      await postHelper.addToRelated([mockObject], [faker.random.string()]);
-      image = await RelatedAlbum.find({}).lean();
-      expect(image).to.has.length(2);
+    it('should delete exist record if images are empty', async () => {
+      await RelatedFactory.Create({ wobjAuthorPermlink, postAuthorPermlink });
+      await postHelper.addToRelated([mockObject], [], postAuthorPermlink);
+      image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
+      expect(image).to.not.exist;
+    });
+    it('should add to collection, if images exists and valid links', async () => {
+      await postHelper.addToRelated([mockObject], [`https://${faker.random.string()}`], postAuthorPermlink);
+      image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
+      expect(image).to.exist;
+    });
+    it('should not add to collection images with not valid links', async () => {
+      const notValid = `http://${faker.random.string()}`;
+      await postHelper.addToRelated(
+        [mockObject],
+        [`https://${faker.random.string()}`, notValid],
+        postAuthorPermlink,
+      );
+      image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
+      expect(image.images).to.not.include(notValid);
     });
   });
 });

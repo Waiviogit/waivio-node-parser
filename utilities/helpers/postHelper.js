@@ -162,6 +162,22 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
 exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
   if (_.isEmpty(wobjects)) return;
   images = _.filter(images, (img) => img.match(/^https:\/\//));
+
+  if (_.isEmpty(images)) {
+    for (const el of wobjects) {
+      const { result } = await relatedAlbum.findOne({
+        wobjAuthorPermlink: el.author_permlink,
+        postAuthorPermlink,
+      });
+
+      result && await relatedAlbum.deleteOne({
+        wobjAuthorPermlink: el.author_permlink,
+        postAuthorPermlink,
+      });
+    }
+    return;
+  }
+
   for (const wobject of wobjects) {
     await relatedAlbum.update({
       images,

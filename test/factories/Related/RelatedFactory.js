@@ -1,11 +1,12 @@
 const { RelatedAlbum, faker } = require('test/testHelper');
 
 const Create = async ({
-  id, body, onlyData,
+  wobjAuthorPermlink, postAuthorPermlink, images, onlyData,
 } = {}) => {
   const imageData = {
-    id: id || faker.name.firstName(),
-    body: body || faker.name.firstName(),
+    wobjAuthorPermlink: wobjAuthorPermlink || faker.random.string(),
+    postAuthorPermlink: postAuthorPermlink || faker.random.string(),
+    images: images || [faker.random.string()],
   };
   if (onlyData) return imageData;
   const image = new RelatedAlbum(imageData);

@@ -14,3 +14,18 @@ exports.update = async (data) => {
     return { error };
   }
 };
+exports.findOne = async (condition, select = {}) => {
+  try {
+    return { result: await RelatedAlbum.findOne(condition, select).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
+exports.deleteOne = async (condition) => {
+  try {
+    return { result: await RelatedAlbum.deleteOne(condition) };
+  } catch (error) {
+    return { error };
+  }
+};
