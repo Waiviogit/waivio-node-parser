@@ -14,6 +14,7 @@ exports.update = async (data) => {
     return { error };
   }
 };
+
 exports.findOne = async (condition, select = {}) => {
   try {
     return { result: await RelatedAlbum.findOne(condition, select).lean() };
