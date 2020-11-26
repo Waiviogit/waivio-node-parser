@@ -13,5 +13,5 @@ module.exports = {
   CampaignFactory: require('./Campaign/CampaignFactory'),
   WebsitePaymentsFactory: require('./WebsiteTransfers/WebsiteTransfersFactory'),
   WebsiteRefundsFactory: require('./WebsiteRefunds/WebsiteRefundsFactory'),
-
+  RelatedFactory: require('./Related/RelatedFactory'),
 };

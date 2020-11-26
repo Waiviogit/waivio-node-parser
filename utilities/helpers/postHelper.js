@@ -1,9 +1,15 @@
 const _ = require('lodash');
 const moment = require('moment');
+const {
+  Post, CommentModel, Wobj, relatedAlbum,
+} = require('models');
 const { ObjectId } = require('mongoose').Types;
-const { Post, CommentModel } = require('models');
 const { postsUtil } = require('utilities/steemApi');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
+const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
+const {
+  RE_WOBJECT_LINK, RE_WOBJECT_AUTHOR_PERMLINK, RE_WOBJECT_AUTHOR_PERMLINK_ENDS, RE_HTTPS,
+} = require('constants/regExp');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -107,4 +113,84 @@ exports.guestCommentFromTTL = async (author, permlink) => {
   const { error } = await CommentModel.createOrUpdate({ ...comment, guestInfo });
   if (error) return console.error(error);
   console.log(`Guest comment created: ${author}/${permlink}, guest name: ${guestInfo.userId}`);
+};
+
+/**
+ * in first part of method we search for links on waivio objects, and check if they in metadata,
+ * if not add them to wobj.wobjects and recount wobject percent
+ * in second part we check weather post has wobjects or just tags and make calculations
+ */
+exports.parseBodyWobjects = async (metadata, postBody = '') => {
+  const bodyLinks = postBody.match(RE_WOBJECT_LINK);
+  if (!_.isEmpty(bodyLinks)) {
+    const metadataWobjects = _.concat(
+      _.get(metadata, 'tags', []),
+      _.map(_.get(metadata, 'wobj.wobjects', []), 'author_permlink'),
+    );
+    const wobj = _.get(metadata, 'wobj.wobjects', []);
+    for (const link of bodyLinks) {
+      const authorPermlink = _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK), '[1]', _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK_ENDS), '[1]'));
+      if (authorPermlink && !_.includes(metadataWobjects, authorPermlink)) {
+        const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+        if (!wobject) continue;
+        wobj.push({ author_permlink: wobject.author_permlink });
+      }
+    }
+    if (!_.isEmpty(wobj)) {
+      const wobjWithPercent = _.filter(wobj, (w) => w.percent !== 0);
+      _.forEach(wobj, (w) => {
+        if (w.percent !== 0) w.percent = Math.floor(100 / wobjWithPercent.length);
+      });
+      metadata.wobj = { wobjects: wobj };
+    }
+  }
+
+  const metadataWobjects = _.get(metadata, 'wobj.wobjects');
+  const isSimplePost = _.isEmpty(metadataWobjects);
+  const postTags = _.get(metadata, 'tags', []);
+
+  if (_.isArray(metadataWobjects) && !isSimplePost && postTags.length) {
+    let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
+    const wobj = metadata.wobj.wobjects;
+    tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
+    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
+    metadata.wobj = { wobjects: wobj || [] };
+  } else if (isSimplePost && postTags.length) {
+    // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
+    const wobjects = await postByTagsHelper.wobjectsByTags(postTags);
+    metadata.wobj = { wobjects: wobjects || [] };
+  }
+  return _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent >= 0 && w.percent <= 100).value();
+};
+
+exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
+  if (_.isEmpty(wobjects)) return;
+  images = _
+    .chain(images)
+    .uniq()
+    .filter((img) => typeof img === 'string' && img.match(RE_HTTPS))
+    .value();
+
+  if (_.isEmpty(images)) {
+    for (const el of wobjects) {
+      const { result } = await relatedAlbum.findOne({
+        wobjAuthorPermlink: el.author_permlink,
+        postAuthorPermlink,
+      });
+
+      result && await relatedAlbum.deleteOne({
+        wobjAuthorPermlink: el.author_permlink,
+        postAuthorPermlink,
+      });
+    }
+    return;
+  }
+
+  for (const wobject of wobjects) {
+    await relatedAlbum.update({
+      images,
+      postAuthorPermlink,
+      wobjAuthorPermlink: wobject.author_permlink,
+    });
+  }
 };

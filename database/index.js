@@ -30,5 +30,6 @@ module.exports = {
     WobjectSubscriptions: require('./schemas/WobjectSubscriptionSchema'),
     WebsitePayments: require('./schemas/WebsitePaymentsSchema'),
     WebsitesRefund: require('./schemas/WebsiteRefudSchema'),
+    RelatedAlbum: require('./schemas/RelatedAlbumSchema'),
   },
 };
