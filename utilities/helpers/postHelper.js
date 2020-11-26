@@ -7,6 +7,9 @@ const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
+const {
+  RE_WOBJECT_LINK, RE_WOBJECT_AUTHOR_PERMLINK, RE_WOBJECT_AUTHOR_PERMLINK_ENDS, RE_HTTPS,
+} = require('constants/regExp');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -118,7 +121,7 @@ exports.guestCommentFromTTL = async (author, permlink) => {
  * in second part we check weather post has wobjects or just tags and make calculations
  */
 exports.parseBodyWobjects = async (metadata, postBody = '') => {
-  const bodyLinks = postBody.match(/waivio\.com\/object\/[a-z0-9-]+$|waivio\.com\/object\/.*[\/)?:;,. ]/gm);
+  const bodyLinks = postBody.match(RE_WOBJECT_LINK);
   if (!_.isEmpty(bodyLinks)) {
     const metadataWobjects = _.concat(
       _.get(metadata, 'tags', []),
@@ -126,7 +129,7 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     );
     const wobj = _.get(metadata, 'wobj.wobjects', []);
     for (const link of bodyLinks) {
-      const authorPermlink = _.get(link.match(/waivio\.com\/object\/([a-z0-9-]+)[\/)?:;,. ]/), '[1]', _.get(link.match(/waivio\.com\/object\/([a-z0-9-]+$)/), '[1]'));
+      const authorPermlink = _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK), '[1]', _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK_ENDS), '[1]'));
       if (authorPermlink && !_.includes(metadataWobjects, authorPermlink)) {
         const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
         if (!wobject) continue;
@@ -142,10 +145,11 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     }
   }
 
-  const isSimplePost = _.isEmpty(_.get(metadata, 'wobj.wobjects'));
+  const metadataWobjects = _.get(metadata, 'wobj.wobjects');
+  const isSimplePost = _.isEmpty(metadataWobjects);
   const postTags = _.get(metadata, 'tags', []);
 
-  if (_.isArray(_.get(metadata, 'wobj.wobjects')) && !isSimplePost && postTags.length) {
+  if (_.isArray(metadataWobjects) && !isSimplePost && postTags.length) {
     let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
     const wobj = metadata.wobj.wobjects;
     tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
@@ -161,7 +165,11 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
 
 exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
   if (_.isEmpty(wobjects)) return;
-  images = _.filter(images, (img) => typeof img === 'string' && img.match(/^https:\/\//));
+  images = _
+    .chain(images)
+    .uniq()
+    .filter((img) => typeof img === 'string' && img.match(RE_HTTPS))
+    .value();
 
   if (_.isEmpty(images)) {
     for (const el of wobjects) {

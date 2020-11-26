@@ -7,7 +7,7 @@ exports.fillRelated = async () => {
   const posts = await Post.find({ notProcessed: true }).limit(1000).lean();
   if (_.isEmpty(posts)) {
     console.log('task completed');
-    return;
+    process.exit();
   }
   for (const post of posts) {
     const {
