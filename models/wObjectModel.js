@@ -201,9 +201,9 @@ const updateField = async (author, permlink, authorPermlink, key, value) => {
   }
 };
 
-const getOne = async ({ author_permlink: authorPermlink }) => {
+const getOne = async ({ author_permlink: authorPermlink, select = {} }) => {
   try {
-    const wobject = await WObjectModel.findOne({ author_permlink: authorPermlink }).lean();
+    const wobject = await WObjectModel.findOne({ author_permlink: authorPermlink }, select).lean();
 
     if (!wobject) {
       return { error: { status: 404, message: 'Wobject not found!' } };
