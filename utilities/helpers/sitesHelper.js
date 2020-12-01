@@ -154,7 +154,7 @@ exports.parseSitePayments = async ({ operation, type, blockNum }) => {
         let status = STATUSES.PENDING;
         app.activatedAt ? status = STATUSES.ACTIVE : null;
         app.deactivatedAt ? status = STATUSES.INACTIVE : null;
-        await websitePayments.updateOne({ _id: app._id }, { status });
+        await App.updateOne({ _id: app._id }, { status });
       }
   }
 };
@@ -232,14 +232,12 @@ exports.updateSupportedObjects = async ({ host, app }) => {
   await App.updateOne({ _id: app._id }, { $set: { supported_objects: _.map(result, 'author_permlink') } });
 };
 
-
 /** ------------------------PRIVATE METHODS--------------------------*/
 
 const validateServiceBot = async (username) => {
   const WAIVIO_SERVICE_BOTS = await appHelper.getProxyBots(['serviceBot']);
   return WAIVIO_SERVICE_BOTS.includes(username);
 };
-
 
 const parseJson = (json) => {
   try {
@@ -260,7 +258,7 @@ const checkForSuspended = async (userName) => {
   if (app || payable < 0) {
     await App.updateMany({ owner: userName, inherited: true }, { status: STATUSES.SUSPENDED });
     await websiteRefunds.deleteOne(
-      { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName: userName },
+      { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName },
     );
   }
 };
@@ -287,7 +285,6 @@ const getAccountBalance = async (account) => {
   });
   return { payable };
 };
-
 
 const captureException = async (error) => {
   await sendSentryNotification();
