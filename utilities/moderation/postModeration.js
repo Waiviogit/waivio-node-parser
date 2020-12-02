@@ -17,10 +17,11 @@ const _ = require('lodash');
  * @param author {String}
  * @param permlink {String}
  * @param guestAuthor
+ * @param hide {boolean}
  * @returns {Promise<void|{error}>}
  */
 exports.checkDownVote = async ({
-  voter, author, permlink, guestAuthor,
+  voter, author, permlink, guestAuthor, hide = true,
 }) => {
   const { apps, error } = await App.findByModeration(voter);
   if (error) {
@@ -28,12 +29,15 @@ exports.checkDownVote = async ({
     return { error };
   }
   if (!apps || _.isEmpty(apps)) return;
+  const updateData = hide
+    ? { $addToSet: { blocked_for_apps: { $each: [...apps.map((a) => a.host)] } } }
+    : { $pull: { blocked_for_apps: { $in: apps.map((a) => a.host) } } };
   /** Update reblogs */
-  await Post.updateMany({ permlink: `${author}/${permlink}` }, { $addToSet: { blocked_for_apps: { $each: [...apps.map((a) => a.host)] } } });
+  await Post.updateMany({ permlink: `${author}/${permlink}` }, updateData);
 
   return Post.update({
     author: guestAuthor || author,
     permlink,
-    $addToSet: { blocked_for_apps: { $each: [...apps.map((a) => a.host)] } },
+    ...updateData,
   });
 };

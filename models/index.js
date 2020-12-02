@@ -14,4 +14,5 @@ module.exports = {
   websitePayments: require('./websitesPaymentsModel'),
   websiteRefunds: require('./websitesRefundsModel'),
   relatedAlbum: require('./relatedAlbumModel'),
+  hiddenPostModel: require('./hiddenPostModel'),
 };

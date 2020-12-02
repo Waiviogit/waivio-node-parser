@@ -22,6 +22,9 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.VOTE_APPEND:
       await voteParsers.customJSONAppendVote(operation);
       break;
+    case CUSTOM_JSON_OPS.HIDE_POST:
+      await userParsers.hidePost(operation);
+      break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:
       await userHelper.rejectReferralStatus(operation);

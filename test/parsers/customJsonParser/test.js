@@ -62,7 +62,7 @@ describe('On custom json parser', async () => {
           expect(referralsData.agent).to.be.eq(agent.name);
         });
         it('should add correct count of days to referral', async () => {
-          const days = moment.utc(referralsData.endedAt).get('dayOfYear') - moment.utc(referralsData.startedAt).get('dayOfYear');
+          const days = moment.utc(referralsData.endedAt).diff(moment.utc(referralsData.startedAt), 'days');
           expect(days).to.be.eq(duration);
         });
       });

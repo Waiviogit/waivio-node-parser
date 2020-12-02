@@ -1,12 +1,12 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions, WobjectSubscriptions,
+  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions, WobjectSubscriptions, HiddenPost,
 } = require('test/testHelper');
 const {
-  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory,
+  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory,
 } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
-const { BELL_NOTIFICATIONS } = require('constants/parsersData');
+const { BELL_NOTIFICATIONS, HIDE_ACTION } = require('constants/parsersData');
 
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
@@ -357,6 +357,210 @@ describe('UserParsers', async () => {
         ({ bell } = await WobjectSubscriptions
           .findOne({ follower: wSubs2.follower, following: wSubs2.following }).lean());
         expect(bell).to.be.false;
+      });
+    });
+  });
+
+  describe('On hidePost', async () => {
+    let author, permlink, admin, user, moderator, firstAppHost, secondAppHost, randomAppHost, operation, reblog, post, hiddenPost;
+    beforeEach(async () => {
+      await dropDatabase();
+      user = faker.random.string();
+      admin = faker.random.string();
+      moderator = faker.random.string();
+      author = faker.random.string();
+      permlink = faker.random.string();
+      firstAppHost = faker.random.string();
+      secondAppHost = faker.random.string();
+      randomAppHost = faker.random.string();
+      post = await PostFactory.Create({ author, permlink, blocked_for_apps: [randomAppHost] });
+      reblog = await PostFactory.Create({ permlink: `${author}/${permlink}`, blocked_for_apps: [randomAppHost] });
+      await AppFactory.Create({ admins: [admin], moderators: [moderator], host: firstAppHost });
+      await AppFactory.Create({ admins: [admin], moderators: [moderator], host: secondAppHost });
+    });
+
+    describe('On user action hide', async () => {
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [user],
+          json: JSON.stringify({ author, permlink, action: HIDE_ACTION.HIDE }),
+        };
+        await userParsers.hidePost(operation);
+      });
+      it('should create record in hidden_posts collection', async () => {
+        hiddenPost = await HiddenPost.findOne({ userName: user, postId: post._id }).lean();
+        expect(hiddenPost).to.exist;
+      });
+      it('should not change array blocked_for_apps in post', async () => {
+        post = await Post.findOne({ author, permlink });
+        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+      it('should not change array blocked_for_apps in reblog', async () => {
+        reblog = await Post.findOne({ permlink: `${author}/${permlink}` });
+        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+    });
+
+    describe('On user action unhide', async () => {
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [user],
+          json: JSON.stringify({ author, permlink, action: HIDE_ACTION.UNHIDE }),
+        };
+        await HiddenPostsFactory.Create({ userName: user, postId: post._id });
+        await userParsers.hidePost(operation);
+      });
+      it('should delete record in hidden_posts collection', async () => {
+        hiddenPost = await HiddenPost.findOne({ userName: user, postId: post._id }).lean();
+        expect(hiddenPost).to.not.exist;
+      });
+      it('should not change array blocked_for_apps in post', async () => {
+        post = await Post.findOne({ author, permlink });
+        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+      it('should not change array blocked_for_apps in reblog', async () => {
+        reblog = await Post.findOne({ permlink: `${author}/${permlink}` });
+        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+    });
+
+    describe('On admin hide', async () => {
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [admin],
+          json: JSON.stringify({ author, permlink, action: HIDE_ACTION.HIDE }),
+        };
+        await userParsers.hidePost(operation);
+      });
+      it('should create record in hidden_posts collection', async () => {
+        hiddenPost = await HiddenPost.findOne({ userName: admin, postId: post._id }).lean();
+        expect(hiddenPost).to.exist;
+      });
+      it('should change array blocked_for_apps in post', async () => {
+        post = await Post.findOne({ author, permlink });
+        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost, firstAppHost, secondAppHost]);
+      });
+      it('should change array blocked_for_apps in reblog', async () => {
+        reblog = await Post.findOne({ permlink: `${author}/${permlink}` });
+        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost, firstAppHost, secondAppHost]);
+      });
+    });
+
+    describe('On admin unhide', async () => {
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [admin],
+          json: JSON.stringify({ author, permlink, action: HIDE_ACTION.UNHIDE }),
+        };
+        await HiddenPostsFactory.Create({ userName: admin, postId: post._id });
+        Post.updateOne(
+          { author, permlink },
+          { $addToSet: { blocked_for_apps: [firstAppHost, secondAppHost] } },
+        );
+        Post.updateOne(
+          { permlink: `${author}/${permlink}` },
+          { $addToSet: { blocked_for_apps: [firstAppHost, secondAppHost] } },
+        );
+        await userParsers.hidePost(operation);
+      });
+      it('should delete record in hidden_posts collection', async () => {
+        hiddenPost = await HiddenPost.findOne({ userName: admin, postId: post._id }).lean();
+        expect(hiddenPost).to.not.exist;
+      });
+      it('should remove from post array blocked_for_apps app where user admin', async () => {
+        post = await Post.findOne({ author, permlink });
+        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+      it('should remove from reblog array blocked_for_apps app where user admin', async () => {
+        reblog = await Post.findOne({ permlink: `${author}/${permlink}` });
+        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+    });
+
+    describe('On moderator hide', async () => {
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [moderator],
+          json: JSON.stringify({ author, permlink, action: HIDE_ACTION.HIDE }),
+        };
+        await userParsers.hidePost(operation);
+      });
+      it('should create record in hidden_posts collection', async () => {
+        hiddenPost = await HiddenPost.findOne({ userName: moderator, postId: post._id }).lean();
+        expect(hiddenPost).to.exist;
+      });
+      it('should change array blocked_for_apps in post', async () => {
+        post = await Post.findOne({ author, permlink });
+        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost, firstAppHost, secondAppHost]);
+      });
+      it('should change array blocked_for_apps in reblog', async () => {
+        reblog = await Post.findOne({ permlink: `${author}/${permlink}` });
+        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost, firstAppHost, secondAppHost]);
+      });
+    });
+
+    describe('On moderator unhide', async () => {
+      beforeEach(async () => {
+        operation = {
+          required_posting_auths: [moderator],
+          json: JSON.stringify({ author, permlink, action: HIDE_ACTION.UNHIDE }),
+        };
+        await HiddenPostsFactory.Create({ userName: moderator, postId: post._id });
+        Post.updateOne(
+          { author, permlink },
+          { $addToSet: { blocked_for_apps: [firstAppHost, secondAppHost] } },
+        );
+        Post.updateOne(
+          { permlink: `${author}/${permlink}` },
+          { $addToSet: { blocked_for_apps: [firstAppHost, secondAppHost] } },
+        );
+        await userParsers.hidePost(operation);
+      });
+      it('should delete record in hidden_posts collection', async () => {
+        hiddenPost = await HiddenPost.findOne({ userName: moderator, postId: post._id }).lean();
+        expect(hiddenPost).to.not.exist;
+      });
+      it('should remove from post array blocked_for_apps app where user admin', async () => {
+        post = await Post.findOne({ author, permlink });
+        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+      it('should remove from reblog array blocked_for_apps app where user admin', async () => {
+        reblog = await Post.findOne({ permlink: `${author}/${permlink}` });
+        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost]);
+      });
+    });
+
+    describe('On invalid data', async () => {
+      beforeEach(async () => {
+        sinon.spy(console, 'error');
+      });
+      afterEach(() => {
+        sinon.restore();
+      });
+      it('should call console.error on when can\'t find userName', async () => {
+        operation = {
+          json: JSON.stringify({ author, permlink, action: HIDE_ACTION.UNHIDE }),
+        };
+        await userParsers.hidePost(operation);
+        expect(console.error).to.be.calledOnce;
+      });
+      it('should call console.error on when can\'t find post', async () => {
+        operation = {
+          required_posting_auths: [moderator],
+          json: JSON.stringify({
+            author: faker.random.string(), action: HIDE_ACTION.UNHIDE,
+          }),
+        };
+        await userParsers.hidePost(operation);
+        expect(console.error).to.be.calledOnce;
+      });
+      it('should call console.error on when can\'t parse json', async () => {
+        operation = {
+          required_posting_auths: [moderator],
+          json: faker.random.string(),
+        };
+        await userParsers.hidePost(operation);
+        expect(console.error).to.be.calledOnce;
       });
     });
   });
