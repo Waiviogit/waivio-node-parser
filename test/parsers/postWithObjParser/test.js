@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const config = require('config');
 const {
   expect, postWithObjectParser, Post, faker, postsUtil, sinon, User,
@@ -34,13 +33,12 @@ describe('postWithObjectParser', async () => {
         userUtilStub = sinon.stub(usersUtil, 'getUser').returns(Promise.resolve({ user: faker.random.string() }));
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
+        sinon.spy(postHelper, 'parseBodyWobjects');
+        sinon.spy(postHelper, 'addToRelated');
         result = await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
-        postsUtilStub.restore();
-        userUtilStub.restore();
-        postWithWobjValidator.validate.restore();
-        postHelper.objectIdFromDateString.restore();
+        sinon.restore();
       });
       it('should create user "author" of post', async () => {
         const user = await User.findOne({ name: mockPost.author });
@@ -69,6 +67,12 @@ describe('postWithObjectParser', async () => {
         let post = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
         post = post.toObject();
         expect(post.wobjects).to.have.length(2);
+      });
+      it('should call parseBodyWobjects once', async () => {
+        expect(postHelper.parseBodyWobjects).to.be.calledOnce;
+      });
+      it('should call addToRelated once', async () => {
+        expect(postHelper.addToRelated).to.be.calledOnce;
       });
     });
 
@@ -142,6 +146,8 @@ describe('postWithObjectParser', async () => {
         sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
+        sinon.spy(postHelper, 'parseBodyWobjects');
+        sinon.spy(postHelper, 'addToRelated');
         await postWithObjectParser.parse(mockOp, mockMetadata);
       });
       afterEach(() => {
@@ -173,6 +179,12 @@ describe('postWithObjectParser', async () => {
       it('should update post with new "body"', async () => {
         const res = await Post.findOne({ author: mockPost.author, permlink: mockPost.permlink });
         expect(res.body).to.be.eq(mockPost.body);
+      });
+      it('should call parseBodyWobjects once', async () => {
+        expect(postHelper.parseBodyWobjects).to.be.calledOnce;
+      });
+      it('should call addToRelated once', async () => {
+        expect(postHelper.addToRelated).to.be.calledOnce;
       });
     });
   });
