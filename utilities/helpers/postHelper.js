@@ -10,6 +10,7 @@ const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
 const {
   RE_WOBJECT_LINK, RE_WOBJECT_AUTHOR_PERMLINK, RE_WOBJECT_AUTHOR_PERMLINK_ENDS, RE_HTTPS,
 } = require('constants/regExp');
+const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -187,6 +188,9 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
   }
 
   for (const wobject of wobjects) {
+    const { wobject: result } = await Wobj
+      .getOne({ author_permlink: wobject.author_permlink, select: { object_type: 1 } });
+    if (!_.includes(OBJECT_TYPES_WITH_ALBUM, _.get(result, 'object_type', ''))) continue;
     await relatedAlbum.update({
       images,
       postAuthorPermlink,

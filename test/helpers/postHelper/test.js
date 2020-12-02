@@ -3,6 +3,7 @@ const {
   postHelper, faker, expect, dropDatabase, RelatedAlbum,
 } = require('test/testHelper');
 const { ObjectFactory, RelatedFactory } = require('test/factories');
+const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 
 describe('On postHelper', async () => {
   describe('On parseBodyWobjects', async () => {
@@ -138,7 +139,9 @@ describe('On postHelper', async () => {
       await dropDatabase();
       wobjAuthorPermlink = faker.random.string();
       postAuthorPermlink = faker.random.string();
-      mockObject = await ObjectFactory.Create({ author_permlink: wobjAuthorPermlink });
+      mockObject = await ObjectFactory.Create({
+        author_permlink: wobjAuthorPermlink, object_type: _.sample(OBJECT_TYPES_WITH_ALBUM),
+      });
     });
     it('should not add to collection, if images are empty', async () => {
       await postHelper.addToRelated([mockObject], [], postAuthorPermlink);
@@ -165,6 +168,13 @@ describe('On postHelper', async () => {
       );
       image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
       expect(image.images).to.not.include(notValid);
+    });
+    it('should not add to collection when object not have appropriate exposed fields', async () => {
+      wobjAuthorPermlink = faker.random.string();
+      mockObject = await ObjectFactory.Create({ author_permlink: wobjAuthorPermlink });
+      await postHelper.addToRelated([mockObject], [`https://${faker.random.string()}`], postAuthorPermlink);
+      image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
+      expect(image).to.not.exist;
     });
   });
 });
