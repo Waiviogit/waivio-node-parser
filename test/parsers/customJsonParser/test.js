@@ -41,7 +41,7 @@ describe('On custom json parser', async () => {
         });
         it('should add correct count of days to referral', async () => {
           const referralsData = _.find(result.referral, { type: REFERRAL_TYPES.REVIEWS });
-          const days = moment.utc(referralsData.endedAt).get('dayOfYear') - moment.utc(referralsData.startedAt).get('dayOfYear');
+          const days = moment.utc(referralsData.endedAt).diff(moment.utc(referralsData.startedAt), 'days');
           expect(days).to.be.eq(duration);
         });
       });
