@@ -1,16 +1,18 @@
 const _ = require('lodash');
 const { Wobj } = require('models');
+const jsonHelper = require('utilities/helpers/jsonHelper');
 const wobjectValidator = require('validator/wobjectValidator');
 const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
+const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 
 const parse = async (operation) => {
-  const json = parseJson(operation.json);
+  const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return;
   if (!await wobjectValidator.validateRatingVote(json, operation)) {
     console.error('Rating vote data is not valid!');
     return;
   }
-  const voter = operation.required_posting_auths[0];
+  const voter = _.get(operation, REQUIRED_POSTING_AUTHS);
   const { author } = json;
   const { permlink } = json;
   const { author_permlink: authorPermlink } = json;
@@ -28,21 +30,13 @@ const parse = async (operation) => {
 };
 
 const parseGuest = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
     if (_.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, 'guestName')];
 
     await parse(operation);
-  }
-};
-
-const parseJson = (json) => {
-  try {
-    return JSON.parse(json);
-  } catch (error) {
-    return {};
   }
 };
 

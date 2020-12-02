@@ -7,6 +7,9 @@ const { usersUtil } = require('utilities/steemApi');
 const appHelper = require('utilities/helpers/appHelper');
 const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
 const { REVIEW_DEBTS_TYPES } = require('constants/campaigns');
+const jsonHelper = require('utilities/helpers/jsonHelper');
+const { ERROR } = require('constants/common');
+const { REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 const config = require('config');
 
 /**
@@ -52,21 +55,12 @@ exports.checkAndCreateByArray = async (names) => {
   return { hiveAccounts: steemUsers };
 };
 
-const parseJson = (json) => {
-  try {
-    return JSON.parse(json);
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
-
 /** Set different referral types to users */
 exports.checkAndSetReferral = async (data) => {
-  const json = parseJson(data.json);
-  if (!json) return { error: 'JSON not valid' };
+  const json = jsonHelper.parseJson(data.json);
+  if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
 
-  let author = _.get(data, 'required_posting_auths[0]');
+  let author = _.get(data, REQUIRED_POSTING_AUTHS);
   const agent = _.get(json, 'agent');
   if (!author || !agent) return { error: 'Not valid data' };
 
@@ -144,11 +138,11 @@ const referralValidation = async (json, author, postingAuth) => {
 };
 
 exports.confirmReferralStatus = async (data) => {
-  const json = parseJson(data.json);
-  if (!json) return { error: 'JSON not valid' };
+  const json = jsonHelper.parseJson(data.json);
+  if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
   const author = _.get(json, 'agent');
 
-  const { error } = await referralValidation(json, author, data.required_posting_auths[0]);
+  const { error } = await referralValidation(json, author, _.get(data, REQUIRED_POSTING_AUTHS));
   if (error) return { error };
 
   /** Set user referral status */
@@ -157,11 +151,11 @@ exports.confirmReferralStatus = async (data) => {
 };
 
 exports.rejectReferralStatus = async (data) => {
-  const json = parseJson(data.json);
-  if (!json) return { error: 'JSON not valid' };
+  const json = jsonHelper.parseJson(data.json);
+  if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
   const author = _.get(json, 'agent');
 
-  const { error } = await referralValidation(json, author, data.required_posting_auths[0]);
+  const { error } = await referralValidation(json, author, _.get(data, REQUIRED_POSTING_AUTHS));
   if (error) return { error };
 
   let { user } = await userModel.findOne(author);

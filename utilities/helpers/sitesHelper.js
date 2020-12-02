@@ -12,9 +12,10 @@ const {
   REFUND_TYPES, REFUND_STATUSES,
 } = require('constants/sitesData');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
+const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 
 exports.createWebsite = async (operation) => {
-  if (!await validateServiceBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) return;
+  if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
   const json = parseJson(operation.json);
   const { result: parent } = await App.findOne({ host: json.parentHost, canBeExtended: true });
   if (!parent) return false;
@@ -25,7 +26,7 @@ exports.createWebsite = async (operation) => {
 };
 
 exports.deleteWebsite = async (operation) => {
-  if (!await validateServiceBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) return;
+  if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
   const json = parseJson(operation.json);
   const { result: app } = await App.findOne({
     host: json.host, owner: json.userName, inherited: true, status: STATUSES.PENDING,
@@ -35,7 +36,7 @@ exports.deleteWebsite = async (operation) => {
 };
 
 exports.activationActions = async (operation, activate) => {
-  const author = _.get(operation, 'required_posting_auths[0]');
+  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
   if (!json || !author) return false;
 
@@ -58,7 +59,7 @@ exports.activationActions = async (operation, activate) => {
 };
 
 exports.saveWebsiteSettings = async (operation) => {
-  const author = _.get(operation, 'required_posting_auths[0]');
+  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
   if (!json || !author) return false;
   const { error, value } = sitesValidator.settingsSchema.validate(json);
@@ -68,7 +69,7 @@ exports.saveWebsiteSettings = async (operation) => {
 };
 
 exports.refundRequest = async (operation, blockNum) => {
-  const author = _.get(operation, 'required_posting_auths[0]');
+  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
   if (!json || !author) return false;
 
@@ -93,7 +94,7 @@ exports.refundRequest = async (operation, blockNum) => {
 };
 
 exports.createInvoice = async (operation, blockNum) => {
-  const author = _.get(operation, 'required_posting_auths[0]');
+  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
   if (!json || !author || !await objectBotsValidator.validate(author, 'serviceBot')) return false;
 
@@ -106,7 +107,7 @@ exports.createInvoice = async (operation, blockNum) => {
 };
 
 exports.websiteAuthorities = async (operation, type, add) => {
-  const author = _.get(operation, 'required_posting_auths[0]');
+  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
   if (!json || !author) return false;
 

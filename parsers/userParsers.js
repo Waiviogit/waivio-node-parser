@@ -81,7 +81,7 @@ exports.followUserParser = async (operation) => {
   }
 
   if (_.get(json, '[0]') === 'reblog') {
-    await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
+    await this.reblogPostParser({ json, account: _.get(operation, REQUIRED_POSTING_AUTHS) });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
     const { user } = await Subscriptions.findOne(json[1]);
