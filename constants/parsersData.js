@@ -63,3 +63,6 @@ exports.HIDE_ACTION = {
   HIDE: 'hide',
   UNHIDE: 'unhide',
 };
+
+exports.REQUIRED_AUTHS = 'required_auths[0]';
+exports.REQUIRED_POSTING_AUTHS = 'required_posting_auths[0]';
