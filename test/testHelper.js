@@ -14,6 +14,7 @@ const { expect } = chai;
 const faker = require('faker');
 const { Mongoose } = require('database');
 const config = require('config');
+const moment = require('moment');
 
 faker.random.string = (length = 5) => faker.internet.password(length, false, /[a-z]/);
 
@@ -49,6 +50,7 @@ module.exports = {
   AppModel,
   Mongoose,
   expect,
+  moment,
   config,
   faker,
   chai,
