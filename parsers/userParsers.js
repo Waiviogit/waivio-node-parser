@@ -166,7 +166,7 @@ exports.subscribeNotificationsParser = async (operation) => {
   }
 };
 
-exports.hidePost = async (operation) => {
+exports.hidePostParser = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
@@ -189,13 +189,13 @@ exports.hidePost = async (operation) => {
   }
 };
 
-exports.hidePostGuest = async (operation) => {
+exports.guestHidePostParser = async (operation) => {
   if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
     const json = jsonHelper.parseJson(operation.json);
     if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
     operation.required_posting_auths = [_.get(json, 'guestName')];
 
-    await this.hidePost(operation);
+    await this.hidePostParser(operation);
   }
 };

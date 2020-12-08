@@ -23,7 +23,7 @@ exports.parse = async (operation, blockNum) => {
       await voteParsers.customJSONAppendVote(operation);
       break;
     case CUSTOM_JSON_OPS.HIDE_POST:
-      await userParsers.hidePost(operation);
+      await userParsers.hidePostParser(operation);
       break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:
@@ -60,7 +60,7 @@ exports.parse = async (operation, blockNum) => {
       await ratingHelper.parseGuest(operation);
       break;
     case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
-      await userParsers.hidePostGuest(operation);
+      await userParsers.guestHidePostParser(operation);
       break;
       /** WEBSITES */
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:
