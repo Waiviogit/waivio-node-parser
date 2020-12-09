@@ -215,9 +215,9 @@ exports.guestHideContentParser = async (operation) => {
     operation.required_posting_auths = [_.get(json, 'guestName')];
 
     switch (operation.id) {
-      case CUSTOM_JSON_OPS.HIDE_POST:
+      case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
         return this.hidePostParser(operation);
-      case CUSTOM_JSON_OPS.HIDE_COMMENT:
+      case CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT:
         return this.hideCommentParser(operation);
     }
   }

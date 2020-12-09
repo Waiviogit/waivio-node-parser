@@ -62,7 +62,8 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.WOBJ_RATING_GUEST:
       await ratingHelper.parseGuest(operation);
       break;
-    case CUSTOM_JSON_OPS.GUEST_HIDE_CONTENT:
+    case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
+    case CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT:
       await userParsers.guestHideContentParser(operation);
       break;
       /** WEBSITES */
