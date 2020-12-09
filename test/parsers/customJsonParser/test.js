@@ -1,24 +1,25 @@
 const _ = require('lodash');
-const moment = require('moment');
 const {
-  faker, expect, customJsonParser, User, config, dropDatabase,
+  faker, expect, customJsonParser, User, config, dropDatabase, moment,
 } = require('test/testHelper');
-const { AppFactory, UserFactory } = require('test/factories');
+const { AppFactory, UserFactory, PaymentHistoryFactory } = require('test/factories');
 const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
+const { REVIEW_DEBTS_TYPES } = require('constants/campaigns');
 const { getCustomJsonData } = require('./mocks');
 
 describe('On custom json parser', async () => {
   describe('On referral program', async () => {
-    let blackListUser, duration, botName;
+    let blackListUser, duration, botName, oldUserDuration;
     beforeEach(async () => {
       await dropDatabase();
       botName = faker.random.string();
       duration = _.random(10, 50);
+      oldUserDuration = _.random(10, 50);
       blackListUser = faker.random.string(10);
       await AppFactory.Create({
         bots: [{ name: botName, postingKey: faker.random.string(), roles: ['proxyBot'] }],
         host: config.appHost,
-        referralsData: [{ type: REFERRAL_TYPES.REVIEWS, duration }],
+        referralsData: [{ type: REFERRAL_TYPES.REVIEWS, duration, oldUserDuration }],
         blackListUsers: [blackListUser],
       });
     });
@@ -64,6 +65,30 @@ describe('On custom json parser', async () => {
         it('should add correct count of days to referral', async () => {
           const days = moment.utc(referralsData.endedAt).diff(moment.utc(referralsData.startedAt), 'days');
           expect(days).to.be.eq(duration);
+        });
+      });
+      describe('On old user add referral', async () => {
+        let mockData, agent, author, result;
+        beforeEach(async () => {
+          ({ user: agent } = await UserFactory.Create({ allowReferral: true }));
+          ({ user: author } = await UserFactory.Create());
+          const json = { agent: agent.name, type: REFERRAL_TYPES.REVIEWS };
+          await PaymentHistoryFactory
+            .Create({ userName: author.name, type: _.sample(REVIEW_DEBTS_TYPES) });
+          mockData = getCustomJsonData(
+            { json: JSON.stringify(json), id: 'add_referral_agent', postingAuth: [author.name] },
+          );
+          await customJsonParser.parse(mockData);
+          result = await User.findOne({ name: author.name });
+        });
+        it('should add correct agent to user old user', async () => {
+          const referralsData = _.find(result.referral, { type: REFERRAL_TYPES.REVIEWS });
+          expect(referralsData.agent).to.be.eq(agent.name);
+        });
+        it('should add correct count of days to referral', async () => {
+          const referralsData = _.find(result.referral, { type: REFERRAL_TYPES.REVIEWS });
+          const days = moment.utc(referralsData.endedAt).diff(moment.utc(referralsData.startedAt), 'days');
+          expect(days).to.be.eq(oldUserDuration);
         });
       });
     });

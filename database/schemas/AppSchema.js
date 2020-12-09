@@ -20,6 +20,7 @@ const TagsData = new Schema({
 const ReferralTimersSchema = new Schema({
   type: { type: String, enum: Object.values(REFERRAL_TYPES) },
   duration: { type: Number, default: 90 },
+  oldUserDuration: { type: Number, default: 5 },
 }, { _id: false });
 
 const botSchema = new Schema({
