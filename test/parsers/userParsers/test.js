@@ -1,9 +1,10 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions, WobjectSubscriptions, HiddenPost,
+  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions,
+  WobjectSubscriptions, HiddenPost, HiddenComment,
 } = require('test/testHelper');
 const {
-  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory,
+  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory, HiddenCommentFactory,
 } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
 const { BELL_NOTIFICATIONS, HIDE_ACTION } = require('constants/parsersData');
@@ -572,6 +573,37 @@ describe('UserParsers', async () => {
         await userParsers.hidePostParser(operation);
         expect(console.error).to.be.calledOnce;
       });
+    });
+  });
+  describe('On hideCommentParser', async () => {
+    let record;
+    const userName = faker.random.string();
+    const author = faker.random.string();
+    const permlink = faker.random.string();
+
+    beforeEach(async () => {
+      await dropDatabase();
+    });
+
+    it('should add record to collection on hide action', async () => {
+      const operation = {
+        required_posting_auths: [userName],
+        json: JSON.stringify({ author, permlink, action: HIDE_ACTION.HIDE }),
+      };
+      await userParsers.hideCommentParser(operation);
+      record = await HiddenComment.findOne({ userName, author, permlink });
+      expect(record).to.exist;
+    });
+
+    it('should delete record from collection on unhide action', async () => {
+      await HiddenCommentFactory.Create({ userName, author, permlink });
+      const operation = {
+        required_posting_auths: [userName],
+        json: JSON.stringify({ author, permlink, action: HIDE_ACTION.UNHIDE }),
+      };
+      await userParsers.hideCommentParser(operation);
+      record = await HiddenComment.findOne({ userName, author, permlink });
+      expect(record).to.not.exist;
     });
   });
 });
