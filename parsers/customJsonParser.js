@@ -25,6 +25,9 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.HIDE_POST:
       await userParsers.hidePostParser(operation);
       break;
+    case CUSTOM_JSON_OPS.HIDE_COMMENT:
+      await userParsers.hidePostParser(operation);
+      break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:
       await userHelper.rejectReferralStatus(operation);
@@ -59,8 +62,8 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.WOBJ_RATING_GUEST:
       await ratingHelper.parseGuest(operation);
       break;
-    case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
-      await userParsers.guestHidePostParser(operation);
+    case CUSTOM_JSON_OPS.GUEST_HIDE_CONTENT:
+      await userParsers.guestHideContentParser(operation);
       break;
       /** WEBSITES */
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:

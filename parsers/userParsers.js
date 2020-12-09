@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const {
-  User, Post, Subscriptions, wobjectSubscriptions, hiddenPostModel,
+  User, Post, Subscriptions, wobjectSubscriptions, hiddenPostModel, hiddenCommentModel,
 } = require('models');
 const {
-  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS,
+  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, CUSTOM_JSON_OPS,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const postModeration = require('utilities/moderation/postModeration');
@@ -189,13 +189,36 @@ exports.hidePostParser = async (operation) => {
   }
 };
 
-exports.guestHidePostParser = async (operation) => {
+exports.hideCommentParser = async (operation) => {
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
+
+  const { author, permlink, action } = json;
+  const userName = _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS));
+  if (!userName) return console.error(ERROR.HIDE_POST);
+
+  switch (action) {
+    case HIDE_ACTION.HIDE:
+      await hiddenCommentModel.update({ userName, author, permlink });
+      break;
+    case HIDE_ACTION.UNHIDE:
+      await hiddenCommentModel.deleteOne({ userName, author, permlink });
+      break;
+  }
+};
+
+exports.guestHideContentParser = async (operation) => {
   if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
     const json = jsonHelper.parseJson(operation.json);
     if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
     operation.required_posting_auths = [_.get(json, 'guestName')];
 
-    await this.hidePostParser(operation);
+    switch (operation.id) {
+      case CUSTOM_JSON_OPS.HIDE_POST:
+        return this.hidePostParser(operation);
+      case CUSTOM_JSON_OPS.HIDE_COMMENT:
+        return this.hideCommentParser(operation);
+    }
   }
 };

@@ -32,5 +32,6 @@ module.exports = {
     WebsitesRefund: require('./schemas/WebsiteRefudSchema'),
     RelatedAlbum: require('./schemas/RelatedAlbumSchema'),
     HiddenPost: require('./schemas/HiddenPostSchema'),
+    HiddenComment: require('./schemas/HiddenCommentSchema'),
   },
 };
