@@ -26,7 +26,7 @@ exports.parse = async (operation, blockNum) => {
       await userParsers.hidePostParser(operation);
       break;
     case CUSTOM_JSON_OPS.HIDE_COMMENT:
-      await userParsers.hidePostParser(operation);
+      await userParsers.hideCommentParser(operation);
       break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:
