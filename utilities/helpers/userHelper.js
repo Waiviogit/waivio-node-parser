@@ -109,9 +109,12 @@ exports.checkAndSetReferral = async (data) => {
         { userName: author, type: { $in: REVIEW_DEBTS_TYPES } },
       );
 
-      if (result || _.get(user, 'referrals', []).length) {
+      if (_.get(user, 'referrals', []).length) {
         return { error: 'User is not new' };
       }
+      const referralDuration = result
+        ? _.get(referralTypeData, 'oldUserDuration', 5)
+        : _.get(referralTypeData, 'duration', 90);
       /** Add referral agent to user */
       return userModel.updateOne({ name: author }, {
         $push: {
@@ -119,7 +122,7 @@ exports.checkAndSetReferral = async (data) => {
             agent,
             type: json.type,
             startedAt: moment.utc().toDate(),
-            endedAt: moment.utc().add(_.get(referralTypeData, 'duration', 90), 'day').toDate(),
+            endedAt: moment.utc().add(referralDuration, 'day').toDate(),
           },
         },
       });
