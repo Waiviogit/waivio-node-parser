@@ -46,6 +46,8 @@ exports.CUSTOM_JSON_OPS = {
   WEBSITE_REFUND_REQUEST: 'website_refund_request',
   CREATE_WEBSITE_INVOICE: 'create_website_invoice',
   VOTE_APPEND: 'vote_append_object',
+  HIDE_POST: 'hide_post',
+  GUEST_HIDE_POST: 'waivio_guest_hide_post',
 };
 
 exports.BELL_NOTIFICATIONS = {
@@ -57,3 +59,11 @@ exports.VOTE_TYPES = {
   APPEND_WOBJ: 'append_wobj',
   POST_WITH_WOBJ: 'post_with_wobj',
 };
+
+exports.HIDE_ACTION = {
+  HIDE: 'hide',
+  UNHIDE: 'unhide',
+};
+
+exports.REQUIRED_AUTHS = 'required_auths[0]';
+exports.REQUIRED_POSTING_AUTHS = 'required_posting_auths[0]';

@@ -11,6 +11,7 @@ module.exports = {
   ratingHelper: require('./ratingHelper'),
   sitesHelper: require('./sitesHelper'),
   postHelper: require('./postHelper'),
+  jsonHelper: require('./jsonHelper'),
   userHelper: require('./userHelper'),
   appHelper: require('./appHelper'),
 };

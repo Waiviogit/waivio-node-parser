@@ -22,6 +22,9 @@ exports.parse = async (operation, blockNum) => {
     case CUSTOM_JSON_OPS.VOTE_APPEND:
       await voteParsers.customJSONAppendVote(operation);
       break;
+    case CUSTOM_JSON_OPS.HIDE_POST:
+      await userParsers.hidePostParser(operation);
+      break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:
       await userHelper.rejectReferralStatus(operation);
@@ -55,6 +58,9 @@ exports.parse = async (operation, blockNum) => {
       break;
     case CUSTOM_JSON_OPS.WOBJ_RATING_GUEST:
       await ratingHelper.parseGuest(operation);
+      break;
+    case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
+      await userParsers.guestHidePostParser(operation);
       break;
       /** WEBSITES */
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:

@@ -1,9 +1,15 @@
 const _ = require('lodash');
 const {
-  User, Post, Subscriptions, wobjectSubscriptions,
+  User, Post, Subscriptions, wobjectSubscriptions, hiddenPostModel,
 } = require('models');
+const {
+  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS,
+} = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { BELL_NOTIFICATIONS } = require('constants/parsersData');
+const postModeration = require('utilities/moderation/postModeration');
+const jsonHelper = require('utilities/helpers/jsonHelper');
+const { ERROR } = require('constants/common');
+const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.owner && operation.active && operation.posting && operation.memo_key) {
@@ -59,28 +65,23 @@ exports.createUser = async (data) => {
 };
 
 exports.followUserParser = async (operation) => {
-  let json;
-  try {
-    json = JSON.parse(operation.json);
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
   // check author of operation and user which will be updated
-  if (_.get(json, '[0]') === 'reblog' && _.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, '[1].account')) {
-    console.error('Can\'t reblog, account and author of operation are different');
+  if (_.get(json, '[0]') === 'reblog' && _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, '[1].account')) {
+    console.error(ERROR.FOLLOW_USER_PARSER_REBLOG);
     return;
-  } if (_.get(json, '[0]') === 'follow' && _.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, '[1].follower')) {
-    console.error('Can\'t follow(reblog), follower(account) and author of operation are different');
+  } if (_.get(json, '[0]') === 'follow' && _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, '[1].follower')) {
+    console.error(ERROR.FOLLOW_USER_PARSER_FOLLOW_DIFFERENT);
     return;
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].what') && _.get(json, '[1].follower') === _.get(json, '[1].following')) {
-    console.error('Can\'t follow, follower and following are the same');
+    console.error(ERROR.FOLLOW_USER_PARSER_FOLLOW_SAME);
     return;
   }
 
   if (_.get(json, '[0]') === 'reblog') {
-    await this.reblogPostParser({ json, account: _.get(operation, 'required_posting_auths[0]') });
+    await this.reblogPostParser({ json, account: _.get(operation, REQUIRED_POSTING_AUTHS) });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
     const { user } = await Subscriptions.findOne(json[1]);
@@ -143,15 +144,11 @@ exports.reblogPostParser = async ({
 };
 
 exports.subscribeNotificationsParser = async (operation) => {
-  let json;
-  try {
-    json = JSON.parse(operation.json);
-  } catch (error) {
-    console.error(error);
-  }
-  if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths')) !== _.get(json, '[1].follower')) {
-    console.error('Can\'t subscribe for notifications, account and author of operation are different');
-    return;
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
+
+  if (_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, '[1].follower')) {
+    return console.error(ERROR.SUBSCRIBE_NOTIFICATIONS);
   }
   const { follower, following, subscribe } = json[1];
 
@@ -166,5 +163,39 @@ exports.subscribeNotificationsParser = async (operation) => {
       if (!wobjSubs) return;
       return wobjectSubscriptions
         .updateOne({ condition: { follower, following }, updateData: { bell: subscribe } });
+  }
+};
+
+exports.hidePostParser = async (operation) => {
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
+
+  const { author, permlink, action } = json;
+  const userName = _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS));
+  const { post } = await Post.findOne({ author, permlink });
+  if (!post || !userName) return console.error(ERROR.HIDE_POST);
+
+  switch (action) {
+    case HIDE_ACTION.HIDE:
+      await hiddenPostModel.update({ userName, postId: post._id });
+      await postModeration.checkDownVote({ voter: userName, author, permlink });
+      break;
+    case HIDE_ACTION.UNHIDE:
+      await hiddenPostModel.deleteOne({ userName, postId: post._id });
+      await postModeration.checkDownVote({
+        voter: userName, author, permlink, hide: false,
+      });
+      break;
+  }
+};
+
+exports.guestHidePostParser = async (operation) => {
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
+    if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
+
+    operation.required_posting_auths = [_.get(json, 'guestName')];
+
+    await this.hidePostParser(operation);
   }
 };

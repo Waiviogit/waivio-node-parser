@@ -1,19 +1,16 @@
 const _ = require('lodash');
-const { User, Wobj, wobjectSubscriptions } = require('models');
+const { ERROR } = require('constants/common');
 const { userHelper } = require('utilities/helpers');
+const { Wobj, wobjectSubscriptions } = require('models');
+const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
+const jsonHelper = require('utilities/helpers/jsonHelper');
 
 const parse = async (data) => {
-  let json;
-
-  try {
-    json = JSON.parse(data.json);
-  } catch (error) {
-    console.error(error);
-    return (error);
-  }
+  const json = jsonHelper.parseJson(data.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
   // check author of operation and user which will be updated
-  if (_.get(data, 'required_posting_auths[0]') !== _.get(json, '[1].user') && _.get(data, 'required_auths[0]') !== _.get(json, '[1].user')) {
-    console.error('Can\'t follow, follower and author of operation are different');
+  if (_.get(data, REQUIRED_POSTING_AUTHS) !== _.get(json, '[1].user') && _.get(data, REQUIRED_AUTHS) !== _.get(json, '[1].user')) {
+    console.error(ERROR.FOLLOW_OBJECT_PARSER);
     return;
   }
   if (json && json[0] === 'follow' && json[1] && json[1].user && json[1].author_permlink && json[1].what) {

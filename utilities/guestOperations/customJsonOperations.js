@@ -1,17 +1,19 @@
 const _ = require('lodash');
 const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
+const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const followObjectParser = require('parsers/followObjectParser');
-const { Post, CommentModel } = require('models');
+const jsonHelper = require('utilities/helpers/jsonHelper');
 const { postsUtil } = require('utilities/steemApi');
 const userParsers = require('parsers/userParsers');
+const { Post, CommentModel } = require('models');
 const voteParser = require('parsers/voteParser');
 
 exports.followUser = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, '[1].follower')];
@@ -20,8 +22,8 @@ exports.followUser = async (operation) => {
 };
 
 exports.reblogPost = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, '[1].account')];
@@ -30,8 +32,8 @@ exports.reblogPost = async (operation) => {
 };
 
 exports.followWobject = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, '[1].user')];
@@ -40,8 +42,8 @@ exports.followWobject = async (operation) => {
 };
 
 exports.guestVote = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
     const { votesOps: [vote] } = await voteParser.votesFormat([json]);
@@ -54,16 +56,16 @@ exports.guestVote = async (operation) => {
 };
 
 exports.accountUpdate = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
     await userParsers.updateAccountParser(json);
   }
 };
 
 exports.subscribeNotification = async (operation) => {
-  if (await validateProxyBot(_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')))) {
-    const json = parseJson(operation.json);
+  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+    const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
     operation.required_posting_auths = [_.get(json, '[1].follower')];
@@ -108,7 +110,7 @@ const voteOnPost = async ({ vote }) => {
 
     let metadata;
     if (post.json_metadata) {
-      metadata = parseJson(post.json_metadata);
+      metadata = jsonHelper.parseJson(post.json_metadata);
       if (!_.get(metadata, 'wobj')) metadata.wobj = { wobjects: vote.wobjects };
     }
     if (vote.weight > 0) await notificationsUtil.custom({ id: 'like', likes: [{ ...vote, weight: 0 }] });
@@ -143,15 +145,6 @@ const voteOnField = async ({ vote }) => {
   });
 };
 
-const parseJson = (json) => {
-  try {
-    return JSON.parse(json);
-  } catch (error) {
-    console.error(error.message);
-    return {};
-  }
-};
-
 /**
  * Save post/comment in DB if it wasn't exist before and return
  * @param data {Object} author, permlink
@@ -174,7 +167,7 @@ const findOrCreatePost = async ({ author, permlink }) => {
     if (dbPost) return { post: dbPost };
 
     const { post: newPost, error: parsePostError } = await postWithObjectParser
-      .parse(_.pick(post, ['author', 'permlink', 'body', 'json_metadata', 'title', 'parent_permlink', 'parent_author']), parseJson(post.json_metadata));
+      .parse(_.pick(post, ['author', 'permlink', 'body', 'json_metadata', 'title', 'parent_permlink', 'parent_author']), jsonHelper.parseJson(post.json_metadata));
 
     if (parsePostError) return { err: parsePostError };
     return { post: newPost };
@@ -189,7 +182,7 @@ const findOrCreatePost = async ({ author, permlink }) => {
   const comment = { ...post };
   comment.active_votes = [];
   comment.guestInfo = await getFromMetadataGuestInfo({
-    operation: comment, metadata: parseJson(comment.json_metadata),
+    operation: comment, metadata: jsonHelper.parseJson(comment.json_metadata),
   });
 
   const { comment: newComment, error } = await CommentModel.createOrUpdate(comment);

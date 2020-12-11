@@ -15,4 +15,5 @@ module.exports = {
   WebsiteRefundsFactory: require('./WebsiteRefunds/WebsiteRefundsFactory'),
   RelatedFactory: require('./Related/RelatedFactory'),
   PaymentHistoryFactory: require('./PaymentHistory/PaymentHistoryFactory'),
+  HiddenPostsFactory: require('./HiddenPosts/HiddenPostsFactory'),
 };
