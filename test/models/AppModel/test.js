@@ -79,13 +79,8 @@ describe('App model', async () => {
       moderator = (await UserFactory.Create()).user;
       wobject = await ObjectFactory.Create();
       await AppFactory.Create({
-        admins: [admin.name],
         moderators: [moderator.name],
       });
-    });
-    it('Should return app by searching by userName only(admin)', async () => {
-      const result = await AppModel.findByModeration(admin.name);
-      expect(result.apps).to.be.not.empty;
     });
     it('Should not return app with not valid userName', async () => {
       const result = await AppModel.findByModeration(faker.name.firstName());
