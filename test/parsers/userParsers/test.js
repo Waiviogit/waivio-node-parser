@@ -1,9 +1,10 @@
 const _ = require('lodash');
 const {
-  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions, WobjectSubscriptions, HiddenPost,
+  userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions,
+  WobjectSubscriptions, HiddenPost, HiddenComment,
 } = require('test/testHelper');
 const {
-  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory,
+  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory, HiddenCommentFactory,
 } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
 const { BELL_NOTIFICATIONS, HIDE_ACTION } = require('constants/parsersData');
@@ -362,17 +363,16 @@ describe('UserParsers', async () => {
   });
 
   describe('On hidePostParser', async () => {
-    let author, permlink, admin, user, moderator, firstApp, secondApp, randomAppHost, operation, reblog, post, hiddenPost;
+    let author, permlink, user, moderator, firstApp, secondApp, randomAppHost, operation, reblog, post, hiddenPost;
     beforeEach(async () => {
       await dropDatabase();
       user = faker.random.string();
-      admin = faker.random.string();
       moderator = faker.random.string();
       randomAppHost = faker.random.string();
       post = await PostFactory.Create({ author, permlink, blocked_for_apps: [randomAppHost] });
       reblog = await PostFactory.Create({ permlink: `${post.author}/${post.permlink}`, blocked_for_apps: [randomAppHost] });
-      firstApp = await AppFactory.Create({ admins: [admin], moderators: [moderator] });
-      secondApp = await AppFactory.Create({ admins: [admin], moderators: [moderator] });
+      firstApp = await AppFactory.Create({ moderators: [moderator] });
+      secondApp = await AppFactory.Create({ moderators: [moderator] });
     });
 
     describe('On user action hide', async () => {
@@ -419,63 +419,6 @@ describe('UserParsers', async () => {
         expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost]);
       });
       it('should not change array blocked_for_apps in reblog', async () => {
-        reblog = await Post.findOne({ permlink: `${post.author}/${post.permlink}` });
-        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost]);
-      });
-    });
-
-    describe('On admin hide', async () => {
-      beforeEach(async () => {
-        operation = {
-          required_posting_auths: [admin],
-          json: JSON.stringify({
-            author: post.author, permlink: post.permlink, action: HIDE_ACTION.HIDE,
-          }),
-        };
-        await userParsers.hidePostParser(operation);
-      });
-      it('should create record in hidden_posts collection', async () => {
-        hiddenPost = await HiddenPost.findOne({ userName: admin, postId: post._id }).lean();
-        expect(hiddenPost).to.exist;
-      });
-      it('should change array blocked_for_apps in post', async () => {
-        post = await Post.findOne({ author: post.author, permlink: post.permlink });
-        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost, firstApp.host, secondApp.host]);
-      });
-      it('should change array blocked_for_apps in reblog', async () => {
-        reblog = await Post.findOne({ permlink: `${post.author}/${post.permlink}` });
-        expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost, firstApp.host, secondApp.host]);
-      });
-    });
-
-    describe('On admin unhide', async () => {
-      beforeEach(async () => {
-        operation = {
-          required_posting_auths: [admin],
-          json: JSON.stringify({
-            author: post.author, permlink: post.permlink, action: HIDE_ACTION.UNHIDE,
-          }),
-        };
-        await HiddenPostsFactory.Create({ userName: admin, postId: post._id });
-        Post.updateOne(
-          { author: post.author, permlink: post.permlink },
-          { $addToSet: { blocked_for_apps: [firstApp.host, secondApp.host] } },
-        );
-        Post.updateOne(
-          { permlink: `${post.author}/${post.permlink}` },
-          { $addToSet: { blocked_for_apps: [firstApp.host, secondApp.host] } },
-        );
-        await userParsers.hidePostParser(operation);
-      });
-      it('should delete record in hidden_posts collection', async () => {
-        hiddenPost = await HiddenPost.findOne({ userName: admin, postId: post._id }).lean();
-        expect(hiddenPost).to.not.exist;
-      });
-      it('should remove from post array blocked_for_apps app where user admin', async () => {
-        post = await Post.findOne({ author: post.author, permlink: post.permlink });
-        expect(post.blocked_for_apps).to.be.deep.eq([randomAppHost]);
-      });
-      it('should remove from reblog array blocked_for_apps app where user admin', async () => {
         reblog = await Post.findOne({ permlink: `${post.author}/${post.permlink}` });
         expect(reblog.blocked_for_apps).to.be.deep.eq([randomAppHost]);
       });
@@ -572,6 +515,37 @@ describe('UserParsers', async () => {
         await userParsers.hidePostParser(operation);
         expect(console.error).to.be.calledOnce;
       });
+    });
+  });
+  describe('On hideCommentParser', async () => {
+    let record;
+    const userName = faker.random.string();
+    const author = faker.random.string();
+    const permlink = faker.random.string();
+
+    beforeEach(async () => {
+      await dropDatabase();
+    });
+
+    it('should add record to collection on hide action', async () => {
+      const operation = {
+        required_posting_auths: [userName],
+        json: JSON.stringify({ author, permlink, action: HIDE_ACTION.HIDE }),
+      };
+      await userParsers.hideCommentParser(operation);
+      record = await HiddenComment.findOne({ userName, author, permlink });
+      expect(record).to.exist;
+    });
+
+    it('should delete record from collection on unhide action', async () => {
+      await HiddenCommentFactory.Create({ userName, author, permlink });
+      const operation = {
+        required_posting_auths: [userName],
+        json: JSON.stringify({ author, permlink, action: HIDE_ACTION.UNHIDE }),
+      };
+      await userParsers.hideCommentParser(operation);
+      record = await HiddenComment.findOne({ userName, author, permlink });
+      expect(record).to.not.exist;
     });
   });
 });

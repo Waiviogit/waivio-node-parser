@@ -47,7 +47,9 @@ exports.CUSTOM_JSON_OPS = {
   CREATE_WEBSITE_INVOICE: 'create_website_invoice',
   VOTE_APPEND: 'vote_append_object',
   HIDE_POST: 'hide_post',
+  HIDE_COMMENT: 'hide_comment',
   GUEST_HIDE_POST: 'waivio_guest_hide_post',
+  GUEST_HIDE_COMMENT: 'waivio_guest_hide_comment',
 };
 
 exports.BELL_NOTIFICATIONS = {
