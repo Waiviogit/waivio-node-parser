@@ -88,12 +88,7 @@ const getManyPosts = async (postsRefs) => {
     return { error };
   }
 };
-(async () => {
-  const user = 'guiltyparties';
-  const regexp = new RegExp(`^${user}\/`);
-  const posts = await PostModel.find({ permlink: { $regex: regexp } }).lean();
-  console.log('yo');
-})();
+
 module.exports = {
   create, update, findOne, getPostsRefs, findByBothAuthors, updateMany, getManyPosts,
 };
