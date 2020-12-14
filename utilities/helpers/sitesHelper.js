@@ -1,5 +1,5 @@
 const {
-  App, websitePayments, websiteRefunds, Wobj,
+  App, websitePayments, websiteRefunds, Wobj, mutedUserModel,
 } = require('models');
 const moment = require('moment');
 const _ = require('lodash');
@@ -12,7 +12,7 @@ const {
   REFUND_TYPES, REFUND_STATUSES,
 } = require('constants/sitesData');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
-const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
+const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
 
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
@@ -233,7 +233,33 @@ exports.updateSupportedObjects = async ({ host, app }) => {
   await App.updateOne({ _id: app._id }, { $set: { supported_objects: _.map(result, 'author_permlink') } });
 };
 
+exports.muteUsers = async (operation) => {
+  const mutedBy = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const json = parseJson(operation.json);
+  if (!mutedBy || _.isEmpty(json)) return;
+  const { result: apps } = await App.find({ $or: [{ owner: mutedBy }, { moderators: mutedBy }] });
+  if (_.isEmpty(apps)) return;
+  switch (json.action) {
+    case MUTE_ACTION.MUTE:
+      return processMutedUsers({
+        users: json.users, mutedBy, apps: _.map(apps, 'host'), mute: true,
+      });
+    case MUTE_ACTION.UNMUTE:
+      return processMutedUsers({
+        users: json.users, mutedBy, apps: _.map(apps, 'host'), mute: false,
+      });
+  }
+};
+
 /** ------------------------PRIVATE METHODS--------------------------*/
+
+const processMutedUsers = async ({
+  users, mutedBy, apps, mute,
+}) => {
+  for (const user of users) {
+    console.log('yo');
+  }
+};
 
 const validateServiceBot = async (username) => {
   const WAIVIO_SERVICE_BOTS = await appHelper.getProxyBots(['serviceBot']);

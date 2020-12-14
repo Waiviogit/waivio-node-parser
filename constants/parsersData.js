@@ -50,6 +50,7 @@ exports.CUSTOM_JSON_OPS = {
   HIDE_COMMENT: 'hide_comment',
   GUEST_HIDE_POST: 'waivio_guest_hide_post',
   GUEST_HIDE_COMMENT: 'waivio_guest_hide_comment',
+  MUTE_USERS: 'muteUsers',
 };
 
 exports.BELL_NOTIFICATIONS = {
@@ -65,6 +66,11 @@ exports.VOTE_TYPES = {
 exports.HIDE_ACTION = {
   HIDE: 'hide',
   UNHIDE: 'unhide',
+};
+
+exports.MUTE_ACTION = {
+  MUTE: 'mute',
+  UNMUTE: 'unmute',
 };
 
 exports.REQUIRED_AUTHS = 'required_auths[0]';
