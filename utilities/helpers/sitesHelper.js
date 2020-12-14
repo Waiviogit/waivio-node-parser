@@ -1,5 +1,5 @@
 const {
-  App, websitePayments, websiteRefunds, Wobj, mutedUserModel,
+  App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post,
 } = require('models');
 const moment = require('moment');
 const _ = require('lodash');
@@ -234,19 +234,19 @@ exports.updateSupportedObjects = async ({ host, app }) => {
 };
 
 exports.muteUsers = async (operation) => {
-  const mutedBy = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const mutedBy = [_.get(operation, REQUIRED_POSTING_AUTHS)];
   const json = parseJson(operation.json);
-  if (!mutedBy || _.isEmpty(json)) return;
+  if (_.isEmpty(mutedBy) || _.isEmpty(json)) return;
   const { result: apps } = await App.find({ $or: [{ owner: mutedBy }, { moderators: mutedBy }] });
   if (_.isEmpty(apps)) return;
   switch (json.action) {
     case MUTE_ACTION.MUTE:
       return processMutedUsers({
-        users: json.users, mutedBy, apps: _.map(apps, 'host'), mute: true,
+        users: json.users, mutedBy, mutedForApps: _.map(apps, 'host'), mute: true,
       });
     case MUTE_ACTION.UNMUTE:
       return processMutedUsers({
-        users: json.users, mutedBy, apps: _.map(apps, 'host'), mute: false,
+        users: json.users, mutedBy, mutedForApps: _.map(apps, 'host'), mute: false,
       });
   }
 };
@@ -254,10 +254,21 @@ exports.muteUsers = async (operation) => {
 /** ------------------------PRIVATE METHODS--------------------------*/
 
 const processMutedUsers = async ({
-  users, mutedBy, apps, mute,
+  users, mutedBy, mutedForApps, mute,
 }) => {
+  const muteCond = mute
+    ? { $addToSet: { mutedBy: { $each: mutedBy }, mutedForApps: { $each: mutedForApps } } }
+    : { $pullAll: { mutedBy, mutedForApps } };
+  const postCond = mute
+    ? { $addToSet: { blocked_for_apps: { $each: mutedForApps } } }
+    : { $pull: { blocked_for_apps: { $in: mutedForApps } } };
   for (const user of users) {
-    console.log('yo');
+    const regExpReblog = new RegExp(`^${user}\/`);
+    await mutedUserModel.muteUser({ userName: user, updateData: muteCond });
+    await Post.updateMany(
+      { $or: [{ author: user }, { permlink: { $regex: regExpReblog } }] },
+      postCond,
+    );
   }
 };
 
