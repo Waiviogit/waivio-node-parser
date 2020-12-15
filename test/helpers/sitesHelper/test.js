@@ -1,14 +1,17 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config, WebsitesRefund, objectBotsValidator,
+  expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config,
+  WebsitesRefund, objectBotsValidator, Post, MutedUser,
 } = require('test/testHelper');
 const {
   STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES, REFUND_STATUSES,
 } = require('constants/sitesData');
-const { AppFactory, WebsitePaymentsFactory, WebsiteRefundsFactory } = require('test/factories');
-const { settingsData, authorityData } = require('./mocks');
-
+const { MUTE_ACTION } = require('constants/parsersData');
+const {
+  AppFactory, WebsitePaymentsFactory, WebsiteRefundsFactory, PostFactory, MutedUsersFactory,
+} = require('test/factories');
+const { settingsData, authorityData, mutedData } = require('./mocks');
 
 describe('On sitesHelper', async () => {
   let author, app;
@@ -444,6 +447,123 @@ describe('On sitesHelper', async () => {
       await sitesHelper.createInvoice(operation, _.random(10, 111));
       const result = await App.findOne({ host });
       expect(result.status).to.be.eq(STATUSES.SUSPENDED);
+    });
+  });
+
+  describe('on mutedUsers', async () => {
+    let operation, apps;
+    const moderator = faker.random.string();
+    beforeEach(async () => {
+      await dropDatabase();
+      for (let i = 0; i < _.random(1, 3); i++) {
+        await AppFactory.Create({ moderators: [moderator] });
+      }
+    });
+    describe('on error', async () => {
+      beforeEach(async () => {
+        sinon.spy(console, 'error');
+        sinon.spy(sitesHelper, 'mutedUsers');
+      });
+      afterEach(() => {
+        sinon.restore();
+      });
+      it('should return console.error when not valid mutedForApps array ', async () => {
+        operation = mutedData();
+        await sitesHelper.mutedUsers(operation);
+        expect(console.error).to.be.calledOnceWith('"mutedForApps" must contain at least 1 items');
+      });
+      it('should return console.error when not valid users array ', async () => {
+        operation = {
+          required_posting_auths: [faker.random.string()],
+          json: JSON.stringify({ users: [], action: _.sample(Object.values(MUTE_ACTION)) }),
+        };
+        await sitesHelper.mutedUsers(operation);
+        expect(console.error).to.be.calledOnceWith('"users" must contain at least 1 items');
+      });
+      it('should return console.error when not valid action ', async () => {
+        operation = {
+          required_posting_auths: [faker.random.string()],
+          json: JSON.stringify({ users: [faker.random.string()], action: faker.random.string() }),
+        };
+        await sitesHelper.mutedUsers(operation);
+        expect(console.error).to.be.calledOnceWith('"action" must be one of [mute, unmute]');
+      });
+      it('should return console.error when not valid required_posting_auths ', async () => {
+        operation = mutedData();
+        await sitesHelper.mutedUsers(_.omit(operation, ['required_posting_auths']));
+        expect(console.error).to.be.calledOnceWith('"mutedBy" is required');
+      });
+    });
+    describe('on ok', async () => {
+      const mutedUsers = [faker.random.string(), faker.random.string(), faker.random.string()];
+      describe('on mute users', async () => {
+        beforeEach(async () => {
+          for (let i = 0; i < _.random(5, 10); i++) {
+            await PostFactory.Create({ author: _.sample(mutedUsers) });
+          }
+          for (let i = 0; i < _.random(5, 10); i++) {
+            await PostFactory.Create({ permlink: `${_.sample(mutedUsers)}/${faker.random.string()}` });
+          }
+          operation = mutedData({
+            sender: moderator,
+            users: mutedUsers,
+            action: MUTE_ACTION.MUTE,
+          });
+          await sitesHelper.mutedUsers(operation);
+          apps = await App.find({ moderators: moderator }).lean();
+        });
+        it('should all posts be blocked', async () => {
+          const posts = await Post.find().lean();
+          _.forEach(posts, (post) => {
+            expect(post.blocked_for_apps).to.be.deep.eq(_.map(apps, 'host'));
+          });
+        });
+        it('should create records in muted_users collection', async () => {
+          const records = await MutedUser.find({ userName: { $in: mutedUsers } }).lean();
+          _.forEach(records, (record) => {
+            expect(_.omit(record, ['_id', 'userName'])).to.be.deep.eq({ mutedBy: [moderator], mutedForApps: _.map(apps, 'host') });
+          });
+        });
+      });
+      describe('on unmute users', async () => {
+        beforeEach(async () => {
+          apps = await App.find({ moderators: moderator }).lean();
+          for (let i = 0; i < _.random(5, 10); i++) {
+            await PostFactory.Create({ author: _.sample(mutedUsers), blocked_for_apps: _.map(apps, 'host') });
+          }
+          for (let i = 0; i < _.random(5, 10); i++) {
+            await PostFactory.Create({
+              permlink: `${_.sample(mutedUsers)}/${faker.random.string()}`,
+              blocked_for_apps: _.map(apps, 'host'),
+            });
+          }
+          operation = mutedData({
+            sender: moderator,
+            users: mutedUsers,
+            action: MUTE_ACTION.UNMUTE,
+          });
+          for (const mutedUser of mutedUsers) {
+            await MutedUsersFactory.Create({
+              userName: mutedUser,
+              mutedBy: [moderator],
+              mutedForApps: _.map(apps, 'host'),
+            });
+          }
+          await sitesHelper.mutedUsers(operation);
+        });
+        it('should all posts be unblocked', async () => {
+          const posts = await Post.find().lean();
+          _.forEach(posts, (post) => {
+            expect(post.blocked_for_apps).to.be.an('array').that.is.empty;
+          });
+        });
+        it('should remove records in muted_users collection', async () => {
+          const records = await MutedUser.find({ userName: { $in: mutedUsers } }).lean();
+          _.forEach(records, (record) => {
+            expect(_.omit(record, ['_id', 'userName'])).to.be.deep.eq({ mutedBy: [], mutedForApps: [] });
+          });
+        });
+      });
     });
   });
 });

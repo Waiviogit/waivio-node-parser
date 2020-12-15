@@ -240,10 +240,7 @@ exports.mutedUsers = async (operation) => {
   const { error, value } = sitesValidator.mutedUsers.validate({
     ...json, mutedBy, mutedForApps: _.map(apps, 'host'),
   });
-  if (error) {
-    console.error(error.message);
-    return false;
-  }
+  if (error) return console.error(error.message);
 
   return processMutedUsers(value);
 };
