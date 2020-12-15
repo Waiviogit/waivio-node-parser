@@ -1,5 +1,6 @@
 const Joi = require('@hapi/joi');
 const { PAYMENT_TYPES } = require('constants/sitesData');
+const { MUTE_ACTION } = require('constants/parsersData');
 
 const options = { allowUnknown: true, stripUnknown: true };
 
@@ -24,3 +25,10 @@ exports.createInvoice = Joi.object().keys({
   amount: Joi.number().min(0).required(),
   countUsers: Joi.number().min(0).required(),
 }).options(options);
+
+exports.mutedUsers = Joi.object().keys({
+  mutedBy: Joi.string().required(),
+  users: Joi.array().items(Joi.string()).min(1).required(),
+  mutedForApps: Joi.array().items(Joi.string()).min(1).required(),
+  action: Joi.string().valid(...Object.values(MUTE_ACTION)).required(),
+});

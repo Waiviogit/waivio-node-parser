@@ -233,35 +233,32 @@ exports.updateSupportedObjects = async ({ host, app }) => {
   await App.updateOne({ _id: app._id }, { $set: { supported_objects: _.map(result, 'author_permlink') } });
 };
 
-exports.muteUsers = async (operation) => {
-  const mutedBy = [_.get(operation, REQUIRED_POSTING_AUTHS)];
+exports.mutedUsers = async (operation) => {
+  const mutedBy = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
-  if (_.isEmpty(mutedBy) || _.isEmpty(json)) return;
   const { result: apps } = await App.find({ $or: [{ owner: mutedBy }, { moderators: mutedBy }] });
-  if (_.isEmpty(apps)) return;
-  switch (json.action) {
-    case MUTE_ACTION.MUTE:
-      return processMutedUsers({
-        users: json.users, mutedBy, mutedForApps: _.map(apps, 'host'), mute: true,
-      });
-    case MUTE_ACTION.UNMUTE:
-      return processMutedUsers({
-        users: json.users, mutedBy, mutedForApps: _.map(apps, 'host'), mute: false,
-      });
+  const { error, value } = sitesValidator.mutedUsers.validate({
+    ...json, mutedBy, mutedForApps: _.map(apps, 'host'),
+  });
+  if (error) {
+    console.error(error.message);
+    return false;
   }
+
+  return processMutedUsers(value);
 };
 
 /** ------------------------PRIVATE METHODS--------------------------*/
 
 const processMutedUsers = async ({
-  users, mutedBy, mutedForApps, mute,
+  users, mutedBy, mutedForApps, action,
 }) => {
-  const muteCond = mute
-    ? { $addToSet: { mutedBy: { $each: mutedBy }, mutedForApps: { $each: mutedForApps } } }
-    : { $pullAll: { mutedBy, mutedForApps } };
-  const postCond = mute
+  const muteCond = action === MUTE_ACTION.MUTE
+    ? { $addToSet: { mutedBy: { $each: [mutedBy] }, mutedForApps: { $each: mutedForApps } } }
+    : { $pullAll: { mutedBy: [mutedBy], mutedForApps } };
+  const postCond = action === MUTE_ACTION.MUTE
     ? { $addToSet: { blocked_for_apps: { $each: mutedForApps } } }
-    : { $pull: { blocked_for_apps: { $in: mutedForApps } } };
+    : { $pullAll: { blocked_for_apps: mutedForApps } };
   for (const user of users) {
     const regExpReblog = new RegExp(`^${user}\/`);
     await mutedUserModel.muteUser({ userName: user, updateData: muteCond });

@@ -50,7 +50,7 @@ exports.CUSTOM_JSON_OPS = {
   HIDE_COMMENT: 'hide_comment',
   GUEST_HIDE_POST: 'waivio_guest_hide_post',
   GUEST_HIDE_COMMENT: 'waivio_guest_hide_comment',
-  MUTE_USERS: 'muteUsers',
+  MUTED_USERS: 'muted_users',
 };
 
 exports.BELL_NOTIFICATIONS = {
