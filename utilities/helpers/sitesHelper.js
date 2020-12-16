@@ -236,9 +236,16 @@ exports.updateSupportedObjects = async ({ host, app }) => {
 exports.mutedUsers = async (operation) => {
   const mutedBy = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
+  if (!json || !mutedBy) return false;
   const { result: apps } = await App.find({ $or: [{ owner: mutedBy }, { moderators: mutedBy }] });
+  let siteManagement = [];
+  for (const app of apps) {
+    siteManagement = _.union(siteManagement,
+      [app.owner, ...app.admins, ...app.moderators, ...app.authority]);
+  }
+  const users = _.difference(json.users, siteManagement);
   const { error, value } = sitesValidator.mutedUsers.validate({
-    ...json, mutedBy, mutedForApps: _.map(apps, 'host'),
+    action: json.action, mutedBy, mutedForApps: _.map(apps, 'host'), users,
   });
   if (error) return console.error(error.message);
 

@@ -453,10 +453,11 @@ describe('On sitesHelper', async () => {
   describe('on mutedUsers', async () => {
     let operation, apps;
     const moderator = faker.random.string();
+    const secondModer = faker.random.string();
     beforeEach(async () => {
       await dropDatabase();
       for (let i = 0; i < _.random(1, 3); i++) {
-        await AppFactory.Create({ moderators: [moderator] });
+        await AppFactory.Create({ moderators: [moderator, secondModer] });
       }
     });
     describe('on error', async () => {
@@ -489,14 +490,15 @@ describe('On sitesHelper', async () => {
         expect(console.error).to.be.calledOnceWith('"action" must be one of [mute, unmute]');
       });
       it('should return console.error when not valid required_posting_auths ', async () => {
-        operation = mutedData();
-        await sitesHelper.mutedUsers(_.omit(operation, ['required_posting_auths']));
-        expect(console.error).to.be.calledOnceWith('"mutedBy" is required');
+        operation = mutedData({ sender: faker.random.number() });
+
+        await sitesHelper.mutedUsers(operation);
+        expect(console.error).to.be.calledOnceWith('"mutedBy" must be a string');
       });
     });
     describe('on ok', async () => {
-      const mutedUsers = [faker.random.string(), faker.random.string(), faker.random.string()];
       describe('on mute users', async () => {
+        const mutedUsers = [faker.random.string(), faker.random.string(), faker.random.string()];
         beforeEach(async () => {
           for (let i = 0; i < _.random(5, 10); i++) {
             await PostFactory.Create({ author: _.sample(mutedUsers) });
@@ -504,6 +506,7 @@ describe('On sitesHelper', async () => {
           for (let i = 0; i < _.random(5, 10); i++) {
             await PostFactory.Create({ permlink: `${_.sample(mutedUsers)}/${faker.random.string()}` });
           }
+          mutedUsers.push(secondModer);
           operation = mutedData({
             sender: moderator,
             users: mutedUsers,
@@ -524,8 +527,13 @@ describe('On sitesHelper', async () => {
             expect(_.omit(record, ['_id', 'userName'])).to.be.deep.eq({ mutedBy: [moderator], mutedForApps: _.map(apps, 'host') });
           });
         });
+        it('should not mute second moder', async () => {
+          const record = await MutedUser.findOne({ userName: secondModer }).lean();
+          expect(record).to.not.exist;
+        });
       });
       describe('on unmute users', async () => {
+        const mutedUsers = [faker.random.string(), faker.random.string(), faker.random.string()];
         beforeEach(async () => {
           apps = await App.find({ moderators: moderator }).lean();
           for (let i = 0; i < _.random(5, 10); i++) {
