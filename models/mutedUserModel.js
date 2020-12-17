@@ -3,7 +3,7 @@ const { MutedUser } = require('database').models;
 exports.muteUser = async ({ userName, updateData }) => {
   try {
     return MutedUser
-      .updateOne({ userName }, updateData, { upsert: true });
+      .findOneAndUpdate({ userName }, updateData, { upsert: true, new: true }).lean();
   } catch (error) {
     return { error };
   }
