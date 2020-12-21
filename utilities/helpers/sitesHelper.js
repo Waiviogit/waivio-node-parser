@@ -22,6 +22,7 @@ exports.createWebsite = async (operation) => {
   json.parent = parent._id;
   const { result } = await App.findOne({ owner: json.owner, status: STATUSES.SUSPENDED });
   if (result) json.status = STATUSES.SUSPENDED;
+  json.beneficiary = { account: json.owner };
   await App.create(json);
 };
 
