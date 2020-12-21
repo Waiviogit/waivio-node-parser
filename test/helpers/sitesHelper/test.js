@@ -518,7 +518,7 @@ describe('On sitesHelper', async () => {
         it('should create records in muted_users collection', async () => {
           const records = await MutedUser.find({ userName: { $in: mutedUsers } }).lean();
           _.forEach(records, (record) => {
-            expect(_.omit(record, ['_id', 'userName'])).to.be.deep.eq({ mutedBy: [moderator], mutedForApps: _.map(apps, 'host') });
+            expect(_.omit(record, ['_id', 'userName'])).to.be.deep.eq({ mutedBy: moderator, mutedForApps: _.map(apps, 'host') });
           });
         });
         it('should not mute second moder', async () => {
@@ -547,7 +547,7 @@ describe('On sitesHelper', async () => {
           for (const mutedUser of mutedUsers) {
             await MutedUsersFactory.Create({
               userName: mutedUser,
-              mutedBy: [moderator],
+              mutedBy: moderator,
               mutedForApps: _.map(apps, 'host'),
             });
           }

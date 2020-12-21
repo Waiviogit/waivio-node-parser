@@ -88,6 +88,18 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   return posts;
 };
 
+const getMutedList = async (name) => {
+  try {
+    const result = await client.call('bridge', 'get_follow_list', {
+      observer: name,
+      follow_type: 'muted',
+    });
+    return { mutedList: _.map(result, 'name') };
+  } catch (e) {
+    return { mutedList: [] };
+  }
+};
+
 module.exports = {
-  getUser, getUsers, calculateVotePower, getCurrentPriceInfo,
+  getUser, getUsers, calculateVotePower, getCurrentPriceInfo, getMutedList,
 };

@@ -13,6 +13,7 @@ const {
 } = require('constants/sitesData');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
+const { usersUtil } = require('utilities/steemApi');
 
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
@@ -23,6 +24,9 @@ exports.createWebsite = async (operation) => {
   const { result } = await App.findOne({ owner: json.owner, status: STATUSES.SUSPENDED });
   if (result) json.status = STATUSES.SUSPENDED;
   await App.create(json);
+  await this.changeManagersMuteList({
+    mangerName: json.owner, host: json.host, action: MUTE_ACTION.MUTE,
+  });
 };
 
 exports.deleteWebsite = async (operation) => {
@@ -124,6 +128,15 @@ exports.websiteAuthorities = async (operation, type, add) => {
 
   await App.updateOne(condition, updateData);
   if (type === 'authority') await this.updateSupportedObjects({ host: value.host });
+  if (type === 'moderators') {
+    for (const mangerName of json.names) {
+      await this.changeManagersMuteList({
+        mangerName,
+        host: json.host,
+        action: add ? MUTE_ACTION.MUTE : MUTE_ACTION.UNMUTE,
+      });
+    }
+  }
 };
 
 exports.parseSitePayments = async ({ operation, type, blockNum }) => {
@@ -250,20 +263,36 @@ exports.mutedUsers = async ({ follower, following, action }) => {
   return processMutedUsers(value);
 };
 
+exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
+  let { mutedList: users } = await usersUtil.getMutedList(mangerName);
+  if (_.isEmpty(users)) return;
+  if (action === MUTE_ACTION.UNMUTE) {
+    const { mutedUsers } = await mutedUserModel.find({
+      userName: { $in: users },
+      mutedBy: { $ne: mangerName },
+      mutedForApps: host,
+    });
+    users = _.difference(users, _.map(mutedUsers, 'userName'));
+  }
+  await processMutedUsers({
+    users, mutedBy: mangerName, mutedForApps: [host], action,
+  });
+};
+
 /** ------------------------PRIVATE METHODS--------------------------*/
 
 const processMutedUsers = async ({
   users, mutedBy, mutedForApps, action,
 }) => {
   const muteCond = action === MUTE_ACTION.MUTE
-    ? { $addToSet: { mutedBy: { $each: [mutedBy] }, mutedForApps: { $each: mutedForApps } } }
-    : { $pullAll: { mutedBy: [mutedBy], mutedForApps } };
+    ? { $addToSet: { mutedForApps: { $each: mutedForApps } } }
+    : { $pullAll: { mutedForApps } };
   const postCond = action === MUTE_ACTION.MUTE
     ? { $addToSet: { blocked_for_apps: { $each: mutedForApps } } }
     : { $pullAll: { blocked_for_apps: mutedForApps } };
   for (const user of users) {
     const regExpReblog = new RegExp(`^${user}\/`);
-    await mutedUserModel.muteUser({ userName: user, updateData: muteCond });
+    await mutedUserModel.muteUser({ userName: user, mutedBy, updateData: muteCond });
     await Post.updateMany(
       { $or: [{ author: user }, { permlink: { $regex: regExpReblog } }] },
       postCond,
