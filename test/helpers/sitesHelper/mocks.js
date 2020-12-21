@@ -25,10 +25,8 @@ exports.authorityData = ({ author, host, names }) => ({
   }),
 });
 
-exports.mutedData = ({ sender, users, action } = {}) => ({
-  required_posting_auths: [sender || faker.random.string()],
-  json: JSON.stringify({
-    users: users || [faker.random.string()],
-    action: action || _.sample(Object.values(MUTE_ACTION)),
-  }),
+exports.mutedData = ({ follower, following, action } = {}) => ({
+  follower: follower || faker.random.string(),
+  following: following || [faker.random.string()],
+  action: action || _.sample(Object.values(MUTE_ACTION)),
 });

@@ -3,11 +3,12 @@ const {
   User, Post, Subscriptions, wobjectSubscriptions, hiddenPostModel, hiddenCommentModel,
 } = require('models');
 const {
-  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, CUSTOM_JSON_OPS,
+  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, CUSTOM_JSON_OPS, MUTE_ACTION,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const postModeration = require('utilities/moderation/postModeration');
 const jsonHelper = require('utilities/helpers/jsonHelper');
+const sitesHelper = require('utilities/helpers/sitesHelper');
 const { ERROR } = require('constants/common');
 const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
 
@@ -92,11 +93,16 @@ exports.followUserParser = async (operation) => {
         await notificationsUtil.follow(json[1]);
         console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
       }
-    } else if (_.get(json, '[1].what[0]') !== 'blog' && user) { // else if missing - unfollow
-      const { result } = await User.removeUserFollow(json[1]);
-      await Subscriptions.unfollowUser(json[1]);
-      if (result) {
-        console.log(`User ${json[1].follower} now unfollow user ${json[1].following} !`);
+    } else if (_.get(json, '[1].what[0]') === 'ignore') { // mute user
+      await sitesHelper.mutedUsers({ ...json[1], action: MUTE_ACTION.MUTE });
+    } else if (_.isEmpty(_.get(json, '[1].what[0]'))) { // _.isEmpty what and user - unfollow
+      await sitesHelper.mutedUsers({ ...json[1], action: MUTE_ACTION.UNMUTE });
+      if (user) {
+        const { result } = await User.removeUserFollow(json[1]);
+        await Subscriptions.unfollowUser(json[1]);
+        if (result) {
+          console.log(`User ${json[1].follower} now unfollow user ${json[1].following} !`);
+        }
       }
     }
   }

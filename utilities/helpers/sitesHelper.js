@@ -233,19 +233,17 @@ exports.updateSupportedObjects = async ({ host, app }) => {
   await App.updateOne({ _id: app._id }, { $set: { supported_objects: _.map(result, 'author_permlink') } });
 };
 
-exports.mutedUsers = async (operation) => {
-  const mutedBy = _.get(operation, REQUIRED_POSTING_AUTHS);
-  const json = parseJson(operation.json);
-  if (!json || !mutedBy) return false;
-  const { result: apps } = await App.find({ $or: [{ owner: mutedBy }, { moderators: mutedBy }] });
+exports.mutedUsers = async ({ follower, following, action }) => {
+  if (typeof following === 'string') following = [following];
+  const { result: apps } = await App.find({ $or: [{ owner: follower }, { moderators: follower }] });
   let siteManagement = [];
   for (const app of apps) {
     siteManagement = _.union(siteManagement,
       [app.owner, ...app.admins, ...app.moderators, ...app.authority]);
   }
-  const users = _.difference(json.users, siteManagement);
+  const users = _.difference(following, siteManagement);
   const { error, value } = sitesValidator.mutedUsers.validate({
-    action: json.action, mutedBy, mutedForApps: _.map(apps, 'host'), users,
+    action, mutedBy: follower, mutedForApps: _.map(apps, 'host'), users,
   });
   if (error) return console.error(error.message);
 

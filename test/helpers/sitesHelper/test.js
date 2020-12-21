@@ -474,23 +474,17 @@ describe('On sitesHelper', async () => {
         expect(console.error).to.be.calledOnceWith('"mutedForApps" must contain at least 1 items');
       });
       it('should return console.error when not valid users array ', async () => {
-        operation = {
-          required_posting_auths: [faker.random.string()],
-          json: JSON.stringify({ users: [], action: _.sample(Object.values(MUTE_ACTION)) }),
-        };
+        operation = mutedData({ follower: moderator, following: [] });
         await sitesHelper.mutedUsers(operation);
         expect(console.error).to.be.calledOnceWith('"users" must contain at least 1 items');
       });
       it('should return console.error when not valid action ', async () => {
-        operation = {
-          required_posting_auths: [faker.random.string()],
-          json: JSON.stringify({ users: [faker.random.string()], action: faker.random.string() }),
-        };
+        operation = mutedData({ follower: moderator, action: faker.random.string() });
         await sitesHelper.mutedUsers(operation);
         expect(console.error).to.be.calledOnceWith('"action" must be one of [mute, unmute]');
       });
       it('should return console.error when not valid required_posting_auths ', async () => {
-        operation = mutedData({ sender: faker.random.number() });
+        operation = mutedData({ follower: faker.random.number() });
 
         await sitesHelper.mutedUsers(operation);
         expect(console.error).to.be.calledOnceWith('"mutedBy" must be a string');
@@ -508,8 +502,8 @@ describe('On sitesHelper', async () => {
           }
           mutedUsers.push(secondModer);
           operation = mutedData({
-            sender: moderator,
-            users: mutedUsers,
+            follower: moderator,
+            following: mutedUsers,
             action: MUTE_ACTION.MUTE,
           });
           await sitesHelper.mutedUsers(operation);
@@ -546,8 +540,8 @@ describe('On sitesHelper', async () => {
             });
           }
           operation = mutedData({
-            sender: moderator,
-            users: mutedUsers,
+            follower: moderator,
+            following: mutedUsers,
             action: MUTE_ACTION.UNMUTE,
           });
           for (const mutedUser of mutedUsers) {
