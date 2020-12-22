@@ -13,12 +13,6 @@ const MutedUserSchema = new Schema({
 
 MutedUserSchema.index({ userName: 1, mutedBy: 1 }, { unique: true });
 
-MutedUserSchema.post('findOneAndUpdate', async function (doc) {
-  if (_.isEmpty(_.get(doc, 'mutedForApps'))) {
-    await this.model.deleteOne({ userName: doc.userName });
-  }
-});
-
 const MutedUserModel = mongoose.model('muted_user', MutedUserSchema);
 
 module.exports = MutedUserModel;

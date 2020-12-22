@@ -250,11 +250,9 @@ exports.updateSupportedObjects = async ({ host, app }) => {
 exports.mutedUsers = async ({ follower, following, action }) => {
   if (typeof following === 'string') following = [following];
   const { result: apps } = await App.find({ $or: [{ owner: follower }, { moderators: follower }] });
-  let siteManagement = [];
-  for (const app of apps) {
-    siteManagement = _.union(siteManagement,
-      [app.owner, ...app.admins, ...app.moderators, ...app.authority]);
-  }
+  const siteManagement = _.reduce(apps, (acc, app) => _
+    .union(acc, [app.owner, ...app.admins, ...app.moderators, ...app.authority]), []);
+
   const users = _.difference(following, siteManagement);
   const { error, value } = sitesValidator.mutedUsers.validate({
     action, mutedBy: follower, mutedForApps: _.map(apps, 'host'), users,
@@ -265,16 +263,9 @@ exports.mutedUsers = async ({ follower, following, action }) => {
 };
 
 exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
-  let { mutedList: users } = await usersUtil.getMutedList(mangerName);
+  const { mutedList: users } = await usersUtil.getMutedList(mangerName);
   if (_.isEmpty(users)) return;
-  if (action === MUTE_ACTION.UNMUTE) {
-    const { mutedUsers } = await mutedUserModel.find({
-      userName: { $in: users },
-      mutedBy: { $ne: mangerName },
-      mutedForApps: host,
-    });
-    users = _.difference(users, _.map(mutedUsers, 'userName'));
-  }
+
   await processMutedUsers({
     users, mutedBy: mangerName, mutedForApps: [host], action,
   });
@@ -285,19 +276,43 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
 const processMutedUsers = async ({
   users, mutedBy, mutedForApps, action,
 }) => {
-  const muteCond = action === MUTE_ACTION.MUTE
-    ? { $addToSet: { mutedForApps: { $each: mutedForApps } } }
-    : { $pullAll: { mutedForApps } };
-  const postCond = action === MUTE_ACTION.MUTE
-    ? { $addToSet: { blocked_for_apps: { $each: mutedForApps } } }
-    : { $pullAll: { blocked_for_apps: mutedForApps } };
-  for (const user of users) {
-    const regExpReblog = new RegExp(`^${user}\/`);
-    await mutedUserModel.muteUser({ userName: user, mutedBy, updateData: muteCond });
-    await Post.updateMany(
-      { $or: [{ author: user }, { permlink: { $regex: regExpReblog } }] },
-      postCond,
-    );
+  switch (action) {
+    case MUTE_ACTION.MUTE:
+      for (const user of users) {
+        await mutedUserModel.muteUser({
+          userName: user,
+          mutedBy,
+          updateData: { $addToSet: { mutedForApps: { $each: mutedForApps } } },
+        });
+        await Post.updateMany(
+          { $or: [{ author: user }, { permlink: { $regex: new RegExp(`^${user}\/`) } }] },
+          { $addToSet: { blocked_for_apps: { $each: mutedForApps } } },
+        );
+      }
+      break;
+    case MUTE_ACTION.UNMUTE:
+      await mutedUserModel.deleteMany({
+        $or: _.map(users, (user) => ({ userName: user, mutedBy })),
+      });
+      const { mutedUsers: mutedByOthers } = await mutedUserModel.find({
+        userName: { $in: users },
+        mutedBy: { $ne: mutedBy },
+        mutedForApps: { $in: mutedForApps },
+      });
+      const mutedOnlyByModer = _.difference(users, _.map(mutedByOthers, 'userName'));
+      for (const user of mutedOnlyByModer) {
+        await Post.updateMany(
+          { $or: [{ author: user }, { permlink: { $regex: new RegExp(`^${user}\/`) } }] },
+          { $pullAll: { blocked_for_apps: mutedForApps } },
+        );
+      }
+      for (const user of mutedByOthers) {
+        const unmuteFor = _.difference(mutedForApps, _.get(user, 'mutedForApps'));
+        await Post.updateMany(
+          { $or: [{ author: user }, { permlink: { $regex: new RegExp(`^${user}\/`) } }] },
+          { $pullAll: { blocked_for_apps: unmuteFor } },
+        );
+      }
   }
 };
 

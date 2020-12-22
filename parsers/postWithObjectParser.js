@@ -24,7 +24,9 @@ const parse = async (operation, metadata, post, fromTTL) => {
   // get info about guest account(if post had been written from "guest" through proxy bot)
   const guestInfo = await guestHelpers.getFromMetadataGuestInfo({ operation, metadata });
   const author = _.get(guestInfo, 'userId', operation.author);
-  const { mutedUser } = await mutedUserModel.findOne({ userName: author }, { mutedForApps: 1 });
+  // find apps where author is muted
+  const { mutedUsers } = await mutedUserModel.find({ userName: author });
+  const blockedForApps = _.reduce(mutedUsers, (acc, value) => _.union(acc, value.mutedForApps), []);
 
   const data = {
     title: operation.title,
@@ -37,7 +39,7 @@ const parse = async (operation, metadata, post, fromTTL) => {
     json_metadata: operation.json_metadata,
     body: operation.body,
     root_author: operation.author,
-    blocked_for_apps: _.get(mutedUser, 'mutedForApps', []),
+    blocked_for_apps: blockedForApps,
     guestInfo, // do we need this field?
   };
   const result = await createOrUpdatePost(data, post, fromTTL, metadata);
