@@ -451,7 +451,7 @@ describe('On sitesHelper', async () => {
   });
 
   describe('on mutedUsers', async () => {
-    let operation, apps;
+    let operation, apps, mutedUsers;
     const moderator = faker.random.string();
     const secondModer = faker.random.string();
     beforeEach(async () => {
@@ -459,6 +459,8 @@ describe('On sitesHelper', async () => {
       for (let i = 0; i < _.random(1, 3); i++) {
         await AppFactory.Create({ moderators: [moderator, secondModer] });
       }
+      apps = await App.find({ moderators: moderator }).lean();
+      mutedUsers = [faker.random.string(), faker.random.string(), faker.random.string()];
     });
     describe('on error', async () => {
       beforeEach(async () => {
@@ -492,7 +494,6 @@ describe('On sitesHelper', async () => {
     });
     describe('on ok', async () => {
       describe('on mute users', async () => {
-        const mutedUsers = [faker.random.string(), faker.random.string(), faker.random.string()];
         beforeEach(async () => {
           for (let i = 0; i < _.random(5, 10); i++) {
             await PostFactory.Create({ author: _.sample(mutedUsers) });
@@ -507,7 +508,6 @@ describe('On sitesHelper', async () => {
             action: MUTE_ACTION.MUTE,
           });
           await sitesHelper.mutedUsers(operation);
-          apps = await App.find({ moderators: moderator }).lean();
         });
         it('should all posts be blocked', async () => {
           const posts = await Post.find().lean();
@@ -526,10 +526,8 @@ describe('On sitesHelper', async () => {
           expect(record).to.not.exist;
         });
       });
-      describe('on unmute users', async () => {
-        const mutedUsers = [faker.random.string(), faker.random.string(), faker.random.string()];
+      describe('on unmute', async () => {
         beforeEach(async () => {
-          apps = await App.find({ moderators: moderator }).lean();
           for (let i = 0; i < _.random(5, 10); i++) {
             await PostFactory.Create({ author: _.sample(mutedUsers), blocked_for_apps: _.map(apps, 'host') });
           }
@@ -551,18 +549,36 @@ describe('On sitesHelper', async () => {
               mutedForApps: _.map(apps, 'host'),
             });
           }
-          await sitesHelper.mutedUsers(operation);
         });
-        it('should all posts be unblocked', async () => {
-          const posts = await Post.find().lean();
-          _.forEach(posts, (post) => {
-            expect(post.blocked_for_apps).to.be.an('array').that.is.empty;
+        describe('on unmute users with single moderator', async () => {
+          beforeEach(async () => {
+            await sitesHelper.mutedUsers(operation);
+          });
+          it('should all posts be unblocked', async () => {
+            const posts = await Post.find().lean();
+            _.forEach(posts, (post) => {
+              expect(post.blocked_for_apps).to.be.an('array').that.is.empty;
+            });
+          });
+          it('should remove records in muted_users collection', async () => {
+            const records = await MutedUser.find({ userName: { $in: mutedUsers } }).lean();
+            expect(records).to.be.an('array').that.is.empty;
           });
         });
-        it('should remove records in muted_users collection', async () => {
-          const records = await MutedUser.find({ userName: { $in: mutedUsers } }).lean();
-          _.forEach(records, (record) => {
-            expect(_.omit(record, ['_id', 'userName'])).to.be.deep.eq({ mutedBy: [], mutedForApps: [] });
+        describe('on unmute users when few moderators have same muted user', async () => {
+          beforeEach(async () => {
+            await MutedUsersFactory.Create({
+              userName: mutedUsers[0],
+              mutedBy: secondModer,
+              mutedForApps: _.map(apps, 'host'),
+            });
+            await sitesHelper.mutedUsers(operation);
+          });
+          it('should not unmute user if muted by other moderator on app (post collection)', async () => {
+            const posts = await Post.find({ $or: [{ author: mutedUsers[0] }, { permlink: { $regex: new RegExp(`^${mutedUsers[0]}\/`) } }] }).lean();
+            _.forEach(posts, (post) => {
+              expect(post.blocked_for_apps).to.be.deep.eq(_.map(apps, 'host'));
+            });
           });
         });
       });

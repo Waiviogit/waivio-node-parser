@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
@@ -7,7 +6,7 @@ const MutedUserSchema = new Schema({
   userName: { type: String, required: true },
   mutedBy: { type: String, required: true },
   mutedForApps: {
-    type: [String], required: true, default: [], index: true,
+    type: [String], required: true, index: true,
   },
 }, { versionKey: false });
 
