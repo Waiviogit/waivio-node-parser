@@ -178,13 +178,13 @@ exports.hidePostParser = async (operation) => {
   switch (action) {
     case HIDE_ACTION.HIDE:
       await hiddenPostModel.update({ userName, postId: post._id });
-      await postModeration.checkDownVote({ voter: userName, author, permlink });
+      // await postModeration.checkDownVote({ voter: userName, author, permlink });
       break;
     case HIDE_ACTION.UNHIDE:
       await hiddenPostModel.deleteOne({ userName, postId: post._id });
-      await postModeration.checkDownVote({
-        voter: userName, author, permlink, hide: false,
-      });
+      // await postModeration.checkDownVote({
+      //   voter: userName, author, permlink, hide: false,
+      // });
       break;
   }
 };
