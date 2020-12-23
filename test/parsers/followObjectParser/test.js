@@ -3,6 +3,7 @@ const {
 } = require('test/testHelper');
 const { followObjectParser } = require('parsers');
 const mock = require('./mock');
+const { ERROR } = require('constants/common');
 
 describe('followObjectParser', async () => {
   describe('On followObjectParse and errors', async () => {
@@ -14,6 +15,7 @@ describe('followObjectParser', async () => {
       sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
       sinon.stub(UserModel, 'addObjectFollow').callsFake(() => ({ result: true }));
       sinon.stub(WobjModel, 'getOne').callsFake(() => ({ wobject: true }));
+      sinon.stub(console, 'error');
       await dropDatabase();
       name = faker.name.firstName();
       author_permlink = faker.random.string(10);
@@ -25,8 +27,8 @@ describe('followObjectParser', async () => {
       sinon.restore();
     });
     it('should get error with incorrect data', async () => {
-      result = await followObjectParser.parse(faker.random.string(20));
-      expect(result.message).to.eq('Unexpected token u in JSON at position 0');
+      await followObjectParser.parse(faker.random.string(20));
+      expect(console.error).to.be.calledOnceWith(ERROR.INVALID_JSON);
     });
     it('should not work without author_permlink', async () => {
       result = await followObjectParser.parse({ json: '["follow",{"user": "name","what":[]}]' });

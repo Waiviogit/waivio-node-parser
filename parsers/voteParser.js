@@ -4,8 +4,10 @@ const { User, Post } = require('models');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
-const { VOTE_TYPES } = require('constants/parsersData');
+const { VOTE_TYPES, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
+const { ERROR } = require('constants/common');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
+const jsonHelper = require('utilities/helpers/jsonHelper');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -150,16 +152,11 @@ const tryReserveVote = async (author, permlink, voter, times = 10) => {
 };
 
 const customJSONAppendVote = async (operation) => {
-  let json;
-  try {
-    json = JSON.parse(operation.json);
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
   // check author of operation and voter
-  if (_.get(operation, 'required_posting_auths[0]', _.get(operation, 'required_auths[0]')) !== _.get(json, 'voter')) {
-    console.error('Can\'t vote, account and author of operation are different');
+  if (_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, 'voter')) {
+    console.error(ERROR.CUSTOM_JSON_APPEND_VOTE);
   }
   const { error, value } = jsonVoteValidator.voteSchema.validate(json);
   if (error) return;

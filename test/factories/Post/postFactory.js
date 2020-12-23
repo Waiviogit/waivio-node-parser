@@ -4,7 +4,7 @@ const { faker, Post, commentRefSetter } = require('test/testHelper');
 
 const Create = async ({
   children, reblogged, author, parent_author, additionsForMetadata = {}, onlyData, parent_permlink,
-  additionsForPost = {}, active_votes = [], app, root_author, permlink, wobjects,
+  additionsForPost = {}, active_votes = [], app, root_author, permlink, wobjects, blocked_for_apps
 } = {}) => { // additionsForMetadata(Post) must be an Object
   const json_metadata = {
     community: 'waiviotest',
@@ -30,6 +30,7 @@ const Create = async ({
     created: faker.date.recent(10).toString(),
     reblogged_users: reblogged || [],
     wobjects: wobjects || [],
+    blocked_for_apps: blocked_for_apps || [],
   };
   post.root_author = root_author || post.author;
   post.root_permlink = post.permlink;
