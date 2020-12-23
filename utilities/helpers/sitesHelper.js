@@ -135,6 +135,7 @@ exports.websiteAuthorities = async (operation, type, add) => {
         mangerName,
         host: json.host,
         action: add ? MUTE_ACTION.MUTE : MUTE_ACTION.UNMUTE,
+        checkManagement: true,
       });
     }
   }
@@ -262,9 +263,16 @@ exports.mutedUsers = async ({ follower, following, action }) => {
   return processMutedUsers(value);
 };
 
-exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
-  const { mutedList: users } = await usersUtil.getMutedList(mangerName);
+exports.changeManagersMuteList = async ({
+  mangerName, host, action, checkManagement = false,
+}) => {
+  let { mutedList: users } = await usersUtil.getMutedList(mangerName);
   if (_.isEmpty(users)) return;
+  if (checkManagement) {
+    const { result: app } = await App.findOne({ host });
+    users = _.difference(users,
+      [_.get(app, 'owner'), ..._.get(app, 'admins', []), ..._.get(app, 'moderators', []), ..._.get(app, 'authority', [])]);
+  }
 
   await processMutedUsers({
     users, mutedBy: mangerName, mutedForApps: [host], action,
