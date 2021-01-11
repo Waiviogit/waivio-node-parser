@@ -470,11 +470,6 @@ describe('On sitesHelper', async () => {
       afterEach(() => {
         sinon.restore();
       });
-      it('should return console.error when not valid mutedForApps array ', async () => {
-        operation = mutedData();
-        await sitesHelper.mutedUsers(operation);
-        expect(console.error).to.be.calledOnceWith('"mutedForApps" must contain at least 1 items');
-      });
       it('should return console.error when not valid users array ', async () => {
         operation = mutedData({ follower: moderator, following: [] });
         await sitesHelper.mutedUsers(operation);
@@ -493,14 +488,16 @@ describe('On sitesHelper', async () => {
       });
     });
     describe('on ok', async () => {
-      describe('on mute users', async () => {
+      describe('on mute users by administration', async () => {
         beforeEach(async () => {
-          for (let i = 0; i < _.random(5, 10); i++) {
-            await PostFactory.Create({ author: _.sample(mutedUsers) });
-          }
-          for (let i = 0; i < _.random(5, 10); i++) {
-            await PostFactory.Create({ permlink: `${_.sample(mutedUsers)}/${faker.random.string()}` });
-          }
+          beforeEach(async () => {
+            for (let i = 0; i < _.random(5, 10); i++) {
+              await PostFactory.Create({ author: _.sample(mutedUsers) });
+            }
+            for (let i = 0; i < _.random(5, 10); i++) {
+              await PostFactory.Create({ permlink: `${_.sample(mutedUsers)}/${faker.random.string()}` });
+            }
+          });
           mutedUsers.push(secondModer);
           operation = mutedData({
             follower: moderator,
@@ -526,7 +523,7 @@ describe('On sitesHelper', async () => {
           expect(record).to.not.exist;
         });
       });
-      describe('on unmute', async () => {
+      describe('on unmute by administration', async () => {
         beforeEach(async () => {
           for (let i = 0; i < _.random(5, 10); i++) {
             await PostFactory.Create({ author: _.sample(mutedUsers), blocked_for_apps: _.map(apps, 'host') });
@@ -580,6 +577,44 @@ describe('On sitesHelper', async () => {
               expect(post.blocked_for_apps).to.be.deep.eq(_.map(apps, 'host'));
             });
           });
+        });
+      });
+      describe('on mute by regular user', async () => {
+        beforeEach(async () => {
+          for (let i = 0; i < _.random(5, 10); i++) {
+            await PostFactory.Create({ author: _.sample(mutedUsers) });
+          }
+          operation = mutedData({ following: mutedUsers, action: MUTE_ACTION.MUTE });
+          await sitesHelper.mutedUsers(operation);
+        });
+        it('should have records in muted collection', async () => {
+          const records = await MutedUser.find({ mutedBy: operation.follower }).lean();
+          expect(records).to.have.length(mutedUsers.length);
+        });
+        it('should not affect on posts blocked_for_apps', async () => {
+          const posts = await Post.find({}).lean();
+          _.forEach(posts, (post) => {
+            expect(post.blocked_for_apps).to.be.an('array').that.is.empty;
+          });
+        });
+      });
+      describe('on unmute by regular user', async () => {
+        const user = faker.random.string();
+        beforeEach(async () => {
+          for (const muted of mutedUsers) {
+            await MutedUsersFactory.Create({
+              userName: muted,
+              mutedBy: user,
+            });
+          }
+          operation = mutedData({
+            follower: user, following: mutedUsers, action: MUTE_ACTION.UNMUTE,
+          });
+          await sitesHelper.mutedUsers(operation);
+        });
+        it('should not have records in muted collection', async () => {
+          const records = await MutedUser.find({ mutedBy: operation.follower }).lean();
+          expect(records).to.be.an('array').that.is.empty;
         });
       });
     });

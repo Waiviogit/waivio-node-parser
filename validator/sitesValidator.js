@@ -30,5 +30,5 @@ exports.mutedUsers = Joi.object().keys({
   mutedBy: Joi.string().required(),
   users: Joi.array().items(Joi.string()).min(1).required(),
   action: Joi.string().valid(...Object.values(MUTE_ACTION)).required(),
-  mutedForApps: Joi.array().items(Joi.string()).min(1).required(),
+  mutedForApps: Joi.array().items(Joi.string()).required(),
 });

@@ -1,13 +1,5 @@
+const _ = require('lodash');
 const { MutedUser } = require('database').models;
-
-exports.muteUser = async ({ userName, mutedBy, updateData }) => {
-  try {
-    return MutedUser
-      .updateOne({ userName, mutedBy }, updateData, { upsert: true, new: true }).lean();
-  } catch (error) {
-    return { error };
-  }
-};
 
 exports.find = async (condition, select = {}) => {
   try {
@@ -22,6 +14,23 @@ exports.deleteMany = async (conditions) => {
     return {
       result: await MutedUser.deleteMany(conditions),
     };
+  } catch (error) {
+    return { error };
+  }
+};
+
+exports.muteUsers = async ({ users, updateData, mutedBy }) => {
+  const updateArr = _.map(users, (el) => (
+    {
+      updateOne: {
+        filter: { userName: el, mutedBy },
+        update: updateData,
+        upsert: true,
+      },
+    }
+  ));
+  try {
+    return MutedUser.bulkWrite(updateArr);
   } catch (error) {
     return { error };
   }
