@@ -67,5 +67,10 @@ exports.HIDE_ACTION = {
   UNHIDE: 'unhide',
 };
 
+exports.MUTE_ACTION = {
+  MUTE: 'mute',
+  UNMUTE: 'unmute',
+};
+
 exports.REQUIRED_AUTHS = 'required_auths[0]';
 exports.REQUIRED_POSTING_AUTHS = 'required_posting_auths[0]';
