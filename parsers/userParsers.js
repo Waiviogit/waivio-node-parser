@@ -98,11 +98,8 @@ exports.followUserParser = async (operation) => {
     } else if (_.isEmpty(_.get(json, '[1].what[0]'))) { // _.isEmpty what and user - unfollow
       await sitesHelper.mutedUsers({ ...json[1], action: MUTE_ACTION.UNMUTE });
       if (user) {
-        const { result } = await User.removeUserFollow(json[1]);
+        await User.removeUserFollow(json[1]);
         await Subscriptions.unfollowUser(json[1]);
-        if (result) {
-          console.log(`User ${json[1].follower} now unfollow user ${json[1].following} !`);
-        }
       }
     }
   }

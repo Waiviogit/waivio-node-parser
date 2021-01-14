@@ -9,9 +9,8 @@ const Create = async ({ userName, mutedBy, mutedForApps } = {}) => {
 
   const mutedUser = new MutedUser(data);
   await mutedUser.save();
-  mutedUser.toObject();
 
-  return mutedUser;
+  return mutedUser.toObject();
 };
 
 module.exports = { Create };
