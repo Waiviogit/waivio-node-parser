@@ -9,7 +9,7 @@ const { sitesValidator, objectBotsValidator } = require('validator');
 const appHelper = require('utilities/helpers/appHelper');
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
-  REFUND_TYPES, REFUND_STATUSES,
+  REFUND_TYPES, REFUND_STATUSES, CAN_DELETE_STATUSES,
 } = require('constants/sitesData');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
@@ -34,7 +34,7 @@ exports.deleteWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
   const json = parseJson(operation.json);
   const { result: app } = await App.findOne({
-    host: json.host, owner: json.userName, inherited: true, status: STATUSES.PENDING,
+    host: json.host, owner: json.userName, inherited: true, status: { $in: CAN_DELETE_STATUSES },
   });
   if (!app) return false;
   await App.deleteOne({ _id: app._id });
