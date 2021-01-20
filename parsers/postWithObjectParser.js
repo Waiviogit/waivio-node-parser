@@ -2,7 +2,7 @@ const _ = require('lodash');
 const moment = require('moment');
 const config = require('config');
 const {
-  Post, Wobj, User, App,
+  Post, Wobj, User, App, mutedUserModel,
 } = require('models');
 const DiffMatchPatch = require('diff-match-patch');
 const { postsUtil } = require('utilities/steemApi');
@@ -23,18 +23,24 @@ const parse = async (operation, metadata, post, fromTTL) => {
   if (userError) console.log(userError.message);
   // get info about guest account(if post had been written from "guest" through proxy bot)
   const guestInfo = await guestHelpers.getFromMetadataGuestInfo({ operation, metadata });
+  const author = _.get(guestInfo, 'userId', operation.author);
+  // find apps where author is muted
+  const { mutedUsers } = await mutedUserModel.find({ userName: author });
+  const blockedForApps = _.reduce(mutedUsers, (acc, value) => _.union(acc, value.mutedForApps), []);
+
   const data = {
     title: operation.title,
     parent_author: operation.parent_author,
     parent_permlink: operation.parent_permlink,
-    author: operation.author,
+    author,
     permlink: operation.permlink,
     app: _.isString(metadata.app) ? metadata.app : '',
     author_weight: _.get(user, 'wobjects_weight'),
     json_metadata: operation.json_metadata,
     body: operation.body,
     root_author: operation.author,
-    guestInfo,
+    blocked_for_apps: blockedForApps,
+    guestInfo, // do we need this field?
   };
   const result = await createOrUpdatePost(data, post, fromTTL, metadata);
 
@@ -50,8 +56,7 @@ const parse = async (operation, metadata, post, fromTTL) => {
 
 const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
   let hivePost, err;
-  const author = _.get(data, 'guestInfo.userId', data.author);
-  const { post } = await Post.findOne({ author, permlink: data.permlink });
+  const { post } = await Post.findOne({ author: data.author, permlink: data.permlink });
 
   let updPost, error;
   if (!post) {
@@ -61,7 +66,6 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
       return { validationError: true };
     }
     data.depth = 0;
-    data.author = author;
     data.reblogged_by = [];
     data.root_title = data.title;
     data.language = await detectPostLanguageHelper(data);
@@ -69,8 +73,8 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     data.cashout_time = moment().add(7, 'days').toISOString();
     data.url = `/${data.parent_permlink}/@${data.root_author}/${data.permlink}`;
 
-    await User.updateOnNewPost(author, Date.now());
-    await setExpiredPostTTL('hivePost', `${author}/${data.permlink}`, 605000);
+    await User.updateOnNewPost(data.author, Date.now());
+    await setExpiredPostTTL('hivePost', `${data.author}/${data.permlink}`, 605000);
     await commentRefSetter.addPostRef(
       `${data.root_author}_${data.permlink}`,
       data.wobjects, _.get(data, 'guestInfo.userId'),
@@ -123,7 +127,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     rshares: vote.rshares,
   }));
   hivePost.language = await detectPostLanguageHelper(hivePost);
-  hivePost.author = author;
+  hivePost.author = data.author;
 
   ({ result: updPost, error } = await Post.update(hivePost));
   if (error) return { error };

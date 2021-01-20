@@ -33,5 +33,6 @@ module.exports = {
     RelatedAlbum: require('./schemas/RelatedAlbumSchema'),
     HiddenPost: require('./schemas/HiddenPostSchema'),
     HiddenComment: require('./schemas/HiddenCommentSchema'),
+    MutedUser: require('./schemas/MutedUserSchema'),
   },
 };

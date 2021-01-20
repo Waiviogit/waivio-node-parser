@@ -16,4 +16,5 @@ module.exports = {
   relatedAlbum: require('./relatedAlbumModel'),
   hiddenPostModel: require('./hiddenPostModel'),
   hiddenCommentModel: require('./hiddenCommentModel'),
+  mutedUserModel: require('./mutedUserModel'),
 };
