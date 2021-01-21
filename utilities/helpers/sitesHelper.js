@@ -9,7 +9,7 @@ const { sitesValidator, objectBotsValidator } = require('validator');
 const appHelper = require('utilities/helpers/appHelper');
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
-  REFUND_TYPES, REFUND_STATUSES,
+  REFUND_TYPES, REFUND_STATUSES, PATH,
 } = require('constants/sitesData');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
@@ -282,6 +282,16 @@ exports.changeManagersMuteList = async ({
 
   await processMutedCollection(value);
   await processMutedBySiteAdministration(value);
+};
+
+exports.setWebsiteReferralAccount = async (operation) => {
+  const owner = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const { host, account } = parseJson(operation.json);
+  if (!host || !owner || !account) return false;
+  const { result } = await App.findOne({ host, owner });
+  if (!result) return false;
+  await App.updateOne({ host, owner }, { [PATH.REFERRAL_ACCOUNT]: account });
+  return true;
 };
 
 /** ------------------------PRIVATE METHODS--------------------------*/
