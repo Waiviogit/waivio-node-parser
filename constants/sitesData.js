@@ -5,6 +5,11 @@ exports.STATUSES = {
   SUSPENDED: 'suspended',
 };
 
+exports.CAN_DELETE_STATUSES = [
+  this.STATUSES.INACTIVE,
+  this.STATUSES.PENDING,
+];
+
 exports.TRANSFER_ID = 'websitesPayment';
 exports.REFUND_ID = 'websitesRefund';
 
