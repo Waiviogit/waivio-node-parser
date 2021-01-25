@@ -5,13 +5,15 @@ const {
   WebsitesRefund, objectBotsValidator, Post, MutedUser,
 } = require('test/testHelper');
 const {
-  STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES, REFUND_STATUSES,
+  STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES, REFUND_STATUSES, PATH,
 } = require('constants/sitesData');
 const { MUTE_ACTION } = require('constants/parsersData');
 const {
   AppFactory, WebsitePaymentsFactory, WebsiteRefundsFactory, PostFactory, MutedUsersFactory,
 } = require('test/factories');
-const { settingsData, authorityData, mutedData } = require('./mocks');
+const {
+  settingsData, authorityData, mutedData, setReferral,
+} = require('./mocks');
 
 describe('On sitesHelper', async () => {
   let author, app;
@@ -616,6 +618,46 @@ describe('On sitesHelper', async () => {
           const records = await MutedUser.find({ mutedBy: operation.follower }).lean();
           expect(records).to.be.an('array').that.is.empty;
         });
+      });
+    });
+  });
+
+  describe('On setWebsiteReferralAccount', async () => {
+    let result, operation;
+    describe('On not valid data', async () => {
+      it('should return false when no auth data', async () => {
+        operation = setReferral({ host: faker.random.string(), account: faker.random.string() });
+        result = await sitesHelper.setWebsiteReferralAccount(operation);
+        expect(result).to.be.false;
+      });
+      it('should return false when no host', async () => {
+        operation = setReferral({ owner: faker.random.string(), account: faker.random.string() });
+        result = await sitesHelper.setWebsiteReferralAccount(operation);
+        expect(result).to.be.false;
+      });
+      it('should return false when no account', async () => {
+        operation = setReferral({ host: faker.random.string(), owner: faker.random.string() });
+        result = await sitesHelper.setWebsiteReferralAccount(operation);
+        expect(result).to.be.false;
+      });
+      it('should return false when auth account is not owner', async () => {
+        operation = setReferral({ host: faker.random.string(), owner: faker.random.string(), account: faker.random.string() });
+        result = await sitesHelper.setWebsiteReferralAccount(operation);
+        expect(result).to.be.false;
+      });
+    });
+    describe('On valid data', async () => {
+      const account = faker.random.string();
+      beforeEach(async () => {
+        operation = setReferral({ host: app.host, owner: app.owner, account });
+        result = await sitesHelper.setWebsiteReferralAccount(operation);
+        app = await App.findOne({ host: app.host, owner: app.owner }).lean();
+      });
+      it('should return true on valid data', async () => {
+        expect(result).to.be.true;
+      });
+      it('should update app field for account', async () => {
+        expect(_.get(app, PATH.REFERRAL_ACCOUNT)).to.be.eq(account);
       });
     });
   });

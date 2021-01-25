@@ -30,3 +30,11 @@ exports.mutedData = ({ follower, following, action } = {}) => ({
   following: following || [faker.random.string()],
   action: action || _.sample(Object.values(MUTE_ACTION)),
 });
+
+exports.setReferral = ({ owner, host, account } = {}) => ({
+  required_posting_auths: [owner] || [],
+  json: JSON.stringify({
+    host: host || '',
+    account: account || '',
+  }),
+});
