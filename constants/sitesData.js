@@ -52,5 +52,8 @@ exports.SUPPORTED_COLORS = {
 exports.PARSE_MATCHING = {
   [this.TRANSFER_ID]: this.PAYMENT_TYPES.TRANSFER,
   [this.REFUND_ID]: this.PAYMENT_TYPES.REFUND,
+};
 
+exports.PATH = {
+  REFERRAL_ACCOUNT: 'app_commissions.referral_commission_acc',
 };
