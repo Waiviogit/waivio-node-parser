@@ -112,6 +112,7 @@ const AppSchema = new Schema({
   app_commissions: { type: AppCommissions },
   referralsData: { type: [ReferralTimersSchema], default: [] },
   tagsData: { type: TagsData },
+  mainMapObjectTypes: { type: [String], default: [] },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {

@@ -22,6 +22,7 @@ exports.createWebsite = async (operation) => {
   if (!parent) return false;
   json.parent = parent._id;
   json.beneficiary = { account: json.owner };
+  json.mainMapObjectTypes = parent.mainMapObjectTypes;
   const { result } = await App.findOne({ owner: json.owner, status: STATUSES.SUSPENDED });
   if (result) json.status = STATUSES.SUSPENDED;
   await App.create(json);
