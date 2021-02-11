@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const PostSchema = new Schema({
-  id: { type: Number, required: true },
+  id: { type: Number },
   author: { type: String, required: true },
   author_reputation: { type: Number, default: 0 }, // rate author in steem
   author_weight: { type: Number, default: 0 }, // rate author in waivio
