@@ -7,4 +7,5 @@ exports.ERROR = {
   FOLLOW_USER_PARSER_FOLLOW_SAME: 'Can\'t follow, follower and following are the same',
   CUSTOM_JSON_APPEND_VOTE: 'Can\'t vote, account and author of operation are different',
   FOLLOW_OBJECT_PARSER: 'Can\'t follow, follower and author of operation are different',
+  NOT_FOUND: 'Not Found',
 };
