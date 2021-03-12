@@ -24,6 +24,7 @@ exports.createInvoice = Joi.object().keys({
   host: Joi.string().required(),
   amount: Joi.number().min(0).required(),
   countUsers: Joi.number().min(0).required(),
+  description: Joi.string(),
 }).options(options);
 
 exports.mutedUsers = Joi.object().keys({
