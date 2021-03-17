@@ -1,19 +1,20 @@
 const {
-  expect, faker, vipTicketsHelper, sinon, redis
+  expect, vipTicketsHelper, sinon, redis,
 } = require('test/testHelper');
-
-const { redisQueue } = require('utilities/redis/rsmq');
+const { redisQueue, rsmqClient } = require('utilities/redis/rsmq');
+const { Q_NAME } = require('constants/vipTicketsData');
 const _ = require('lodash');
 const { transferData } = require('./mocks');
 
 describe('On processTicketPurchase', async () => {
+  let result, message, data, parcedMessage;
   beforeEach(async () => {
-      // await redis.actionsDataClient.flushdbAsync();
+    await redis.postRefsClient.flushdbAsync();
   });
-  afterEach(() => {
+  afterEach(async () => {
+    await redis.postRefsClient.flushdbAsync();
     sinon.restore();
   });
-  let result;
   describe('On errors', async () => {
     it('should return false when receive HBD', async () => {
       result = await vipTicketsHelper
@@ -41,6 +42,22 @@ describe('On processTicketPurchase', async () => {
   });
 
   describe('On valid data', async () => {
+    beforeEach(async () => {
+      data = transferData();
+      result = await vipTicketsHelper.processTicketPurchase(data);
+      ({ message } = await rsmqClient.receiveMessageAsync({ qname: Q_NAME, vt: 0 }));
+      parcedMessage = JSON.parse(message);
+    });
+    it('should be the same data in message', async () => {
+      expect(_.omit(parcedMessage, ['ticketsAmount'])).to.be.deep.eq(data);
+    });
 
+    it('should ticketsAmount be number of ticket gt 0', async () => {
+      expect(parcedMessage.ticketsAmount).to.be.greaterThan(0);
+    });
+
+    it('should ticketsAmount be integer', async () => {
+      expect(parcedMessage.ticketsAmount).to.satisfy(Number.isInteger);
+    });
   });
 });
