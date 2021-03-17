@@ -1,24 +1,22 @@
-const _ = require('lodash');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { TRANSFER_ID, REFUND_ID } = require('constants/sitesData');
 const { sitesHelper, vipTicketsHelper } = require('utilities/helpers');
+const { TRANSFER_ID, REFUND_ID } = require('constants/sitesData');
+const { TICKETS_ACCOUNT } = require('constants/vipTicketsData');
+const _ = require('lodash');
 
 const parse = async (operation, blockNum) => {
   const memo = parseJson(operation.memo);
-  // if (_.get(memo, 'id')) {
-  //   switch (memo.id) {
-  //     case TRANSFER_ID:
-  //     case REFUND_ID:
-  //       await sitesHelper.parseSitePayments({ operation, type: memo.id, blockNum });
-  //       break;
-  //   }
-  // }
-  const accounts = {
-    'waivio.vip': async () => vipTicketsHelper.processTicketPurchase({ ...operation, blockNum }),
-    default: () => console.log('ky'),
-  };
-  (accounts[operation.to] || accounts.default)();
-  console.log('ere');
+  if (_.get(memo, 'id')) {
+    switch (memo.id) {
+      case TRANSFER_ID:
+      case REFUND_ID:
+        await sitesHelper.parseSitePayments({ operation, type: memo.id, blockNum });
+        break;
+    }
+  }
+  if (operation.to === TICKETS_ACCOUNT) {
+    await vipTicketsHelper.processTicketPurchase({ ...operation, blockNum });
+  }
 
   await notificationsUtil.custom(Object.assign(operation, { id: 'transfer' }));
 };
