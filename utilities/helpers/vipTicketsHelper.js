@@ -30,14 +30,14 @@ const sendMessageToQueue = async (message) => {
   const { error } = await redisQueue.createQueue(
     { client: rsmqClient, qname: Q_NAME },
   );
-  if (error) return captureException(`Vip_Tickets create queue error, message: ${message}`);
+  if (error) return this.captureException(`Vip_Tickets create queue error, message: ${message}`);
 
   const { error: sendingError } = await redisQueue.sendMessage({ client: rsmqClient, message });
-  if (sendingError) return captureException(`Vip_Tickets send message to queue error, message: ${message}`);
+  if (sendingError) return this.captureException(`Vip_Tickets send message to queue error, message: ${message}`);
   return true;
 };
 
-const captureException = async (message) => {
+exports.captureException = async (message) => {
   Sentry.captureException({ error: { message } });
   await sendSentryNotification();
   return false;

@@ -28,16 +28,31 @@ describe('On processTicketPurchase', async () => {
       expect(result).to.be.false;
     });
 
+
     it('should return false when can\'t create queue', async () => {
       sinon.stub(redisQueue, 'sendMessage').returns(Promise.resolve({ error: 'error' }));
       result = await vipTicketsHelper.processTicketPurchase(transferData());
       expect(result).to.be.false;
     });
 
-    it('should return false when can\'t send message to queue', async () => {
+    it('should call captureException when can\'t create queue', async () => {
       sinon.stub(redisQueue, 'createQueue').returns(Promise.resolve({ error: 'error' }));
+      sinon.spy(vipTicketsHelper, 'captureException');
+      await vipTicketsHelper.processTicketPurchase(transferData());
+      expect(vipTicketsHelper.captureException).to.be.calledOnce;
+    });
+
+    it('should return false when can\'t sendMessage to queue', async () => {
+      sinon.stub(redisQueue, 'sendMessage').returns(Promise.resolve({ error: 'error' }));
       result = await vipTicketsHelper.processTicketPurchase(transferData());
       expect(result).to.be.false;
+    });
+
+    it('should call captureException when can\'t sendMessage', async () => {
+      sinon.stub(redisQueue, 'sendMessage').returns(Promise.resolve({ error: 'error' }));
+      sinon.spy(vipTicketsHelper, 'captureException');
+      await vipTicketsHelper.processTicketPurchase(transferData());
+      expect(vipTicketsHelper.captureException).to.be.calledOnce;
     });
   });
 
