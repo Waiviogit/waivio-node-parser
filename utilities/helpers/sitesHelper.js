@@ -150,6 +150,7 @@ exports.parseSitePayments = async ({ operation, type, blockNum }) => {
     type: PARSE_MATCHING[type],
     amount: parseFloat(operation.amount),
     userName: type === TRANSFER_ID ? operation.from : operation.to,
+    transferTo: operation.to,
     blockNum,
   };
   await websitePayments.create(payment);
