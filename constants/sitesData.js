@@ -17,7 +17,7 @@ exports.FEE = {
   minimumValue: 1,
   currency: 'HBD',
   perUser: 0.005,
-  account: 'waivio.hosting',
+  account: 'waivio.web',
   id: JSON.stringify({ id: this.TRANSFER_ID }),
 };
 
