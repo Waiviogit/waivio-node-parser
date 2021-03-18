@@ -2,6 +2,7 @@ const notificationsUtil = require('utilities/notificationsApi/notificationsUtil'
 const { sitesHelper, vipTicketsHelper } = require('utilities/helpers');
 const { TRANSFER_ID, REFUND_ID } = require('constants/sitesData');
 const { TICKETS_ACCOUNT } = require('constants/vipTicketsData');
+const { MEMO_ID } = require('constants/parsersData');
 const _ = require('lodash');
 
 const parse = async (operation, blockNum) => {
@@ -12,6 +13,11 @@ const parse = async (operation, blockNum) => {
       case REFUND_ID:
         await sitesHelper.parseSitePayments({ operation, type: memo.id, blockNum });
         break;
+      case MEMO_ID.GUEST_TRANSFER:
+        if (operation.to === TICKETS_ACCOUNT) {
+          operation.from = memo.from;
+          await vipTicketsHelper.processTicketPurchase({ ...operation, blockNum });
+        }
     }
   }
   if (operation.to === TICKETS_ACCOUNT) {
