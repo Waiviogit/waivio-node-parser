@@ -75,3 +75,7 @@ exports.MUTE_ACTION = {
 
 exports.REQUIRED_AUTHS = 'required_auths[0]';
 exports.REQUIRED_POSTING_AUTHS = 'required_posting_auths[0]';
+
+exports.MEMO_ID = {
+  GUEST_TRANSFER: 'waivio_guest_transfer',
+};

@@ -3,6 +3,7 @@ module.exports = {
   detectPostLanguageHelper: require('./detectPostLanguageHelper'),
   customStreamHelper: require('./customStreamHelper'),
   chosenPostHelper: require('./chosenPostHelper'),
+  vipTicketsHelper: require('./vipTicketsHelper'),
   postByTagsHelper: require('./postByTagsHelper'),
   voteFieldHelper: require('./voteFieldHelper'),
   votePostHelper: require('./votePostHelper'),
