@@ -1,9 +1,11 @@
 const _ = require('lodash');
 const {
-  User, Post, Subscriptions, wobjectSubscriptions, hiddenPostModel, hiddenCommentModel,
+  User, Post, Subscriptions, wobjectSubscriptions,
+  hiddenPostModel, hiddenCommentModel, mutedUserModel,
 } = require('models');
 const {
-  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, CUSTOM_JSON_OPS, MUTE_ACTION,
+  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS,
+  REQUIRED_POSTING_AUTHS, CUSTOM_JSON_OPS, MUTE_ACTION,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const postModeration = require('utilities/moderation/postModeration');
@@ -88,21 +90,27 @@ exports.followUserParser = async (operation) => {
     const { user } = await Subscriptions.findOne(json[1]);
     if (_.get(json, '[1].what[0]') === 'blog' && !user) { // if field "what" present - it's follow on user
       const { result } = await User.addUserFollow(json[1]);
+      const { result: muted } = await mutedUserModel.findOne({
+        mutedBy: _.get(json, '[1].follower'),
+        userName: _.get(json, '[1].following'),
+      });
+
       await Subscriptions.followUser(json[1]);
-      if (result) {
-        await notificationsUtil.follow(json[1]);
-        console.log(`User ${json[1].follower} now following user ${json[1].following}!`);
-      }
+      if (result) await notificationsUtil.follow(json[1]);
+      if (muted) await sitesHelper.mutedUsers({ ...json[1], action: MUTE_ACTION.UNMUTE });
     } else if (_.get(json, '[1].what[0]') === 'ignore') { // mute user
       await sitesHelper.mutedUsers({ ...json[1], action: MUTE_ACTION.MUTE });
+      if (user) await removeUserSubscription(json[1]);
     } else if (_.isEmpty(_.get(json, '[1].what[0]'))) { // _.isEmpty what and user - unfollow
       await sitesHelper.mutedUsers({ ...json[1], action: MUTE_ACTION.UNMUTE });
-      if (user) {
-        await User.removeUserFollow(json[1]);
-        await Subscriptions.unfollowUser(json[1]);
-      }
+      if (user) await removeUserSubscription(json[1]);
     }
   }
+};
+
+const removeUserSubscription = async (data) => {
+  await User.removeUserFollow(data);
+  await Subscriptions.unfollowUser(data);
 };
 
 exports.reblogPostParser = async ({
