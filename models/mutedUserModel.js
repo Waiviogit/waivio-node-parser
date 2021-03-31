@@ -35,3 +35,11 @@ exports.muteUsers = async ({ users, updateData, mutedBy }) => {
     return { error };
   }
 };
+
+exports.findOne = async (condition, select = {}) => {
+  try {
+    return { result: await MutedUser.findOne(condition, select).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
