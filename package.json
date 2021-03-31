@@ -22,7 +22,7 @@
     "migrateWallet": "NODE_PATH=. node ./utilities/tasks/migrateWallet/run.js",
     "setMapToChildren": "NODE_PATH=. node ./utilities/tasks/setMapToChildren/run.js",
     "addToRelated": "NODE_PATH=. node ./utilities/tasks/addToRelated/run.js",
-    "addMissingPostsToUser": "NODE_PATH=. node ./utilities/tasks/addMissingPostsToUser/run.js otve",
+    "addMissingPostsToUser": "NODE_PATH=. node ./utilities/tasks/addMissingPostsToUser/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
