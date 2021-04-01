@@ -7,6 +7,7 @@ const UserModel = require('models/UserModel');
 const PostModel = require('models/PostModel');
 const { reblogPostParser } = require('parsers/userParsers');
 const { parseBodyWobjects } = require('utilities/helpers/postHelper');
+const { ObjectId } = require('mongoose').Types;
 
 module.exports = async (name) => {
   const { user } = await UserModel.checkAndCreate(name);
@@ -28,6 +29,7 @@ module.exports = async (name) => {
         json: ['reblog', { account: name, author: post.author, permlink: post.permlink }],
         account: name,
         fromTask: true,
+        id: getIdFromDate(post.created),
       });
     } else {
       await parseAndSavePost(post, user);
@@ -54,6 +56,7 @@ const parseAndSavePost = async (post, user) => {
   }
 
   post.wobjects = await parseBodyWobjects(metadata, post.body);
+  post._id = getIdFromDate(post.created);
 
   const { error } = await PostModel.create(post);
   if (error) {
@@ -61,3 +64,5 @@ const parseAndSavePost = async (post, user) => {
     Sentry.captureException(error);
   }
 };
+
+const getIdFromDate = (date) => ObjectId(Math.round(new Date(date).valueOf() / 1000));
