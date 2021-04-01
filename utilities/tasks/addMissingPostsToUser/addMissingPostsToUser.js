@@ -17,7 +17,7 @@ module.exports = async (name) => {
     Sentry.captureException(err);
   }
 
-  const reblogPosts = _.filter(posts, (post) => (post.author !== name));
+  const reblogPosts = _.filter(posts, (post) => post.author !== name);
   for (const reblogPost of reblogPosts) {
     await parseAndSavePost(reblogPost, reblogPost.author);
   }
