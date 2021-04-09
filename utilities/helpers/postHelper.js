@@ -160,7 +160,11 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
     const wobj = metadata.wobj.wobjects;
     tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
-    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
+    _.forEach(tags, (tag) => wobj.push({
+      author_permlink: tag.author_permlink,
+      objectType: tag.objectType,
+      percent: 0,
+    }));
     metadata.wobj = { wobjects: wobj || [] };
   } else if (isSimplePost && postTags.length) {
     // case if post has no wobjects, then need add wobjects by tags, or create if it not exist

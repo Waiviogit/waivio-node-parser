@@ -1,7 +1,8 @@
+const { OBJECT_TYPES } = require('constants/wobjectsData');
 const _ = require('lodash');
 const {
   postByTagsHelper, importTags, expect, sinon, WobjModel, faker,
-} = require('../../testHelper');
+} = require('test/testHelper');
 
 describe('postByTagsHelper', async () => {
   describe('wobjectsByTags', async () => {
@@ -18,7 +19,14 @@ describe('postByTagsHelper', async () => {
         wobjModelStub.restore();
       });
       it('should return array of tags', () => {
-        expect(result).to.deep.eq(input.map((tag) => ({ author_permlink: tag, tagged: tag, percent: _.round(100 / input.length, 3) })));
+        expect(result).to.deep.eq(input.map((tag) => (
+          {
+            author_permlink: tag,
+            objectType: OBJECT_TYPES.HASHTAG,
+            tagged: tag,
+            percent: _.round(100 / input.length, 3),
+          }
+        )));
       });
 
       it('should call Wobject model method "getOne" thrice', () => {
