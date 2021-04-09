@@ -132,9 +132,15 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     for (const link of bodyLinks) {
       const authorPermlink = _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK), '[1]', _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK_ENDS), '[1]'));
       if (authorPermlink && !_.includes(metadataWobjects, authorPermlink)) {
-        const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+        const { wobject } = await Wobj.getOne({
+          author_permlink: authorPermlink,
+          select: { author_permlink: 1, object_type: 1 },
+        });
         if (!wobject) continue;
-        wobj.push({ author_permlink: wobject.author_permlink });
+        wobj.push({
+          author_permlink: wobject.author_permlink,
+          objectType: wobject.object_type,
+        });
       }
     }
     if (!_.isEmpty(wobj)) {
