@@ -28,7 +28,6 @@ describe('On processTicketPurchase', async () => {
       expect(result).to.be.false;
     });
 
-
     it('should return false when can\'t create queue', async () => {
       sinon.stub(redisQueue, 'sendMessage').returns(Promise.resolve({ error: 'error' }));
       result = await vipTicketsHelper.processTicketPurchase(transferData());
