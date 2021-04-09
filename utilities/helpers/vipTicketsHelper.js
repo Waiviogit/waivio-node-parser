@@ -2,10 +2,12 @@ const { Q_NAME, PRICE_FOR_TICKET, POSSIBLE_DISCREPANCY } = require('constants/vi
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const { redisQueue, rsmqClient } = require('utilities/redis/rsmq');
 const Sentry = require('@sentry/node');
+const _ = require('lodash');
 
 exports.processTicketPurchase = async ({
   from, to, amount, blockNum,
 }) => {
+  if (!_.includes(['test', 'production'], process.env.NODE_ENV)) return false;
   if (amount.includes('HBD')) return false;
   if (!getTicketsAmount(parseFloat(amount))) return false;
 
