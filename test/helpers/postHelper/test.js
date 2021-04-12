@@ -19,7 +19,7 @@ describe('On postHelper', async () => {
         wobjects = await postHelper.parseBodyWobjects(metadata);
         expect(wobjects).to.be.deep.eq([{
           author_permlink: mockHashtag.author_permlink,
-          objectType: OBJECT_TYPES.HASHTAG,
+          object_type: OBJECT_TYPES.HASHTAG,
           percent: 100,
           tagged: mockHashtag.author_permlink,
         }]);
@@ -48,12 +48,12 @@ describe('On postHelper', async () => {
         },
         {
           author_permlink: mockHashtag.author_permlink,
-          objectType: OBJECT_TYPES.HASHTAG,
+          object_type: OBJECT_TYPES.HASHTAG,
           percent: 0,
         },
         {
           author_permlink: mockHashtag2.author_permlink,
-          objectType: OBJECT_TYPES.HASHTAG,
+          object_type: OBJECT_TYPES.HASHTAG,
           percent: 0,
         }];
         wobjects = await postHelper.parseBodyWobjects(metadata);
@@ -86,12 +86,12 @@ describe('On postHelper', async () => {
         },
         {
           author_permlink: bodyWobject.author_permlink,
-          objectType: bodyWobject.object_type,
+          object_type: bodyWobject.object_type,
           percent: 50,
         },
         {
           author_permlink: mockHashtag.author_permlink,
-          objectType: OBJECT_TYPES.HASHTAG,
+          object_type: OBJECT_TYPES.HASHTAG,
           percent: 0,
         }];
         wobjects = await postHelper.parseBodyWobjects(metadata, body);
@@ -109,7 +109,7 @@ describe('On postHelper', async () => {
         },
         {
           author_permlink: bodyWobject.author_permlink,
-          objectType: bodyWobject.object_type,
+          object_type: bodyWobject.object_type,
           percent: 50,
         }];
         wobjects = await postHelper.parseBodyWobjects(metadata, body);
@@ -119,11 +119,11 @@ describe('On postHelper', async () => {
         metadata = _.omit(metadata, ['wobj']);
         const mocks = [{
           author_permlink: bodyWobject.author_permlink,
-          objectType: bodyWobject.object_type,
+          object_type: bodyWobject.object_type,
           percent: 100,
         }, {
           author_permlink: mockHashtag.author_permlink,
-          objectType: OBJECT_TYPES.HASHTAG,
+          object_type: OBJECT_TYPES.HASHTAG,
           percent: 0,
         }];
         wobjects = await postHelper.parseBodyWobjects(metadata, body);
@@ -133,7 +133,7 @@ describe('On postHelper', async () => {
         metadata = _.omit(metadata, ['tags']);
         const mocks = [{
           author_permlink: bodyWobject.author_permlink,
-          objectType: bodyWobject.object_type,
+          object_type: bodyWobject.object_type,
           percent: 100,
         }];
         wobjects = await postHelper.parseBodyWobjects({}, body);

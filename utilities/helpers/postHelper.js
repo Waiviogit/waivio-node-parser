@@ -139,7 +139,7 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
         if (!wobject) continue;
         wobj.push({
           author_permlink: wobject.author_permlink,
-          objectType: wobject.object_type,
+          object_type: wobject.object_type,
         });
       }
     }
@@ -162,7 +162,7 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
     _.forEach(tags, (tag) => wobj.push({
       author_permlink: tag.author_permlink,
-      objectType: tag.objectType,
+      object_type: tag.object_type,
       percent: 0,
     }));
     metadata.wobj = { wobjects: wobj || [] };

@@ -22,7 +22,7 @@ describe('postByTagsHelper', async () => {
         expect(result).to.deep.eq(input.map((tag) => (
           {
             author_permlink: tag,
-            objectType: OBJECT_TYPES.HASHTAG,
+            object_type: OBJECT_TYPES.HASHTAG,
             tagged: tag,
             percent: _.round(100 / input.length, 3),
           }
