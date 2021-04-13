@@ -245,39 +245,6 @@ describe('UpdateSpecificFieldsHelper', async () => {
     });
   });
 
-  describe('on "newsFilter" field', () => {
-    const fields = [];
-    let updWobj, mockBody;
-
-    beforeEach(async () => {
-      mockBody = () => JSON.stringify({
-        allowList: [['a', 'b'], ['c', 'd']],
-        ignoreList: ['e', 'f', faker.random.string(3)],
-      });
-      const weight = [1, -99, 80, 100];
-      let field;
-      for (const num of weight) {
-        ({ appendObject: field } = await AppendObject.Create(
-          { name: FIELDS_NAMES.NEWS_FILTER, body: (mockBody()), weight: num },
-        ));
-        fields.push(field);
-      }
-      await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-      );
-      updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
-    });
-
-    it('should add field "newsFilter" to wobject', async () => {
-      expect(updWobj.newsFilter).to.exist;
-    });
-
-    it('should write first field "newsFilter"', async () => {
-      expect(updWobj.newsFilter).to.deep.equal(JSON.parse(fields[3].body));
-    });
-  });
-
   describe('on "tagCloud" field', () => {
     const fields = [], topFields = [];
     let updWobj;

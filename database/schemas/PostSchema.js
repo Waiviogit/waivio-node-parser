@@ -65,6 +65,7 @@ const PostSchema = new Schema({
     author_permlink: { type: String, index: true },
     percent: { type: Number },
     tagged: { type: String },
+    object_type: { type: String, index: true },
   }],
   language: { type: String, default: 'en-US' },
   reblog_to: { type: { author: String, permlink: String } },

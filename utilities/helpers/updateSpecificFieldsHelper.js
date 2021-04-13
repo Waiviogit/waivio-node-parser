@@ -4,7 +4,7 @@ const { Wobj, App } = require('models');
 const { tagsParser } = require('utilities/restaurantTagsParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { processWobjects } = require('utilities/helpers/wobjectHelper');
-const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
+const { validateMap } = require('validator/specifiedFieldsValidator');
 const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
@@ -49,25 +49,6 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
           { author_permlink: authorPermlink },
           { ratings: wobjRating[0].fields.slice(0, RATINGS_UPDATE_COUNT) },
         );
-      }
-      break;
-
-    case FIELDS_NAMES.NEWS_FILTER:
-      const { wobjects: wobjNewsFilter } = await Wobj.getSomeFields(
-        FIELDS_NAMES.NEWS_FILTER, authorPermlink,
-      );
-      if (_.isArray(_.get(wobjNewsFilter, '[0].fields')) && _.get(wobjNewsFilter, '[0].fields[0]')) {
-        let newsFilter;
-
-        try {
-          newsFilter = JSON.parse(wobjNewsFilter[0].fields[0]);
-        } catch (newsFilterParseError) {
-          console.error(`Error on parse "${FIELDS_NAMES.NEWS_FILTER}" field: ${newsFilterParseError}`);
-          break;
-        }
-        if (validateNewsFilter(newsFilter)) {
-          await Wobj.update({ author_permlink: authorPermlink }, { newsFilter });
-        }
       }
       break;
 
