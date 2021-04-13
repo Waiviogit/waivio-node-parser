@@ -1,6 +1,6 @@
-const addObjectTypes = require('./addObjectTypeToPost');
+const { addObjectType } = require('./addObjectTypeToPost');
 
 (async () => {
-  await addObjectTypes();
+  await addObjectType();
   process.exit();
 })();

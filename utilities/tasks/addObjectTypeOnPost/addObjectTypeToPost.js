@@ -1,16 +1,27 @@
 const { WObject, Post } = require('database').models;
+const _ = require('lodash');
 
-module.exports = async () => {
-  const wobjects = await WObject.find(
-    { notProcessed: true }, { author_permlink: 1, object_type: 1, _id: -1 },
-  ).lean();
-
-  for (const wobject of wobjects) {
-    await Post.updateMany(
-      { 'wobjects.author_permlink': wobject.author_permlink },
-      { 'wobjects.$.object_type': wobject.object_type },
-    );
-    await WObject.updateOne({ author_permlink: wobject.author_permlink }, { notProcessed: false });
+exports.addObjectType = async () => {
+  const posts = await Post.find({ notProcessed: true }, { wobjects: 1 }).limit(1000).lean();
+  if (_.isEmpty(posts)) {
+    console.log('task completed');
+    process.exit();
   }
-  console.info('task completed');
+  for (const post of posts) {
+    if (_.isEmpty(_.get(post, 'wobjects'))) {
+      await Post.updateOne({ _id: post._id }, { notProcessed: false });
+    }
+
+    const wobjects = await WObject.find(
+      { author_permlink: { $in: _.map(post.wobjects, 'author_permlink') } },
+      { author_permlink: 1, object_type: 1 },
+    );
+
+    _.forEach(post.wobjects, (el) => {
+      const wobj = _.find(wobjects, (w) => w.author_permlink === el.author_permlink);
+      el.object_type = _.get(wobj, 'object_type');
+    });
+    await Post.updateOne({ _id: post._id }, { notProcessed: false, wobjects: post.wobjects });
+  }
+  await this.addObjectType();
 };
