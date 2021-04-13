@@ -171,7 +171,12 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     const wobjects = await postByTagsHelper.wobjectsByTags(postTags);
     metadata.wobj = { wobjects: wobjects || [] };
   }
-  return _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent >= 0 && w.percent <= 100).value();
+  return _
+    .chain(metadata)
+    .get('wobj.wobjects', [])
+    .uniqBy('author_permlink')
+    .filter((w) => w.percent >= 0 && w.percent <= 100)
+    .value();
 };
 
 exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
