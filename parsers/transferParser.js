@@ -20,7 +20,7 @@ const parse = async (operation, blockNum) => {
         }
     }
   }
-  if (operation.to === TICKETS_ACCOUNT) {
+  if (operation.to === TICKETS_ACCOUNT && _.get(memo, 'id') !== MEMO_ID.GUEST_TRANSFER) {
     await vipTicketsHelper.processTicketPurchase({ ...operation, blockNum });
   }
 
