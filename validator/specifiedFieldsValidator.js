@@ -11,4 +11,41 @@ const validateMap = (map) => {
   return true;
 };
 
-module.exports = { validateMap };
+const validateNewsFilter = (newsFilter) => {
+  let isValid = true;
+
+  if (_.isNil(newsFilter)) {
+    return false;
+  }
+  const requiredFields = ['allowList', 'ignoreList', 'typeList']; // [0] - array of arrays, [1] - array
+
+  for (const field of requiredFields) {
+    if (_.isNil(newsFilter[field])) {
+      isValid = false;
+    }
+  }
+  // first field is list of "allowed" rules for scheme
+  if (!_.isNil(newsFilter[requiredFields[0]])) {
+    for (const allowRule of newsFilter[requiredFields[0]]) {
+      if (!_.isArray(allowRule)) {
+        isValid = false;
+      }
+    }
+  }
+  // second field is list of "ignore" rules for scheme
+  if (!_.isNil(newsFilter[requiredFields[1]])) {
+    if (!_.isArray(newsFilter[requiredFields[1]])) {
+      isValid = false;
+    }
+  }
+  // third field is list of objectTypes
+  if (!_.isNil(newsFilter[requiredFields[2]])) {
+    if (!_.isArray(newsFilter[requiredFields[2]])) {
+      isValid = false;
+    }
+  }
+
+  return isValid;
+};
+
+module.exports = { validateMap, validateNewsFilter };
