@@ -132,9 +132,15 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     for (const link of bodyLinks) {
       const authorPermlink = _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK), '[1]', _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK_ENDS), '[1]'));
       if (authorPermlink && !_.includes(metadataWobjects, authorPermlink)) {
-        const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+        const { wobject } = await Wobj.getOne({
+          author_permlink: authorPermlink,
+          select: { author_permlink: 1, object_type: 1 },
+        });
         if (!wobject) continue;
-        wobj.push({ author_permlink: wobject.author_permlink });
+        wobj.push({
+          author_permlink: wobject.author_permlink,
+          object_type: wobject.object_type,
+        });
       }
     }
     if (!_.isEmpty(wobj)) {
@@ -154,14 +160,23 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     let tags = await postByTagsHelper.wobjectsByTags(metadata.tags);
     const wobj = metadata.wobj.wobjects;
     tags = _.filter(tags, (tag) => !_.includes(_.map(wobj, 'author_permlink'), tag.author_permlink));
-    _.forEach(tags, (tag) => wobj.push({ author_permlink: tag.author_permlink, percent: 0 }));
+    _.forEach(tags, (tag) => wobj.push({
+      author_permlink: tag.author_permlink,
+      object_type: tag.object_type,
+      percent: 0,
+    }));
     metadata.wobj = { wobjects: wobj || [] };
   } else if (isSimplePost && postTags.length) {
     // case if post has no wobjects, then need add wobjects by tags, or create if it not exist
     const wobjects = await postByTagsHelper.wobjectsByTags(postTags);
     metadata.wobj = { wobjects: wobjects || [] };
   }
-  return _.chain(metadata).get('wobj.wobjects', []).filter((w) => w.percent >= 0 && w.percent <= 100).value();
+  return _
+    .chain(metadata)
+    .get('wobj.wobjects', [])
+    .uniqBy('author_permlink')
+    .filter((w) => w.percent >= 0 && w.percent <= 100)
+    .value();
 };
 
 exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {

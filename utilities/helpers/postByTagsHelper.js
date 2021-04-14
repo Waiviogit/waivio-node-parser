@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { Wobj } = require('models');
+const { OBJECT_TYPES } = require('constants/wobjectsData');
 const { importTags } = require('utilities/objectImportServiceApi');
 
 const DYNAMIC_HASHTAGS = () => process.env.DYNAMIC_HASHTAGS === 'true';
@@ -26,6 +27,7 @@ const wobjectsByTags = async (tags) => {
           author_permlink: wobject.author_permlink,
           percent: _.floor(100 / tags.length, 3),
           tagged: tag,
+          object_type: OBJECT_TYPES.HASHTAG,
         });
       } else {
         tagsImport.push(tag);
