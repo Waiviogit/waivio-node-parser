@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const { Wobj, User, Post } = require('models');
-const { getWobjectsFromMetadata } = require('utilities/helpers/postByTagsHelper');
 const userValidator = require('validator/userValidator');
 const postModeration = require('utilities/moderation/postModeration');
 const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
@@ -20,7 +19,7 @@ const voteOnPost = async (data) => {
       await upVoteOnPost(data, weight); // case for up-vote
     }
   }
-  await updatePost(data);
+  await updateVotesOnPost(data);
 };
 
 // method also using as undo previous vote before up- or down-vote
@@ -87,9 +86,7 @@ const upVoteOnPost = async (data, weight) => {
   }
 };
 
-const updatePost = async (data) => {
-  data.post.wobjects = await getWobjectsFromMetadata(data);
-  data.post.app = _.get(data, 'metadata.app', '');
+const updateVotesOnPost = async (data) => {
   data.post.active_votes = _.map(data.post.active_votes, (vote) => ({
     voter: vote.voter,
     weight: Math.round(vote.rshares * 1e-6),
