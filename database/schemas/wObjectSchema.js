@@ -56,6 +56,8 @@ const WObjectSchema = new Schema({
   latest_posts: { type: [mongoose.Schema.ObjectId], default: [] },
   // always keep last N posts to quick build wobject feed
   last_posts_count: { type: Number, default: 0 },
+  activeCampaigns: { type: [mongoose.Types.ObjectId], default: [] },
+  activeCampaignsCount: { type: Number, default: 0 },
 },
 {
   strict: false,
