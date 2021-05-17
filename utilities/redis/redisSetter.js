@@ -69,13 +69,16 @@ const addTagCategory = async ({ categoryName, tags }) => tagCategoriesClient.zad
 
 const setCurrentPriceInfo = async (data) => lastBlockClient.hmsetAsync('current_price_info', data);
 
+const setDynamicGlobalProperties = async (data) => lastBlockClient.hmsetAsync('dynamic_global_properties', data);
+
 module.exports = {
-  addPostWithWobj,
-  setExpiredPostTTL,
-  addAppendWobj,
-  setLastBlockNum,
-  addWobjRef,
-  addObjectType,
-  addTagCategory,
+  setDynamicGlobalProperties,
   setCurrentPriceInfo,
+  setExpiredPostTTL,
+  setLastBlockNum,
+  addPostWithWobj,
+  addTagCategory,
+  addAppendWobj,
+  addObjectType,
+  addWobjRef,
 };
