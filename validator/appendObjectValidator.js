@@ -33,9 +33,10 @@ const validateFields = (data) => {
 const validateSameFields = async (data) => {
   const { wobject } = await Wobj.getOne({ author_permlink: data.author_permlink });
   const setUniqFields = ['name', 'body', 'locale'];
-  if (data.field.name === FIELDS_NAMES.CATEGORY_ITEM) {
-    setUniqFields.push('id');
-  }
+
+  if (data.field.name === FIELDS_NAMES.CATEGORY_ITEM) setUniqFields.push('id');
+  if (data.field.name === FIELDS_NAMES.PHONE) setUniqFields.splice(1, 1, 'number');
+
   const foundedFields = _.map(wobject.fields, (field) => _.pick(field, setUniqFields));
   const result = foundedFields.find((field) => _.isEqual(field, _.pick(data.field, setUniqFields)));
   if (result) {
