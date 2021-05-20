@@ -36,6 +36,14 @@ const getCurrentPriceInfo = async () => {
   }
 };
 
+const getDynamicGlobalProperties = async () => {
+  try {
+    return { result: await client.database.call('get_dynamic_global_properties') };
+  } catch (error) {
+    return { error };
+  }
+};
+
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll('current_price_info', lastBlockClient);
 
@@ -101,5 +109,10 @@ const getMutedList = async (name) => {
 };
 
 module.exports = {
-  getUser, getUsers, calculateVotePower, getCurrentPriceInfo, getMutedList,
+  getDynamicGlobalProperties,
+  getCurrentPriceInfo,
+  calculateVotePower,
+  getMutedList,
+  getUsers,
+  getUser,
 };

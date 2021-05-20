@@ -6,6 +6,7 @@ const { updatePriceInfo } = require('utilities/redis');
  */
 const job = new CronJob('*/1 * * * *', async () => {
   await updatePriceInfo.update();
+  await updatePriceInfo.setDynamicGlobalProperties();
 }, null, false, null, null, true);
 
 job.start();
