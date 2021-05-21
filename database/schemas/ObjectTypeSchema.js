@@ -24,6 +24,8 @@ const ObjectTypeSchema = new Schema({
     }],
     default: [],
   },
+  commentsNum: { type: Number, default: 0 },
+  firstCreated: { type: Boolean, default: false },
 },
 {
   toObject: { virtuals: true }, timestamps: true,
