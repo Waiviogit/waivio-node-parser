@@ -1,6 +1,7 @@
 const { redis } = require('utilities/redis');
 const { commentParser } = require('parsers');
 const postHelper = require('utilities/helpers/postHelper');
+const updatePostAfterComment = require('./updatePostAfterComment');
 
 const expiredDataListener = async (chan, msg) => {
   const data = msg.split(':');
@@ -21,6 +22,9 @@ const expiredDataListener = async (chan, msg) => {
       break;
     case 'expire-notFoundGuestComment':
       await postHelper.guestCommentFromTTL(author, permlink);
+      break;
+    case 'expire-hiveComment':
+      await updatePostAfterComment.updateCounters(author, permlink);
       break;
     default:
       break;

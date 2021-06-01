@@ -6,9 +6,9 @@ const postWithObjectsParser = require('parsers/postWithObjectParser');
 const guestCommentParser = require('parsers/guestCommentParser');
 const { chosenPostHelper, campaignHelper } = require('utilities/helpers');
 const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
-const updatePostAfterComment = require('utilities/helpers/updatePostAfterComment');
 const { chosenPostValidator } = require('validator');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
+const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
 
 const parse = async (operation) => { // data is operation[1] of transaction in block
   let metadata;
@@ -67,7 +67,7 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (chosenPostValidator.checkBody(operation.body)) {
     await chosenPostHelper.updateAppChosenPost(operation);
   }
-  await updatePostAfterComment.updateCounters(operation.author, operation.permlink, operation.parent_author, operation.parent_permlink);
+  await setExpiredPostTTL('hiveComment', `${operation.parent_author}/${operation.parent_permlink}`, 7);
 };
 
 module.exports = { parse, postSwitcher };
