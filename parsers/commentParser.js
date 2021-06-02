@@ -67,7 +67,7 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (chosenPostValidator.checkBody(operation.body)) {
     await chosenPostHelper.updateAppChosenPost(operation);
   }
-  await setExpiredPostTTL('hiveComment', `${operation.parent_author}/${operation.parent_permlink}`, 7);
+  await setExpiredPostTTL('hiveComment', `${operation.parent_author}/${operation.parent_permlink}`, 4);
 };
 
 module.exports = { parse, postSwitcher };
