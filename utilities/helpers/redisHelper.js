@@ -6,8 +6,7 @@ const updatePostAfterComment = require('./updatePostAfterComment');
 const expiredDataListener = async (chan, msg) => {
   const data = msg.split(':');
   if (process.env.PARSE_ONLY_VOTES === 'true' || !data[1]) return;
-  const author = data[1].split('/')[0];
-  const permlink = data[1].split('/')[1];
+  const [author, permlink] = data[1].split('/');
   switch (data[0]) {
     case 'expire-hivePost':
       await postHelper.updateExpiredPost(author, permlink);
@@ -24,7 +23,8 @@ const expiredDataListener = async (chan, msg) => {
       await postHelper.guestCommentFromTTL(author, permlink);
       break;
     case 'expire-hiveComment':
-      await updatePostAfterComment.updateCounters(author, permlink);
+      const [, , isFirst] = data[1].split('/');
+      await updatePostAfterComment.updateCounters(author, permlink, isFirst);
       break;
     default:
       break;
