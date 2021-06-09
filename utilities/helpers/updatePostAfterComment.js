@@ -18,6 +18,9 @@ const updateCounters = async (author, permlink, isFirst) => {
       : console.error(`[Update Post counters] Comment ${author}/${permlink} not exist or was deleted!`);
   }
 
+  if (!comment || !comment.author) {
+    return console.error(`[Update Post counters] Comment ${author}/${permlink} not exist or was deleted!`);
+  }
   const { post, err: error } = await postsUtil.getPost(comment.root_author, comment.root_permlink);
   if (error) return console.error(error && error.message ? error.message : error);
 
