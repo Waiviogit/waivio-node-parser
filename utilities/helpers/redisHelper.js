@@ -1,34 +1,28 @@
+const { Worker } = require('worker_threads');
 const { redis } = require('utilities/redis');
-const { commentParser } = require('parsers');
-const postHelper = require('utilities/helpers/postHelper');
-const updatePostAfterComment = require('./updatePostAfterComment');
+
+const workers = [];
+for (let workersCount = 0; workersCount < process.env.WORKER_THREADS; workersCount++) {
+  workers[workersCount] = new Worker('./utilities/workers/ttlWorker.js');
+}
+
+const chooseWorker = () => {
+  let worker, idLastWorker;
+  if (!idLastWorker) {
+    worker = workers[idLastWorker = 0];
+  }
+  if (idLastWorker !== 0 && idLastWorker < process.env.WORKER_THREADS) {
+    worker = workers[idLastWorker++];
+  }
+  if (idLastWorker === process.env.WORKER_THREADS) {
+    worker = workers[idLastWorker = 0];
+  }
+  return worker;
+};
 
 const expiredDataListener = async (chan, msg) => {
-  const data = msg.split(':');
-  if (process.env.PARSE_ONLY_VOTES === 'true' || !data[1]) return;
-  const [author, permlink] = data[1].split('/');
-  switch (data[0]) {
-    case 'expire-hivePost':
-      await postHelper.updateExpiredPost(author, permlink);
-      break;
-    case 'expire-notFoundPost':
-      await postHelper.createPost({
-        author, permlink, fromTTL: true, commentParser,
-      });
-      break;
-    case 'expire-updatePostVotes':
-      await postHelper.updatePostVotes(author, permlink);
-      break;
-    case 'expire-notFoundGuestComment':
-      await postHelper.guestCommentFromTTL(author, permlink);
-      break;
-    case 'expire-hiveComment':
-      const [, , isFirst] = data[1].split('/');
-      await updatePostAfterComment.updateCounters(author, permlink, isFirst);
-      break;
-    default:
-      break;
-  }
+  const worker = chooseWorker();
+  worker.postMessage(msg);
 };
 
 exports.startRedisListener = () => {
