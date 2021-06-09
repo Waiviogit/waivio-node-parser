@@ -14,7 +14,7 @@ const updateCounters = async (author, permlink, isFirst) => {
 
   if (err) {
     return isFirst
-      ? setExpiredPostTTL('hiveComment', `${author}/${permlink}/${!isFirst}`, 4)
+      ? setExpiredPostTTL('hiveComment', `${author}/${permlink}`, 10)
       : console.error(`[Update Post counters] Comment ${author}/${permlink} not exist or was deleted!`);
   }
 
