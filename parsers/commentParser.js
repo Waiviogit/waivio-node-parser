@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const createObjectParser = require('parsers/createObjectParser');
 const appendObjectParser = require('parsers/appendObjectParser');
+const transferUpdatesParser = require('parsers/transferUpdatesParser');
 const objectTypeParser = require('parsers/objectTypeParser');
 const postWithObjectsParser = require('parsers/postWithObjectParser');
 const guestCommentParser = require('parsers/guestCommentParser');
@@ -59,6 +60,9 @@ const commentSwitcher = async ({ operation, metadata }) => {
         break;
       case 'appendObject':
         await appendObjectParser.parse(operation, metadata);
+        break;
+      case 'transferUpdates':
+        await transferUpdatesParser.parse(operation, metadata);
         break;
     }
   }

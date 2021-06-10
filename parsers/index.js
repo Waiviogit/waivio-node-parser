@@ -1,4 +1,5 @@
 module.exports = {
+  transferUpdatesParser: require('./transferUpdatesParser'),
   postWithObjectParser: require('./postWithObjectParser'),
   createObjectParser: require('./createObjectParser'),
   appendObjectParser: require('./appendObjectParser'),
