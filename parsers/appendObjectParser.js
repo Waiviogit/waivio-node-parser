@@ -5,7 +5,7 @@ const { updateSpecificFieldsHelper } = require('utilities/helpers');
 
 const parse = async (operation, metadata) => {
   const data = {
-    author_permlink: operation.parent_permlink,
+    author_permlink: metadata.author_permlink,
     field: {
       creator: metadata.wobj.creator,
       author: operation.author,
