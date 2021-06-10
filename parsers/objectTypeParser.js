@@ -10,6 +10,8 @@ const parse = async (operation, metadata) => {
       author: operation.author,
       permlink: operation.permlink,
     };
+    const { objectType } = await ObjectType.getOne({ name: data.name });
+    if (!objectType) data.firstCreated = true;
 
     await createObjectType(data);
     console.log(`Object Type ${data.name} created!`);
