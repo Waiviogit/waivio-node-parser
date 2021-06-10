@@ -1,28 +1,41 @@
+const _ = require('lodash');
+const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
+const Sentry = require('@sentry/node');
 const { Worker } = require('worker_threads');
 const { redis } = require('utilities/redis');
 
+let idLastWorker = 0;
 const workers = [];
-for (let workersCount = 0; workersCount < process.env.WORKER_THREADS; workersCount++) {
-  workers[workersCount] = new Worker('./utilities/workers/ttlWorker.js');
+for (let worker = 0; worker < process.env.TTL_WORKER_THREADS; worker++) {
+  workers[worker] = new Worker('./utilities/workers/ttlWorker.js');
 }
 
-const chooseWorker = () => {
-  let worker, idLastWorker;
-  if (!idLastWorker) {
-    worker = workers[idLastWorker = 0];
-  }
-  if (idLastWorker !== 0 && idLastWorker < process.env.WORKER_THREADS) {
-    worker = workers[idLastWorker++];
-  }
-  if (idLastWorker === process.env.WORKER_THREADS) {
-    worker = workers[idLastWorker = 0];
-  }
-  return worker;
+const expiredDataListener = async (chan, msg) => {
+  const worker = chooseWorker(idLastWorker);
+  worker.postMessage(msg);
+  worker.on('error', (error) => {
+    sendSentryNotification();
+    Sentry.captureException(error);
+    addNewWorkers();
+  });
+  worker.on('exit', (code) => {
+    if (code !== 0) {
+      console.error(`Worker stopped with exit code ${code}`);
+      addNewWorkers();
+    }
+  });
 };
 
-const expiredDataListener = async (chan, msg) => {
-  const worker = chooseWorker();
-  worker.postMessage(msg);
+// eslint-disable-next-line no-return-assign
+const chooseWorker = (id) => (id < process.env.TTL_WORKER_THREADS
+  ? workers[idLastWorker++]
+  : workers[idLastWorker = 0]);
+
+const addNewWorkers = () => {
+  const deletedWorkersCount = _.remove(workers, (w) => w.threadId === -1).length;
+  for (let newWorkersCount = 0; newWorkersCount < deletedWorkersCount; newWorkersCount++) {
+    workers.push(new Worker('./utilities/workers/ttlWorker.js'));
+  }
 };
 
 exports.startRedisListener = () => {
