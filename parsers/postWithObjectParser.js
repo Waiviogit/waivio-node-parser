@@ -115,7 +115,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
   hivePost.body = hivePost.body.substr(0, 2) === '@@'
     ? mergePosts(post.body, hivePost.body)
     : hivePost.body;
-  data.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
+  hivePost.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
     return { validationError: true };
