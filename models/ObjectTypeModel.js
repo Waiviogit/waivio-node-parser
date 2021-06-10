@@ -10,9 +10,9 @@ const getAll = async () => {
   }
 };
 
-const getOne = async ({ name }) => {
+const getOne = async (condition) => {
   try {
-    const objectType = await ObjectType.findOne({ name }).lean();
+    const objectType = await ObjectType.findOne(condition).lean();
 
     if (!objectType) {
       return { error: { status: 404, message: 'Object Type not found!' } };

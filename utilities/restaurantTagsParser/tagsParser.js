@@ -13,7 +13,9 @@ const createTags = async ({ field, authorPermlink }) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   if (!wobject || !_.find(wobject.fields, (obj) => obj.name === 'name')) return;
   if (wobject.object_type === 'dish' || wobject.object_type === 'restaurant') {
-    const { objectType } = await ObjectType.getOne({ name: wobject.object_type });
+    const { objectType } = await ObjectType.getOne({
+      name: wobject.object_type, firstCreated: true,
+    });
     const tagCategories = _.find(objectType.supposed_updates, (update) => update.name === 'tagCategory');
     const { result: app } = await App.findOne({ host: config.appHost });
     if (!objectType || !tagCategories || !app) return;
@@ -90,6 +92,5 @@ const parseIngredients = ({
 
   return appends;
 };
-
 
 module.exports = { createTags };

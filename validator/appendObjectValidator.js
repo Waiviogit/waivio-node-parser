@@ -67,7 +67,7 @@ const validateFieldBlacklist = async ({ author_permlink: authorPermlink, fieldNa
   if (wobjError) throw new Error(wobjError);
 
   const { objectType, error: objTypeError } = await ObjectType.getOne({
-    name: wobject.object_type,
+    name: wobject.object_type, firstCreated: true,
   });
   if (objTypeError) throw new Error(objTypeError);
 

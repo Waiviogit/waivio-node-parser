@@ -17,7 +17,7 @@ const DEFAULT_UPDATES_CREATOR = 'monterey';
 const addSupposedUpdates = async (wobject) => {
   if (!_.get(wobject, 'object_type')) return;
   const { objectType, error: objTypeError } = await ObjectType.getOne({
-    name: wobject.object_type,
+    name: wobject.object_type, firstCreated: true,
   });
   if (objTypeError) return { error: objTypeError };
 
