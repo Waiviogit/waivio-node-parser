@@ -6,7 +6,7 @@ const { redis } = require('utilities/redis');
 
 let idLastWorker = 0;
 const workers = [];
-for (let worker = 0; worker < process.env.TTL_WORKER_THREADS; worker++) {
+for (let worker = 0; worker < (process.env.TTL_WORKER_THREADS || 1); worker++) {
   workers.push(new Worker('./utilities/workers/ttlWorker.js'));
 }
 
