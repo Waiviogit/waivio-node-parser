@@ -24,7 +24,7 @@
     "addToRelated": "NODE_PATH=. node ./utilities/tasks/addToRelated/run.js",
     "addMissingPostsToUser": "NODE_PATH=. node ./utilities/tasks/addMissingPostsToUser/run.js",
     "addObjectTypeToPost": "NODE_PATH=. node ./utilities/tasks/addObjectTypeOnPost/run.js",
-    "start": "node ./bin/service.js",
+    "start": "node --experimental-worker ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
   "dependencies": {

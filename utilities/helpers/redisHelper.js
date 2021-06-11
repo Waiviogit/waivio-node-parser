@@ -1,34 +1,39 @@
+const _ = require('lodash');
+const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
+const Sentry = require('@sentry/node');
+const { Worker } = require('worker_threads');
 const { redis } = require('utilities/redis');
-const { commentParser } = require('parsers');
-const postHelper = require('utilities/helpers/postHelper');
-const updatePostAfterComment = require('./updatePostAfterComment');
+
+let idLastWorker = 0;
+const workers = [];
+for (let worker = 0; worker < (process.env.TTL_WORKER_THREADS || 1); worker++) {
+  workers.push(new Worker('./utilities/workers/ttlWorker.js'));
+}
 
 const expiredDataListener = async (chan, msg) => {
-  const data = msg.split(':');
-  if (process.env.PARSE_ONLY_VOTES === 'true' || !data[1]) return;
-  const [author, permlink] = data[1].split('/');
-  switch (data[0]) {
-    case 'expire-hivePost':
-      await postHelper.updateExpiredPost(author, permlink);
-      break;
-    case 'expire-notFoundPost':
-      await postHelper.createPost({
-        author, permlink, fromTTL: true, commentParser,
-      });
-      break;
-    case 'expire-updatePostVotes':
-      await postHelper.updatePostVotes(author, permlink);
-      break;
-    case 'expire-notFoundGuestComment':
-      await postHelper.guestCommentFromTTL(author, permlink);
-      break;
-    case 'expire-hiveComment':
-      const [, , isFirst] = data[1].split('/');
-      await updatePostAfterComment.updateCounters(author, permlink, isFirst);
-      break;
-    default:
-      break;
-  }
+  const worker = chooseWorker(idLastWorker);
+  worker.postMessage(msg);
+  worker.on('error', (error) => {
+    sendSentryNotification();
+    Sentry.captureException(error);
+    addNewWorkers();
+  });
+  worker.on('exit', (code) => {
+    if (code !== 0) {
+      console.error(`Worker stopped with exit code ${code}`);
+      addNewWorkers();
+    }
+  });
+};
+
+// eslint-disable-next-line no-return-assign
+const chooseWorker = (id) => (id < workers.length - 1
+  ? workers[idLastWorker++]
+  : workers[idLastWorker = 0]);
+
+const addNewWorkers = () => {
+  const deletedWorkers = _.remove(workers, (w) => w.threadId === -1);
+  _.forEach(deletedWorkers, () => workers.push(new Worker('./utilities/workers/ttlWorker.js')));
 };
 
 exports.startRedisListener = () => {

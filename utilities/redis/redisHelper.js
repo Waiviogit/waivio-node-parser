@@ -1,4 +1,3 @@
-
 exports.expiredForecast = (subscriber, expiredSubKey, onMessageCallback) => {
   subscriber.on('ready', (error) => {
     if (error) {
