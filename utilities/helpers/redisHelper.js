@@ -7,7 +7,7 @@ const { redis } = require('utilities/redis');
 let idLastWorker = 0;
 const workers = [];
 for (let worker = 0; worker < process.env.TTL_WORKER_THREADS; worker++) {
-  workers[worker] = new Worker('./utilities/workers/ttlWorker.js');
+  workers.push(new Worker('./utilities/workers/ttlWorker.js'));
 }
 
 const expiredDataListener = async (chan, msg) => {
@@ -27,15 +27,13 @@ const expiredDataListener = async (chan, msg) => {
 };
 
 // eslint-disable-next-line no-return-assign
-const chooseWorker = (id) => (id < process.env.TTL_WORKER_THREADS
+const chooseWorker = (id) => (id < workers.length - 1
   ? workers[idLastWorker++]
   : workers[idLastWorker = 0]);
 
 const addNewWorkers = () => {
-  const deletedWorkersCount = _.remove(workers, (w) => w.threadId === -1).length;
-  for (let newWorkersCount = 0; newWorkersCount < deletedWorkersCount; newWorkersCount++) {
-    workers.push(new Worker('./utilities/workers/ttlWorker.js'));
-  }
+  const deletedWorkers = _.remove(workers, (w) => w.threadId === -1);
+  _.forEach(deletedWorkers, () => workers.push(new Worker('./utilities/workers/ttlWorker.js')));
 };
 
 exports.startRedisListener = () => {

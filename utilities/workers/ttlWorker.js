@@ -5,7 +5,13 @@ const { commentParser } = require('parsers');
 
 parentPort.on('message', async (msg) => {
   const data = msg.split(':');
-  if (process.env.PARSE_ONLY_VOTES === 'true' || !data[1]) return;
+  if (!data[1]) return;
+  return process.env.PARSE_ONLY_VOTES === 'true'
+    ? votesParserTTL(data)
+    : mainParserTTL(data);
+});
+
+const mainParserTTL = async (data) => {
   const [author, permlink] = data[1].split('/');
   switch (data[0]) {
     case 'expire-hivePost':
@@ -16,15 +22,21 @@ parentPort.on('message', async (msg) => {
         author, permlink, fromTTL: true, commentParser,
       });
       break;
-    case 'expire-updatePostVotes':
-      await postHelper.updatePostVotes(author, permlink);
-      break;
     case 'expire-notFoundGuestComment':
       await postHelper.guestCommentFromTTL(author, permlink);
       break;
     case 'expire-hiveComment':
-      const [,, isFirst] = data[1].split('/');
+      const [, , isFirst] = data[1].split('/');
       await updatePostAfterComment.updateCounters(author, permlink, isFirst);
       break;
   }
-});
+};
+
+const votesParserTTL = async (data) => {
+  const [author, permlink] = data[1].split('/');
+  switch (data[0]) {
+    case 'expire-updatePostVotes':
+      await postHelper.updatePostVotes(author, permlink);
+      break;
+  }
+};
