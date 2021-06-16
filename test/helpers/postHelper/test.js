@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  postHelper, faker, expect, dropDatabase, RelatedAlbum, sinon, Post,
+  postHelper, faker, expect, dropDatabase, RelatedAlbum, Post,
 } = require('test/testHelper');
 const { ObjectFactory, RelatedFactory, PostFactory } = require('test/factories');
 const { OBJECT_TYPES_WITH_ALBUM, OBJECT_TYPES } = require('constants/wobjectsData');
