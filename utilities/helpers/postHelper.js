@@ -237,11 +237,3 @@ exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
   await Post.addWobjectsToPost({ author, permlink, wobjects });
   return true;
 };
-
-(async () => {
-  const body = 'waivio.com/object/fight dfsdf dining.gifts/object/steem/ dsfdf';
-  const author = 'flowmaster';
-  const permlink = 'microsoft-remotely-forcibly-reboots-windows-and-installs-its-programs-even-without-user-notification-or-consent7h8un1-';
-  await this.parseCommentBodyWobjects({ body, permlink, author });
-  console.log('yo');
-})();

@@ -1,6 +1,6 @@
 const WOBJECT_REF = '/object/([a-z0-9-]*)';
 
-const HOSTS_TO_PARSE_LINKS = [
+exports.HOSTS_TO_PARSE_LINKS = [
   'waivio.com',
   'dining.gifts',
 ];
@@ -13,4 +13,4 @@ exports.RE_WOBJECT_AUTHOR_PERMLINK_ENDS = new RegExp(/waivio\.com\/object\/([a-z
 
 exports.RE_HTTPS = new RegExp(/^https:\/\//);
 
-exports.RE_WOBJECT_REF = new RegExp(`${HOSTS_TO_PARSE_LINKS.map((el) => el + WOBJECT_REF).join('|')}`, 'gm');
+exports.RE_WOBJECT_REF = new RegExp(`${this.HOSTS_TO_PARSE_LINKS.map((el) => el + WOBJECT_REF).join('|')}`, 'gm');
