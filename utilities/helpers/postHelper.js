@@ -7,9 +7,7 @@ const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
-const {
-  RE_WOBJECT_LINK, RE_WOBJECT_AUTHOR_PERMLINK, RE_WOBJECT_AUTHOR_PERMLINK_ENDS, RE_HTTPS, RE_WOBJECT_REF,
-} = require('constants/regExp');
+const { RE_HTTPS, RE_WOBJECT_REF } = require('constants/regExp');
 const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 
 exports.objectIdFromDateString = (dateStr) => {
@@ -122,7 +120,9 @@ exports.guestCommentFromTTL = async (author, permlink) => {
  * in second part we check weather post has wobjects or just tags and make calculations
  */
 exports.parseBodyWobjects = async (metadata, postBody = '') => {
-  const bodyLinks = postBody.match(RE_WOBJECT_LINK);
+  const bodyLinks = _.compact(
+    Array.from(postBody.matchAll(RE_WOBJECT_REF)).map((match) => _.compact(match)[1]),
+  );
   if (!_.isEmpty(bodyLinks)) {
     const metadataWobjects = _.concat(
       _.get(metadata, 'tags', []),
@@ -130,10 +130,9 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     );
     const wobj = _.get(metadata, 'wobj.wobjects', []);
     for (const link of bodyLinks) {
-      const authorPermlink = _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK), '[1]', _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK_ENDS), '[1]'));
-      if (authorPermlink && !_.includes(metadataWobjects, authorPermlink)) {
+      if (!_.includes(metadataWobjects, link)) {
         const { wobject } = await Wobj.getOne({
-          author_permlink: authorPermlink,
+          author_permlink: link,
           select: { author_permlink: 1, object_type: 1 },
         });
         if (!wobject) continue;

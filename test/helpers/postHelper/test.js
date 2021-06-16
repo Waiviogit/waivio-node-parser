@@ -1,10 +1,10 @@
-const _ = require('lodash');
 const {
   postHelper, faker, expect, dropDatabase, RelatedAlbum, Post,
 } = require('test/testHelper');
-const { ObjectFactory, RelatedFactory, PostFactory } = require('test/factories');
 const { OBJECT_TYPES_WITH_ALBUM, OBJECT_TYPES } = require('constants/wobjectsData');
+const { ObjectFactory, RelatedFactory, PostFactory } = require('test/factories');
 const { HOSTS_TO_PARSE_LINKS } = require('constants/regExp');
+const _ = require('lodash');
 
 describe('On postHelper', async () => {
   describe('On parseBodyWobjects', async () => {
@@ -74,7 +74,7 @@ describe('On postHelper', async () => {
           },
           tags: [mockHashtag.author_permlink],
         };
-        body = `${faker.random.string()}https://waivio.com/object/${bodyWobject.author_permlink}${_.sample(['/', ' ', ':', ',', '.', ';', ')', '?'])}${faker.random.string()}`;
+        body = `${faker.random.string()}https://${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${bodyWobject.author_permlink}${_.sample(['/', ' ', ':', ',', '.', ';', ')', '?'])}${faker.random.string()}`;
       });
       it('should deep eq object when metadata has wobjects and tags', async () => {
         const mocks = [{
