@@ -8,6 +8,7 @@ exports.STATUSES = {
 exports.CAN_DELETE_STATUSES = [
   this.STATUSES.INACTIVE,
   this.STATUSES.PENDING,
+  this.STATUSES.SUSPENDED,
 ];
 
 exports.TRANSFER_ID = 'websitesPayment';
