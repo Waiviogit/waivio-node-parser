@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const {
-  postHelper, faker, expect, dropDatabase, RelatedAlbum,
+  postHelper, faker, expect, dropDatabase, RelatedAlbum, sinon,
 } = require('test/testHelper');
-const { ObjectFactory, RelatedFactory } = require('test/factories');
+const { ObjectFactory, RelatedFactory, PostFactory } = require('test/factories');
 const { OBJECT_TYPES_WITH_ALBUM, OBJECT_TYPES } = require('constants/wobjectsData');
 
 describe('On postHelper', async () => {
@@ -184,6 +184,23 @@ describe('On postHelper', async () => {
       await postHelper.addToRelated([mockObject], [`https://${faker.random.string()}`], postAuthorPermlink);
       image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
       expect(image).to.not.exist;
+    });
+  });
+
+  describe('On parseCommentBodyWobjects', async () => {
+    let objectOnPost, objectOnComment, post;
+
+
+    beforeEach(async () => {
+      objectOnPost = await ObjectFactory.Create();
+      objectOnComment = await ObjectFactory.Create();
+      post = await PostFactory.Create({
+        wobjects: [{ author_permlink: objectOnPost.author_permlink }],
+      });
+      sinon.spy(postHelper, 'parseCommentBodyWobjects');
+    });
+    afterEach(() => {
+      sinon.restore();
     });
   });
 });

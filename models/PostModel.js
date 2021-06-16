@@ -59,12 +59,13 @@ const getPostsRefs = async () => {
   }
 };
 
-const findByBothAuthors = async ({ author, permlink }) => {
+const findByBothAuthors = async ({ author, permlink, select = {} }) => {
   try {
     return {
-      post: await PostModel.findOne({
-        $or: [{ author, permlink }, { root_author: author, permlink }],
-      }).lean(),
+      post: await PostModel.findOne(
+        { $or: [{ author, permlink }, { root_author: author, permlink }] },
+        select,
+      ).lean(),
     };
   } catch (error) {
     return { error };
@@ -89,6 +90,29 @@ const getManyPosts = async (postsRefs) => {
   }
 };
 
+const addWobjectsToPost = async (data) => {
+  try {
+    const result = await PostModel.updateOne(
+      {
+        root_author: data.author,
+        permlink: data.permlink,
+      },
+      { $addToSet: { wobjects: { $each: data.wobjects } } },
+    );
+
+    return { result };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
-  create, update, findOne, getPostsRefs, findByBothAuthors, updateMany, getManyPosts,
+  addWobjectsToPost,
+  findByBothAuthors,
+  getPostsRefs,
+  getManyPosts,
+  updateMany,
+  findOne,
+  create,
+  update,
 };

@@ -8,7 +8,7 @@ const { postsUtil } = require('utilities/steemApi');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
 const {
-  RE_WOBJECT_LINK, RE_WOBJECT_AUTHOR_PERMLINK, RE_WOBJECT_AUTHOR_PERMLINK_ENDS, RE_HTTPS,
+  RE_WOBJECT_LINK, RE_WOBJECT_AUTHOR_PERMLINK, RE_WOBJECT_AUTHOR_PERMLINK_ENDS, RE_HTTPS, RE_WOBJECT_REF,
 } = require('constants/regExp');
 const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 
@@ -213,3 +213,35 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
     });
   }
 };
+
+exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
+  const matches = _.compact(
+    Array.from(body.matchAll(RE_WOBJECT_REF)).map((match) => _.compact(match)[1]),
+  );
+  if (_.isEmpty(matches)) return false;
+
+  const { post } = await Post.findByBothAuthors({
+    author, permlink, select: { wobjects: 1, _id: 0 },
+  });
+  if (!post) return false;
+
+  const { result } = await Wobj.find(
+    { author_permlink: { $in: matches } },
+    { author_permlink: 1, object_type: 1, _id: 0 },
+  );
+  if (_.isEmpty(result)) return false;
+
+  const wobjects = _.differenceBy(result, _.get(post, 'wobjects', []), 'author_permlink');
+  if (_.isEmpty(wobjects)) return false;
+
+  await Post.addWobjectsToPost({ author, permlink, wobjects });
+  return true;
+};
+
+(async () => {
+  const body = 'waivio.com/object/fight dfsdf dining.gifts/object/steem/ dsfdf';
+  const author = 'flowmaster';
+  const permlink = 'microsoft-remotely-forcibly-reboots-windows-and-installs-its-programs-even-without-user-notification-or-consent7h8un1-';
+  await this.parseCommentBodyWobjects({ body, permlink, author });
+  console.log('yo');
+})();

@@ -9,6 +9,7 @@ const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 const { chosenPostValidator } = require('validator');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const redisSetter = require('utilities/redis/redisSetter');
+const postHelper = require('utilities/helpers/postHelper');
 
 const parse = async (operation) => { // data is operation[1] of transaction in block
   let metadata;
@@ -67,6 +68,10 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (chosenPostValidator.checkBody(operation.body)) {
     await chosenPostHelper.updateAppChosenPost(operation);
   }
+  // add wobjects if comment on first level has links in body
+  await postHelper.parseCommentBodyWobjects({
+    body: operation.body, author: operation.parent_author, permlink: operation.parent_permlink,
+  });
   // the third id parameter indicates that we are creating TTL for the first time
   await redisSetter.setExpiredPostTTL('hiveComment', `${operation.author}/${operation.permlink}/true`, 4);
 };
