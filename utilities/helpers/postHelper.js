@@ -120,9 +120,7 @@ exports.guestCommentFromTTL = async (author, permlink) => {
  * in second part we check weather post has wobjects or just tags and make calculations
  */
 exports.parseBodyWobjects = async (metadata, postBody = '') => {
-  const bodyLinks = _.compact(
-    Array.from(postBody.matchAll(RE_WOBJECT_REF)).map((match) => _.compact(match)[1]),
-  );
+  const bodyLinks = getBodyLinksArray(postBody);
   if (!_.isEmpty(bodyLinks)) {
     const metadataWobjects = _.concat(
       _.get(metadata, 'tags', []),
@@ -214,9 +212,7 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
 };
 
 exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
-  const matches = _.compact(
-    Array.from(body.matchAll(RE_WOBJECT_REF)).map((match) => _.compact(match)[1]),
-  );
+  const matches = getBodyLinksArray(body);
   if (_.isEmpty(matches)) return false;
 
   const { post } = await Post.findByBothAuthors({
@@ -236,3 +232,9 @@ exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
   await Post.addWobjectsToPost({ author, permlink, wobjects });
   return true;
 };
+
+const getBodyLinksArray = (body) => _
+  .chain(body.match(new RegExp(RE_WOBJECT_REF, 'gm')))
+  .reduce((acc, link) => [...acc, _.compact(link.match(RE_WOBJECT_REF))[1]], [])
+  .compact()
+  .value();

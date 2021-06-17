@@ -7,4 +7,4 @@ exports.HOSTS_TO_PARSE_LINKS = [
 
 exports.RE_HTTPS = new RegExp(/^https:\/\//);
 
-exports.RE_WOBJECT_REF = new RegExp(`${this.HOSTS_TO_PARSE_LINKS.map((el) => `${el}${WOBJECT_REF}`).join('|')}`, 'gm');
+exports.RE_WOBJECT_REF = new RegExp(`${this.HOSTS_TO_PARSE_LINKS.map((el) => `${el}${WOBJECT_REF}`).join('|')}`);
