@@ -58,3 +58,7 @@ exports.PARSE_MATCHING = {
 exports.PATH = {
   REFERRAL_ACCOUNT: 'app_commissions.referral_commission_acc',
 };
+
+exports.CAN_MUTE_GLOBAL = process.env.CAN_MUTE_GLOBAL
+  ? process.env.CAN_MUTE_GLOBAL.split(',')
+  : [];
