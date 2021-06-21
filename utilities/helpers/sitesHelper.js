@@ -1,19 +1,19 @@
 const {
+  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
+  REFUND_TYPES, REFUND_STATUSES, PATH, CAN_DELETE_STATUSES, CAN_MUTE_GLOBAL,
+} = require('constants/sitesData');
+const {
   App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post,
 } = require('models');
+const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
+const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
+const { sitesValidator, objectBotsValidator } = require('validator');
+const { FIELDS_NAMES } = require('constants/wobjectsData');
+const appHelper = require('utilities/helpers/appHelper');
+const { usersUtil } = require('utilities/steemApi');
+const Sentry = require('@sentry/node');
 const moment = require('moment');
 const _ = require('lodash');
-const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
-const Sentry = require('@sentry/node');
-const { sitesValidator, objectBotsValidator } = require('validator');
-const appHelper = require('utilities/helpers/appHelper');
-const {
-  STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
-  REFUND_TYPES, REFUND_STATUSES, PATH, CAN_DELETE_STATUSES,
-} = require('constants/sitesData');
-const { FIELDS_NAMES } = require('constants/wobjectsData');
-const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
-const { usersUtil } = require('utilities/steemApi');
 
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
@@ -26,9 +26,13 @@ exports.createWebsite = async (operation) => {
   const { result } = await App.findOne({ owner: json.owner, status: STATUSES.SUSPENDED });
   if (result) json.status = STATUSES.SUSPENDED;
   await App.create(json);
-  await this.changeManagersMuteList({
-    mangerName: json.owner, host: json.host, action: MUTE_ACTION.MUTE,
-  });
+
+  const managerNames = _.compact([...CAN_MUTE_GLOBAL, json.owner]);
+  for (const mangerName of managerNames) {
+    await this.changeManagersMuteList({
+      mangerName, host: json.host, action: MUTE_ACTION.MUTE,
+    });
+  }
 };
 
 exports.deleteWebsite = async (operation) => {
@@ -39,6 +43,13 @@ exports.deleteWebsite = async (operation) => {
   });
   if (!app) return false;
   await App.deleteOne({ _id: app._id });
+
+  const managerNames = _.compact([_.get(app, 'owner'), ..._.get(app, 'moderators', []), ...CAN_MUTE_GLOBAL]);
+  for (const mangerName of managerNames) {
+    await this.changeManagersMuteList({
+      mangerName, host: app.host, action: MUTE_ACTION.UNMUTE,
+    });
+  }
 };
 
 exports.activationActions = async (operation, activate) => {
@@ -261,6 +272,7 @@ exports.mutedUsers = async ({ follower, following, action }) => {
     action, mutedBy: follower, mutedForApps: _.map(apps, 'host'), users,
   });
   if (error) return console.error(error.message);
+  if (_.includes(CAN_MUTE_GLOBAL, follower)) value.mutedForApps = await getAllAppsHost();
 
   await processMutedCollection(value);
   if (_.isEmpty(value.mutedForApps)) return;
@@ -297,6 +309,11 @@ exports.setWebsiteReferralAccount = async (operation) => {
 };
 
 /** ------------------------PRIVATE METHODS--------------------------*/
+const getAllAppsHost = async () => {
+  const { result } = await App.find({}, { host: 1 });
+  return _.map(result, 'host');
+};
+
 const processMutedCollection = async ({
   users, mutedBy, action, mutedForApps,
 }) => {
