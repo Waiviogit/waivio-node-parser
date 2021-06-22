@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { parseAddress } = require('utilities/helpers/updateSpecificFieldsHelper');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { WObject } = require('database').models;
 
@@ -35,7 +36,7 @@ const getFieldsData = async (fields, fieldNameForParse) => {
         break;
     }
   }
-  return newFields;
+  return { newFields };
 };
 
 const getAuthorPermlinks = async () => {
@@ -43,18 +44,4 @@ const getAuthorPermlinks = async () => {
   for (const wobj of wobjects) {
     await WObject.updateOne({ _id: wobj._id }, { $set: { 'search.author_permlink': wobj.author_permlink } });
   }
-};
-
-const parseAddress = (addressFromDB) => {
-  let rawAddress;
-  try {
-    rawAddress = JSON.parse(addressFromDB);
-  } catch (err) {
-    return { err };
-  }
-  let address = '';
-  for (const key in rawAddress) {
-    address += `${rawAddress[key]},`;
-  }
-  return { address: address.substr(0, address.length - 1) };
 };

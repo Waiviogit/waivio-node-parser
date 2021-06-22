@@ -242,4 +242,20 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
-module.exports = { update, processingParent, parseMap };
+const parseAddress = (addressFromDB) => {
+  let rawAddress;
+  try {
+    rawAddress = JSON.parse(addressFromDB);
+  } catch (err) {
+    return { err };
+  }
+  let address = '';
+  for (const key in rawAddress) {
+    address += `${rawAddress[key]},`;
+  }
+  return { address: address.substr(0, address.length - 1) };
+};
+
+module.exports = {
+  update, processingParent, parseMap, parseAddress,
+};

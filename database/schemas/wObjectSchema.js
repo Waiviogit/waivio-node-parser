@@ -7,6 +7,14 @@ const AuthoritySchema = new Schema({
   ownership: { type: [String], default: [] },
 }, { _id: false });
 
+const SearchSchema = new Schema({
+  author_permlink: { type: String },
+  name: { type: [String], default: [] },
+  email: { type: [String], default: [] },
+  phone: { type: [String], default: [] },
+  address: { type: [String], default: [] },
+});
+
 const WObjectSchema = new Schema({
   app: String,
   community: String,
@@ -58,6 +66,7 @@ const WObjectSchema = new Schema({
   last_posts_count: { type: Number, default: 0 },
   activeCampaigns: { type: [mongoose.Types.ObjectId], default: [] },
   activeCampaignsCount: { type: Number, default: 0 },
+  search: { type: SearchSchema, default: () => ({}) },
 },
 {
   strict: false,
@@ -77,6 +86,23 @@ WObjectSchema.pre('save', function (next) {
 
 WObjectSchema.index({ map: '2dsphere' });
 WObjectSchema.index({ parent: -1 });
+WObjectSchema.index({
+  'search.name': 'text',
+  'search.email': 'text',
+  'search.address': 'text',
+  'search.phone': 'text',
+  'search.author_permlink': 'text',
+},
+{
+  weights: {
+    'search.author_permlink': 15,
+    'search.name': 10,
+    'search.email': 5,
+    'search.address': 3,
+    'search.phone': 1,
+  },
+  name: 'searchIndex',
+});
 
 const wObjectModel = mongoose.model('wobject', WObjectSchema);
 
