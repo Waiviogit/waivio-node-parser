@@ -118,7 +118,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
   hivePost.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
 
   // validate post data
-  if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
+  if (!postWithWobjValidator.validate({ wobjects: hivePost.wobjects })) {
     return { validationError: true };
   }
   hivePost.active_votes = hivePost.active_votes.map((vote) => ({
