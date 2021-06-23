@@ -7,9 +7,7 @@ const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
-const {
-  RE_WOBJECT_LINK, RE_WOBJECT_AUTHOR_PERMLINK, RE_WOBJECT_AUTHOR_PERMLINK_ENDS, RE_HTTPS,
-} = require('constants/regExp');
+const { RE_HTTPS, RE_WOBJECT_REF } = require('constants/regExp');
 const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 
 exports.objectIdFromDateString = (dateStr) => {
@@ -122,7 +120,7 @@ exports.guestCommentFromTTL = async (author, permlink) => {
  * in second part we check weather post has wobjects or just tags and make calculations
  */
 exports.parseBodyWobjects = async (metadata, postBody = '') => {
-  const bodyLinks = postBody.match(RE_WOBJECT_LINK);
+  const bodyLinks = getBodyLinksArray(postBody);
   if (!_.isEmpty(bodyLinks)) {
     const metadataWobjects = _.concat(
       _.get(metadata, 'tags', []),
@@ -130,10 +128,9 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     );
     const wobj = _.get(metadata, 'wobj.wobjects', []);
     for (const link of bodyLinks) {
-      const authorPermlink = _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK), '[1]', _.get(link.match(RE_WOBJECT_AUTHOR_PERMLINK_ENDS), '[1]'));
-      if (authorPermlink && !_.includes(metadataWobjects, authorPermlink)) {
+      if (!_.includes(metadataWobjects, link)) {
         const { wobject } = await Wobj.getOne({
-          author_permlink: authorPermlink,
+          author_permlink: link,
           select: { author_permlink: 1, object_type: 1 },
         });
         if (!wobject) continue;
@@ -213,3 +210,31 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
     });
   }
 };
+
+exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
+  const matches = getBodyLinksArray(body);
+  if (_.isEmpty(matches)) return false;
+
+  const { post } = await Post.findByBothAuthors({
+    author, permlink, select: { wobjects: 1, _id: 0 },
+  });
+  if (!post) return false;
+
+  const { result } = await Wobj.find(
+    { author_permlink: { $in: matches } },
+    { author_permlink: 1, object_type: 1, _id: 0 },
+  );
+  if (_.isEmpty(result)) return false;
+
+  const wobjects = _.differenceBy(result, _.get(post, 'wobjects', []), 'author_permlink');
+  if (_.isEmpty(wobjects)) return false;
+
+  await Post.addWobjectsToPost({ author, permlink, wobjects });
+  return true;
+};
+
+const getBodyLinksArray = (body) => _
+  .chain(body.match(new RegExp(RE_WOBJECT_REF, 'gm')))
+  .reduce((acc, link) => [...acc, _.compact(link.match(RE_WOBJECT_REF))[1]], [])
+  .compact()
+  .value();

@@ -1,9 +1,10 @@
-const _ = require('lodash');
 const {
-  postHelper, faker, expect, dropDatabase, RelatedAlbum,
+  postHelper, faker, expect, dropDatabase, RelatedAlbum, Post,
 } = require('test/testHelper');
-const { ObjectFactory, RelatedFactory } = require('test/factories');
 const { OBJECT_TYPES_WITH_ALBUM, OBJECT_TYPES } = require('constants/wobjectsData');
+const { ObjectFactory, RelatedFactory, PostFactory } = require('test/factories');
+const { HOSTS_TO_PARSE_LINKS } = require('constants/regExp');
+const _ = require('lodash');
 
 describe('On postHelper', async () => {
   describe('On parseBodyWobjects', async () => {
@@ -73,7 +74,7 @@ describe('On postHelper', async () => {
           },
           tags: [mockHashtag.author_permlink],
         };
-        body = `${faker.random.string()}https://waivio.com/object/${bodyWobject.author_permlink}${_.sample(['/', ' ', ':', ',', '.', ';', ')', '?'])}${faker.random.string()}`;
+        body = `${faker.random.string()}https://${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${bodyWobject.author_permlink}${_.sample(['/', ' ', ':', ',', '.', ';', ')', '?'])}${faker.random.string()}`;
       });
       it('should deep eq object when metadata has wobjects and tags', async () => {
         const mocks = [{
@@ -184,6 +185,95 @@ describe('On postHelper', async () => {
       await postHelper.addToRelated([mockObject], [`https://${faker.random.string()}`], postAuthorPermlink);
       image = await RelatedAlbum.findOne({ postAuthorPermlink, wobjAuthorPermlink }).lean();
       expect(image).to.not.exist;
+    });
+  });
+
+  describe('On parseCommentBodyWobjects', async () => {
+    let objectOnPost, objectOnComment, post, link, result, updatedPost;
+
+    beforeEach(async () => {
+      objectOnPost = await ObjectFactory.Create();
+      objectOnComment = await ObjectFactory.Create();
+      post = await PostFactory.Create({
+        wobjects: [{ author_permlink: objectOnPost.author_permlink }],
+      });
+    });
+
+    describe('On Success adding', async () => {
+      beforeEach(async () => {
+        link = `${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${objectOnComment.author_permlink}`;
+        result = await postHelper.parseCommentBodyWobjects({
+          body: link, author: post.author, permlink: post.permlink,
+        });
+        updatedPost = await Post.findOne({
+          author: post.author, permlink: post.permlink,
+        }).lean();
+      });
+
+      it('should parseCommentBodyWobjects return true', async () => {
+        expect(result).to.be.eq(true);
+      });
+
+      it('should add second wobject to post', async () => {
+        expect(updatedPost.wobjects).to.have.length(2);
+      });
+
+      it('should add second wobject has proper author_permlink', async () => {
+        expect(updatedPost.wobjects[1].author_permlink).to.be.eq(objectOnComment.author_permlink);
+      });
+
+      it('should add second wobject has proper object_type', async () => {
+        expect(updatedPost.wobjects[1].object_type).to.be.eq(objectOnComment.object_type);
+      });
+    });
+
+    describe('When adding same object', async () => {
+      beforeEach(async () => {
+        link = `${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${objectOnPost.author_permlink}`;
+        result = await postHelper.parseCommentBodyWobjects({
+          body: link, author: post.author, permlink: post.permlink,
+        });
+        updatedPost = await Post.findOne({
+          author: post.author, permlink: post.permlink,
+        }).lean();
+      });
+
+      it('should parseCommentBodyWobjects return false', async () => {
+        expect(result).to.be.eq(false);
+      });
+
+      it('should not add new record to wobject', async () => {
+        expect(updatedPost.wobjects).to.have.length(1);
+      });
+    });
+
+    describe('On bad data', async () => {
+      it('should return false when not find proper link in body', async () => {
+        link = faker.internet.url();
+        result = await postHelper.parseCommentBodyWobjects({
+          body: link, author: post.author, permlink: post.permlink,
+        });
+
+        expect(result).to.be.eq(false);
+      });
+
+      it('should return false when not find post', async () => {
+        link = `${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${objectOnComment.author_permlink}`;
+        result = await postHelper.parseCommentBodyWobjects({
+          body: link, author: faker.random.word(), permlink: faker.random.word(),
+        });
+
+        expect(result).to.be.eq(false);
+      });
+
+      it('should return false when not find wobject', async () => {
+        link = `${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${faker.random.word()}`;
+        result = await postHelper.parseCommentBodyWobjects({
+          body: link, author: post.author, permlink: post.permlink,
+        });
+
+        expect(result).to.be.eq(false);
+      });
     });
   });
 });
