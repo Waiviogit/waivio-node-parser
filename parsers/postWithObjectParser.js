@@ -117,7 +117,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     : hivePost.body;
   hivePost.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
   // validate post data
-  if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
+  if (!postWithWobjValidator.validate({ wobjects: hivePost.wobjects })) {
     return { validationError: true };
   }
   hivePost.active_votes = hivePost.active_votes.map((vote) => ({
@@ -133,9 +133,9 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
   if (error) return { error };
   await commentRefSetter.addPostRef(
     `${data.root_author}_${data.permlink}`,
-    data.wobjects, _.get(data, 'guestInfo.userId'),
+    hivePost.wobjects, _.get(data, 'guestInfo.userId'),
   );
-  await postHelper.addToRelated(data.wobjects, metadata.image, `${data.author}_${data.permlink}`);
+  await postHelper.addToRelated(hivePost.wobjects, metadata.image, `${data.author}_${data.permlink}`);
   return { updPost, action: 'updated' };
 };
 
