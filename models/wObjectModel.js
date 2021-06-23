@@ -52,7 +52,7 @@ const addSearchField = async (data) => {
       { author_permlink: data.author_permlink },
       {
         $push: {
-          [`search.${data.field.name}`]: data.search.name,
+          [`search.${data.field.name}`]: Object.values(data.search).join(),
         },
       },
     );
