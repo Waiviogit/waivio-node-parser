@@ -16,6 +16,7 @@ const validate = async (data, operation) => {
   await validateSameFields(data);
   await validateFieldBlacklist({ author_permlink: data.author_permlink, fieldName: _.get(data, 'field.name') });
   await validateSpecifiedFields(data, operation);
+  await validateSearchFields(data);
 };
 
 // validate that append has all required fields
@@ -41,6 +42,15 @@ const validateSameFields = async (data) => {
   const result = foundedFields.find((field) => _.isEqual(field, _.pick(data.field, setUniqFields)));
   if (result) {
     throw new Error("Can't append object, the same field already exists");
+  }
+};
+
+const validateSearchFields = async (data) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: data.author_permlink });
+  if (!_.isEmpty(data.search)) {
+    const searchWords = [].concat(...Object.values(wobject.search));
+    const existWords = _.filter(data.search, (field) => _.includes(searchWords, field));
+    if (!_.isEmpty(existWords)) throw new Error("Can't append word, append is now exist!");
   }
 };
 

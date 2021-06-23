@@ -13,7 +13,7 @@ const SearchSchema = new Schema({
   email: { type: [String], default: [] },
   phone: { type: [String], default: [] },
   address: { type: [String], default: [] },
-});
+}, { _id: false });
 
 const WObjectSchema = new Schema({
   app: String,

@@ -58,9 +58,10 @@ const appendObject = async (data, operation) => {
       data.author_permlink,
     );
     const { result: isAddedField, error } = await Wobj.addField(data);
+    if (error) throw error;
 
-    let isAddedSearchField;
-    if (data.search) {
+    let isAddedSearchField = true;
+    if (!_.isEmpty(data.search)) {
       const { result, error: err } = await Wobj.addSearchField(data);
       if (error) throw err;
       isAddedSearchField = result;
