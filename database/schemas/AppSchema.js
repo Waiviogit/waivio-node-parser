@@ -1,7 +1,8 @@
+const { STATUSES, SUPPORTED_COLORS } = require('constants/sitesData');
+const { SUPPORTED_CURRENCIES } = require('constants/common');
+const { REFERRAL_TYPES } = require('constants/appData');
 const mongoose = require('mongoose');
 const _ = require('lodash');
-const { STATUSES, SUPPORTED_COLORS } = require('constants/sitesData');
-const { REFERRAL_TYPES } = require('constants/appData');
 
 const { Schema } = mongoose;
 
@@ -113,6 +114,11 @@ const AppSchema = new Schema({
   referralsData: { type: [ReferralTimersSchema], default: [] },
   tagsData: { type: TagsData },
   parentHost: { type: String },
+  currency: {
+    type: String,
+    enum: Object.values(SUPPORTED_CURRENCIES),
+    default: SUPPORTED_CURRENCIES.USD,
+  },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {
