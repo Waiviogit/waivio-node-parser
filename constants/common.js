@@ -9,3 +9,8 @@ exports.ERROR = {
   FOLLOW_OBJECT_PARSER: 'Can\'t follow, follower and author of operation are different',
   NOT_FOUND: 'Not Found',
 };
+
+exports.SUPPORTED_CURRENCIES = {
+  USD: 'USD',
+  CAD: 'CAD',
+};

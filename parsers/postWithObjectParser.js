@@ -116,6 +116,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
     ? mergePosts(post.body, hivePost.body)
     : hivePost.body;
   hivePost.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
+
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: hivePost.wobjects })) {
     return { validationError: true };
