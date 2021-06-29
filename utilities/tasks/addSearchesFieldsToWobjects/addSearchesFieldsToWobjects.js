@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { parseAddress } = require('utilities/helpers/updateSpecificFieldsHelper');
+const { updateSpecificFieldsHelper } = require('utilities/helpers');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { WObject } = require('database').models;
 
@@ -17,26 +17,25 @@ module.exports = async (fieldName) => {
 };
 
 const getFieldsData = async (fields, fieldNameForParse) => {
-  const newFields = [];
-  for (const field of fields) {
-    // conditional for parse only necessary field
-    if (field.name !== fieldNameForParse) continue;
-    switch (field.name) {
-      case FIELDS_NAMES.NAME:
-      case FIELDS_NAMES.EMAIL:
-        newFields.push(_.get(field, 'body'));
-        break;
-      case FIELDS_NAMES.PHONE:
-        newFields.push(_.get(field, 'number') || _.get(field, 'body'));
-        break;
-      case FIELDS_NAMES.ADDRESS:
-        const { address, err } = parseAddress(_.get(field, 'body'));
-        if (err) return { err };
-        newFields.push(address);
-        break;
-    }
+  try {
+    return {
+      newFields: _.chain(fields)
+        .filter((field) => field.name === fieldNameForParse)
+        .map((field) => parseSearchField(field)).value(),
+    };
+  } catch (err) {
+    return { err };
   }
-  return { newFields };
+};
+
+const parseSearchField = (field) => {
+  const parseSearchData = {
+    [FIELDS_NAMES.NAME]: () => _.get(field, 'body'),
+    [FIELDS_NAMES.EMAIL]: () => _.get(field, 'body'),
+    [FIELDS_NAMES.PHONE]: () => _.get(field, 'number') || _.get(field, 'body'),
+    [FIELDS_NAMES.ADDRESS]: () => updateSpecificFieldsHelper.parseAddress(_.get(field, 'body')),
+  };
+  return parseSearchData[field.name]();
 };
 
 const getAuthorPermlinks = async () => {

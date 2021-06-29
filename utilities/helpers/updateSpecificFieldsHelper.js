@@ -8,6 +8,7 @@ const { validateMap } = require('validator/specifiedFieldsValidator');
 const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
+const { SEARCH_FIELDS } = require('constants/wobjectsData');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -242,6 +243,38 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
+const parseSearchData = (metadata) => {
+  const fieldName = _.get(metadata, 'wobj.field.name');
+  if (_.includes(SEARCH_FIELDS, fieldName)) {
+    let searchField;
+    switch (fieldName) {
+      case FIELDS_NAMES.NAME:
+      case FIELDS_NAMES.EMAIL:
+      case FIELDS_NAMES.PHONE:
+        searchField = _.get(metadata, 'wobj.field.body', '');
+        break;
+      case FIELDS_NAMES.ADDRESS:
+        const { address, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
+        if (err) return { err };
+        searchField = address;
+        break;
+    }
+    return searchField;
+  }
+};
+
+const addSearchField = async (data) => {
+  if (!_.isEmpty(data.searchField)) {
+    const { result, error } = await Wobj.addSearchField({
+      authorPermlink: data.author_permlink,
+      fieldName: data.field.name,
+      newWord: data.searchField,
+    });
+    if (error) return { error };
+    return { result };
+  }
+};
+
 const parseAddress = (addressFromDB) => {
   let rawAddress;
   try {
@@ -257,5 +290,5 @@ const parseAddress = (addressFromDB) => {
 };
 
 module.exports = {
-  update, processingParent, parseMap, parseAddress,
+  update, processingParent, parseMap, parseSearchData, addSearchField, parseAddress,
 };
