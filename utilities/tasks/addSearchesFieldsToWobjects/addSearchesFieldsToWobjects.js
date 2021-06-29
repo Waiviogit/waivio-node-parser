@@ -12,7 +12,11 @@ module.exports = async (fieldName) => {
       console.error(`Failed to parse the address for the object: ${wobj.author_permlink} with error:`, err);
       continue;
     }
-    await WObject.updateOne({ _id: wobj._id }, { $set: { [`search.${fieldName}`]: newFields } });
+    try {
+      await WObject.updateOne({ _id: wobj._id }, { $addToSet: { [`search.${fieldName}`]: newFields } });
+    } catch (error) {
+      return { error };
+    }
   }
 };
 
@@ -33,7 +37,7 @@ const parseSearchField = (field) => {
     [FIELDS_NAMES.NAME]: () => _.get(field, 'body'),
     [FIELDS_NAMES.EMAIL]: () => _.get(field, 'body'),
     [FIELDS_NAMES.PHONE]: () => _.get(field, 'number') || _.get(field, 'body'),
-    [FIELDS_NAMES.ADDRESS]: () => updateSpecificFieldsHelper.parseAddress(_.get(field, 'body')),
+    [FIELDS_NAMES.ADDRESS]: () => updateSpecificFieldsHelper.parseAddress(_.get(field, 'body')).address,
   };
   return parseSearchData[field.name]();
 };
