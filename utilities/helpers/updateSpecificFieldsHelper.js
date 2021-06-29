@@ -250,8 +250,10 @@ const parseSearchData = (metadata) => {
     switch (fieldName) {
       case FIELDS_NAMES.NAME:
       case FIELDS_NAMES.EMAIL:
-      case FIELDS_NAMES.PHONE:
         searchField = _.get(metadata, 'wobj.field.body', '');
+        break;
+      case FIELDS_NAMES.PHONE:
+        searchField = _.get(metadata, 'wobj.field.number', '');
         break;
       case FIELDS_NAMES.ADDRESS:
         const { address, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
