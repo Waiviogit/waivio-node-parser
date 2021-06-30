@@ -17,8 +17,7 @@ const parse = async (operation, metadata) => {
     data.field[fieldItem] = metadata.wobj.field[fieldItem];
   }
 
-  data.searchField = updateSpecificFieldsHelper.parseSearchData(metadata);
-  const { result, error } = await appendObject(data, operation);
+  const { result, error } = await appendObject(data, operation, metadata);
 
   if (result) {
     console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject ${data.author_permlink}!\n`);
@@ -29,7 +28,7 @@ const parse = async (operation, metadata) => {
   }
 };
 
-const appendObject = async (data, operation) => {
+const appendObject = async (data, operation, metadata) => {
   try {
     await appendObjectValidator.validate(data, operation);
     await commentRefSetter.addAppendWobj(
@@ -41,7 +40,10 @@ const appendObject = async (data, operation) => {
 
     const {
       result: isAddedSearchField, error: err,
-    } = await updateSpecificFieldsHelper.addSearchField(data);
+    } = await updateSpecificFieldsHelper.addSearchField({
+      ...data,
+      newWord: updateSpecificFieldsHelper.parseSearchData(metadata),
+    });
     if (err) throw err;
 
     await updateSpecificFieldsHelper.update(

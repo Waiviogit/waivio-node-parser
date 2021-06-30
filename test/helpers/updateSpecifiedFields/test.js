@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const {
-  FIELDS_NAMES, RATINGS_UPDATE_COUNT, AUTHORITY_FIELD_ENUM, OBJECT_TYPES,
+  FIELDS_NAMES, RATINGS_UPDATE_COUNT, AUTHORITY_FIELD_ENUM, OBJECT_TYPES, SEARCH_FIELDS,
 } = require('constants/wobjectsData');
 const {
   expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config, App,
@@ -519,6 +519,86 @@ describe('UpdateSpecificFieldsHelper', async () => {
       it('parent name should be same in field body and result parent', async () => {
         expect(result.parent).to.be.empty;
       });
+    });
+  });
+
+  describe('parseSearchData', async () => {
+    let searchField, fieldValue;
+    it('should return undefined if the field name not include in search fields', async () => {
+      const metadata = {
+        wobj: {
+          field: {
+            name: _.sample(_.omit(FIELDS_NAMES, Object.keys(SEARCH_FIELDS))),
+            body: faker.name.firstName().toLowerCase(),
+          },
+        },
+      };
+      searchField = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect(searchField).to.be.undefined;
+    });
+    it('should return name/email as a search word', async () => {
+      fieldValue = faker.name.firstName().toLowerCase();
+      const metadata = {
+        wobj: {
+          field: {
+            name: _.sample([SEARCH_FIELDS.NAME, SEARCH_FIELDS.EMAIL]),
+            body: fieldValue,
+          },
+        },
+      };
+      searchField = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect(fieldValue).to.be.equal(searchField);
+    });
+    it('should return phone as a search word', async () => {
+      fieldValue = faker.name.firstName().toLowerCase();
+      const metadata = {
+        wobj: { field: { name: SEARCH_FIELDS.PHONE, number: fieldValue } },
+      };
+      searchField = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect(fieldValue).to.be.equal(searchField);
+    });
+    it('should return address as a search word', async () => {
+      fieldValue = '{"address":"Kyiv","street":"Buba Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
+      const metadata = {
+        wobj: { field: { name: SEARCH_FIELDS.ADDRESS, body: fieldValue } },
+      };
+      searchField = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect('Kyiv,Buba Strees,Kyiv,State,01111,Ukraine').to.be.equal(searchField);
+    });
+  });
+
+  describe('addSearchField', async () => {
+    let authorPermlink;
+    beforeEach(async () => {
+      authorPermlink = faker.random.string(10);
+      await ObjectFactory.Create({ author_permlink: authorPermlink });
+    });
+    it('should return true if the addition was successful', async () => {
+      const { result } = await updateSpecificFieldsHelper.addSearchField({
+        authorPermlink,
+        field: { name: _.sample(SEARCH_FIELDS) },
+        newWord: faker.random.string(10),
+      });
+      expect(result).to.be.true;
+    });
+    it('should return false if newWord not exist', async () => {
+      const { result } = await updateSpecificFieldsHelper.addSearchField({
+        authorPermlink,
+        field: { name: _.sample(SEARCH_FIELDS) },
+      });
+      expect(result).to.be.false;
+    });
+  });
+
+  describe('parseAddress', async () => {
+    it('should parsed address as each address-value separated by commas', () => {
+      const rawAddress = '{"address":"Kyiv","street":"Buba Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
+      const { address } = updateSpecificFieldsHelper.parseAddress(rawAddress);
+      expect('Kyiv,Buba Strees,Kyiv,State,01111,Ukraine').to.be.eq(address);
+    });
+    it('should parsed address as each address-value separated by commas', () => {
+      const { err } = updateSpecificFieldsHelper.parseAddress(faker.random.string(10));
+      expect(err).is.exist;
     });
   });
 });

@@ -1,9 +1,10 @@
+const _ = require('lodash');
+const { SEARCH_FIELDS } = require('constants/wobjectsData');
+const { ObjectFactory, PostFactory, AppendObject } = require('test/factories');
+const WObjectModel = require('database').models.WObject;
 const {
   expect, WobjModel, WObject, faker, ObjectType, dropDatabase,
-} = require('../../testHelper');
-const WObjectModel = require('../../../database').models.WObject;
-const { ObjectFactory, PostFactory, AppendObject } = require('../../factories');
-const _ = require('lodash');
+} = require('test/testHelper');
 
 describe('Wobject model', async () => {
   describe('On addVote', async () => {
@@ -317,9 +318,7 @@ describe('Wobject model', async () => {
     });
   });
   describe('On addField', async () => {
-    let result,
-      data,
-      permlink;
+    let result, data, permlink;
     beforeEach(async () => {
       permlink = faker.random.string();
       await ObjectFactory.Create({ author_permlink: permlink });
@@ -501,6 +500,29 @@ describe('Wobject model', async () => {
     it('should return error without data', async () => {
       result = await WobjModel.removeVote();
       expect(result.error).is.exist;
+    });
+  });
+  describe('On addSearchField', async () => {
+    let authorPermlink, name;
+    beforeEach(async () => {
+      authorPermlink = faker.random.string();
+      name = faker.random.string(10);
+      await ObjectFactory.Create({
+        author_permlink: authorPermlink,
+        searchField: { name },
+      });
+    });
+    it('should return true if the addition was successful', async () => {
+      const { result } = await WobjModel.addSearchField({
+        authorPermlink,
+        fieldName: _.sample(SEARCH_FIELDS),
+        newWord: faker.random.string(),
+      });
+      expect(result).to.be.true;
+    });
+    it('should return false if added fields were not specified', async () => {
+      const { result } = await WobjModel.addSearchField({});
+      expect(result).to.be.false;
     });
   });
 });
