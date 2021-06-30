@@ -41,6 +41,7 @@ const appendObject = async (data, operation, metadata) => {
     const {
       result: isAddedSearchField, error: err,
     } = await updateSpecificFieldsHelper.addSearchField({
+      authorPermlink: data.author_permlink,
       ...data,
       newWord: updateSpecificFieldsHelper.parseSearchData(metadata),
     });
