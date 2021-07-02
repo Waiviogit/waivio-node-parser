@@ -7,7 +7,6 @@ const {
   expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config, App, sinon,
 } = require('test/testHelper');
 const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
-const { getMocksData } = require('./mocks');
 
 describe('UpdateSpecificFieldsHelper', async () => {
   let wobject, parent;
@@ -547,14 +546,20 @@ describe('UpdateSpecificFieldsHelper', async () => {
   });
 
   describe('check call addSearchField method if field.name matches search fields', async () => {
-    let mockData, addSearchField;
+    let addSearchField, wobj, metadata, fieldName;
     beforeEach(async () => {
-      mockData = await getMocksData();
-      await ObjectFactory.Create({ author_permlink: mockData.authorPermlink });
+      wobj = await AppendObject.Create({
+        name: _.sample([SEARCH_FIELDS.NAME, SEARCH_FIELDS.EMAIL, SEARCH_FIELDS.PHONE]),
+      });
+      metadata = { wobj: { field: wobj.appendObject } };
+      fieldName = wobj.appendObject.name;
       addSearchField = sinon.spy(Wobj, 'addSearchField');
-      sinon.stub(Wobj, 'getField').returns(Promise.resolve({ field: mockData.metadata.wobj.field }));
+
       await updateSpecificFieldsHelper.update({
-        authorPermlink: mockData.authorPermlink, metadata: mockData.metadata,
+        author: wobj.appendObject.author,
+        permlink: wobj.appendObject.permlink,
+        authorPermlink: wobj.wobject.author_permlink,
+        metadata,
       });
     });
     afterEach(() => {
@@ -563,10 +568,17 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
     it('should call "Wobj.addSearchField" with correct params', () => {
       expect(...addSearchField.getCalls()[0].args).to.be.deep.eq({
-        authorPermlink: mockData.authorPermlink,
-        fieldName: mockData.metadata.wobj.field.name,
-        newWord: updateSpecificFieldsHelper.parseSearchData(mockData.metadata),
+        authorPermlink: wobj.wobject.author_permlink,
+        fieldName,
+        newWord: updateSpecificFieldsHelper.parseSearchData(metadata),
       });
+    });
+    it('search field in wobject should be equal mock new word', async () => {
+      const { wobject: result } = await Wobj.getOne({
+        author_permlink: wobj.wobject.author_permlink,
+        select: { search: 1 },
+      });
+      expect(...result.search[fieldName]).to.be.eq(wobj.appendObject.body);
     });
   });
 
@@ -606,12 +618,13 @@ describe('UpdateSpecificFieldsHelper', async () => {
       expect(fieldValue).to.be.equal(searchField);
     });
     it('should return address as a search word', async () => {
-      fieldValue = '{"address":"Kyiv","street":"Buba Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
+      const rawAddress = '{"address":"Kyiv","street":"Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
+      const expectedAddress = 'Kyiv,Strees,Kyiv,State,01111,Ukraine';
       const metadata = {
-        wobj: { field: { name: SEARCH_FIELDS.ADDRESS, body: fieldValue } },
+        wobj: { field: { name: SEARCH_FIELDS.ADDRESS, body: rawAddress } },
       };
       searchField = await updateSpecificFieldsHelper.parseSearchData(metadata);
-      expect('Kyiv,Buba Strees,Kyiv,State,01111,Ukraine').to.be.equal(searchField);
+      expect(expectedAddress).to.be.equal(searchField);
     });
   });
 
@@ -640,9 +653,10 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
   describe('parseAddress', async () => {
     it('should parsed address as each address-value separated by commas', () => {
-      const rawAddress = '{"address":"Kyiv","street":"Buba Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
+      const rawAddress = '{"address":"Kyiv","street":"Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
+      const expectedAddress = 'Kyiv,Strees,Kyiv,State,01111,Ukraine';
       const { address } = updateSpecificFieldsHelper.parseAddress(rawAddress);
-      expect('Kyiv,Buba Strees,Kyiv,State,01111,Ukraine').to.be.eq(address);
+      expect(expectedAddress).to.be.eq(address);
     });
     it('should parsed address as each address-value separated by commas', () => {
       const { err } = updateSpecificFieldsHelper.parseAddress(faker.random.string(10));

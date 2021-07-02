@@ -503,22 +503,28 @@ describe('Wobject model', async () => {
     });
   });
   describe('On addSearchField', async () => {
-    let authorPermlink, name;
+    let authorPermlink, fieldName, newWord;
     beforeEach(async () => {
       authorPermlink = faker.random.string();
-      name = faker.random.string(10);
+      fieldName = _.sample(SEARCH_FIELDS);
+      newWord = faker.random.string();
       await ObjectFactory.Create({
         author_permlink: authorPermlink,
-        searchField: { name },
+        searchField: { [`${fieldName}`]: newWord },
       });
     });
     it('should return true if the addition was successful', async () => {
       const { result } = await WobjModel.addSearchField({
-        authorPermlink,
-        fieldName: _.sample(SEARCH_FIELDS),
-        newWord: faker.random.string(),
+        authorPermlink, fieldName, newWord,
       });
       expect(result).to.be.true;
+    });
+    it('search field in wobject should be equal mock new word', async () => {
+      const { wobject } = await WobjModel.getOne({
+        author_permlink: authorPermlink,
+        select: { search: 1 },
+      });
+      expect(...wobject.search[fieldName]).to.be.eq(newWord);
     });
     it('should return false if added fields were not specified', async () => {
       const { result } = await WobjModel.addSearchField({});
