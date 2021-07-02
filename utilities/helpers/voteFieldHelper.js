@@ -126,7 +126,9 @@ const handleSpecifiedField = async (author, permlink, authorPermlink, voter, per
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
 
   if (error || !field) return;
-  await updateSpecificFieldsHelper.update(author, permlink, authorPermlink, voter, percent);
+  await updateSpecificFieldsHelper.update({
+    author, permlink, authorPermlink, voter, percent,
+  });
 };
 
 module.exports = { voteOnField };

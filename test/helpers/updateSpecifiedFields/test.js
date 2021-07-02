@@ -1,11 +1,13 @@
 const _ = require('lodash');
+const { Wobj } = require('models');
 const {
   FIELDS_NAMES, RATINGS_UPDATE_COUNT, AUTHORITY_FIELD_ENUM, OBJECT_TYPES, SEARCH_FIELDS,
 } = require('constants/wobjectsData');
 const {
-  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config, App,
+  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config, App, sinon,
 } = require('test/testHelper');
 const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
+const { getMocksData } = require('./mocks');
 
 describe('UpdateSpecificFieldsHelper', async () => {
   let wobject, parent;
@@ -34,9 +36,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
 
@@ -56,9 +58,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
 
@@ -84,9 +86,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
       it('should write admin field', async () => {
@@ -113,9 +115,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
         fields = [field1, field2, field3];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
       it('should write field with no dislike with bigger weight', async () => {
@@ -139,9 +141,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
 
         fields = [field1, field2];
         await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
       it('should be empty string', async () => {
@@ -170,9 +172,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
             root_wobj: parent.author_permlink,
           },
         );
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
       it('should be same coordinates at map as a win field parent', async () => {
@@ -211,9 +213,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
             activeVotes,
           },
         );
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
       it('map should be null', async () => {
@@ -234,9 +236,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
             activeVotes,
           },
         );
-        await updateSpecificFieldsHelper.update(
-          field1.author, field1.permlink, wobject.author_permlink,
-        );
+        await updateSpecificFieldsHelper.update({
+          author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+        });
         updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       });
       it('map should be null', async () => {
@@ -260,9 +262,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
         if (num > 0) topFields.push(field);
       }
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author, permlink: field.permlink, authorPermlink: wobject.author_permlink,
+      });
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -291,9 +293,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
       }
 
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author, permlink: field.permlink, authorPermlink: wobject.author_permlink,
+      });
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -345,9 +347,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
         }
       }
       await WObject.findOneAndUpdate({ author_permlink: wobject.author_permlink }, { fields });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author, permlink: field.permlink, authorPermlink: wobject.author_permlink,
+      });
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -387,9 +389,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
         body: (mockBody()),
         weight: 10,
       });
-      await updateSpecificFieldsHelper.update(
-        field1.author, field1.permlink, wobject.author_permlink,
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field1.author, permlink: field1.permlink, authorPermlink: wobject.author_permlink,
+      });
       updWobj = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
     });
 
@@ -412,51 +414,65 @@ describe('UpdateSpecificFieldsHelper', async () => {
       app = await AppFactory.Create({ authority: [] });
     });
     it('should add creator to authority array when he create field', async () => {
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author, permlink: field.permlink, authorPermlink: wobject.author_permlink,
+      });
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).contains(field.creator);
     });
     it('should add creator to authority array when he like it', async () => {
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink, field.creator, _.random(1, 100),
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author,
+        permlink: field.permlink,
+        authorPermlink: wobject.author_permlink,
+        voter: field.creator,
+        percent: _.random(1, 100),
+      });
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).contains(field.creator);
     });
     it('should not add creator to authority array when another user like it', async () => {
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-        faker.name.firstName(), _.random(1, 100),
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author,
+        permlink: field.permlink,
+        authorPermlink: wobject.author_permlink,
+        voter: faker.name.firstName(),
+        percent: _.random(1, 100),
+      });
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).to.be.empty;
     });
     it('should remove creator from authority array when he downVote it', async () => {
       await WObject.updateOne({ author_permlink: wobject.author_permlink },
         { $push: { [`authority.${AUTHORITY_FIELD_ENUM.ADMINISTRATIVE}`]: field.creator } });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink, field.creator, _.random(-1, -100),
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author,
+        permlink: field.permlink,
+        authorPermlink: wobject.author_permlink,
+        voter: field.creator,
+        percent: _.random(-1, -100),
+      });
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).to.be.empty;
     });
     it('should not add creator to authority array when another user downVote it ', async () => {
       await WObject.updateOne({ author_permlink: wobject.author_permlink },
         { $push: { [`authority.${AUTHORITY_FIELD_ENUM.ADMINISTRATIVE}`]: field.creator } });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-        faker.name.firstName(), _.random(-1, -100),
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author,
+        permlink: field.permlink,
+        authorPermlink: wobject.author_permlink,
+        voter: faker.name.firstName(),
+        percent: _.random(-1, -100),
+      });
       const result = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
       expect(result.authority[AUTHORITY_FIELD_ENUM.ADMINISTRATIVE]).contains(field.creator);
     });
     it('should add supported object to app when authority claim authority', async () => {
       await App.updateOne({ $set: { authority: [field.creator] } });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink,
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author, permlink: field.permlink, authorPermlink: wobject.author_permlink,
+      });
       const result = await App.findOne({ _id: app._id });
       expect(result.supported_objects).to.include(wobject.author_permlink);
     });
@@ -464,9 +480,13 @@ describe('UpdateSpecificFieldsHelper', async () => {
       await WObject.updateOne({ author_permlink: wobject.author_permlink },
         { $push: { [`authority.${AUTHORITY_FIELD_ENUM.ADMINISTRATIVE}`]: field.creator } });
       await App.updateOne({ $set: { authority: [field.creator], supported_objects: [wobject.author_permlink] } });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink, field.creator, _.random(-1, -100),
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author,
+        permlink: field.permlink,
+        authorPermlink: wobject.author_permlink,
+        voter: field.creator,
+        percent: _.random(-1, -100),
+      });
       const result = await App.findOne({ _id: app._id });
       expect(result.supported_objects).to.not.include(wobject.author_permlink);
     });
@@ -475,9 +495,13 @@ describe('UpdateSpecificFieldsHelper', async () => {
       await WObject.updateOne({ author_permlink: wobject.author_permlink },
         { $set: { [`authority.${AUTHORITY_FIELD_ENUM.ADMINISTRATIVE}`]: [field.creator, anotherAuthority] } });
       await App.updateOne({ $set: { authority: [field.creator, anotherAuthority], supported_objects: [wobject.author_permlink] } });
-      await updateSpecificFieldsHelper.update(
-        field.author, field.permlink, wobject.author_permlink, field.creator, _.random(-1, -100),
-      );
+      await updateSpecificFieldsHelper.update({
+        author: field.author,
+        permlink: field.permlink,
+        authorPermlink: wobject.author_permlink,
+        voter: field.creator,
+        percent: _.random(-1, -100),
+      });
       const result = await App.findOne({ _id: app._id });
       expect(result.supported_objects).to.include(wobject.author_permlink);
     });
@@ -518,6 +542,30 @@ describe('UpdateSpecificFieldsHelper', async () => {
       });
       it('parent name should be same in field body and result parent', async () => {
         expect(result.parent).to.be.empty;
+      });
+    });
+  });
+
+  describe('check call addSearchField method if field.name matches search fields', async () => {
+    let mockData, addSearchField;
+    beforeEach(async () => {
+      mockData = await getMocksData();
+      await ObjectFactory.Create({ author_permlink: mockData.authorPermlink });
+      addSearchField = sinon.spy(Wobj, 'addSearchField');
+      sinon.stub(Wobj, 'getField').returns(Promise.resolve({ field: mockData.metadata.wobj.field }));
+      await updateSpecificFieldsHelper.update({
+        authorPermlink: mockData.authorPermlink, metadata: mockData.metadata,
+      });
+    });
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('should call "Wobj.addSearchField" with correct params', () => {
+      expect(...addSearchField.getCalls()[0].args).to.be.deep.eq({
+        authorPermlink: mockData.authorPermlink,
+        fieldName: mockData.metadata.wobj.field.name,
+        newWord: updateSpecificFieldsHelper.parseSearchData(mockData.metadata),
       });
     });
   });

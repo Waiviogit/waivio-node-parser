@@ -35,22 +35,16 @@ const appendObject = async (data, operation, metadata) => {
       `${data.field.author}_${data.field.permlink}`,
       data.author_permlink,
     );
-    const { result: isAddedField, error } = await Wobj.addField(data);
+    const { result, error } = await Wobj.addField(data);
     if (error) throw error;
 
-    const {
-      result: isAddedSearchField, error: err,
-    } = await updateSpecificFieldsHelper.addSearchField({
+    await updateSpecificFieldsHelper.update({
+      author: data.field.author,
+      permlink: data.field.permlink,
       authorPermlink: data.author_permlink,
-      ...data,
-      newWord: updateSpecificFieldsHelper.parseSearchData(metadata),
+      metadata,
     });
-    if (err) throw err;
-
-    await updateSpecificFieldsHelper.update(
-      data.field.author, data.field.permlink, data.author_permlink,
-    );
-    return { result: isAddedField && isAddedSearchField };
+    return { result };
   } catch (error) {
     return { error };
   }

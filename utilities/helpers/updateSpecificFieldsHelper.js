@@ -5,14 +5,17 @@ const { tagsParser } = require('utilities/restaurantTagsParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { processWobjects } = require('utilities/helpers/wobjectHelper');
 const { validateMap } = require('validator/specifiedFieldsValidator');
-const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
+const {
+  FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT, SEARCH_FIELDS,
+} = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
-const { SEARCH_FIELDS } = require('constants/wobjectsData');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
-const update = async (author, permlink, authorPermlink, voter, percent) => {
+const update = async ({
+  author, permlink, authorPermlink, voter, percent, metadata,
+}) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
   const { result: app } = await App.findOne({ host: config.appHost });
 
@@ -20,7 +23,19 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
     return;
   }
   switch (field.name) {
+    case FIELDS_NAMES.EMAIL:
+    case FIELDS_NAMES.PHONE:
+    case FIELDS_NAMES.ADDRESS:
+      await addSearchField({
+        authorPermlink, field, newWord: parseSearchData(metadata),
+      });
+      break;
     case FIELDS_NAMES.NAME:
+      await addSearchField({
+        authorPermlink, field, newWord: parseSearchData(metadata),
+      });
+      await tagsParser.createTags({ authorPermlink, field });
+      break;
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
       await tagsParser.createTags({ authorPermlink, field });

@@ -5,42 +5,20 @@ const {
 const { getMocksData } = require('./mocks');
 
 describe('Append object parser', async () => {
-  let mockData, wobject, updateSpecificFieldsHelperStub, blackList, addSearchField, parseSearchData;
+  let mockData, wobject, updateSpecificFieldsHelperStub, blackList;
 
   beforeEach(async () => {
     blackList = [faker.random.string(), faker.random.string()];
     sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
     sinon.stub(usersUtil, 'getUser').returns({ user: 'its ok' });
     sinon.stub(importUser, 'send').returns({ response: 'its ok' });
-    addSearchField = sinon.spy(updateSpecificFieldsHelper, 'addSearchField');
-    parseSearchData = sinon.spy(updateSpecificFieldsHelper, 'parseSearchData');
     updateSpecificFieldsHelperStub = sinon.stub(updateSpecificFieldsHelper, 'update').callsFake(() => {});
     mockData = await getMocksData();
     await appendObjectParser.parse(mockData.operation, mockData.metadata);
     wobject = await WObject.findOne({ author_permlink: mockData.wobject.author_permlink }).lean();
   });
-
   afterEach(() => {
     sinon.restore();
-  });
-
-  it('should call "updateSpecifiedFields.addSearchField" once', () => {
-    expect(addSearchField.calledOnce).to.be.true;
-  });
-
-  it('should call "updateSpecifiedFields.addSearchField" with correct params', () => {
-    expect(...addSearchField.getCalls()[0].args).to.include({
-      author_permlink: mockData.wobject.author_permlink,
-      newWord: updateSpecificFieldsHelper.parseSearchData(mockData.metadata),
-    });
-  });
-
-  it('should call "updateSpecifiedFields.parseSearchData" once', () => {
-    expect(parseSearchData.calledOnce).to.be.true;
-  });
-
-  it('should call "updateSpecifiedFields.parseSearchData" with correct params', () => {
-    expect(...parseSearchData.getCalls()[0].args).to.eq(mockData.metadata);
   });
 
   it('should call "updateSpecifiedFields" once', () => {
@@ -48,7 +26,12 @@ describe('Append object parser', async () => {
   });
 
   it('should call "updateSpecifiedFieldHelper" with correct params', () => {
-    expect(Object.values(mockData.operation)).to.include(...updateSpecificFieldsHelperStub.args[0]);
+    expect(...updateSpecificFieldsHelperStub.args[0]).to.be.deep.eq({
+      author: mockData.operation.author,
+      permlink: mockData.operation.permlink,
+      authorPermlink: mockData.operation.parent_permlink,
+      metadata: mockData.metadata,
+    });
   });
 
   describe('field', async () => {
