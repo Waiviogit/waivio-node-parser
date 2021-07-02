@@ -17,7 +17,6 @@ describe('Append object parser', async () => {
     await appendObjectParser.parse(mockData.operation, mockData.metadata);
     wobject = await WObject.findOne({ author_permlink: mockData.wobject.author_permlink }).lean();
   });
-
   afterEach(() => {
     sinon.restore();
   });
@@ -27,9 +26,13 @@ describe('Append object parser', async () => {
   });
 
   it('should call "updateSpecifiedFieldHelper" with correct params', () => {
-    expect(Object.values(mockData.operation)).to.include(...updateSpecificFieldsHelperStub.args[0]);
+    expect(...updateSpecificFieldsHelperStub.args[0]).to.be.deep.eq({
+      author: mockData.operation.author,
+      permlink: mockData.operation.permlink,
+      authorPermlink: mockData.operation.parent_permlink,
+      metadata: mockData.metadata,
+    });
   });
-
 
   describe('field', async () => {
     it('should exist', async () => {
