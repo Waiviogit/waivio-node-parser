@@ -37,7 +37,7 @@ const Create = async ({
     object_type,
     default_name,
     fields: [...appends],
-    search: searchField,
+    search: searchField || {},
   });
 
   await commentRefSetter.addWobjRef(`${author}_${author_permlink}`, author_permlink);
