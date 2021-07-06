@@ -83,12 +83,10 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     if (!rShares) continue;
     // net_rshares sum of all post active_votes rshares negative and positive
     const tRShares = parseFloat(_.get(post, 'net_rshares', 0)) + rShares;
-    const s = parseFloat(priceInfo.content_constant);
-    const tClaims = (tRShares * (tRShares + (2 * s))) / (tRShares + (4 * s));
 
     const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
     // *price - to calculate in HBD
-    const postValue = tClaims * rewards * parseFloat(priceInfo.price);
+    const postValue = tRShares * rewards * parseFloat(priceInfo.price);
 
     post.net_rshares = Math.round(tRShares);
     post.pending_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
