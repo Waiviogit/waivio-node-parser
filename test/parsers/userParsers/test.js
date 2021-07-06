@@ -1,13 +1,14 @@
 const _ = require('lodash');
 const {
   userParsers, User, expect, sinon, Post, faker, userHelper, dropDatabase, Subscriptions,
-  WobjectSubscriptions, HiddenPost, HiddenComment,
+  WobjectSubscriptions, HiddenPost, HiddenComment, App, MutedUser,
 } = require('test/testHelper');
 const {
-  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory, HiddenCommentFactory,
+  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory, HiddenCommentFactory, MutedUsersFactory,
 } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
 const { BELL_NOTIFICATIONS, HIDE_ACTION } = require('constants/parsersData');
+const { CAN_MUTE_GLOBAL } = require('constants/sitesData');
 
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
@@ -216,6 +217,93 @@ describe('UserParsers', async () => {
 
       it('should not call removeUserFollow on user model', () => {
         expect(removeUserFollowStub).to.be.not.called;
+      });
+    });
+
+    describe('On mute', async () => {
+      const mutedUser = faker.random.string();
+      let app, allApps, mutedPost, mutedRecord;
+      beforeEach(async () => {
+        await PostFactory.Create({ author: mutedUser });
+        app = await AppFactory.Create();
+      });
+      describe('Global Mute/Unmute', async () => {
+        const globalMute = faker.random.string();
+        beforeEach(async () => {
+          CAN_MUTE_GLOBAL.push(globalMute);
+          for (let i = 0; i < _.random(2, 5); i++) {
+            await AppFactory.Create();
+          }
+          allApps = await App.find({}, { host: 1 }).lean();
+        });
+        afterEach(() => {
+          CAN_MUTE_GLOBAL.pop();
+        });
+        describe('On Global Mute', async () => {
+          beforeEach(async () => {
+            await userParsers.followUserParser({
+              required_posting_auths: [globalMute],
+              json: JSON.stringify([
+                'follow',
+                {
+                  follower: globalMute,
+                  following: mutedUser,
+                  what: ['ignore'],
+                },
+              ]),
+            });
+
+            mutedPost = await Post.findOne({ author: mutedUser }).lean();
+            mutedRecord = await MutedUser.findOne({ mutedBy: globalMute }).lean();
+          });
+
+          it('should muted post has all apps Hosts', async () => {
+            expect(mutedPost.blocked_for_apps).to.be.deep.eq(_.map(allApps, 'host'));
+          });
+
+          it('should create record in muted collection', async () => {
+            expect(mutedRecord).to.be.exist;
+          });
+
+          it('should record includes all apps', async () => {
+            expect(mutedRecord.mutedForApps).to.be.deep.eq(_.map(allApps, 'host'));
+          });
+        });
+
+        describe('On Global Unmute', async () => {
+          beforeEach(async () => {
+            await Post.updateOne(
+              { author: mutedUser },
+              { $set: { blocked_for_apps: _.map(allApps, 'host') } },
+            );
+            await MutedUsersFactory
+              .Create({ userName: mutedUser, mutedBy: globalMute, mutedForApps: _.map(allApps, 'host') });
+            await MutedUsersFactory
+              .Create({ userName: mutedUser, mutedForApps: [] });
+            await userParsers.followUserParser({
+              required_posting_auths: [globalMute],
+              json: JSON.stringify([
+                'follow',
+                {
+                  follower: globalMute,
+                  following: mutedUser,
+                  what: [],
+                },
+              ]),
+            });
+
+            mutedPost = await Post.findOne({ author: mutedUser }).lean();
+            mutedRecord = await MutedUser.findOne({ mutedBy: globalMute }).lean();
+          });
+
+          it('should remove mutedRecord', async () => {
+            expect(mutedRecord).to.not.exist;
+          });
+
+          it('should remove blocked_for_apps from post', async () => {
+            expect(mutedPost.blocked_for_apps).to.be.deep.eq([]);
+          });
+        });
       });
     });
   });
