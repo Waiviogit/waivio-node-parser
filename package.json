@@ -23,7 +23,6 @@
     "setMapToChildren": "NODE_PATH=. node ./utilities/tasks/setMapToChildren/run.js",
     "addToRelated": "NODE_PATH=. node ./utilities/tasks/addToRelated/run.js",
     "addMissingPostsToUser": "NODE_PATH=. node ./utilities/tasks/addMissingPostsToUser/run.js",
-    "addSearchesFieldsToWobjects": "NODE_PATH=. node ./utilities/tasks/addSearchesFieldsToWobjects/run.js",
     "addObjectTypeToPost": "NODE_PATH=. node ./utilities/tasks/addObjectTypeOnPost/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"

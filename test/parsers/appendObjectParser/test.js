@@ -26,12 +26,7 @@ describe('Append object parser', async () => {
   });
 
   it('should call "updateSpecifiedFieldHelper" with correct params', () => {
-    expect(...updateSpecificFieldsHelperStub.args[0]).to.be.deep.eq({
-      author: mockData.operation.author,
-      permlink: mockData.operation.permlink,
-      authorPermlink: mockData.operation.parent_permlink,
-      metadata: mockData.metadata,
-    });
+    expect(Object.values(mockData.operation)).to.include(...updateSpecificFieldsHelperStub.args[0]);
   });
 
   describe('field', async () => {
