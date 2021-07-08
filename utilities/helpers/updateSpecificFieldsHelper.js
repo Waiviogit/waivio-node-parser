@@ -5,20 +5,36 @@ const { tagsParser } = require('utilities/restaurantTagsParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { processWobjects } = require('utilities/helpers/wobjectHelper');
 const { validateMap } = require('validator/specifiedFieldsValidator');
-const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
+const {
+  FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT, SEARCH_FIELDS,
+} = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
-const update = async (author, permlink, authorPermlink, voter, percent) => {
+const update = async ({
+  author, permlink, authorPermlink, voter, percent, metadata,
+}) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
   const { result: app } = await App.findOne({ host: config.appHost });
 
   if (error || !field) return;
 
   switch (field.name) {
+    case FIELDS_NAMES.EMAIL:
+    case FIELDS_NAMES.PHONE:
+    case FIELDS_NAMES.ADDRESS:
+      await addSearchField({
+        authorPermlink, newWord: parseSearchData(metadata),
+      });
+      break;
     case FIELDS_NAMES.NAME:
+      await addSearchField({
+        authorPermlink, newWord: parseSearchData(metadata),
+      });
+      await tagsParser.createTags({ authorPermlink, field });
+      break;
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
       await tagsParser.createTags({ authorPermlink, field });
@@ -228,4 +244,53 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
-module.exports = { update, processingParent, parseMap };
+const parseSearchData = (metadata) => {
+  const fieldName = _.get(metadata, 'wobj.field.name');
+  if (!_.includes(SEARCH_FIELDS, fieldName)) return;
+  let searchField;
+  switch (fieldName) {
+    case FIELDS_NAMES.NAME:
+    case FIELDS_NAMES.EMAIL:
+      searchField = _.get(metadata, 'wobj.field.body', '');
+      break;
+    case FIELDS_NAMES.PHONE:
+      searchField = _.get(metadata, 'wobj.field.number', '');
+      break;
+    case FIELDS_NAMES.ADDRESS:
+      const { address, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
+      if (err) return { err };
+      searchField = address;
+      break;
+  }
+  return searchField;
+};
+
+const addSearchField = async ({ authorPermlink, newWord }) => {
+  if (_.isEmpty(newWord)) return { result: false };
+  const { result, error } = await Wobj.addSearchField({
+    authorPermlink,
+    newWord,
+  });
+  if (error) return { error };
+  return { result };
+};
+
+const parseAddress = (addressFromDB) => {
+  let rawAddress;
+  try {
+    rawAddress = JSON.parse(addressFromDB);
+  } catch (err) {
+    return { err };
+  }
+  let address = '';
+  for (const key in rawAddress) {
+    address += `${rawAddress[key]},`;
+  }
+  return { address: address.substr(0, address.length - 1) };
+};
+
+const parseName = (rawName) => [rawName, rawName.trim().toLowerCase().replace(/[.?+*|{}[\]()^'"\\\-_=!$:]/g, '')];
+
+module.exports = {
+  update, processingParent, parseMap, parseSearchData, addSearchField, parseAddress, parseName,
+};
