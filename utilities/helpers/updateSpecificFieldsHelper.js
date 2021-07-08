@@ -5,37 +5,20 @@ const { tagsParser } = require('utilities/restaurantTagsParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { processWobjects } = require('utilities/helpers/wobjectHelper');
 const { validateMap } = require('validator/specifiedFieldsValidator');
-const {
-  FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT, SEARCH_FIELDS,
-} = require('constants/wobjectsData');
+const { FIELDS_NAMES, TAG_CLOUDS_UPDATE_COUNT, RATINGS_UPDATE_COUNT } = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
-const update = async ({
-  author, permlink, authorPermlink, voter, percent, metadata,
-}) => {
+const update = async (author, permlink, authorPermlink, voter, percent) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
   const { result: app } = await App.findOne({ host: config.appHost });
 
-  if (error || !field) {
-    return;
-  }
+  if (error || !field) return;
+
   switch (field.name) {
-    case FIELDS_NAMES.EMAIL:
-    case FIELDS_NAMES.PHONE:
-    case FIELDS_NAMES.ADDRESS:
-      await addSearchField({
-        authorPermlink, field, newWord: parseSearchData(metadata),
-      });
-      break;
     case FIELDS_NAMES.NAME:
-      await addSearchField({
-        authorPermlink, field, newWord: parseSearchData(metadata),
-      });
-      await tagsParser.createTags({ authorPermlink, field });
-      break;
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
       await tagsParser.createTags({ authorPermlink, field });
@@ -43,7 +26,6 @@ const update = async ({
     case FIELDS_NAMES.PARENT:
       await processingParent(authorPermlink, app);
       break;
-
     case FIELDS_NAMES.TAG_CLOUD:
       const { wobjects: wobjTagCloud } = await Wobj.getSomeFields(
         FIELDS_NAMES.TAG_CLOUD, authorPermlink,
@@ -55,7 +37,6 @@ const update = async ({
         );
       }
       break;
-
     case FIELDS_NAMES.RATING:
       const { wobjects: wobjRating } = await Wobj.getSomeFields(
         FIELDS_NAMES.RATING, authorPermlink,
@@ -67,7 +48,6 @@ const update = async ({
         );
       }
       break;
-
     case FIELDS_NAMES.MAP:
       const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
       const { map } = await processWobjects({
@@ -84,7 +64,6 @@ const update = async ({
         }
       }
       break;
-
     case FIELDS_NAMES.STATUS:
       const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
         FIELDS_NAMES.STATUS, authorPermlink,
@@ -99,7 +78,6 @@ const update = async ({
           }
         }).first()
         .value();
-
       if (status) {
         field.voter = voter || _.get(field, 'creator', null);
         await restaurantStatus(field, authorPermlink, JSON.parse(status).title);
@@ -110,15 +88,12 @@ const update = async ({
         await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
       }
       break;
-
     case FIELDS_NAMES.TAG_CATEGORY:
       await updateTagCategories(authorPermlink);
       break;
-
     case FIELDS_NAMES.CATEGORY_ITEM:
       await updateTagCategories(authorPermlink);
       break;
-
     case FIELDS_NAMES.AUTHORITY:
       if (!voter || field.creator === voter) {
         if (percent <= 0) {
@@ -136,13 +111,10 @@ const update = async ({
       }
       return;
   }
-
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
-
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
     if (!_.get(voteData, 'weight') || voteData.weight > 0 || field.weight - voteData.weight < 0) return;
-
     await rejectUpdate({
       id: 'rejectUpdate',
       creator: field.creator,
@@ -210,11 +182,9 @@ const checkExistingTags = async (tagCategories = []) => {
     const existingTags = await redisGetter.getTagCategories(`tagCategory:${category.body}`);
     const newTags = _
       .filter(category.categoryItems, (o) => !_.includes(existingTags, o.name) && o.weight > 0);
-
     if (!newTags.length) continue;
     let tags = [];
     for (const tag of newTags) tags = _.concat(tags, [0, tag.name]);
-
     await redisSetter.addTagCategory({ categoryName: category.body, tags });
   }
 };
@@ -226,7 +196,7 @@ const updateTagCategories = async (authorPermlink) => {
     .get('fields', [])
     .filter((i) => i.name === FIELDS_NAMES.TAG_CATEGORY || i.name === FIELDS_NAMES.CATEGORY_ITEM)
     .groupBy('id')
-  // here is array of arrays
+    // here is array of arrays
     .reduce((result, items) => {
       let category = {};
       for (let i = 0; i < items.length; i++) {
@@ -258,52 +228,4 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
-const parseSearchData = (metadata) => {
-  const fieldName = _.get(metadata, 'wobj.field.name');
-  if (!_.includes(SEARCH_FIELDS, fieldName)) return;
-  let searchField;
-  switch (fieldName) {
-    case FIELDS_NAMES.NAME:
-    case FIELDS_NAMES.EMAIL:
-      searchField = _.get(metadata, 'wobj.field.body', '');
-      break;
-    case FIELDS_NAMES.PHONE:
-      searchField = _.get(metadata, 'wobj.field.number', '');
-      break;
-    case FIELDS_NAMES.ADDRESS:
-      const { address, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
-      if (err) return { err };
-      searchField = address;
-      break;
-  }
-  return searchField;
-};
-
-const addSearchField = async ({ authorPermlink, field, newWord }) => {
-  if (_.isEmpty(newWord)) return { result: false };
-  const { result, error } = await Wobj.addSearchField({
-    authorPermlink,
-    fieldName: field.name,
-    newWord,
-  });
-  if (error) return { error };
-  return { result };
-};
-
-const parseAddress = (addressFromDB) => {
-  let rawAddress;
-  try {
-    rawAddress = JSON.parse(addressFromDB);
-  } catch (err) {
-    return { err };
-  }
-  let address = '';
-  for (const key in rawAddress) {
-    address += `${rawAddress[key]},`;
-  }
-  return { address: address.substr(0, address.length - 1) };
-};
-
-module.exports = {
-  update, processingParent, parseMap, parseSearchData, addSearchField, parseAddress,
-};
+module.exports = { update, processingParent, parseMap };

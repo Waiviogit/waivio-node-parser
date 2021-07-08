@@ -13,7 +13,6 @@ const parse = async (operation, metadata) => {
     is_posting_open: metadata.wobj.is_posting_open,
     is_extending_open: metadata.wobj.is_extending_open,
     default_name: metadata.wobj.default_name,
-    'search.author_permlink': operation.permlink,
   };
   const { wobject, error } = await createObject(data, operation);
   if (error) console.error(error);

@@ -30,13 +30,6 @@ exports.FIELDS_NAMES = {
   LIST_ITEM: 'listItem',
 };
 
-exports.SEARCH_FIELDS = {
-  NAME: 'name',
-  EMAIL: 'email',
-  PHONE: 'phone',
-  ADDRESS: 'address',
-};
-
 exports.AUTHORITY_FIELD_ENUM = {
   ADMINISTRATIVE: 'administrative',
   OWNERSHIP: 'ownership',

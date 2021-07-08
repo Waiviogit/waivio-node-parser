@@ -1,10 +1,9 @@
-const _ = require('lodash');
-const { SEARCH_FIELDS } = require('constants/wobjectsData');
-const { ObjectFactory, PostFactory, AppendObject } = require('test/factories');
-const WObjectModel = require('database').models.WObject;
 const {
   expect, WobjModel, WObject, faker, ObjectType, dropDatabase,
 } = require('test/testHelper');
+const { ObjectFactory, PostFactory, AppendObject } = require('test/factories');
+const WObjectModel = require('database').models.WObject;
+const _ = require('lodash');
 
 describe('Wobject model', async () => {
   describe('On addVote', async () => {
@@ -98,7 +97,6 @@ describe('Wobject model', async () => {
       permlink;
     beforeEach(async () => {
       permlink = faker.random.string();
-
       await dropDatabase();
       wobjectsCount = _.random(5, 10, false);
       await ObjectFactory.Create({ author_permlink: permlink });
@@ -252,17 +250,14 @@ describe('Wobject model', async () => {
     });
     it('should return error with status 404 if wobj not found', async () => {
       result = await WobjModel.getOne({ author_permlink: faker.random.string(10) });
-
       expect(result.error.status).to.eq(404);
     });
     it('should return error message with incorrect input', async () => {
       result = await WobjModel.getOne({ author_permlink: faker.random.string(10) });
-
       expect(result.error.message).to.eq('Wobject not found!');
     });
     it('should return CastError', async () => {
       result = await WobjModel.getOne({ author_permlink: { permlink } });
-
       expect(result.error.name).to.eq('CastError');
     });
   });
@@ -275,13 +270,11 @@ describe('Wobject model', async () => {
     });
     it('should create wobject', async () => {
       result = await WObject.findOne({ author_permlink: data.author_permlink });
-
       expect(_.pick(result, ['author', 'author_permlink']))
         .to.deep.eq({ author: data.author, author_permlink: data.author_permlink });
     });
     it('should return error with not valid data', async () => {
       result = await WobjModel.create({ some: 'data' });
-
       expect(result.error.name).to.eq('ValidationError');
     });
   });
@@ -308,7 +301,6 @@ describe('Wobject model', async () => {
     });
     it('should return error with incorrect input params', async () => {
       const result = await WobjModel.update('hello', 'world');
-
       expect(result.error).is.exist;
     });
     it('shouldn\'t update wobject with incorrect data ', async () => {
@@ -318,7 +310,9 @@ describe('Wobject model', async () => {
     });
   });
   describe('On addField', async () => {
-    let result, data, permlink;
+    let result,
+      data,
+      permlink;
     beforeEach(async () => {
       permlink = faker.random.string();
       await ObjectFactory.Create({ author_permlink: permlink });
@@ -335,23 +329,19 @@ describe('Wobject model', async () => {
     });
     it('should return false with invalid input params', async () => {
       result = await WobjModel.addField({ author_permlink: faker.random.string() });
-
       expect(result.result).is.false;
     });
     it('should addField to wobject', async () => {
       await WobjModel.addField(data);
       result = await WObject.findOne({ author_permlink: permlink });
-
       expect(result._doc.fields[0]._doc.data).to.eq(data.field.data);
     });
     it('should return error without author permlink', async () => {
       result = await WobjModel.addField();
-
       expect(result.error.message).is.exist;
     });
     it('should return error with not valid field', async () => {
       result = await WobjModel.addField({ author_permlink: permlink, field: faker.random.string() });
-
       expect(result.error.name).to.eq('ObjectParameterError');
     });
   });
@@ -385,7 +375,6 @@ describe('Wobject model', async () => {
         weight,
       });
       result = await WObject.findOne({ author_permlink: resultCreateAppend.root_wobj });
-
       expect(weight + field.weight).to.eq(result._doc.fields[0].weight);
     });
     it('should return error without input data', async () => {
@@ -494,41 +483,11 @@ describe('Wobject model', async () => {
     it('should remove vote', async () => {
       await WobjModel.removeVote(data);
       result = await WObject.findOne({ author_permlink: data.author_permlink });
-
       expect(result.fields[0].active_votes).empty;
     });
     it('should return error without data', async () => {
       result = await WobjModel.removeVote();
       expect(result.error).is.exist;
-    });
-  });
-  describe('On addSearchField', async () => {
-    let authorPermlink, fieldName, newWord;
-    beforeEach(async () => {
-      authorPermlink = faker.random.string();
-      fieldName = _.sample(SEARCH_FIELDS);
-      newWord = faker.random.string();
-      await ObjectFactory.Create({
-        author_permlink: authorPermlink,
-        searchField: { [`${fieldName}`]: newWord },
-      });
-    });
-    it('should return true if the addition was successful', async () => {
-      const { result } = await WobjModel.addSearchField({
-        authorPermlink, fieldName, newWord,
-      });
-      expect(result).to.be.true;
-    });
-    it('search field in wobject should be equal mock new word', async () => {
-      const { wobject } = await WobjModel.getOne({
-        author_permlink: authorPermlink,
-        select: { search: 1 },
-      });
-      expect(...wobject.search[fieldName]).to.be.eq(newWord);
-    });
-    it('should return false if added fields were not specified', async () => {
-      const { result } = await WobjModel.addSearchField({});
-      expect(result).to.be.false;
     });
   });
 });

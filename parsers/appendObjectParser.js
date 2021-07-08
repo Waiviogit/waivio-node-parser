@@ -17,7 +17,7 @@ const parse = async (operation, metadata) => {
     data.field[fieldItem] = metadata.wobj.field[fieldItem];
   }
 
-  const { result, error } = await appendObject(data, operation, metadata);
+  const { result, error } = await appendObject(data, operation);
 
   if (result) {
     console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject ${data.author_permlink}!\n`);
@@ -28,7 +28,7 @@ const parse = async (operation, metadata) => {
   }
 };
 
-const appendObject = async (data, operation, metadata) => {
+const appendObject = async (data, operation) => {
   try {
     await appendObjectValidator.validate(data, operation);
     await commentRefSetter.addAppendWobj(
@@ -38,12 +38,9 @@ const appendObject = async (data, operation, metadata) => {
     const { result, error } = await Wobj.addField(data);
     if (error) throw error;
 
-    await updateSpecificFieldsHelper.update({
-      author: data.field.author,
-      permlink: data.field.permlink,
-      authorPermlink: data.author_permlink,
-      metadata,
-    });
+    await updateSpecificFieldsHelper.update(
+      data.field.author, data.field.permlink, data.author_permlink,
+    );
     return { result };
   } catch (error) {
     return { error };
