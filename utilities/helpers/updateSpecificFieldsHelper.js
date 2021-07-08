@@ -26,12 +26,12 @@ const update = async ({
     case FIELDS_NAMES.PHONE:
     case FIELDS_NAMES.ADDRESS:
       await addSearchField({
-        authorPermlink, newWord: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(metadata),
       });
       break;
     case FIELDS_NAMES.NAME:
       await addSearchField({
-        authorPermlink, newWord: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(metadata),
       });
       await tagsParser.createTags({ authorPermlink, field });
       break;
@@ -247,29 +247,31 @@ const setMapToChildren = async (authorPermlink, map) => {
 const parseSearchData = (metadata) => {
   const fieldName = _.get(metadata, 'wobj.field.name');
   if (!_.includes(SEARCH_FIELDS, fieldName)) return;
-  let searchField;
+  const searchFields = [];
   switch (fieldName) {
     case FIELDS_NAMES.NAME:
+      searchFields.push(...parseName(_.get(metadata, 'wobj.field.body', '')));
+      break;
     case FIELDS_NAMES.EMAIL:
-      searchField = _.get(metadata, 'wobj.field.body', '');
+      searchFields.push(_.get(metadata, 'wobj.field.body', ''));
       break;
     case FIELDS_NAMES.PHONE:
-      searchField = _.get(metadata, 'wobj.field.number', '');
+      searchFields.push(_.get(metadata, 'wobj.field.number', ''));
       break;
     case FIELDS_NAMES.ADDRESS:
       const { address, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
       if (err) return { err };
-      searchField = address;
+      searchFields.push(address);
       break;
   }
-  return searchField;
+  return searchFields;
 };
 
-const addSearchField = async ({ authorPermlink, newWord }) => {
-  if (_.isEmpty(newWord)) return { result: false };
-  const { result, error } = await Wobj.addSearchField({
+const addSearchField = async ({ authorPermlink, newWords }) => {
+  if (_.isEmpty(newWords)) return { result: false };
+  const { result, error } = await Wobj.addSearchFields({
     authorPermlink,
-    newWord,
+    newWords,
   });
   if (error) return { error };
   return { result };
