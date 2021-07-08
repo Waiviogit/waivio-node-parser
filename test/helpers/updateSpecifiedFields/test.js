@@ -10,7 +10,6 @@ const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
 describe('UpdateSpecificFieldsHelper', async () => {
   let wobject, parent;
   const map = { latitude: _.random(-90, 90), longitude: _.random(-180, 180) };
-
   beforeEach(async () => {
     await dropDatabase();
     wobject = await ObjectFactory.Create({ object_type: OBJECT_TYPES.RESTAURANT });
@@ -18,7 +17,6 @@ describe('UpdateSpecificFieldsHelper', async () => {
   describe('on "parent" field', () => {
     let updWobj, fields = [], activeVotes;
     const adminName = faker.name.firstName();
-
     beforeEach(async () => {
       await AppFactory.Create({ host: config.appHost, admins: [adminName] });
     });
@@ -182,7 +180,6 @@ describe('UpdateSpecificFieldsHelper', async () => {
     describe('if parent has map in fields and child has too', async () => {
       beforeEach(async () => {
         parent = await ObjectFactory.Create();
-
         activeVotes = [{ percent: _.random(1, 100) }];
         const { appendObject: field1 } = await AppendObject.Create(
           {
@@ -223,7 +220,6 @@ describe('UpdateSpecificFieldsHelper', async () => {
     describe('if parent has no map', async () => {
       beforeEach(async () => {
         parent = await ObjectFactory.Create();
-
         activeVotes = [{ percent: _.random(1, 100) }];
         const { appendObject: field1 } = await AppendObject.Create(
           {
@@ -244,11 +240,9 @@ describe('UpdateSpecificFieldsHelper', async () => {
       });
     });
   });
-
   describe('on "tagCloud" field', () => {
     const fields = [], topFields = [];
     let updWobj;
-
     beforeEach(async () => {
       const weight = [1, -99, 80, 50, 11, -120, 100];
       let field;
@@ -274,7 +268,6 @@ describe('UpdateSpecificFieldsHelper', async () => {
       }));
     });
   });
-
   describe('on "rating" field', () => {
     let fields = [], topFields = [];
     let updWobj;
@@ -300,7 +293,6 @@ describe('UpdateSpecificFieldsHelper', async () => {
     it('should add field "rating" to wobject', async () => {
       expect(updWobj.ratings).to.exist;
     });
-
     it('should write first field "rating"', async () => {
       expect(updWobj.ratings.map((item) => {
         _.pick(item, ['author', 'permlink']);
@@ -309,14 +301,12 @@ describe('UpdateSpecificFieldsHelper', async () => {
       }));
     });
   });
-
   describe('on "map" field', () => {
     const fields = [];
     let updWobj;
     const child1 = faker.random.string();
     const child2 = faker.random.string();
     const child3 = faker.random.string();
-
     beforeEach(async () => {
       const mockBody = () => JSON.stringify({
         longitude: faker.random.number({ min: -180, max: 180 }),
@@ -354,12 +344,10 @@ describe('UpdateSpecificFieldsHelper', async () => {
     it('should add field "map" to wobject', async () => {
       expect(updWobj.map).to.exist;
     });
-
     it('should write top field "map" to root of wobject', async () => {
       const mockBody = JSON.parse(fields[2].body);
       expect(updWobj.map).to.deep.equal({ type: 'Point', coordinates: [mockBody.longitude, mockBody.latitude] });
     });
-
     it('should not update map because child1 has field map', async () => {
       const result = await WObject.findOne({ author_permlink: child1 }).lean();
       expect(result.map).to.be.null;
@@ -375,10 +363,8 @@ describe('UpdateSpecificFieldsHelper', async () => {
       expect(result.map).to.deep.equal({ type: 'Point', coordinates: [mockBody.longitude, mockBody.latitude] });
     });
   });
-
   describe('on "status" field', () => {
     let updWobj;
-
     beforeEach(async () => {
       const mockBody = () => JSON.stringify({ title: 'Unavailable', link: '' });
       const { appendObject: field1 } = await AppendObject.Create({
@@ -400,7 +386,6 @@ describe('UpdateSpecificFieldsHelper', async () => {
       expect(updWobj.status).to.deep.equal({ title: 'Unavailable', link: '' });
     });
   });
-
   describe('on authority field', async () => {
     let field, app;
     beforeEach(async () => {

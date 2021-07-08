@@ -15,9 +15,8 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
   const { field, error } = await Wobj.getField(author, permlink, authorPermlink);
   const { result: app } = await App.findOne({ host: config.appHost });
 
-  if (error || !field) {
-    return;
-  }
+  if (error || !field) return;
+
   switch (field.name) {
     case FIELDS_NAMES.NAME:
     case FIELDS_NAMES.DESCRIPTION:
@@ -27,7 +26,6 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
     case FIELDS_NAMES.PARENT:
       await processingParent(authorPermlink, app);
       break;
-
     case FIELDS_NAMES.TAG_CLOUD:
       const { wobjects: wobjTagCloud } = await Wobj.getSomeFields(
         FIELDS_NAMES.TAG_CLOUD, authorPermlink,
@@ -39,7 +37,6 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
         );
       }
       break;
-
     case FIELDS_NAMES.RATING:
       const { wobjects: wobjRating } = await Wobj.getSomeFields(
         FIELDS_NAMES.RATING, authorPermlink,
@@ -51,7 +48,6 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
         );
       }
       break;
-
     case FIELDS_NAMES.MAP:
       const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
       const { map } = await processWobjects({
@@ -68,7 +64,6 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
         }
       }
       break;
-
     case FIELDS_NAMES.STATUS:
       const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
         FIELDS_NAMES.STATUS, authorPermlink,
@@ -83,7 +78,6 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
           }
         }).first()
         .value();
-
       if (status) {
         field.voter = voter || _.get(field, 'creator', null);
         await restaurantStatus(field, authorPermlink, JSON.parse(status).title);
@@ -94,15 +88,12 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
         await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
       }
       break;
-
     case FIELDS_NAMES.TAG_CATEGORY:
       await updateTagCategories(authorPermlink);
       break;
-
     case FIELDS_NAMES.CATEGORY_ITEM:
       await updateTagCategories(authorPermlink);
       break;
-
     case FIELDS_NAMES.AUTHORITY:
       if (!voter || field.creator === voter) {
         if (percent <= 0) {
@@ -120,13 +111,10 @@ const update = async (author, permlink, authorPermlink, voter, percent) => {
       }
       return;
   }
-
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
-
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
     if (!_.get(voteData, 'weight') || voteData.weight > 0 || field.weight - voteData.weight < 0) return;
-
     await rejectUpdate({
       id: 'rejectUpdate',
       creator: field.creator,
@@ -194,11 +182,9 @@ const checkExistingTags = async (tagCategories = []) => {
     const existingTags = await redisGetter.getTagCategories(`tagCategory:${category.body}`);
     const newTags = _
       .filter(category.categoryItems, (o) => !_.includes(existingTags, o.name) && o.weight > 0);
-
     if (!newTags.length) continue;
     let tags = [];
     for (const tag of newTags) tags = _.concat(tags, [0, tag.name]);
-
     await redisSetter.addTagCategory({ categoryName: category.body, tags });
   }
 };
@@ -210,7 +196,7 @@ const updateTagCategories = async (authorPermlink) => {
     .get('fields', [])
     .filter((i) => i.name === FIELDS_NAMES.TAG_CATEGORY || i.name === FIELDS_NAMES.CATEGORY_ITEM)
     .groupBy('id')
-  // here is array of arrays
+    // here is array of arrays
     .reduce((result, items) => {
       let category = {};
       for (let i = 0; i < items.length; i++) {

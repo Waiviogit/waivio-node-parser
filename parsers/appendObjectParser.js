@@ -36,14 +36,11 @@ const appendObject = async (data, operation) => {
       data.author_permlink,
     );
     const { result, error } = await Wobj.addField(data);
+    if (error) throw error;
 
-    if (error) {
-      throw error;
-    }
     await updateSpecificFieldsHelper.update(
       data.field.author, data.field.permlink, data.author_permlink,
     );
-
     return { result };
   } catch (error) {
     return { error };

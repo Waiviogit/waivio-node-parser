@@ -3,7 +3,6 @@ const { createObjectValidator } = require('validator');
 const { commentRefSetter, commentRefGetter } = require('utilities/commentRefService');
 const { wobjectHelper, userHelper } = require('utilities/helpers');
 
-
 const parse = async (operation, metadata) => {
   const data = {
     author_permlink: operation.permlink,
