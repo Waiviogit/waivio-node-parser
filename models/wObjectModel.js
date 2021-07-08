@@ -46,6 +46,18 @@ const addField = async (data) => {
   }
 };
 
+const addSearchFields = async ({ authorPermlink, newWords }) => {
+  try {
+    const result = await WObjectModel.updateOne(
+      { author_permlink: authorPermlink },
+      { $addToSet: { search: { $each: newWords } } },
+    );
+    return { result: result.nModified === 1 };
+  } catch (error) {
+    return { error };
+  }
+};
+
 // data include: author, permlink, author_permlink, weight
 const increaseFieldWeight = async (data) => {
   try {
@@ -266,6 +278,7 @@ module.exports = {
   create,
   update,
   addField,
+  addSearchFields,
   increaseFieldWeight,
   increaseWobjectWeight,
   removeVote,
