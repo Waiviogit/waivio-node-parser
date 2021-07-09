@@ -127,7 +127,7 @@ exports.reblogPostParser = async ({
     const data = {
       author: account, // person who make reblog
       permlink: `${_.get(json, '[1].author')}/${_.get(json, '[1].permlink')}`,
-      reblog_from: post.author,
+      reblog_from: post.author, // reblogged person
       reblog_to: {
         author: _.get(json, '[1].author'), // author of source post
         permlink: _.get(json, '[1].permlink'), // permlink of source post
