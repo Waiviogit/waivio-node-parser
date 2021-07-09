@@ -291,7 +291,7 @@ const parseAddress = (addressFromDB) => {
   return { address: address.substr(0, address.length - 1) };
 };
 
-const parseName = (rawName) => [rawName, rawName.trim().replace(/[.?+*|{}[\]()^'"\\\-_=!$:]/g, '')];
+const parseName = (rawName) => [rawName, rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
 
 module.exports = {
   update, processingParent, parseMap, parseSearchData, addSearchField, parseAddress, parseName,
