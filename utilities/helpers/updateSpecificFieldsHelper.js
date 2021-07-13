@@ -259,9 +259,9 @@ const parseSearchData = (metadata) => {
       searchFields.push(_.get(metadata, 'wobj.field.number', ''));
       break;
     case FIELDS_NAMES.ADDRESS:
-      const { address, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
+      const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
       if (err) return { err };
-      searchFields.push(address);
+      searchFields.push(...addresses);
       break;
   }
   return searchFields;
@@ -288,7 +288,9 @@ const parseAddress = (addressFromDB) => {
   for (const key in rawAddress) {
     address += `${rawAddress[key]},`;
   }
-  return { address: address.substr(0, address.length - 1) };
+  const addressWithoutSpaces = address.substr(0, address.length - 1).replace(/[,\s]{2,}/, ',');
+  const addressWithSpaces = addressWithoutSpaces.replace(/,(?=[^\s])/g, ', ');
+  return { addresses: [addressWithoutSpaces, addressWithSpaces] };
 };
 
 const parseName = (rawName) => [rawName, rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
