@@ -1,5 +1,5 @@
-const { ObjectFactory } = require('../../factories');
-const { faker } = require('../../testHelper');
+const { ObjectFactory } = require('test/factories');
+const { faker } = require('test/testHelper');
 
 const getMocksData = async () => {
   const wobject = await ObjectFactory.Create();
@@ -9,8 +9,8 @@ const getMocksData = async () => {
     parent_permlink: wobject.author_permlink,
     author: faker.name.firstName().toLowerCase(),
     permlink: faker.random.string(15),
-
   };
+
   const metadata = {
     app: 'waiviotest',
     community: 'waiviodev',

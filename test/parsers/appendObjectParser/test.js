@@ -1,7 +1,10 @@
+const _ = require('lodash');
 const {
   appendObjectParser, WObject, expect, redisGetter, AppModel,
   updateSpecificFieldsHelper, sinon, usersUtil, importUser, faker,
 } = require('test/testHelper');
+const { ObjectFactory } = require('test/factories');
+const { FIELDS_NAMES, SEARCH_FIELDS } = require('constants/wobjectsData');
 const { getMocksData } = require('./mocks');
 
 describe('Append object parser', async () => {
@@ -26,7 +29,13 @@ describe('Append object parser', async () => {
   });
 
   it('should call "updateSpecifiedFieldHelper" with correct params', () => {
-    expect(Object.values(mockData.operation)).to.include(...updateSpecificFieldsHelperStub.args[0]);
+    const expectedParams = {
+      author: mockData.operation.author,
+      permlink: mockData.operation.permlink,
+      authorPermlink: mockData.operation.parent_permlink,
+      metadata: mockData.metadata,
+    };
+    expect(...updateSpecificFieldsHelperStub.args[0]).to.be.deep.eq(expectedParams);
   });
 
   describe('field', async () => {
@@ -63,6 +72,97 @@ describe('Append object parser', async () => {
     });
     it('should have correct "root_wobj" reference', async () => {
       expect(redisResponse.root_wobj).to.equal(wobject.author_permlink);
+    });
+  });
+
+  describe('addSearchField', async () => {
+    let authorPermlink;
+    beforeEach(async () => {
+      authorPermlink = faker.random.string(10);
+      await ObjectFactory.Create({ author_permlink: authorPermlink });
+    });
+    it('should return true if the addition was successful', async () => {
+      const { result } = await updateSpecificFieldsHelper.addSearchField({
+        authorPermlink,
+        newWords: [faker.random.string(10)],
+      });
+      expect(result).to.be.true;
+    });
+    it('should return false if newWord not exist', async () => {
+      const { result } = await updateSpecificFieldsHelper.addSearchField({
+        authorPermlink,
+      });
+      expect(result).to.be.false;
+    });
+  });
+
+  describe('parseSearchData', async () => {
+    let searchFields, fieldValue;
+    it('should return undefined if the field name not include in search fields', async () => {
+      const metadata = {
+        wobj: {
+          field: {
+            name: _.sample(_.omit(FIELDS_NAMES, Object.keys(SEARCH_FIELDS))),
+            body: faker.name.firstName().toLowerCase(),
+          },
+        },
+      };
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect(searchFields).to.be.undefined;
+    });
+    it('should return name/email as a search word', async () => {
+      fieldValue = faker.name.firstName().toLowerCase();
+      const metadata = {
+        wobj: {
+          field: {
+            name: _.sample([SEARCH_FIELDS.NAME, SEARCH_FIELDS.EMAIL]),
+            body: fieldValue,
+          },
+        },
+      };
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect(fieldValue).to.be.equal(...searchFields);
+    });
+    it('should return phone as a search word', async () => {
+      fieldValue = faker.name.firstName().toLowerCase();
+      const metadata = {
+        wobj: { field: { name: SEARCH_FIELDS.PHONE, number: fieldValue } },
+      };
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect(fieldValue).to.be.equal(...searchFields);
+    });
+    it('should return address as a search word', async () => {
+      const rawAddress = '{"address":"Kyiv","street":"Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
+      const expectedAddress = 'Kyiv,Strees,Kyiv,State,01111,Ukraine';
+      const metadata = {
+        wobj: { field: { name: SEARCH_FIELDS.ADDRESS, body: rawAddress } },
+      };
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      expect(expectedAddress).to.be.eq(...searchFields);
+    });
+  });
+
+  describe('parseAddress', async () => {
+    it('should parsed address as each address-value separated by commas', () => {
+      const rawAddress = '{"address":"Kyiv","street":"Strees","city":"Kyiv","state":"","postalCode":"01111","country":"Ukraine"}';
+      const expectedAddress = ['Kyiv,Strees,Kyiv,01111,Ukraine', 'Kyiv, Strees, Kyiv, 01111, Ukraine'];
+      const { addresses } = updateSpecificFieldsHelper.parseAddress(rawAddress);
+      expect(expectedAddress).to.be.deep.eq(addresses);
+    });
+    it('should parsed address as each address-value separated by commas', () => {
+      const { err } = updateSpecificFieldsHelper.parseAddress(faker.random.string(10));
+      expect(err).is.exist;
+    });
+  });
+
+  describe('parseName', async () => {
+    const name = '$Nando\'s? ({West} [Vanc%ouver])';
+    it('should parsed parse the name excluding the following characters: . % ? + * | {} [] () <> “” ^ \' " \\ - _ = ! & $ :', () => {
+      const expectedNames = ['$Nando\'s? ({West} [Vanc%ouver])', 'Nandos West Vancouver'];
+      expect(expectedNames).to.be.deep.eq(updateSpecificFieldsHelper.parseName(name));
+    });
+    it('should return two names: original and modified', () => {
+      expect(updateSpecificFieldsHelper.parseName(name)).to.have.length(2);
     });
   });
 });

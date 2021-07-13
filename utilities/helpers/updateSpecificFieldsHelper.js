@@ -288,7 +288,9 @@ const parseAddress = (addressFromDB) => {
   for (const key in rawAddress) {
     address += `${rawAddress[key]},`;
   }
-  const addressWithoutSpaces = address.substr(0, address.length - 1).replace(/[,\s]{2,}/, ',');
+  const addressWithoutSpaces = address.substr(0, address.length - 1)
+    .replace(/^,*/, '')
+    .replace(/[,\s]{2,}/, ',');
   const addressWithSpaces = addressWithoutSpaces.replace(/,(?=[^\s])/g, ', ');
   return { addresses: [addressWithoutSpaces, addressWithSpaces] };
 };
