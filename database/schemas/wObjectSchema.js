@@ -58,6 +58,7 @@ const WObjectSchema = new Schema({
   last_posts_count: { type: Number, default: 0 },
   activeCampaigns: { type: [mongoose.Types.ObjectId], default: [] },
   activeCampaignsCount: { type: Number, default: 0 },
+  search: { type: [String], default: [] },
 },
 {
   strict: false,
@@ -77,6 +78,7 @@ WObjectSchema.pre('save', function (next) {
 
 WObjectSchema.index({ map: '2dsphere' });
 WObjectSchema.index({ parent: -1 });
+WObjectSchema.index({ search: -1 });
 
 const wObjectModel = mongoose.model('wobject', WObjectSchema);
 

@@ -4,9 +4,7 @@ const { redisGetter } = require('utilities/redis');
 const {
   Post, Wobj, UserWobjects, CommentModel,
 } = require('models');
-const {
-  HOST, BASE_URL, SET_NOTIFICATION, STATUS,
-} = require('constants/appData').notificationsApi;
+const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
 const { postsUtil } = require('utilities/steemApi');
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
@@ -76,7 +74,7 @@ const reply = async (operation, metadata) => {
       const { post: hivePost } = await postsUtil.getPost(
         operation.parent_author, operation.parent_permlink,
       );
-      if (hivePost && hivePost.depth >= 2) replyFlag = true;
+      if (hivePost && hivePost.depth >= 1) replyFlag = true;
     }
   }
   operation.parent_author = _.get(post, 'author', operation.parent_author);

@@ -1,7 +1,8 @@
-const _ = require('lodash');
 const { getHashAll } = require('utilities/redis/redisGetter');
 const { lastBlockClient } = require('utilities/redis/redis');
 const { VOTE_TYPES } = require('constants/parsersData');
+const moment = require('moment');
+const _ = require('lodash');
 const { client } = require('./createClient');
 
 const getUser = async (accountName) => {
@@ -68,7 +69,8 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     const rShares = Math.abs((vests * power * 100)) > 50000000
       ? (vests * power * 100) - 50000000
       : 0;
-    if (!post) {
+    const createdOverAWeek = moment().diff(moment(_.get(post, 'createdAt')), 'day') > 7;
+    if (!post || createdOverAWeek) {
       vote.rshares = rShares || 1;
       continue;
     }
