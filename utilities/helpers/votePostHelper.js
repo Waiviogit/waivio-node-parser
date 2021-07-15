@@ -65,24 +65,26 @@ const downVoteOnPost = async (data, weight) => {
 };
 
 const upVoteOnPost = async (data, weight) => {
-  for (const wObject of _.get(data, 'metadata.wobj.wobjects', [])) {
-    // calculate vote weight for each wobject in post
-    const voteWeight = Number((weight * (wObject.percent / 100)).toFixed(3));
+  if (_.isArray(_.get(data, 'metadata.wobj.wobjects'))) {
+    for (const wObject of _.get(data, 'metadata.wobj.wobjects', [])) {
+      // calculate vote weight for each wobject in post
+      const voteWeight = Number((weight * (wObject.percent / 100)).toFixed(3));
 
-    await Wobj.increaseWobjectWeight({
-      author_permlink: wObject.author_permlink, // increase wobject weight
-      weight: voteWeight,
-    });
-    await User.increaseWobjectWeight({
-      name: _.get(data, 'guest_author', data.post.author),
-      author_permlink: wObject.author_permlink, // increase author weight in wobject
-      weight: Number((voteWeight * 0.75).toFixed(3)),
-    });
-    await User.increaseWobjectWeight({
-      name: data.voter,
-      author_permlink: wObject.author_permlink,
-      weight: Number((voteWeight * 0.25).toFixed(3)),
-    });
+      await Wobj.increaseWobjectWeight({
+        author_permlink: wObject.author_permlink, // increase wobject weight
+        weight: voteWeight,
+      });
+      await User.increaseWobjectWeight({
+        name: _.get(data, 'guest_author', data.post.author),
+        author_permlink: wObject.author_permlink, // increase author weight in wobject
+        weight: Number((voteWeight * 0.75).toFixed(3)),
+      });
+      await User.increaseWobjectWeight({
+        name: data.voter,
+        author_permlink: wObject.author_permlink,
+        weight: Number((voteWeight * 0.25).toFixed(3)),
+      });
+    }
   }
 };
 
