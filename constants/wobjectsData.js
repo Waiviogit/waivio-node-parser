@@ -59,6 +59,12 @@ exports.OBJECT_TYPES = {
   HOTEL: 'hotel',
 };
 
+exports.CREATE_TAGS_ON_UPDATE_TYPES = [
+  this.OBJECT_TYPES.RESTAURANT,
+  this.OBJECT_TYPES.DRINK,
+  this.OBJECT_TYPES.DISH,
+];
+
 exports.ADMIN_ROLES = {
   OWNER: 'owner',
   ADMIN: 'admin',
