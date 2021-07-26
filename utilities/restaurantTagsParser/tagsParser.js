@@ -1,9 +1,10 @@
-const uuid = require('uuid');
-const _ = require('lodash');
-const config = require('config');
 const permlinkGenerator = require('utilities/restaurantTagsParser/permlinkGenerator');
+const { OBJECT_TYPES, CREATE_TAGS_ON_UPDATE_TYPES } = require('constants/wobjectsData');
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const { Wobj, ObjectType, App } = require('models');
+const config = require('config');
+const uuid = require('uuid');
+const _ = require('lodash');
 
 /*
 THIS MODULE PARSE TAGS FROM FIELDS BODY AND SEND TO IMPORT SERVICE
@@ -12,7 +13,7 @@ THIS MODULE PARSE TAGS FROM FIELDS BODY AND SEND TO IMPORT SERVICE
 const createTags = async ({ field, authorPermlink }) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   if (!wobject || !_.find(wobject.fields, (obj) => obj.name === 'name')) return;
-  if (wobject.object_type === 'dish' || wobject.object_type === 'restaurant') {
+  if (_.includes(CREATE_TAGS_ON_UPDATE_TYPES, wobject.object_type)) {
     const { objectType } = await ObjectType.getOne({ name: wobject.object_type });
     const tagCategories = _.find(objectType.supposed_updates, (update) => update.name === 'tagCategory');
     const { result: app } = await App.findOne({ host: config.appHost });
@@ -20,8 +21,9 @@ const createTags = async ({ field, authorPermlink }) => {
     let appends = [];
 
     switch (wobject.object_type) {
-      case 'restaurant':
-      case 'dish':
+      case OBJECT_TYPES.RESTAURANT:
+      case OBJECT_TYPES.DRINK:
+      case OBJECT_TYPES.DISH:
         for (const tag of tagCategories.values) {
           const tagCategory = _.find(wobject.fields,
             (obj) => obj.name === 'tagCategory' && obj.body === tag);
@@ -90,6 +92,5 @@ const parseIngredients = ({
 
   return appends;
 };
-
 
 module.exports = { createTags };
