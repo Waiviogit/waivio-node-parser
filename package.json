@@ -25,6 +25,7 @@
     "addMissingPostsToUser": "NODE_PATH=. node ./utilities/tasks/addMissingPostsToUser/run.js",
     "addSearchesFieldsToWobjects": "NODE_PATH=. node ./utilities/tasks/addSearchesFieldsToWobjects/run.js",
     "addObjectTypeToPost": "NODE_PATH=. node ./utilities/tasks/addObjectTypeOnPost/run.js",
+    "parseObjectGeoLocation": "NODE_PATH=. node ./utilities/tasks/parseObjectGeoLocation/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },

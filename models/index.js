@@ -17,4 +17,5 @@ module.exports = {
   hiddenPostModel: require('./hiddenPostModel'),
   hiddenCommentModel: require('./hiddenCommentModel'),
   mutedUserModel: require('./mutedUserModel'),
+  GeoObjectModel: require('./GeoObjectsModel'),
 };
