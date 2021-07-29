@@ -19,16 +19,17 @@ module.exports = async (type) => {
   };
   const { result } = await Wobj.find(filter, { author_permlink: 1, fields: 1 });
   for (const resultElement of result) {
-    const fields = _.filter(
-      resultElement.fields,
-      (el) => _.includes([FIELDS_NAMES.NAME, FIELDS_NAMES.TITLE, FIELDS_NAMES.DESCRIPTION], el.name),
+    const body = _.reduce(resultElement.fields, (acc, el) => {
+      if (_.includes([FIELDS_NAMES.NAME, FIELDS_NAMES.TITLE, FIELDS_NAMES.DESCRIPTION], el.name)) {
+        acc += `${el.body} `;
+      }
+      return acc;
+    }, '');
+    const countAdded = await createTags(
+      { field: { body }, authorPermlink: resultElement.author_permlink },
     );
-    for (const field of fields) {
-      const countAdded = await createTags({ field, authorPermlink: resultElement.author_permlink });
-      console.log('count added', countAdded);
-      await sleep(countAdded * 3000);
-      console.log('tick');
-    }
+    console.log('added tags:', countAdded);
+    await sleep(countAdded * 3000);
   }
-  console.log('task completed');
+  console.log('-------------- Add missing tags task completed --------------');
 };
