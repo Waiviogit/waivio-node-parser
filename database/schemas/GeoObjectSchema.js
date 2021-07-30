@@ -22,7 +22,7 @@ const GeoObjectSchema = new Schema({
 });
 
 GeoObjectSchema.index({ geometry: '2dsphere' });
-GeoObjectSchema.index({ 'properties.name': 1, 'properties.type': 1 });
+GeoObjectSchema.index({ name: 1, type: 1 });
 
 const GeoObjectModel = mongoose.model('geographic_objects', GeoObjectSchema);
 
