@@ -1,7 +1,7 @@
-const dsteem = require('dsteem');
+const { Client } = require('@hiveio/dhive');
 const _ = require('lodash');
 
-const client = new dsteem.Client('https://anyx.io');
+const client = new Client('https://anyx.io');
 
 module.exports = async (author, permlink) => {
   try {
@@ -20,4 +20,3 @@ module.exports = async (author, permlink) => {
     return { err };
   }
 };
-
