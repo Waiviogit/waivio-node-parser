@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
-const { COMMENT_REF_TYPES } = require('../../utilities/constants');
+const { COMMENT_REF_TYPES } = require('constants/common');
 
 const CommentRefSchema = new Schema({
   comment_path: { type: String, required: true },

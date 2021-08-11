@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { CommentRef } = require('models');
 const { redisGetter, redisSetter } = require('utilities/redis');
-const { COMMENT_REF_TYPES } = require('utilities/constants');
+const { COMMENT_REF_TYPES } = require('constants/common');
 
 /**
  * Method to get comment reference value(wobject, append, post, object_type).
