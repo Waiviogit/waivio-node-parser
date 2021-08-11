@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 exports.ERROR = {
   INVALID_JSON: 'JSON not valid',
   HIDE_POST: '[hiddenPost]:Can\'t find post or user',
@@ -67,6 +69,8 @@ exports.LANGUAGES = [
   'af-ZA',
   'auto',
 ];
+
+exports.APP_LANGUAGES = _.filter(this.LANGUAGES, (el) => el !== 'auto');
 
 exports.MIN_REDIS_REFS_IDLE_TIME_IN_SEC = 2592000;
 
