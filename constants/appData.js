@@ -81,6 +81,10 @@ const nodeUrls = [
   'https://api.openhive.network',
   'https://hive.roelandp.nl',
   'https://hive-api.arcange.eu',
+  'https://rpc.ausbit.dev',
+  'https://rpc.ecency.com',
+  'https://hived.emre.sh',
+  'https://api.deathwing.me',
 ];
 
 const REQ_NODE_URLS = [
@@ -111,6 +115,8 @@ const telegramApi = {
 
 };
 
+const BLOCK_REQ_MAX_TIME = 1000;
+
 module.exports = {
   telegramApi,
   getAppData,
@@ -121,4 +127,5 @@ module.exports = {
   REFERRAL_TYPES,
   REFERRAL_STATUSES,
   REQ_NODE_URLS,
+  BLOCK_REQ_MAX_TIME,
 };
