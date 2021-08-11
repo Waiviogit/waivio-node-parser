@@ -1,10 +1,10 @@
 const { faker } = require('test/testHelper');
 const { MUTE_ACTION } = require('constants/parsersData');
-const { SUPPORTED_CURRENCIES } = require('constants/common');
+const { SUPPORTED_CURRENCIES, APP_LANGUAGES } = require('constants/common');
 const _ = require('lodash');
 
 exports.settingsData = ({
-  author, appId, beneficiary, googleAnalyticsTag, currency
+  author, appId, beneficiary, googleAnalyticsTag, currency, language,
 }) => {
   const data = {
     required_posting_auths: [author || faker.random.string()],
@@ -12,6 +12,7 @@ exports.settingsData = ({
       googleAnalyticsTag: googleAnalyticsTag || faker.random.string(),
       appId: appId || faker.random.string(),
       currency: currency || _.sample(Object.values(SUPPORTED_CURRENCIES)),
+      language: language || _.sample(APP_LANGUAGES),
     },
   };
   if (beneficiary) data.json.beneficiary = beneficiary;

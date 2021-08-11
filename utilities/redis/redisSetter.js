@@ -1,7 +1,7 @@
 const {
   postRefsClient, lastBlockClient, expiredPostsClient, tagCategoriesClient,
 } = require('utilities/redis/redis');
-const { COMMENT_REF_TYPES } = require('utilities/constants');
+const { COMMENT_REF_TYPES } = require('constants/common');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';

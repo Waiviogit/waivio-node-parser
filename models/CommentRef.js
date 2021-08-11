@@ -1,5 +1,5 @@
 const { CommentRef } = require('database').models;
-const { COMMENT_REF_TYPES } = require('utilities/constants');
+const { COMMENT_REF_TYPES } = require('constants/common');
 
 const create = async (data) => {
   try {

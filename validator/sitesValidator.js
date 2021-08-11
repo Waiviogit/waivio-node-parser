@@ -1,4 +1,4 @@
-const { SUPPORTED_CURRENCIES } = require('constants/common');
+const { SUPPORTED_CURRENCIES, APP_LANGUAGES } = require('constants/common');
 const { PAYMENT_TYPES } = require('constants/sitesData');
 const { MUTE_ACTION } = require('constants/parsersData');
 const Joi = require('@hapi/joi');
@@ -13,6 +13,7 @@ exports.settingsSchema = Joi.object().keys({
     percent: Joi.number().min(1).max(10000).required(),
   }),
   currency: Joi.string().valid(...Object.values(SUPPORTED_CURRENCIES)).required(),
+  language: Joi.string().valid(...APP_LANGUAGES).required(),
 }).options(options);
 
 exports.authoritySchema = Joi.object().keys({
