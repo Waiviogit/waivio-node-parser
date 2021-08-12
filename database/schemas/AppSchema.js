@@ -128,9 +128,6 @@ const AppSchema = new Schema({
   prefetches: { type: [String] },
 }, { timestamps: true });
 
-AppSchema.index({ prefetches: 1 });
-AppSchema.index({ availableCities: 1 });
-
 AppSchema.pre('save', async function (next) {
   if (this.parent) {
     const parent = await this.constructor.findOne({ _id: this.parent });
