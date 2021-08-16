@@ -1,5 +1,5 @@
+const { SUPPORTED_CURRENCIES, APP_LANGUAGES } = require('constants/common');
 const { STATUSES, SUPPORTED_COLORS } = require('constants/sitesData');
-const { SUPPORTED_CURRENCIES } = require('constants/common');
 const { REFERRAL_TYPES } = require('constants/appData');
 const mongoose = require('mongoose');
 const _ = require('lodash');
@@ -65,6 +65,7 @@ const Configuration = new Schema({
   aboutObject: { type: String },
   desktopMap: { type: MapPoints },
   mobileMap: { type: MapPoints },
+  availableCities: { type: [String] },
   colors: { type: Colors, default: () => ({}) },
 
 }, { _id: false });
@@ -119,6 +120,12 @@ const AppSchema = new Schema({
     enum: Object.values(SUPPORTED_CURRENCIES),
     default: SUPPORTED_CURRENCIES.USD,
   },
+  language: {
+    type: String,
+    enum: APP_LANGUAGES,
+    default: 'en-US',
+  },
+  prefetches: { type: [String] },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {

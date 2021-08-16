@@ -1,6 +1,6 @@
 const WObjectModel = require('database').models.WObject;
 const ObjectTypes = require('database').models.ObjectType;
-const { WOBJECT_LATEST_POSTS_COUNT } = require('utilities/constants');
+const { WOBJECT_LATEST_POSTS_COUNT } = require('constants/wobjectsData');
 
 const create = async (data) => {
   const newWObject = new WObjectModel(data);

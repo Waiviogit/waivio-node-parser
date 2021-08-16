@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 exports.ERROR = {
   INVALID_JSON: 'JSON not valid',
   HIDE_POST: '[hiddenPost]:Can\'t find post or user',
@@ -21,4 +23,60 @@ exports.SUPPORTED_CURRENCIES = {
   CNY: 'CNY',
   RUB: 'RUB',
   UAH: 'UAH',
+};
+
+exports.LANGUAGES = [
+  'en-US',
+  'id-ID',
+  'ms-MY',
+  'ca-ES',
+  'cs-CZ',
+  'da-DK',
+  'de-DE',
+  'et-EE',
+  'es-ES',
+  'fil-PH',
+  'fr-FR',
+  'hr-HR',
+  'it-IT',
+  'hu-HU',
+  'nl-HU',
+  'no-NO',
+  'pl-PL',
+  'pt-BR',
+  'ro-RO',
+  'sl-SI',
+  'sv-SE',
+  'vi-VN',
+  'tr-TR',
+  'yo-NG',
+  'el-GR',
+  'bg-BG',
+  'ru-RU',
+  'uk-UA',
+  'he-IL',
+  'ar-SA',
+  'ne-NP',
+  'hi-IN',
+  'as-IN',
+  'bn-IN',
+  'ta-IN',
+  'lo-LA',
+  'th-TH',
+  'ko-KR',
+  'ja-JP',
+  'zh-CN',
+  'af-ZA',
+  'auto',
+];
+
+exports.APP_LANGUAGES = _.filter(this.LANGUAGES, (el) => el !== 'auto');
+
+exports.MIN_REDIS_REFS_IDLE_TIME_IN_SEC = 2592000;
+
+exports.COMMENT_REF_TYPES = {
+  postWithWobjects: 'post_with_wobj',
+  createWobj: 'create_wobj',
+  appendWobj: 'append_wobj',
+  wobjType: 'wobj_type',
 };

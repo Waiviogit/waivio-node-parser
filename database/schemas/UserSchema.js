@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
 
 const { Schema } = mongoose;
-const { LANGUAGES } = require('utilities/constants');
+const { LANGUAGES } = require('constants/common');
 
 const UserNotificationsSchema = new Schema({
   activationCampaign: { type: Boolean, default: true },
