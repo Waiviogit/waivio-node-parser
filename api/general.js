@@ -1,13 +1,9 @@
-const { nodeUrls, BLOCK_REQ_MAX_TIME } = require('constants/appData');
-const processHelper = require('utilities/helpers/processHelper');
 const { redisGetter, redisSetter } = require('utilities/redis');
-const { blockUtil } = require('utilities/steemApi');
+const { nodeUrls } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
-let CURRENT_NODE_URL = nodeUrls[0];
-
-const hive = new Client(nodeUrls);
+const hive = new Client(nodeUrls[0], { timeout: 10 * 1000 });
 
 /**
  * Base method for run stream, for side tasks pass to the key parameter key for save block
@@ -83,9 +79,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     const lastBlockNumMainParse = await redisGetter.getLastBlockNum('last_block_num');
     if (blockNum >= lastBlockNumMainParse - 1) return false;
   }
-  const reqStart = process.hrtime();
-  const { block, error } = await blockUtil.getBlock(blockNum, CURRENT_NODE_URL);
-  const reqDuration = processHelper.getDurationInMilliseconds(reqStart);
+  const { block, error } = await getBlock(blockNum);
 
   if (error) {
     console.error(error);
@@ -100,15 +94,23 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
   console.time(block.transactions[0].block_num);
   await transactionsParserCallback(block.transactions);
   console.timeEnd(block.transactions[0].block_num);
-  if (reqDuration > BLOCK_REQ_MAX_TIME) changeNodeUrl();
   return true;
 };
 
-const changeNodeUrl = () => {
-  const index = nodeUrls.indexOf(CURRENT_NODE_URL);
+const getBlock = async (blockNum) => {
+  try {
+    const block = await hive.database.getBlock(blockNum);
+    return { block };
+  } catch (error) {
+    return { error };
+  }
+};
 
-  CURRENT_NODE_URL = index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1];
-  console.error(`Node URL was changed to ${CURRENT_NODE_URL}`);
+const changeNodeUrl = () => {
+  const index = nodeUrls.indexOf(hive.address);
+
+  hive.address = index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1];
+  console.error(`Node URL was changed to ${hive.address}`);
 };
 
 module.exports = {
