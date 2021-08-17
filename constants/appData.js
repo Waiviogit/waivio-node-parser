@@ -78,7 +78,6 @@ const notificationsApi = {
 // valid urls of HIVE nodes for getting blocks with transactions.
 const nodeUrls = [
   'https://rpc.esteem.app',
-  'https://api.hive.blog',
   'https://hive.roelandp.nl',
   'https://hive-api.arcange.eu',
   'https://hived.emre.sh',
