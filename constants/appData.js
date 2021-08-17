@@ -84,11 +84,11 @@ const nodeUrls = [
 ];
 
 const REQ_NODE_URLS = [
-  'https://api.hive.blog',
-  'https://rpc.esteem.app',
-  'https://hived.emre.sh',
-  'https://hive.roelandp.nl',
   'https://hive-api.arcange.eu',
+  'https://hive.roelandp.nl',
+  'https://rpc.esteem.app',
+  'https://api.hive.blog',
+  'https://hived.emre.sh',
 ];
 
 const REFERRAL_TYPES = {
