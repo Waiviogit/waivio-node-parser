@@ -1,7 +1,6 @@
-const { nodeUrls, BLOCK_REQ_MAX_TIME } = require('constants/appData');
-const processHelper = require('utilities/helpers/processHelper');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { blockUtil } = require('utilities/steemApi');
+const { nodeUrls } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
@@ -83,9 +82,8 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     const lastBlockNumMainParse = await redisGetter.getLastBlockNum('last_block_num');
     if (blockNum >= lastBlockNumMainParse - 1) return false;
   }
-  const reqStart = process.hrtime();
+
   const { block, error } = await blockUtil.getBlock(blockNum, CURRENT_NODE_URL);
-  const reqDuration = processHelper.getDurationInMilliseconds(reqStart);
 
   if (error) {
     console.error(error);
@@ -100,7 +98,6 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
   console.time(block.transactions[0].block_num);
   await transactionsParserCallback(block.transactions);
   console.timeEnd(block.transactions[0].block_num);
-  if (reqDuration > BLOCK_REQ_MAX_TIME) changeNodeUrl();
   return true;
 };
 
