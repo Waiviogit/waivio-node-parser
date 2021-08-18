@@ -80,11 +80,13 @@ const nodeUrls = [
   'https://rpc.esteem.app',
   'https://hive.roelandp.nl',
   'https://hive-api.arcange.eu',
+  'https://rpc.ausbit.dev',
   'https://hived.emre.sh',
 ];
 
 const REQ_NODE_URLS = [
   'https://hive-api.arcange.eu',
+  'https://rpc.ausbit.dev',
   'https://hive.roelandp.nl',
   'https://rpc.esteem.app',
   'https://api.hive.blog',
