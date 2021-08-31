@@ -58,6 +58,9 @@ const unVoteOnAppend = async (data) => {
 const addVoteOnField = async (data) => {
   data.percent = calculateVotePercent(data.percent);
   data.weight = (data.weight + data.rshares_weight * 0.25) * (data.percent / 100);
+  if (new RegExp('^waivio\_').test(data.voter)) {
+    data.weight = --data.weight;
+  }
   await upDownVoteOnAppend({ ...data });
 
   await Wobj.addVote({
