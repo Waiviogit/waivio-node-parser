@@ -77,20 +77,22 @@ const notificationsApi = {
 
 // valid urls of HIVE nodes for getting blocks with transactions.
 const nodeUrls = [
+  'https://anyx.io',
+  'https://api.openhive.network',
+  'https://rpc.ausbit.dev',
+  'https://api.pharesim.me',
+  'https://api.hive.blog',
   'https://rpc.esteem.app',
   'https://hive.roelandp.nl',
-  'https://hive-api.arcange.eu',
-  'https://rpc.ausbit.dev',
-  'https://hived.emre.sh',
 ];
 
 const REQ_NODE_URLS = [
-  'https://hive-api.arcange.eu',
+  'https://api.openhive.network',
+  'https://api.hive.blog',
   'https://rpc.ausbit.dev',
   'https://hive.roelandp.nl',
   'https://rpc.esteem.app',
   'https://api.hive.blog',
-  'https://hived.emre.sh',
 ];
 
 const REFERRAL_TYPES = {
