@@ -59,7 +59,7 @@ const Colors = new Schema({
 }, { _id: false });
 
 const CitySchema = new Schema({
-  name: { type: String },
+  city: { type: String },
   route: { type: String },
 });
 
