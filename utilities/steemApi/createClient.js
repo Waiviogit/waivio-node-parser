@@ -1,6 +1,6 @@
-const { REQ_NODE_URLS } = require('constants/appData');
+const { REQUEST_NODES } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
 
-const client = new Client(REQ_NODE_URLS, { timeout: 8 * 1000, failoverThreshold: 0 });
+const client = new Client(REQUEST_NODES, { timeout: 8 * 1000, failoverThreshold: 0 });
 
 module.exports = { client };
