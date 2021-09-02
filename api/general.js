@@ -1,9 +1,10 @@
+const { BLOCK_NODES, REQUEST_NODES } = require('constants/appData');
 const { redisGetter, redisSetter } = require('utilities/redis');
-const { nodeUrls } = require('constants/appData');
+const blocksUtil = require('utilities/steemApi/blocksUtil');
 const { Client } = require('@hiveio/dhive');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
-const hive = new Client(nodeUrls[0], { timeout: 10 * 1000 });
+let CURRENT_NODE = BLOCK_NODES[0];
 
 /**
  * Base method for run stream, for side tasks pass to the key parameter key for save block
@@ -22,6 +23,7 @@ const getBlockNumberStream = async ({
   transactionsParserCallback,
 }) => {
   if (startFromCurrent) {
+    const hive = new Client(REQUEST_NODES);
     await loadNextBlock(
       {
         key,
@@ -79,7 +81,8 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     const lastBlockNumMainParse = await redisGetter.getLastBlockNum('last_block_num');
     if (blockNum >= lastBlockNumMainParse - 1) return false;
   }
-  const { block, error } = await getBlock(blockNum);
+
+  const { block, error } = await blocksUtil.getBlock(blockNum, CURRENT_NODE);
 
   if (error) {
     console.error(error);
@@ -97,8 +100,9 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
   return true;
 };
 
-const getBlock = async (blockNum) => {
+const getBlock = async (blockNum, hiveUrl) => {
   try {
+    const hive = new Client(hiveUrl);
     const block = await hive.database.getBlock(blockNum);
     return { block };
   } catch (error) {
@@ -107,10 +111,10 @@ const getBlock = async (blockNum) => {
 };
 
 const changeNodeUrl = () => {
-  const index = nodeUrls.indexOf(hive.address);
+  const index = BLOCK_NODES.indexOf(CURRENT_NODE);
 
-  hive.address = index === nodeUrls.length - 1 ? nodeUrls[0] : nodeUrls[index + 1];
-  console.error(`Node URL was changed to ${hive.address}`);
+  CURRENT_NODE = index === BLOCK_NODES.length - 1 ? BLOCK_NODES[0] : BLOCK_NODES[index + 1];
+  console.error(`Node URL was changed to ${CURRENT_NODE}`);
 };
 
 module.exports = {

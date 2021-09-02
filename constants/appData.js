@@ -76,22 +76,44 @@ const notificationsApi = {
 };
 
 // valid urls of HIVE nodes for getting blocks with transactions.
-const nodeUrls = [
-  'https://rpc.esteem.app',
-  'https://hive.roelandp.nl',
-  'https://hive-api.arcange.eu',
-  'https://rpc.ausbit.dev',
-  'https://hived.emre.sh',
+const PRODUCTION_BLOCK_NODES = [
+  'https://blocks.waivio.com',
+  'https://anyx.io',
+  'https://api.hive.blog',
+  'https://rpc.ecency.com',
 ];
 
-const REQ_NODE_URLS = [
-  'https://hive-api.arcange.eu',
-  'https://rpc.ausbit.dev',
-  'https://hive.roelandp.nl',
+const STAGING_BLOCK_NODES = [
+  'https://api.pharesim.me',
+  'https://api.openhive.network',
   'https://rpc.esteem.app',
-  'https://api.hive.blog',
-  'https://hived.emre.sh',
+  'https://hive-api.arcange.eu',
+  'https://hive.roelandp.nl',
+  'https://rpc.ausbit.dev',
 ];
+
+const BLOCK_NODES = process.env.NODE_ENV === 'production'
+  ? PRODUCTION_BLOCK_NODES
+  : STAGING_BLOCK_NODES;
+
+const PRODUCTION_REQUEST_NODES = [
+  'https://api.hive.blog',
+  'https://rpc.ecency.com',
+  'https://anyx.io',
+];
+
+const STAGING_REQUEST_NODES = [
+  'https://api.openhive.network',
+  'https://api.pharesim.me',
+  'https://rpc.esteem.app',
+  'https://hive-api.arcange.eu',
+  'https://hive.roelandp.nl',
+  'https://rpc.ausbit.dev',
+];
+
+const REQUEST_NODES = process.env.NODE_ENV === 'production'
+  ? PRODUCTION_REQUEST_NODES
+  : STAGING_REQUEST_NODES;
 
 const REFERRAL_TYPES = {
   REWARDS: 'rewards',
@@ -120,9 +142,9 @@ module.exports = {
   objectImportService: objectImportService[process.env.NODE_ENV || 'development'],
   waivioApi: waivioApi[process.env.NODE_ENV || 'development'],
   notificationsApi: notificationsApi[process.env.NODE_ENV || 'development'],
-  nodeUrls,
+  BLOCK_NODES,
   REFERRAL_TYPES,
   REFERRAL_STATUSES,
-  REQ_NODE_URLS,
+  REQUEST_NODES,
   BLOCK_REQ_MAX_TIME,
 };
