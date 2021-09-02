@@ -17,7 +17,10 @@ To start the task associated with the parser, you must:
   - Make script for this task with own parser(switcher)
   - Add run script to package.json 
   - Start process with pm2 by: pm2 start --name <nameOfTask> npm -- run <scriptName> [params] --
+
+
 #Nodes & response time
+
 'https://blocks.waivio.com'  production ~40ms staging 300-500ms **(now only for blocks)**
 
 'https://anyx.io' production ~40-50ms staging 270-500ms
