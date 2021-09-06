@@ -275,5 +275,32 @@ describe('On postHelper', async () => {
         expect(result).to.be.eq(false);
       });
     });
+    describe('On remove wobjects from post on hide comment', async () => {
+      let wobj1, wobj2;
+      beforeEach(async () => {
+        wobj1 = await ObjectFactory.Create();
+        wobj2 = await ObjectFactory.Create();
+        post = await PostFactory.Create({
+          wobjects: [wobj1, wobj2, objectOnPost],
+        });
+
+        link = `${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${wobj1.author_permlink}
+        ${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${wobj2.author_permlink}`;
+        result = await postHelper.parseCommentBodyWobjects({
+          body: link, author: post.author, permlink: post.permlink, isDeleting: true,
+        });
+        updatedPost = await Post.findOne({
+          author: post.author, permlink: post.permlink,
+        }).lean();
+      });
+
+      it('should parseCommentBodyWobjects return true', async () => {
+        expect(result).to.be.eq(true);
+      });
+
+      it('should remove the specified wobject from the post', async () => {
+        expect(_.map(updatedPost.wobjects, 'author_permlink')).to.be.deep.eq([objectOnPost.author_permlink]);
+      });
+    });
   });
 });

@@ -89,11 +89,8 @@ describe('PostModel', async () => {
       expect(result.error).to.exist;
     });
   });
-  describe(' On update', async () => {
-    let post,
-      data,
-      upd_post,
-      result_update;
+  describe('On update', async () => {
+    let post, data, upd_post, result_update;
     beforeEach(async () => {
       post = await PostFactory.Create();
       data = {
@@ -113,7 +110,8 @@ describe('PostModel', async () => {
       expect(result_update).is.exist;
     });
     it('should compare fields so they are the same ', async () => {
-      expect({ net_votes: upd_post._doc.net_votes, total_vote_weight: upd_post.total_vote_weight }).to.not.eq({ net_votes: post.net_votes, total_vote_weight: post.total_vote_weight });
+      expect({ net_votes: upd_post._doc.net_votes, total_vote_weight: upd_post.total_vote_weight })
+        .to.not.eq({ net_votes: post.net_votes, total_vote_weight: post.total_vote_weight });
     });
     it('should return error', async () => {
       const postModel = await PostModel.update();
@@ -127,6 +125,25 @@ describe('PostModel', async () => {
         total_vote_weight: upd_post.total_vote_weight,
         net_votes: upd_post.net_votes,
       });
+    });
+  });
+  describe('On removeWobjectsFromPost', async () => {
+    let post;
+    const wobj1 = { author_permlink: faker.random.string() };
+    const wobj2 = { author_permlink: faker.random.string() };
+    const wobj3 = { author_permlink: faker.random.string() };
+
+    beforeEach(async () => {
+      await dropDatabase();
+      post = await PostFactory.Create({
+        wobjects: [wobj1, wobj2, wobj3],
+      });
+    });
+    it('should delete objects from post by the specified author_permlinks', async () => {
+      const data = { author: post.root_author, permlink: post.permlink, wobjects: [wobj1, wobj2] };
+      await PostModel.removeWobjectsFromPost(data);
+      const { post: updatedPost } = await PostModel.findOne(data);
+      expect(_.map(updatedPost.wobjects, 'author_permlink')).to.be.deep.eq([wobj3.author_permlink]);
     });
   });
 });

@@ -4,11 +4,13 @@ const {
   WobjectSubscriptions, HiddenPost, HiddenComment, App, MutedUser,
 } = require('test/testHelper');
 const {
-  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory, HiddenPostsFactory, HiddenCommentFactory, MutedUsersFactory,
+  UserFactory, PostFactory, SubscriptionsFactory, WobjectSubscriptionsFactory, AppFactory,
+  HiddenPostsFactory, HiddenCommentFactory, MutedUsersFactory,
 } = require('test/factories');
 const { User: UserModel, Post: PostModel } = require('models');
 const { BELL_NOTIFICATIONS, HIDE_ACTION } = require('constants/parsersData');
 const { CAN_MUTE_GLOBAL } = require('constants/sitesData');
+const { postsUtil } = require('utilities/steemApi');
 
 describe('UserParsers', async () => {
   describe('on updateAccountParse', async () => {
@@ -451,7 +453,8 @@ describe('UserParsers', async () => {
   });
 
   describe('On hidePostParser', async () => {
-    let author, permlink, user, moderator, firstApp, secondApp, randomAppHost, operation, reblog, post, hiddenPost;
+    let author, permlink, user, moderator, firstApp, secondApp, randomAppHost, operation,
+      reblog, post, hiddenPost;
     beforeEach(async () => {
       await dropDatabase();
       user = faker.random.string();
@@ -606,23 +609,44 @@ describe('UserParsers', async () => {
     });
   });
   describe('On hideCommentParser', async () => {
-    let record;
+    let record, postsUtilStub;
     const userName = faker.random.string();
     const author = faker.random.string();
     const permlink = faker.random.string();
+    const guestName = faker.random.string();
 
     beforeEach(async () => {
       await dropDatabase();
+      postsUtilStub = sinon.stub(postsUtil, 'getPost').returns(Promise.resolve({
+        post: { root_author: faker.random.string(), permlink: faker.random.string() },
+      }));
     });
-
+    afterEach(() => {
+      sinon.restore();
+    });
     it('should add record to collection on hide action', async () => {
+      sinon.stub(PostModel, 'findOne').returns(Promise.resolve({ post: { author: faker.random.string() } }));
       const operation = {
         required_posting_auths: [userName],
-        json: JSON.stringify({ author, permlink, action: HIDE_ACTION.HIDE }),
+        json: JSON.stringify({
+          author, permlink, action: HIDE_ACTION.HIDE, guestName,
+        }),
       };
       await userParsers.hideCommentParser(operation);
       record = await HiddenComment.findOne({ userName, author, permlink });
       expect(record).to.exist;
+    });
+
+    it('should call parseCommentBodyWobjects if the author of the comment is the author of the post', async () => {
+      sinon.stub(PostModel, 'findOne').returns(Promise.resolve({ post: { author: guestName } }));
+      const operation = {
+        required_posting_auths: [userName],
+        json: JSON.stringify({
+          author, permlink, action: HIDE_ACTION.HIDE, guestName,
+        }),
+      };
+      await userParsers.hideCommentParser(operation);
+      expect(postsUtilStub).to.be.called;
     });
 
     it('should delete record from collection on unhide action', async () => {

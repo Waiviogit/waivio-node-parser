@@ -106,8 +106,21 @@ const addWobjectsToPost = async (data) => {
   }
 };
 
+const removeWobjectsFromPost = async (data) => {
+  try {
+    const result = await PostModel.updateOne(
+      { root_author: data.author, permlink: data.permlink },
+      { $pull: { wobjects: { author_permlink: { $in: _.map(data.wobjects, 'author_permlink') } } } },
+    );
+    return { result };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   addWobjectsToPost,
+  removeWobjectsFromPost,
   findByBothAuthors,
   getPostsRefs,
   getManyPosts,
