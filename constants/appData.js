@@ -97,6 +97,7 @@ const BLOCK_NODES = process.env.NODE_ENV === 'production'
   : STAGING_BLOCK_NODES;
 
 const PRODUCTION_REQUEST_NODES = [
+  'https://api.openhive.network/',
   'https://api.hive.blog',
   'https://rpc.ecency.com',
   'https://anyx.io',

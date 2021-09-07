@@ -233,6 +233,12 @@ exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
   return true;
 };
 
+exports.hideCommentWobjectsFromPost = async ({ author, permlink, body = '' }) => {
+  const authorPermlinks = getBodyLinksArray(body);
+  if (_.isEmpty(authorPermlinks)) return false;
+  return !!(await Post.removeWobjectsFromPost({ author, permlink, authorPermlinks })).result;
+};
+
 const getBodyLinksArray = (body) => _
   .chain(body.match(new RegExp(RE_WOBJECT_REF, 'gm')))
   .reduce((acc, link) => [...acc, _.compact(link.match(RE_WOBJECT_REF))[1]], [])
