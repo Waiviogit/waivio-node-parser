@@ -206,8 +206,9 @@ exports.hideCommentParser = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
+  // guestName - name of user who doing hide (not matter is hive or guest user)
   const {
-    author, permlink, action, guestName,
+    author, permlink, action, guestName: hidingUser,
   } = json;
   const userName = _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS));
   if (!userName) return console.error(ERROR.HIDE_POST);
@@ -219,12 +220,11 @@ exports.hideCommentParser = async (operation) => {
       const { post: dbPost } = await Post.findOne({
         root_author: comment.root_author, permlink: comment.root_permlink,
       });
-      if (guestName !== dbPost.author) return;
-      await postUtil.parseCommentBodyWobjects({
+      if (hidingUser !== dbPost.author) return;
+      await postUtil.hideCommentWobjectsFromPost({
         body: comment.body,
         author: comment.root_author,
         permlink: comment.root_permlink,
-        isDeleting: true,
       });
       break;
     case HIDE_ACTION.UNHIDE:

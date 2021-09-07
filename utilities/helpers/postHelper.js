@@ -211,9 +211,7 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
   }
 };
 
-exports.parseCommentBodyWobjects = async ({
-  body = '', author, permlink, isDeleting = false,
-}) => {
+exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
   const matches = getBodyLinksArray(body);
   if (_.isEmpty(matches)) return false;
 
@@ -228,18 +226,17 @@ exports.parseCommentBodyWobjects = async ({
   );
   if (_.isEmpty(result)) return false;
 
-  if (isDeleting) {
-    const wobjects = _.intersectionBy(result, _.get(post, 'wobjects', []), 'author_permlink');
-    if (_.isEmpty(wobjects)) return false;
-    await Post.removeWobjectsFromPost({ author, permlink, wobjects });
-    return true;
-  }
-
   const wobjects = _.differenceBy(result, _.get(post, 'wobjects', []), 'author_permlink');
   if (_.isEmpty(wobjects)) return false;
 
   await Post.addWobjectsToPost({ author, permlink, wobjects });
   return true;
+};
+
+exports.hideCommentWobjectsFromPost = async ({ author, permlink, body = '' }) => {
+  const authorPermlinks = getBodyLinksArray(body);
+  if (_.isEmpty(authorPermlinks)) return false;
+  return !!(await Post.removeWobjectsFromPost({ author, permlink, authorPermlinks })).result;
 };
 
 const getBodyLinksArray = (body) => _

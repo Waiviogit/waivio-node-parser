@@ -275,32 +275,53 @@ describe('On postHelper', async () => {
         expect(result).to.be.eq(false);
       });
     });
-    describe('On remove wobjects from post on hide comment', async () => {
-      let wobj1, wobj2;
-      beforeEach(async () => {
-        wobj1 = await ObjectFactory.Create();
-        wobj2 = await ObjectFactory.Create();
-        post = await PostFactory.Create({
-          wobjects: [wobj1, wobj2, objectOnPost],
-        });
+  });
 
-        link = `${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${wobj1.author_permlink}
+  describe('On hideCommentWobjectsFromPost', async () => {
+    let post, result, updatedPost;
+    const wobj1 = { author_permlink: faker.random.string() };
+    const wobj2 = { author_permlink: faker.random.string() };
+    const wobj3 = { author_permlink: faker.random.string() };
+    const link = `${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${wobj1.author_permlink}
         ${_.sample(HOSTS_TO_PARSE_LINKS)}/object/${wobj2.author_permlink}`;
-        result = await postHelper.parseCommentBodyWobjects({
-          body: link, author: post.author, permlink: post.permlink, isDeleting: true,
-        });
-        updatedPost = await Post.findOne({
-          author: post.author, permlink: post.permlink,
-        }).lean();
+
+    beforeEach(async () => {
+      post = await PostFactory.Create({
+        wobjects: [wobj1, wobj2, wobj3], body: link,
       });
 
-      it('should parseCommentBodyWobjects return true', async () => {
-        expect(result).to.be.eq(true);
+      result = await postHelper.hideCommentWobjectsFromPost({
+        author: post.root_author, permlink: post.permlink, body: link,
       });
+      updatedPost = await Post.findOne({
+        root_author: post.author, permlink: post.permlink,
+      }).lean();
+    });
 
-      it('should remove the specified wobject from the post', async () => {
-        expect(_.map(updatedPost.wobjects, 'author_permlink')).to.be.deep.eq([objectOnPost.author_permlink]);
+    it('should hideCommentWobjectsFromPost return true', async () => {
+      expect(result).to.be.eq(true);
+    });
+
+    it('should delete objects from post by the specified author_permlinks', async () => {
+      expect(_.map(updatedPost.wobjects, 'author_permlink')).to.be.deep.eq([wobj3.author_permlink]);
+    });
+
+    it('should remove two objects from the post', async () => {
+      expect(updatedPost.wobjects).to.have.length(1);
+    });
+
+    it('should return false if links not found', async () => {
+      const actual = await postHelper.hideCommentWobjectsFromPost({
+        author: post.root_author, permlink: post.permlink, body: faker.random.string(),
       });
+      expect(actual).to.be.eq(false);
+    });
+
+    it('should return false if the post is not found by the given criteria', async () => {
+      const actual = await postHelper.hideCommentWobjectsFromPost({
+        author: faker.random.string(), permlink: faker.random.string(), body: link,
+      });
+      expect(actual).to.be.eq(false);
     });
   });
 });

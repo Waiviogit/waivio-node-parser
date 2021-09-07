@@ -128,7 +128,7 @@ describe('PostModel', async () => {
     });
   });
   describe('On removeWobjectsFromPost', async () => {
-    let post;
+    let post, updatedPost;
     const wobj1 = { author_permlink: faker.random.string() };
     const wobj2 = { author_permlink: faker.random.string() };
     const wobj3 = { author_permlink: faker.random.string() };
@@ -138,11 +138,23 @@ describe('PostModel', async () => {
       post = await PostFactory.Create({
         wobjects: [wobj1, wobj2, wobj3],
       });
+      const data = {
+        author: post.root_author,
+        permlink: post.permlink,
+        authorPermlinks: [wobj1.author_permlink, wobj2.author_permlink],
+      };
+
+      await PostModel.removeWobjectsFromPost({ ...data });
+      updatedPost = await Post.findOne({
+        root_author: data.author, permlink: post.permlink,
+      }).lean();
     });
+
+    it('should remove two objects from the post', async () => {
+      expect(updatedPost.wobjects).to.have.length(1);
+    });
+
     it('should delete objects from post by the specified author_permlinks', async () => {
-      const data = { author: post.root_author, permlink: post.permlink, wobjects: [wobj1, wobj2] };
-      await PostModel.removeWobjectsFromPost(data);
-      const { post: updatedPost } = await PostModel.findOne(data);
       expect(_.map(updatedPost.wobjects, 'author_permlink')).to.be.deep.eq([wobj3.author_permlink]);
     });
   });
