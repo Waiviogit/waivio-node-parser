@@ -7,7 +7,7 @@ const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
-const { RE_HTTPS, RE_WOBJECT_REF } = require('constants/regExp');
+const { RE_HTTPS, RE_WOBJECT_REF, RE_HASHTAGS } = require('constants/regExp');
 const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 
 exports.objectIdFromDateString = (dateStr) => {
@@ -212,7 +212,10 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
 };
 
 exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
-  const matches = getBodyLinksArray(body);
+  const matches = _.uniq([
+    ...getBodyLinksArray(body, RE_HASHTAGS),
+    ...getBodyLinksArray(body, RE_WOBJECT_REF),
+  ]);
   if (_.isEmpty(matches)) return false;
 
   const { post } = await Post.findByBothAuthors({
@@ -233,8 +236,17 @@ exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
   return true;
 };
 
-const getBodyLinksArray = (body) => _
-  .chain(body.match(new RegExp(RE_WOBJECT_REF, 'gm')))
-  .reduce((acc, link) => [...acc, _.compact(link.match(RE_WOBJECT_REF))[1]], [])
+exports.hideCommentWobjectsFromPost = async ({ author, permlink, body = '' }) => {
+  const authorPermlinks = _.uniq([
+    ...getBodyLinksArray(body, RE_HASHTAGS),
+    ...getBodyLinksArray(body, RE_WOBJECT_REF),
+  ]);
+  if (_.isEmpty(authorPermlinks)) return false;
+  return !!(await Post.removeWobjectsFromPost({ author, permlink, authorPermlinks })).result;
+};
+
+const getBodyLinksArray = (body, regularExpression) => _
+  .chain(body.match(new RegExp(regularExpression, 'gm')))
+  .reduce((acc, link) => [...acc, _.compact(link.match(regularExpression))[1]], [])
   .compact()
   .value();

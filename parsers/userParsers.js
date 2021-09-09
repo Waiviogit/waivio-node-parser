@@ -8,11 +8,13 @@ const {
   REQUIRED_POSTING_AUTHS, CUSTOM_JSON_OPS, MUTE_ACTION,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const postModeration = require('utilities/moderation/postModeration');
-const jsonHelper = require('utilities/helpers/jsonHelper');
-const sitesHelper = require('utilities/helpers/sitesHelper');
-const { ERROR } = require('constants/common');
 const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
+const postModeration = require('utilities/moderation/postModeration');
+const sitesHelper = require('utilities/helpers/sitesHelper');
+const jsonHelper = require('utilities/helpers/jsonHelper');
+const postUtil = require('utilities/helpers/postHelper');
+const { postsUtil } = require('utilities/steemApi');
+const { ERROR } = require('constants/common');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.owner && operation.active && operation.posting && operation.memo_key) {
@@ -204,13 +206,26 @@ exports.hideCommentParser = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
-  const { author, permlink, action } = json;
+  // guestName - name of user who doing hide (not matter is hive or guest user)
+  const {
+    author, permlink, action, guestName: hidingUser,
+  } = json;
   const userName = _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS));
   if (!userName) return console.error(ERROR.HIDE_POST);
 
   switch (action) {
     case HIDE_ACTION.HIDE:
       await hiddenCommentModel.update({ userName, author, permlink });
+      const { post: comment } = await postsUtil.getPost(author, permlink);
+      const { post: dbPost } = await Post.findOne({
+        root_author: comment.root_author, permlink: comment.root_permlink,
+      });
+      if (hidingUser !== dbPost.author) return;
+      await postUtil.hideCommentWobjectsFromPost({
+        body: comment.body,
+        author: comment.root_author,
+        permlink: comment.root_permlink,
+      });
       break;
     case HIDE_ACTION.UNHIDE:
       await hiddenCommentModel.deleteOne({ userName, author, permlink });

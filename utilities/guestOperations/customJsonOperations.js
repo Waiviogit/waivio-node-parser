@@ -50,7 +50,7 @@ exports.guestVote = async (operation) => {
     if (vote.type === 'post_with_wobj' || !vote.type) {
       await voteOnPost({ vote });
     } else if (vote.type === 'append_wobj') {
-      await voteOnField({ vote });
+      await guestVoteOnField({ vote });
     }
   }
 };
@@ -133,14 +133,14 @@ const voteOnPost = async ({ vote }) => {
   }
 };
 
-const voteOnField = async ({ vote }) => {
+const guestVoteOnField = async ({ vote }) => {
   await voteFieldHelper.voteOnField({
     author: vote.author,
     permlink: vote.permlink,
     voter: vote.voter,
     author_permlink: vote.root_wobj,
     percent: vote.weight,
-    weight: 0,
+    weight: 1,
     rshares_weight: 0,
   });
 };
