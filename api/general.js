@@ -1,10 +1,10 @@
-const { BLOCK_NODES, REQUEST_NODES } = require('constants/appData');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const blocksUtil = require('utilities/steemApi/blocksUtil');
+const { HIVED_NODES } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
-let CURRENT_NODE = BLOCK_NODES[0];
+let CURRENT_NODE = HIVED_NODES[0];
 
 /**
  * Base method for run stream, for side tasks pass to the key parameter key for save block
@@ -23,7 +23,7 @@ const getBlockNumberStream = async ({
   transactionsParserCallback,
 }) => {
   if (startFromCurrent) {
-    const hive = new Client(REQUEST_NODES);
+    const hive = new Client(HIVED_NODES);
     await loadNextBlock(
       {
         key,
@@ -103,7 +103,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
 const getBlock = async (blockNum, hiveUrl) => {
   try {
     const hive = new Client(hiveUrl);
-    const block = await hive.database.getBlock(blockNum);
+    const block = await hive.database.call('get_block', [blockNum]);
     return { block };
   } catch (error) {
     return { error };
@@ -111,9 +111,9 @@ const getBlock = async (blockNum, hiveUrl) => {
 };
 
 const changeNodeUrl = () => {
-  const index = BLOCK_NODES.indexOf(CURRENT_NODE);
+  const index = HIVED_NODES.indexOf(CURRENT_NODE);
 
-  CURRENT_NODE = index === BLOCK_NODES.length - 1 ? BLOCK_NODES[0] : BLOCK_NODES[index + 1];
+  CURRENT_NODE = index === HIVED_NODES.length - 1 ? HIVED_NODES[0] : HIVED_NODES[index + 1];
   console.error(`Node URL was changed to ${CURRENT_NODE}`);
 };
 

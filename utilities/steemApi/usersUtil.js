@@ -1,13 +1,13 @@
+const { hivedClient, hiveMindClient } = require('utilities/steemApi/createClient');
 const { getHashAll } = require('utilities/redis/redisGetter');
 const { lastBlockClient } = require('utilities/redis/redis');
 const { VOTE_TYPES } = require('constants/parsersData');
 const moment = require('moment');
 const _ = require('lodash');
-const { client } = require('./createClient');
 
 const getUser = async (accountName) => {
   try {
-    const [user] = await client.database.getAccounts([accountName]);
+    const [user] = await hivedClient.database.getAccounts([accountName]);
     return { user };
   } catch (error) {
     return { error };
@@ -16,18 +16,19 @@ const getUser = async (accountName) => {
 
 const getUsers = async (accountNames) => {
   try {
-    const users = await client.database.getAccounts(accountNames);
+    const users = await hivedClient.database.getAccounts(accountNames);
     return { users };
   } catch (error) {
     return { error };
   }
 };
+
 const parseToFloat = (balance) => parseFloat(balance.match(/.\d*.\d*/)[0]);
 
 const getCurrentPriceInfo = async () => {
   try {
-    const sbdMedian = await client.database.call('get_current_median_history_price', []);
-    const rewardFund = await client.database.call('get_reward_fund', ['post']);
+    const sbdMedian = await hivedClient.database.call('get_current_median_history_price', []);
+    const rewardFund = await hivedClient.database.call('get_reward_fund', ['post']);
     return {
       currentPrice: parseToFloat(sbdMedian.base) / parseToFloat(sbdMedian.quote),
       rewardFund,
@@ -39,7 +40,7 @@ const getCurrentPriceInfo = async () => {
 
 const getDynamicGlobalProperties = async () => {
   try {
-    return { result: await client.database.call('get_dynamic_global_properties') };
+    return { result: await hivedClient.database.call('get_dynamic_global_properties') };
   } catch (error) {
     return { error };
   }
@@ -98,7 +99,7 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
 
 const getMutedList = async (name) => {
   try {
-    const result = await client.call('bridge', 'get_follow_list', {
+    const result = await hiveMindClient.call('bridge', 'get_follow_list', {
       observer: name,
       follow_type: 'muted',
     });
