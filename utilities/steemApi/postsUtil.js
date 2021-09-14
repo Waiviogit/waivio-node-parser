@@ -1,8 +1,8 @@
-const { client } = require('./createClient');
+const { hiveMindClient } = require('utilities/steemApi/createClient');
 
 const getPost = async (author, permlink) => {
   try {
-    const post = await client.database.call('get_content', [author, permlink]);
+    const post = await hiveMindClient.database.call('get_content', [author, permlink]);
     return { post };
   } catch (err) {
     return { err };
@@ -11,7 +11,7 @@ const getPost = async (author, permlink) => {
 
 const getPostsByAuthor = async (author) => {
   try {
-    const posts = await client.database.getDiscussions(
+    const posts = await hiveMindClient.database.getDiscussions(
       'blog',
       { tag: author, limit: 100 },
     );
@@ -29,8 +29,7 @@ const getPostsByAuthor = async (author) => {
  */
 const getVotes = async (author, permlink) => {
   try {
-    const votes = await client.database.call('get_active_votes', [author, permlink]);
-
+    const votes = await hiveMindClient.database.call('get_active_votes', [author, permlink]);
     return { votes };
   } catch (err) {
     return { err };
