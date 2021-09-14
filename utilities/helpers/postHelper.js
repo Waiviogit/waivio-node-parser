@@ -120,7 +120,10 @@ exports.guestCommentFromTTL = async (author, permlink) => {
  * in second part we check weather post has wobjects or just tags and make calculations
  */
 exports.parseBodyWobjects = async (metadata, postBody = '') => {
-  const bodyLinks = getBodyLinksArray(postBody);
+  const bodyLinks = _.uniq([
+    ...getBodyLinksArray(postBody, RE_HASHTAGS),
+    ...getBodyLinksArray(postBody, RE_WOBJECT_REF),
+  ]);
   if (!_.isEmpty(bodyLinks)) {
     const metadataWobjects = _.concat(
       _.get(metadata, 'tags', []),
