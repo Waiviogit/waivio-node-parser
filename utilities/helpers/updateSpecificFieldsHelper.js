@@ -22,21 +22,20 @@ const update = async ({
   if (error || !field) return;
 
   switch (field.name) {
+    case FIELDS_NAMES.TAG:
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.PHONE:
     case FIELDS_NAMES.ADDRESS:
       await addSearchField({
-        authorPermlink, newWords: parseSearchData(metadata),
+        authorPermlink, fieldName: _.get(metadata, 'wobj.field.name'), newWords: parseSearchData(metadata),
       });
       break;
     case FIELDS_NAMES.NAME:
-      await addSearchField({
-        authorPermlink, newWords: parseSearchData(metadata),
-      });
-      await tagsParser.createTags({ authorPermlink, field });
-      break;
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
+      await addSearchField({
+        authorPermlink, fieldName: _.get(metadata, 'wobj.field.name'), newWords: parseSearchData(metadata),
+      });
       await tagsParser.createTags({ authorPermlink, field });
       break;
     case FIELDS_NAMES.PARENT:
@@ -252,8 +251,11 @@ const parseSearchData = (metadata) => {
     case FIELDS_NAMES.NAME:
       searchFields.push(...parseName(_.get(metadata, 'wobj.field.body', '')));
       break;
+    case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.EMAIL:
-      searchFields.push(_.get(metadata, 'wobj.field.body', ''));
+    case FIELDS_NAMES.TITLE:
+    case FIELDS_NAMES.TAG:
+      searchFields.push(_.get(metadata, 'wobj.field.body', '').trim());
       break;
     case FIELDS_NAMES.PHONE:
       searchFields.push(_.get(metadata, 'wobj.field.number', ''));
@@ -267,11 +269,10 @@ const parseSearchData = (metadata) => {
   return searchFields;
 };
 
-const addSearchField = async ({ authorPermlink, newWords }) => {
+const addSearchField = async ({ authorPermlink, fieldName, newWords }) => {
   if (_.isEmpty(newWords)) return { result: false };
   const { result, error } = await Wobj.addSearchFields({
-    authorPermlink,
-    newWords,
+    authorPermlink, fieldName, newWords,
   });
   if (error) return { error };
   return { result };
@@ -295,7 +296,7 @@ const parseAddress = (addressFromDB) => {
   return { addresses: [addressWithoutSpaces, addressWithSpaces] };
 };
 
-const parseName = (rawName) => [rawName, rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
+const parseName = (rawName) => [rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
 
 module.exports = {
   update, processingParent, parseMap, parseSearchData, addSearchField, parseAddress, parseName,

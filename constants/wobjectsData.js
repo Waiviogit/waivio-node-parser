@@ -30,12 +30,16 @@ exports.FIELDS_NAMES = {
   LIST_ITEM: 'listItem',
 };
 
-exports.SEARCH_FIELDS = {
-  NAME: 'name',
-  EMAIL: 'email',
-  PHONE: 'phone',
-  ADDRESS: 'address',
-};
+exports.SEARCH_FIELDS = [
+  'author_permlink',
+  this.FIELDS_NAMES.NAME,
+  this.FIELDS_NAMES.EMAIL,
+  this.FIELDS_NAMES.PHONE,
+  this.FIELDS_NAMES.ADDRESS,
+  this.FIELDS_NAMES.TITLE,
+  this.FIELDS_NAMES.DESCRIPTION,
+  this.FIELDS_NAMES.TAG,
+];
 
 exports.AUTHORITY_FIELD_ENUM = {
   ADMINISTRATIVE: 'administrative',
