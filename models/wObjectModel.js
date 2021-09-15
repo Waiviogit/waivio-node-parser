@@ -46,11 +46,11 @@ const addField = async (data) => {
   }
 };
 
-const addSearchFields = async ({ authorPermlink, newWords }) => {
+const addSearchFields = async ({ authorPermlink, fieldName, newWords }) => {
   try {
     const result = await WObjectModel.updateOne(
       { author_permlink: authorPermlink },
-      { $addToSet: { search: { $each: newWords } } },
+      { $addToSet: { [`search.${fieldName}`]: { $each: newWords } } },
     );
     return { result: result.nModified === 1 };
   } catch (error) {
