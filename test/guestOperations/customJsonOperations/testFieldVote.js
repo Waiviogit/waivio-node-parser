@@ -5,7 +5,6 @@ const {
 const { guestVote } = require('utilities/guestOperations/customJsonOperations');
 const { UserFactory, AppendObject, userWobjectFactory } = require('test/factories');
 
-
 describe('customJsonOperations', async () => {
   let mockListBots, blackList;
   beforeEach(async () => {
@@ -81,8 +80,8 @@ describe('customJsonOperations', async () => {
         it('should not change wobject weight', () => {
           expect(wobject.weight).to.be.eq(updWobject.weight);
         });
-        it('should not change field weight', () => {
-          expect(field.weight).to.be.eq(updField.weight);
+        it('should decrease field weight on downvote (unpaired vote weight) or increase on upvote (paired vote weight)', () => {
+          expect(field.weight).to.be.not.eq(updField.weight);
         });
       });
     });

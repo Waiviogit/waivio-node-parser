@@ -22,7 +22,6 @@ const update = async ({
   if (error || !field) return;
 
   switch (field.name) {
-    case FIELDS_NAMES.TAG:
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.PHONE:
     case FIELDS_NAMES.ADDRESS:
@@ -107,6 +106,9 @@ const update = async ({
       await updateTagCategories(authorPermlink);
       break;
     case FIELDS_NAMES.CATEGORY_ITEM:
+      await addSearchField({
+        authorPermlink, fieldName: _.get(metadata, 'wobj.field.name'), newWords: parseSearchData(metadata),
+      });
       await updateTagCategories(authorPermlink);
       break;
     case FIELDS_NAMES.AUTHORITY:
@@ -251,10 +253,10 @@ const parseSearchData = (metadata) => {
     case FIELDS_NAMES.NAME:
       searchFields.push(...parseName(_.get(metadata, 'wobj.field.body', '')));
       break;
-    case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.TITLE:
-    case FIELDS_NAMES.TAG:
+    case FIELDS_NAMES.DESCRIPTION:
+    case FIELDS_NAMES.CATEGORY_ITEM:
       searchFields.push(_.get(metadata, 'wobj.field.body', '').trim());
       break;
     case FIELDS_NAMES.PHONE:

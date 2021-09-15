@@ -40,7 +40,7 @@ const parseSearchField = (field) => {
     [FIELDS_NAMES.ADDRESS]: () => updateSpecificFieldsHelper.parseAddress(_.get(field, 'body')).addresses,
     [FIELDS_NAMES.DESCRIPTION]: () => _.get(field, 'body').trim(),
     [FIELDS_NAMES.TITLE]: () => _.get(field, 'body').trim(),
-    [FIELDS_NAMES.TAG]: () => _.get(field, 'body'),
+    [FIELDS_NAMES.CATEGORY_ITEM]: () => _.get(field, 'body'),
   };
   return parseSearchData[field.name]();
 };
