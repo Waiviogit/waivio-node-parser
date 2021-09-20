@@ -26,14 +26,14 @@ const update = async ({
     case FIELDS_NAMES.PHONE:
     case FIELDS_NAMES.ADDRESS:
       await addSearchField({
-        authorPermlink, fieldName: _.get(metadata, 'wobj.field.name'), newWords: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(metadata),
       });
       break;
     case FIELDS_NAMES.NAME:
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
       await addSearchField({
-        authorPermlink, fieldName: _.get(metadata, 'wobj.field.name'), newWords: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(metadata),
       });
       await tagsParser.createTags({ authorPermlink, field });
       break;
@@ -107,7 +107,7 @@ const update = async ({
       break;
     case FIELDS_NAMES.CATEGORY_ITEM:
       await addSearchField({
-        authorPermlink, fieldName: _.get(metadata, 'wobj.field.name'), newWords: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(metadata),
       });
       await updateTagCategories(authorPermlink);
       break;
@@ -271,10 +271,10 @@ const parseSearchData = (metadata) => {
   return searchFields;
 };
 
-const addSearchField = async ({ authorPermlink, fieldName, newWords }) => {
+const addSearchField = async ({ authorPermlink, newWords }) => {
   if (_.isEmpty(newWords)) return { result: false };
   const { result, error } = await Wobj.addSearchFields({
-    authorPermlink, fieldName, newWords,
+    authorPermlink, newWords,
   });
   if (error) return { error };
   return { result };

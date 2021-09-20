@@ -102,9 +102,7 @@ describe('Append object parser', async () => {
       const metadata = {
         wobj: {
           field: {
-            name: _.chain(FIELDS_NAMES)
-              .filter((field) => !_.includes(SEARCH_FIELDS, field))
-              .sample(),
+            name: _.chain(FIELDS_NAMES).omit(SEARCH_FIELDS).sample(),
             body: faker.name.firstName().toLowerCase(),
           },
         },
