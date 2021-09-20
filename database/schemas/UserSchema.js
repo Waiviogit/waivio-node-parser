@@ -6,6 +6,7 @@ const { LANGUAGES } = require('constants/common');
 
 const UserNotificationsSchema = new Schema({
   activationCampaign: { type: Boolean, default: true },
+  deactivationCampaign: { type: Boolean, default: true },
   follow: { type: Boolean, default: true },
   fillOrder: { type: Boolean, default: true },
   mention: { type: Boolean, default: true },
