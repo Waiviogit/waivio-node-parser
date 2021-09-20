@@ -13,8 +13,9 @@ module.exports = async (fieldName) => {
       continue;
     }
     try {
-      await WObject.updateOne({ _id: wobj._id }, { $addToSet: { [`search.${fieldName}`]: _.flatten(newFields) } });
+      await WObject.updateOne({ _id: wobj._id }, { $addToSet: { search: _.flatten(newFields) } });
     } catch (error) {
+      console.log('Saving error', error);
       return { error };
     }
   }
@@ -36,7 +37,7 @@ const parseSearchField = (field) => {
   const parseSearchData = {
     [FIELDS_NAMES.NAME]: () => updateSpecificFieldsHelper.parseName(_.get(field, 'body')),
     [FIELDS_NAMES.EMAIL]: () => _.get(field, 'body').trim(),
-    [FIELDS_NAMES.PHONE]: () => _.get(field, 'number').trim() || _.get(field, 'body').trim(),
+    [FIELDS_NAMES.PHONE]: () => (_.get(field, 'number') || _.get(field, 'body')).trim(),
     [FIELDS_NAMES.ADDRESS]: () => updateSpecificFieldsHelper.parseAddress(_.get(field, 'body')).addresses,
     [FIELDS_NAMES.DESCRIPTION]: () => _.get(field, 'body').trim(),
     [FIELDS_NAMES.TITLE]: () => _.get(field, 'body').trim(),
@@ -48,6 +49,6 @@ const parseSearchField = (field) => {
 const getAuthorPermlinks = async () => {
   const wobjects = await WObject.find({}, { author_permlink: 1 });
   for (const wobj of wobjects) {
-    await WObject.updateOne({ _id: wobj._id }, { $addToSet: { 'search.author_permlink': wobj.author_permlink } });
+    await WObject.updateOne({ _id: wobj._id }, { $addToSet: { search: wobj.author_permlink } });
   }
 };

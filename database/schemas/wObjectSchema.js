@@ -7,17 +7,6 @@ const AuthoritySchema = new Schema({
   ownership: { type: [String], default: [] },
 }, { _id: false });
 
-const SearchSchema = new Schema({
-  name: { type: [String], default: [] },
-  email: { type: [String], default: [] },
-  phone: { type: [String], default: [] },
-  address: { type: [String], default: [] },
-  author_permlink: { type: [String], default: [] },
-  description: { type: [String], default: [] },
-  title: { type: [String], default: [] },
-  categoryItem: { type: [String], default: [] },
-}, { _id: false });
-
 const WObjectSchema = new Schema({
   app: String,
   community: String,
@@ -69,7 +58,7 @@ const WObjectSchema = new Schema({
   last_posts_count: { type: Number, default: 0 },
   activeCampaigns: { type: [mongoose.Types.ObjectId], default: [] },
   activeCampaignsCount: { type: Number, default: 0 },
-  search: { type: SearchSchema, default: () => ({}) },
+  search: { type: [String], default: [] },
 },
 {
   strict: false,
@@ -89,14 +78,7 @@ WObjectSchema.pre('save', function (next) {
 
 WObjectSchema.index({ map: '2dsphere' });
 WObjectSchema.index({ parent: -1 });
-SearchSchema.index({ author_permlink: 1 });
-SearchSchema.index({ name: 1 });
-SearchSchema.index({ email: 1 });
-SearchSchema.index({ phone: 1 });
-SearchSchema.index({ address: 1 });
-SearchSchema.index({ description: 1 });
-SearchSchema.index({ title: 1 });
-SearchSchema.index({ categoryItem: 1 });
+WObjectSchema.index({ search: -1 });
 
 const wObjectModel = mongoose.model('wobject', WObjectSchema);
 
