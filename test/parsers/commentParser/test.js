@@ -2,7 +2,6 @@ const config = require('config');
 const {
   objectTypeParser, commentParser, createObjectParser, expect, sinon,
 } = require('test/testHelper');
-const updatePostAfterComment = require('utilities/helpers/updatePostAfterComment');
 const redisSetter = require('utilities/redis/redisSetter');
 const { AppFactory } = require('test/factories');
 const { getCreateObjectTypeMocks, getCreateObjectMocks } = require('./mocks');
@@ -68,7 +67,6 @@ describe('comment parser', async () => {
 
         beforeEach(async () => {
           mockOp = await getCreateObjectMocks();
-          sinon.stub(updatePostAfterComment, 'updateCounters').returns({});
           stub = sinon.stub(createObjectParser, 'parse').returns({});
           await commentParser.parse(mockOp);
           stubTTL = sinon.spy(redisSetter, 'setExpiredPostTTL');

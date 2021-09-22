@@ -1,15 +1,18 @@
-const _ = require('lodash');
+const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
+const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
+const { chosenPostHelper, campaignHelper } = require('utilities/helpers');
+const postWithObjectsParser = require('parsers/postWithObjectParser');
+const { REDIS_KEY_CHILDREN_UPDATE } = require('constants/common');
+const guestCommentParser = require('parsers/guestCommentParser');
 const createObjectParser = require('parsers/createObjectParser');
 const appendObjectParser = require('parsers/appendObjectParser');
 const objectTypeParser = require('parsers/objectTypeParser');
-const postWithObjectsParser = require('parsers/postWithObjectParser');
-const guestCommentParser = require('parsers/guestCommentParser');
-const { chosenPostHelper, campaignHelper } = require('utilities/helpers');
-const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
-const { chosenPostValidator } = require('validator');
-const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const redisSetter = require('utilities/redis/redisSetter');
 const postHelper = require('utilities/helpers/postHelper');
+const { chosenPostValidator } = require('validator');
+const postModel = require('models/PostModel');
+const moment = require('moment');
+const _ = require('lodash');
 
 const parse = async (operation) => { // data is operation[1] of transaction in block
   let metadata;
@@ -72,8 +75,16 @@ const commentSwitcher = async ({ operation, metadata }) => {
   await postHelper.parseCommentBodyWobjects({
     body: operation.body, author: operation.parent_author, permlink: operation.parent_permlink,
   });
-  // the third id parameter indicates that we are creating TTL for the first time
-  await redisSetter.setExpiredPostTTL('hiveComment', `${operation.author}/${operation.permlink}/true`, 4);
+
+  await redisSetter.sadd(
+    `${REDIS_KEY_CHILDREN_UPDATE}:${moment.utc().startOf('hour').format()}`,
+    `${operation.author}/${operation.permlink}`,
+  );
+
+  await postModel.updateOne({
+    root_author: operation.parent_author,
+    permlink: operation.parent_permlink,
+  }, { $inc: { children: 1 } });
 };
 
 module.exports = { parse, postSwitcher };
