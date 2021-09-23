@@ -2,7 +2,7 @@ const config = require('config');
 const {
   objectTypeParser, commentParser, createObjectParser, expect, sinon,
 } = require('test/testHelper');
-const redisSetter = require('utilities/redis/redisSetter');
+
 const { AppFactory } = require('test/factories');
 const { getCreateObjectTypeMocks, getCreateObjectMocks } = require('./mocks');
 
@@ -63,13 +63,13 @@ describe('comment parser', async () => {
   describe('when get operation without "parent_author"', async () => {
     describe('metadata include wobj with action', async () => {
       describe('createObject', async () => {
-        let mockOp, stub, stubTTL;
+        let mockOp, stub;
 
         beforeEach(async () => {
           mockOp = await getCreateObjectMocks();
           stub = sinon.stub(createObjectParser, 'parse').returns({});
           await commentParser.parse(mockOp);
-          stubTTL = sinon.spy(redisSetter, 'setExpiredPostTTL');
+          // stubTTL = sinon.spy(redisSetter, 'setExpiredPostTTL');
         });
         afterEach(() => {
           sinon.restore();
@@ -77,18 +77,6 @@ describe('comment parser', async () => {
 
         it('should call createObjectParser.parse once', () => {
           expect(stub).to.be.calledOnce;
-        });
-
-        it('should call setExpiredPostTTL once', async () => {
-          await redisSetter
-            .setExpiredPostTTL('hiveComment', `${mockOp.author}/${mockOp.permlink}/true`, 4);
-          expect(stubTTL).to.be.calledOnce;
-        });
-
-        it('should call setExpiredPostTTL with params', async () => {
-          await redisSetter
-            .setExpiredPostTTL('hiveComment', `${mockOp.author}/${mockOp.permlink}/true`, 4);
-          expect(stubTTL).to.be.calledWith('hiveComment', `${mockOp.author}/${mockOp.permlink}/true`, 4);
         });
 
         it('should call with correct first argument', async () => {
