@@ -80,3 +80,6 @@ exports.COMMENT_REF_TYPES = {
   appendWobj: 'append_wobj',
   wobjType: 'wobj_type',
 };
+
+exports.REDIS_KEY_VOTE_UPDATES = 'votesUpdate';
+exports.REDIS_KEY_CHILDREN_UPDATE = 'commentsCounterUpdate';

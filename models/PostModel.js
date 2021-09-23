@@ -118,13 +118,22 @@ const removeWobjectsFromPost = async ({ author, permlink, authorPermlinks }) => 
   }
 };
 
+const updateOne = async (filter, updateData, options) => {
+  try {
+    return { result: await PostModel.updateOne(filter, updateData, options) };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
-  addWobjectsToPost,
   removeWobjectsFromPost,
+  addWobjectsToPost,
   findByBothAuthors,
   getPostsRefs,
   getManyPosts,
   updateMany,
+  updateOne,
   findOne,
   create,
   update,
