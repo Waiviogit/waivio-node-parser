@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
 const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
+const { LANGUAGES, SUPPORTED_CURRENCIES } = require('constants/common');
+const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
-const { LANGUAGES } = require('constants/common');
 
 const UserNotificationsSchema = new Schema({
   activationCampaign: { type: Boolean, default: true },
@@ -43,6 +43,11 @@ const UserMetadataSchema = new Schema({
     }, // default percent of your upvotes
     votingPower: { type: Boolean, default: false }, // dynamic toggle of vote power on each vote
     userNotifications: { type: UserNotificationsSchema, default: () => ({}) },
+    currency: {
+      type: String,
+      enum: Object.values(SUPPORTED_CURRENCIES),
+      default: SUPPORTED_CURRENCIES.USD,
+    },
   },
   bookmarks: { type: [String], default: [] },
   drafts: {
