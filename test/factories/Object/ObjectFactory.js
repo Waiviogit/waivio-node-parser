@@ -3,7 +3,8 @@ const { WObject, faker, commentRefSetter } = require('test/testHelper');
 const ObjectTypeFactory = require('test/factories/ObjectType/ObjectTypeFactory');
 
 const Create = async ({
-  onlyData, appends = [], author_permlink: root_permlink, object_type, objName, objParent, searchWords,
+  onlyData, appends = [], author_permlink: root_permlink, object_type, objName, objParent,
+  searchWords,
 } = {}) => {
   const parent = objParent || '';
   const created_object_type = await ObjectTypeFactory.Create({ name: object_type });

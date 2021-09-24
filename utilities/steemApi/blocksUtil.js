@@ -9,12 +9,16 @@ const _ = require('lodash');
  */
 exports.getBlock = async (blockNum, hostUrl = 'https://blocks.waivio.com') => {
   try {
-    const resp = await axios.post(hostUrl, {
-      jsonrpc: '2.0',
-      method: 'condenser_api.get_block',
-      params: [blockNum],
-      id: 1,
-    });
+    const resp = await axios.post(
+      hostUrl,
+      {
+        jsonrpc: '2.0',
+        method: 'condenser_api.get_block',
+        params: [blockNum],
+        id: 1,
+      },
+      { timeout: 8000 },
+    );
     return { block: _.get(resp, 'data.result') };
   } catch (error) {
     return { error };

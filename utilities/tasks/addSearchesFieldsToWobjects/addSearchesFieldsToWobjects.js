@@ -15,6 +15,7 @@ module.exports = async (fieldName) => {
     try {
       await WObject.updateOne({ _id: wobj._id }, { $addToSet: { search: _.flatten(newFields) } });
     } catch (error) {
+      console.log('Saving error', error);
       return { error };
     }
   }
@@ -35,9 +36,12 @@ const getFieldsData = async (fields, fieldNameForParse) => {
 const parseSearchField = (field) => {
   const parseSearchData = {
     [FIELDS_NAMES.NAME]: () => updateSpecificFieldsHelper.parseName(_.get(field, 'body')),
-    [FIELDS_NAMES.EMAIL]: () => _.get(field, 'body'),
-    [FIELDS_NAMES.PHONE]: () => _.get(field, 'number') || _.get(field, 'body'),
+    [FIELDS_NAMES.EMAIL]: () => _.get(field, 'body').trim(),
+    [FIELDS_NAMES.PHONE]: () => (_.get(field, 'number') || _.get(field, 'body')).trim(),
     [FIELDS_NAMES.ADDRESS]: () => updateSpecificFieldsHelper.parseAddress(_.get(field, 'body')).addresses,
+    [FIELDS_NAMES.DESCRIPTION]: () => _.get(field, 'body').trim(),
+    [FIELDS_NAMES.TITLE]: () => _.get(field, 'body').trim(),
+    [FIELDS_NAMES.CATEGORY_ITEM]: () => _.get(field, 'body'),
   };
   return parseSearchData[field.name]();
 };

@@ -1,8 +1,10 @@
-const _ = require('lodash');
-const { Wobj, User, Post } = require('models');
-const userValidator = require('validator/userValidator');
 const postModeration = require('utilities/moderation/postModeration');
-const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
+const { REDIS_KEY_VOTE_UPDATES } = require('constants/common');
+const redisSetter = require('utilities/redis/redisSetter');
+const userValidator = require('validator/userValidator');
+const { Wobj, User, Post } = require('models');
+const moment = require('moment');
+const _ = require('lodash');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment
@@ -98,7 +100,10 @@ const updateVotesOnPost = async (data) => {
 
   data.post.author = _.get(data, 'guest_author', data.post.author);
   await Post.update(data.post); // update post info in DB
-  await setExpiredPostTTL('updatePostVotes', `${data.author}/${data.permlink}`, 30);
+  await redisSetter.sadd(
+    `${REDIS_KEY_VOTE_UPDATES}:${moment.utc().startOf('hour').format()}`,
+    `${data.author}/${data.permlink}`,
+  );
 };
 
 module.exports = { voteOnPost };

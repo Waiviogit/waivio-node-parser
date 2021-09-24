@@ -76,27 +76,6 @@ exports.parseMetadata = (metadata) => {
   }
 };
 
-exports.updatePostVotes = async (author, permlink) => {
-  const { post: postInDb, error } = await Post.findOne({ root_author: author, permlink });
-  if (!postInDb || error) return;
-  const { post } = await postsUtil.getPost(author, permlink);
-  if (!post) return;
-  post.author = postInDb.author;
-  post.active_votes = _.map(post.active_votes, (vote) => ({
-    voter: vote.voter,
-    weight: Math.round(vote.rshares * 1e-6),
-    percent: vote.percent,
-    rshares: vote.rshares,
-  }));
-  _.forEach(postInDb.active_votes, (dbVote) => {
-    if (dbVote.voter.includes('_')) {
-      post.active_votes.push(dbVote);
-    }
-  });
-
-  await Post.update(post);
-};
-
 exports.guestCommentFromTTL = async (author, permlink) => {
   let metadata;
   const { post: comment, err } = await postsUtil.getPost(author, permlink);

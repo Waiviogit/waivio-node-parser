@@ -3,8 +3,8 @@ const {
   appendObjectParser, WObject, expect, redisGetter, AppModel,
   updateSpecificFieldsHelper, sinon, usersUtil, importUser, faker,
 } = require('test/testHelper');
+const { SEARCH_FIELDS, FIELDS_NAMES } = require('constants/wobjectsData');
 const { ObjectFactory } = require('test/factories');
-const { FIELDS_NAMES, SEARCH_FIELDS } = require('constants/wobjectsData');
 const { getMocksData } = require('./mocks');
 
 describe('Append object parser', async () => {
@@ -102,7 +102,7 @@ describe('Append object parser', async () => {
       const metadata = {
         wobj: {
           field: {
-            name: _.sample(_.omit(FIELDS_NAMES, Object.keys(SEARCH_FIELDS))),
+            name: _.chain(FIELDS_NAMES).omit(SEARCH_FIELDS).sample(),
             body: faker.name.firstName().toLowerCase(),
           },
         },
@@ -115,7 +115,7 @@ describe('Append object parser', async () => {
       const metadata = {
         wobj: {
           field: {
-            name: _.sample([SEARCH_FIELDS.NAME, SEARCH_FIELDS.EMAIL]),
+            name: _.sample([FIELDS_NAMES.NAME, FIELDS_NAMES.EMAIL]),
             body: fieldValue,
           },
         },
@@ -126,7 +126,7 @@ describe('Append object parser', async () => {
     it('should return phone as a search word', async () => {
       fieldValue = faker.name.firstName().toLowerCase();
       const metadata = {
-        wobj: { field: { name: SEARCH_FIELDS.PHONE, number: fieldValue } },
+        wobj: { field: { name: FIELDS_NAMES.PHONE, number: fieldValue } },
       };
       searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
       expect(fieldValue).to.be.equal(...searchFields);
@@ -135,7 +135,7 @@ describe('Append object parser', async () => {
       const rawAddress = '{"address":"Kyiv","street":"Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
       const expectedAddress = 'Kyiv,Strees,Kyiv,State,01111,Ukraine';
       const metadata = {
-        wobj: { field: { name: SEARCH_FIELDS.ADDRESS, body: rawAddress } },
+        wobj: { field: { name: FIELDS_NAMES.ADDRESS, body: rawAddress } },
       };
       searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
       expect(expectedAddress).to.be.eq(...searchFields);

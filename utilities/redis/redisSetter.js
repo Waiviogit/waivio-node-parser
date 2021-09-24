@@ -69,6 +69,8 @@ const addTagCategory = async ({ categoryName, tags }) => tagCategoriesClient.zad
 
 const hmsetAsync = async (key, data, client = lastBlockClient) => client.hmsetAsync(key, data);
 
+const sadd = async (key, data, client = expiredPostsClient) => client.saddAsync(key, data);
+
 module.exports = {
   setExpiredPostTTL,
   setLastBlockNum,
@@ -78,4 +80,5 @@ module.exports = {
   addObjectType,
   addWobjRef,
   hmsetAsync,
+  sadd,
 };
