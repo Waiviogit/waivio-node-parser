@@ -62,3 +62,14 @@ exports.PATH = {
 exports.CAN_MUTE_GLOBAL = process.env.CAN_MUTE_GLOBAL
   ? process.env.CAN_MUTE_GLOBAL.split(',')
   : [];
+
+exports.WAIVIO_REWARDS_TYPES = {
+  STOP_CAMPAIGN: 'waivio_stop_campaign',
+  ASSIGN_CAMPAIGN: 'waivio_assign_campaign',
+  ACTIVATE_CAMPAIGN: 'waivio_activate_campaign',
+  RAISE_REVIEW_REWARD: 'waivio_raise_review_reward',
+  REDUCE_REVIEW_REWARD: 'waivio_reduce_review_reward',
+  REJECT_OBJECT_CAMPAIGN: 'waivio_reject_object_campaign',
+  REJECT_RESERVATION_BY_GUIDE: 'reject_reservation_by_guide',
+  RESTORE_RESERVATION_BY_GUIDE: 'restore_reservation_by_guide',
+};
