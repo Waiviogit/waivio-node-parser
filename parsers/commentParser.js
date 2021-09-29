@@ -49,9 +49,13 @@ const postSwitcher = async ({
 };
 
 const commentSwitcher = async ({ operation, metadata }) => {
-  const json = JSON.parse(operation.json_metadata);
-  if (_.get(json, 'waivioRewards.type') && _.includes(Object.values(WAIVIO_REWARDS_TYPES),
-    _.get(json, 'waivioRewards.type'))) return;
+  try {
+    const json = JSON.parse(operation.json_metadata);
+    if (_.get(json, 'waivioRewards.type') && _.includes(Object.values(WAIVIO_REWARDS_TYPES),
+      _.get(json, 'waivioRewards.type'))) return;
+  } catch (e) {
+    console.error(e);
+  }
 
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
