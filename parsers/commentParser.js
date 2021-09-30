@@ -8,6 +8,7 @@ const createObjectParser = require('parsers/createObjectParser');
 const appendObjectParser = require('parsers/appendObjectParser');
 const { WAIVIO_REWARDS_TYPES } = require('constants/sitesData');
 const objectTypeParser = require('parsers/objectTypeParser');
+const { parseJson } = require('utilities/helpers/jsonHelper');
 const redisSetter = require('utilities/redis/redisSetter');
 const postHelper = require('utilities/helpers/postHelper');
 const { chosenPostValidator } = require('validator');
@@ -49,13 +50,9 @@ const postSwitcher = async ({
 };
 
 const commentSwitcher = async ({ operation, metadata }) => {
-  try {
-    const json = JSON.parse(operation.json_metadata);
-    if (_.get(json, 'waivioRewards.type') && _.includes(Object.values(WAIVIO_REWARDS_TYPES),
-      _.get(json, 'waivioRewards.type'))) return;
-  } catch (e) {
-    console.error(e);
-  }
+  const json = parseJson(operation.json_metadata);
+  if (_.get(json, 'waivioRewards.type') && _.includes(Object.values(WAIVIO_REWARDS_TYPES),
+    _.get(json, 'waivioRewards.type'))) return;
 
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
