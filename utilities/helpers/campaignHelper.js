@@ -5,9 +5,8 @@ const notificationsUtil = require('utilities/notificationsApi/notificationsUtil'
 exports.parseReservationConversation = async (operation, metadata) => {
   const { result: campaign } = await Campaign
     .findOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } });
-  if (!campaign) return true;
 
-  const reservedUser = _.find(campaign.users, (u) => u.rootName === operation.parent_author);
+  const reservedUser = _.find(_.get(campaign, 'users', []), (u) => u.rootName === operation.parent_author);
   await Campaign.updateOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } },
     { $inc: { 'users.$.children': 1 } });
   if (_.get(metadata, 'waivioRewards.type')) return false;
