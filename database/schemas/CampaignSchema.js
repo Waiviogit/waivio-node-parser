@@ -104,6 +104,7 @@ const campaignSchema = new Schema({
   },
   app: { type: String, default: null },
   expired_at: { type: Date },
+  stoppedAt: { type: Date },
 },
 {
   timestamps: true,
