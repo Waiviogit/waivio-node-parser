@@ -2,10 +2,11 @@ const _ = require('lodash');
 const { Campaign } = require('models');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 
+// need replace notification to campaign service
 exports.parseReservationConversation = async (operation, metadata) => {
   const { result: campaign } = await Campaign
     .findOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } });
-
+  if (!campaign && !_.includes(['waivio_activate_campaign', 'waivio_stop_campaign'], _.get(metadata, 'waivioRewards.type'))) return true;
   const reservedUser = _.find(_.get(campaign, 'users', []), (u) => u.rootName === operation.parent_author);
   await Campaign.updateOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } },
     { $inc: { 'users.$.children': 1 } });
