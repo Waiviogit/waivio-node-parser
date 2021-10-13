@@ -472,11 +472,6 @@ describe('On sitesHelper', async () => {
       afterEach(() => {
         sinon.restore();
       });
-      it('should return console.error when not valid users array ', async () => {
-        operation = mutedData({ follower: moderator, following: [] });
-        await sitesHelper.mutedUsers(operation);
-        expect(console.error).to.be.calledOnceWith('"users" must contain at least 1 items');
-      });
       it('should return console.error when not valid action ', async () => {
         operation = mutedData({ follower: moderator, action: faker.random.string() });
         await sitesHelper.mutedUsers(operation);
@@ -515,14 +510,15 @@ describe('On sitesHelper', async () => {
           });
         });
         it('should create records in muted_users collection', async () => {
-          const records = await MutedUser.find({ userName: { $in: mutedUsers } }).lean();
+          const recordsWithoutSecondModer = _.filter(mutedUsers, (el) => el !== secondModer);
+          const records = await MutedUser.find({ userName: { $in: recordsWithoutSecondModer } }).lean();
           _.forEach(records, (record) => {
             expect(_.omit(record, ['_id', 'userName'])).to.be.deep.eq({ mutedBy: moderator, mutedForApps: _.map(apps, 'host') });
           });
         });
         it('should not mute second moder', async () => {
           const record = await MutedUser.findOne({ userName: secondModer }).lean();
-          expect(record).to.not.exist;
+          expect(record.mutedForApps).to.be.an('array').that.is.empty;
         });
       });
       describe('on unmute by administration', async () => {

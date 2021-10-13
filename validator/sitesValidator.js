@@ -30,9 +30,9 @@ exports.createInvoice = Joi.object().keys({
   description: Joi.string(),
 }).options(options);
 
-exports.mutedUsers = Joi.object().keys({
+exports.muteUser = Joi.object().keys({
   mutedBy: Joi.string().required(),
-  users: Joi.array().items(Joi.string()).min(1).required(),
+  userName: Joi.string().required(),
   action: Joi.string().valid(...Object.values(MUTE_ACTION)).required(),
   mutedForApps: Joi.array().items(Joi.string()).required(),
 });
