@@ -71,6 +71,7 @@ exports.HIDE_ACTION = {
 exports.MUTE_ACTION = {
   MUTE: 'mute',
   UNMUTE: 'unmute',
+  UPDATE_HOST_LIST: 'updateHostList',
 };
 
 exports.REQUIRED_AUTHS = 'required_auths[0]';

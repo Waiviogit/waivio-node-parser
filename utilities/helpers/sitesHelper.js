@@ -146,8 +146,7 @@ exports.websiteAuthorities = async (operation, type, add) => {
       await this.changeManagersMuteList({
         mangerName,
         host: json.host,
-        action: add ? MUTE_ACTION.MUTE : MUTE_ACTION.UNMUTE,
-        checkManagement: true,
+        action: add ? MUTE_ACTION.MUTE : MUTE_ACTION.UPDATE_HOST_LIST,
       });
     }
   }
@@ -262,40 +261,57 @@ exports.updateSupportedObjects = async ({ host, app }) => {
 };
 
 exports.mutedUsers = async ({ follower, following, action }) => {
+  let globalMuteApps;
+
   if (typeof following === 'string') following = [following];
   const { result: apps } = await App.find({ $or: [{ owner: follower }, { moderators: follower }] });
-  const siteManagement = _.reduce(apps, (acc, app) => _
-    .union(acc, [app.owner, ...app.admins, ...app.moderators, ...app.authority]), []);
+  if (_.includes(CAN_MUTE_GLOBAL, follower)) globalMuteApps = await getAllAppsHost();
 
-  const users = _.difference(following, siteManagement);
-  const { error, value } = sitesValidator.mutedUsers.validate({
-    action, mutedBy: follower, mutedForApps: _.map(apps, 'host'), users,
-  });
-  if (error) return console.error(error.message);
-  if (_.includes(CAN_MUTE_GLOBAL, follower)) value.mutedForApps = await getAllAppsHost();
+  for (const userToMute of following) {
+    const filteredApps = _.filter(
+      apps,
+      (app) => (
+        !_.includes(
+          [app.owner, ...app.admins, ...app.moderators, ...app.authority],
+          userToMute,
+        )),
+    );
+    const { error, value } = sitesValidator.muteUser.validate({
+      action, mutedBy: follower, mutedForApps: _.map(filteredApps, 'host'), userName: userToMute,
+    });
+    if (error) {
+      console.error(error.message);
+      continue;
+    }
+    if (globalMuteApps) value.mutedForApps = globalMuteApps;
+    await processMutedCollection(value);
+    if (_.isEmpty(value.mutedForApps)) continue;
 
-  await processMutedCollection(value);
-  if (_.isEmpty(value.mutedForApps)) return;
-
-  await processMutedBySiteAdministration(value);
+    await processMutedBySiteAdministration(value);
+  }
 };
 
-exports.changeManagersMuteList = async ({
-  mangerName, host, action, checkManagement = false,
-}) => {
-  let { mutedList: users } = await usersUtil.getMutedList(mangerName);
-  if (checkManagement) {
+exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
+  const { mutedList: users } = await usersUtil.getMutedList(mangerName);
+  for (const userToMute of users) {
     const { result: app } = await App.findOne({ host });
-    users = _.difference(users,
-      [_.get(app, 'owner'), ..._.get(app, 'admins', []), ..._.get(app, 'moderators', []), ..._.get(app, 'authority', [])]);
+    const appManagers = [app.owner, ...app.admins, ...app.moderators, ...app.authority];
+    if (_.includes(appManagers, userToMute)) continue;
+    const { error, value } = sitesValidator.muteUser.validate({
+      action, mutedBy: mangerName, mutedForApps: [host], userName: userToMute,
+    });
+    if (error) {
+      console.error(error.message);
+      continue;
+    }
+    if (action === MUTE_ACTION.UPDATE_HOST_LIST) {
+      await processMutedCollection({
+        ...value,
+        mutedForApps: _.filter(value.mutedForApps, (el) => el !== host),
+      });
+    }
+    await processMutedBySiteAdministration(value);
   }
-  const { error, value } = sitesValidator.mutedUsers.validate({
-    action, mutedBy: mangerName, mutedForApps: [host], users,
-  });
-  if (error) return console.error(error.message);
-
-  await processMutedCollection(value);
-  await processMutedBySiteAdministration(value);
 };
 
 exports.setWebsiteReferralAccount = async (operation) => {
@@ -315,51 +331,44 @@ const getAllAppsHost = async () => {
 };
 
 const processMutedCollection = async ({
-  users, mutedBy, action, mutedForApps,
+  userName, mutedBy, action, mutedForApps,
 }) => {
   const collectionOperations = {
-    [MUTE_ACTION.MUTE]: async () => mutedUserModel.muteUsers({
-      users, mutedBy, updateData: { $addToSet: { mutedForApps: { $each: mutedForApps } } },
-    }),
-    [MUTE_ACTION.UNMUTE]: async () => mutedUserModel.deleteMany({
-      $or: _.map(users, (user) => ({ userName: user, mutedBy })),
-    }),
+    [MUTE_ACTION.MUTE]: async () => mutedUserModel.muteUser({ userName, mutedBy, mutedForApps }),
+    [MUTE_ACTION.UNMUTE]: async () => mutedUserModel.deleteOne({ userName, mutedBy }),
+    [MUTE_ACTION.UPDATE_HOST_LIST]: async () => mutedUserModel
+      .updateHostList({ userName, mutedBy, mutedForApps }),
   };
   return collectionOperations[action]();
 };
 
 const processMutedBySiteAdministration = async ({
-  users, mutedBy, mutedForApps, action,
+  userName, mutedBy, mutedForApps, action,
 }) => {
   switch (action) {
     case MUTE_ACTION.MUTE:
-      for (const user of users) {
-        await Post.updateMany(
-          { $or: [{ author: user }, { permlink: { $regex: new RegExp(`^${user}\/`) } }] },
-          { $addToSet: { blocked_for_apps: { $each: mutedForApps } } },
-        );
-      }
+      await Post.updateMany(
+        { $or: [{ author: userName }, { permlink: { $regex: new RegExp(`^${userName}\/`) } }] },
+        { $addToSet: { blocked_for_apps: { $each: mutedForApps } } },
+      );
       break;
     case MUTE_ACTION.UNMUTE:
       const { mutedUsers: mutedByOthers } = await mutedUserModel.find({
-        userName: { $in: users },
+        userName,
         mutedBy: { $ne: mutedBy },
         mutedForApps: { $in: mutedForApps },
       });
-      const mutedOnlyByModer = _.difference(users, _.map(mutedByOthers, 'userName'));
-      for (const user of mutedOnlyByModer) {
-        await Post.updateMany(
-          { $or: [{ author: user }, { permlink: { $regex: new RegExp(`^${user}\/`) } }] },
-          { $pullAll: { blocked_for_apps: mutedForApps } },
-        );
-      }
-      for (const user of mutedByOthers) {
-        const unmuteFor = _.difference(mutedForApps, _.get(user, 'mutedForApps'));
-        await Post.updateMany(
-          { $or: [{ author: user }, { permlink: { $regex: new RegExp(`^${user}\/`) } }] },
-          { $pullAll: { blocked_for_apps: unmuteFor } },
-        );
-      }
+
+      const unmuteFor = _.difference(
+        mutedForApps,
+        _.flatMap(mutedByOthers, (el) => el.mutedForApps),
+      );
+
+      await Post.updateMany(
+        { $or: [{ author: userName }, { permlink: { $regex: new RegExp(`^${userName}\/`) } }] },
+        { $pullAll: { blocked_for_apps: unmuteFor } },
+      );
+      break;
   }
 };
 
