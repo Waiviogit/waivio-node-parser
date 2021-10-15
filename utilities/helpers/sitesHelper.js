@@ -146,7 +146,7 @@ exports.websiteAuthorities = async (operation, type, add) => {
       await this.changeManagersMuteList({
         mangerName,
         host: json.host,
-        action: add ? MUTE_ACTION.MUTE : MUTE_ACTION.UNMUTE,
+        action: add ? MUTE_ACTION.MUTE : MUTE_ACTION.UPDATE_HOST_LIST,
       });
     }
   }
@@ -304,7 +304,12 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
       console.error(error.message);
       continue;
     }
-    await processMutedCollection(value);
+    if (action === MUTE_ACTION.UPDATE_HOST_LIST) {
+      await processMutedCollection({
+        ...value,
+        mutedForApps: _.filter(value.mutedForApps, (el) => el !== host),
+      });
+    }
     await processMutedBySiteAdministration(value);
   }
 };
@@ -331,6 +336,8 @@ const processMutedCollection = async ({
   const collectionOperations = {
     [MUTE_ACTION.MUTE]: async () => mutedUserModel.muteUser({ userName, mutedBy, mutedForApps }),
     [MUTE_ACTION.UNMUTE]: async () => mutedUserModel.deleteOne({ userName, mutedBy }),
+    [MUTE_ACTION.UPDATE_HOST_LIST]: async () => mutedUserModel
+      .updateHostList({ userName, mutedBy, mutedForApps }),
   };
   return collectionOperations[action]();
 };

@@ -21,6 +21,19 @@ exports.muteUser = async ({ mutedForApps, userName, mutedBy }) => {
   }
 };
 
+exports.updateHostList = async ({ mutedForApps, userName, mutedBy }) => {
+  try {
+    const result = await MutedUser.updateOne(
+      { userName, mutedBy },
+      { mutedForApps },
+      { upsert: true },
+    );
+    return { result };
+  } catch (error) {
+    return { error };
+  }
+};
+
 exports.deleteOne = async (condition) => {
   try {
     return {
