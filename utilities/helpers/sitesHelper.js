@@ -295,6 +295,7 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
   const { mutedList: users } = await usersUtil.getMutedList(mangerName);
   for (const userToMute of users) {
     const { result: app } = await App.findOne({ host });
+    if (!app) return;
     const appManagers = [app.owner, ...app.admins, ...app.moderators, ...app.authority];
     if (_.includes(appManagers, userToMute)) continue;
     const { error, value } = sitesValidator.muteUser.validate({
