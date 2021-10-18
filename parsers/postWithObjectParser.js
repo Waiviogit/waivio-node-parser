@@ -9,12 +9,17 @@ const { postsUtil } = require('utilities/steemApi');
 const { postWithWobjValidator } = require('validator');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { commentRefSetter } = require('utilities/commentRefService');
-const { setExpiredPostTTL } = require('utilities/redis/redisSetter');
+const { setExpiredPostTTL, sadd, expire } = require('utilities/redis/redisSetter');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
 const {
   detectPostLanguageHelper, userHelper, appHelper, wobjectHelper, postHelper,
 } = require('utilities/helpers');
+const {
+  REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD,
+  EXPIRE_DISTRIBUTE_HIVE_ENGINE_REWARD,
+  HIVE_ENGINE_TOKEN_TAGS,
+} = require('constants/common');
 
 const parse = async (operation, metadata, post, fromTTL) => {
   if (!(await appHelper.checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
@@ -60,6 +65,7 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
 
   let updPost, error;
   if (!post) {
+    await addHiveEngineTTL({ postTags: _.get(metadata, 'tags'), author: data.author, permlink: data.permlink });
     data.wobjects = await postHelper.parseBodyWobjects(metadata, data.body);
     // validate post data
     if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
@@ -139,6 +145,25 @@ const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
   await postHelper.addToRelated(hivePost.wobjects, metadata.image, `${data.author}_${data.permlink}`);
   return { updPost, action: 'updated' };
 };
+
+const addHiveEngineTTL = async ({ postTags, author, permlink }) => {
+  if (_.isEmpty(postTags)) return;
+  const tokens = getHiveEngineTokensFromTags(postTags);
+  for (const token of tokens) {
+    const key = `${REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD}:${token}:${moment.utc().startOf('day').format()}`;
+    await sadd(key, `${author}/${permlink}`);
+    await expire(key, EXPIRE_DISTRIBUTE_HIVE_ENGINE_REWARD);
+  }
+};
+
+const getHiveEngineTokensFromTags = (tags) => _.reduce(
+  HIVE_ENGINE_TOKEN_TAGS, (acc, el, key) => {
+    if (_.some(tags, (tag) => _.includes(el, tag))) {
+      acc.push(key);
+    }
+    return acc;
+  }, [],
+);
 
 const mergePosts = (originalBody, body) => {
   try {
