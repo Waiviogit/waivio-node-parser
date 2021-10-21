@@ -8,6 +8,7 @@ const { VOTE_TYPES, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constant
 const { ERROR } = require('constants/common');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const jsonHelper = require('utilities/helpers/jsonHelper');
+const { parseEngineVotes } = require('parsers/hiveEngineVoteParser');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -19,6 +20,7 @@ const parse = async (votes) => {
       .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
       .value(),
   );
+  await parseEngineVotes({ votes, posts });
   const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts, hiveAccounts });
   await sendLikeNotification(votesOps);
   await Promise.all(votesOps.map(async (voteOp) => {
