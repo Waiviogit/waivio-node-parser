@@ -101,9 +101,11 @@ const UserSchema = new Schema({
     default: REFERRAL_STATUSES.NOT_ACTIVATED,
   },
   referral: { type: [ReferralsSchema], default: [] },
+  expertiseWAIV: { type: Number },
 }, { timestamps: true });
 
 UserSchema.index({ wobjects_weight: -1 });
+UserSchema.index({ expertiseWAIV: -1 });
 
 const UserModel = mongoose.model('User', UserSchema);
 
