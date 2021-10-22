@@ -1,4 +1,5 @@
 const { tokensContract, commentContract } = require('utilities/hiveEngine');
+const { Post } = require('models');
 const { ENGINE_TOKENS } = require('constants/hiveEngine');
 const moment = require('moment');
 const _ = require('lodash');
@@ -16,9 +17,8 @@ exports.parseEngineVotes = async ({ votes, posts }) => {
       votingPowers,
       tokenSymbol: TOKEN.SYMBOL,
     });
-    //#TODO update post net_rhares
-    //#TODO update post vote rshares
-    //#TODO update expertise map votes
+    await updatePostsRshares({ posts: calcPosts, tokenSymbol: TOKEN.SYMBOL });
+    // #TODO update expertise map votes
   }
 };
 
@@ -76,6 +76,30 @@ const addRharesToPostsAndVotes = async ({
     const rshares = (power * finalRshares) / 10000;
     vote.rshares = rshares;
     post[`net_rshares_${tokenSymbol}`] = parseFloat(_.get(post, `net_rshares_${tokenSymbol}`, 0)) + rshares;
+    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
+    voteInPost
+      ? voteInPost[`rshares${tokenSymbol}`] = rshares
+      : post.active_votes.push({
+        voter: vote.voter,
+        percent: vote.weight,
+        [`rshares${tokenSymbol}`]: rshares,
+      });
   }
   return { calcPosts: posts, calcVotes: votes };
 };
+
+const updatePostsRshares = async ({ posts, tokenSymbol }) => {
+  for (const post of posts) {
+    await Post.updateOne(
+      { author: post.author, permlink: post.permlink },
+      {
+        [`net_rshares_${tokenSymbol}`]: post[`net_rshares_${tokenSymbol}`],
+        active_votes: post.active_votes,
+      },
+    );
+  }
+};
+
+const updateUsersExpertise = async ( {}) => {
+
+}
