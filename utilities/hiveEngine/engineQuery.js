@@ -2,11 +2,11 @@ const axios = require('axios');
 const _ = require('lodash');
 
 module.exports = async ({
-  hostUrl = 'http://65.21.50.97:5000',
+  hostUrl = 'https://api.hive-engine.com/rpc',
   method = 'find',
   params,
   endpoint = '/contracts',
-  id = 'ssc-testnet-hive',
+  id = 'ssc-mainnet-hive',
 }) => {
   try {
     const instance = axios.create();

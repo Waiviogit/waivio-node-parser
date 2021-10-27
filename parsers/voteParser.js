@@ -20,7 +20,7 @@ const parse = async (votes) => {
       .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
       .value(),
   );
-  await parseEngineVotes({ votes, posts });
+  // await parseEngineVotes({ votes, posts });
   const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts, hiveAccounts });
   await sendLikeNotification(votesOps);
   await Promise.all(votesOps.map(async (voteOp) => {
