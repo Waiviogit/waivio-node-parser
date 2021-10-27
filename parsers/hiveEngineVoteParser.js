@@ -140,7 +140,7 @@ const updateExpertiseInDb = async ({
     { $inc: { [`expertise${tokenSymbol}`]: Math.abs(wobjectRshares / 2) } },
     { upsert: true, setDefaultsOnInsert: true },
   );
-  // post author can be negative
+  // post author can have negative expertise
   await User.updateOne(
     { name: post.author },
     { $inc: { [`expertise${tokenSymbol}`]: wobjectRshares / 2 } },
