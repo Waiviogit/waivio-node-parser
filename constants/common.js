@@ -88,5 +88,7 @@ exports.REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD = 'distributeHiveEngineReward';
 exports.EXPIRE_DISTRIBUTE_HIVE_ENGINE_REWARD = 345600;
 
 exports.HIVE_ENGINE_TOKEN_TAGS = {
-  WAIV: ['waivio', 'neoxian', 'palnet', 'dininggifts'],
+  WAIV: ['waivio', 'neoxian', 'palnet'],
 };
+
+exports.VOTE_FIELDS = ['voter', 'percent', 'rshares', 'rsharesWAIV'];

@@ -1,7 +1,7 @@
 exports.TOKEN_WAIV = {
   SYMBOL: 'POINTT',
   POOL_ID: 9,
-  TAGS: ['waivio', 'neoxian', 'palnet', 'dininggifts'],
+  TAGS: ['waivio', 'neoxian', 'palnet'],
 };
 
 exports.ENGINE_TOKENS = [this.TOKEN_WAIV];

@@ -1,6 +1,9 @@
 const { tokensContract, commentContract } = require('utilities/hiveEngine');
-const { Post } = require('models');
+const {
+  Post, Wobj, User, UserWobjects,
+} = require('models');
 const { ENGINE_TOKENS } = require('constants/hiveEngine');
+const userValidator = require('validator/userValidator');
 const moment = require('moment');
 const _ = require('lodash');
 
@@ -18,7 +21,7 @@ exports.parseEngineVotes = async ({ votes, posts }) => {
       tokenSymbol: TOKEN.SYMBOL,
     });
     await updatePostsRshares({ posts: calcPosts, tokenSymbol: TOKEN.SYMBOL });
-    // #TODO update expertise map votes
+    await distributeHiveEngineExpertise({ calcVotes, calcPosts, tokenSymbol: TOKEN.SYMBOL });
   }
 };
 
@@ -63,8 +66,7 @@ const addRharesToPostsAndVotes = async ({
     const powerBalance = _.find(votingPowers, (el) => el.account === vote.voter);
     const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author) && p.permlink === vote.permlink);
     const createdOverAWeek = moment().diff(moment(_.get(post, 'createdAt')), 'day') > 7;
-    if (!balance || !powerBalance || !post) continue;
-    // if (createdOverAWeek) continue;
+    if (!balance || !powerBalance || !post || createdOverAWeek) continue;
     const decreasedPercent = (((vote.weight / 100) * 2) / 100);
     const { stake, delegationsIn } = balance;
     const { votingPower } = powerBalance;
@@ -100,6 +102,52 @@ const updatePostsRshares = async ({ posts, tokenSymbol }) => {
   }
 };
 
-const updateUsersExpertise = async ( {}) => {
+const distributeHiveEngineExpertise = async ({ calcVotes, calcPosts, tokenSymbol }) => {
+  for (const vote of calcVotes) {
+    const post = calcPosts.find(
+      (p) => (p.author === vote.author || p.author === vote.guest_author)
+        && p.permlink === vote.permlink,
+    );
+    if (!post) continue;
+    const currentVote = post.active_votes.find((v) => v.voter === vote.voter);
+    if (!currentVote || !currentVote[`rshares${tokenSymbol}`]) continue;
 
-}
+    if (await userValidator.validateUserOnBlacklist([vote.voter, post.author, vote.guest_author])) {
+      for (const wObject of _.get(post, 'wobjects', [])) {
+        const wobjectRshares = Number((currentVote[`rshares${tokenSymbol}`] * (wObject.percent / 100)).toFixed(3));
+        await updateExpertiseInDb({
+          currentVote, wobjectRshares, post, tokenSymbol, wObject,
+        });
+      }
+    }
+  }
+};
+
+const updateExpertiseInDb = async ({
+  currentVote, wobjectRshares, post, tokenSymbol, wObject,
+}) => {
+  // object and voter expertise always positive
+  await Wobj.update(
+    { author_permlink: wObject.author_permlink },
+    { $inc: { [`expertise${tokenSymbol}`]: Math.abs(wobjectRshares) } },
+  );
+  await User.updateOne(
+    { name: currentVote.voter },
+    { $inc: { [`expertise${tokenSymbol}`]: Math.abs(wobjectRshares / 2) } },
+  );
+  await UserWobjects.updateOne(
+    { user_name: currentVote.voter, author_permlink: wObject.author_permlink },
+    { $inc: { [`expertise${tokenSymbol}`]: Math.abs(wobjectRshares / 2) } },
+    { upsert: true, setDefaultsOnInsert: true },
+  );
+  // post author can be negative
+  await User.updateOne(
+    { name: post.author },
+    { $inc: { [`expertise${tokenSymbol}`]: wobjectRshares / 2 } },
+  );
+  await UserWobjects.updateOne(
+    { user_name: post.author, author_permlink: wObject.author_permlink },
+    { $inc: { [`expertise${tokenSymbol}`]: wobjectRshares / 2 } },
+    { upsert: true, setDefaultsOnInsert: true },
+  );
+};
