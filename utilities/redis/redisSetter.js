@@ -71,6 +71,8 @@ const hmsetAsync = async (key, data, client = lastBlockClient) => client.hmsetAs
 
 const sadd = async (key, data, client = expiredPostsClient) => client.saddAsync(key, data);
 
+const expire = async (key, time, client = expiredPostsClient) => client.expireAsync(key, time);
+
 module.exports = {
   setExpiredPostTTL,
   setLastBlockNum,
@@ -81,4 +83,5 @@ module.exports = {
   addWobjRef,
   hmsetAsync,
   sadd,
+  expire,
 };

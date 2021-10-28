@@ -26,6 +26,7 @@
     "addSearchesFieldsToWobjects": "NODE_PATH=. node ./utilities/tasks/addSearchesFieldsToWobjects/run.js",
     "addObjectTypeToPost": "NODE_PATH=. node ./utilities/tasks/addObjectTypeOnPost/run.js",
     "addMissingTags": "NODE_PATH=. node ./utilities/tasks/addMissingTags/run.js",
+    "setWaivExpertise": "NODE_PATH=. node ./utilities/tasks/setWaivExpertise/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },

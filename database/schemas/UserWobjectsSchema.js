@@ -6,6 +6,7 @@ const UserWobjectsSchema = new Schema({
   user_name: { type: String, require: true },
   author_permlink: { type: String, require: true },
   weight: { type: Number, default: 0 },
+  expertiseWAIV: { type: Number },
 }, { timestamps: false });
 
 UserWobjectsSchema.index({ user_name: 1 });

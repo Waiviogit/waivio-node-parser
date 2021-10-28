@@ -34,5 +34,6 @@ module.exports = {
     HiddenPost: require('./schemas/HiddenPostSchema'),
     HiddenComment: require('./schemas/HiddenCommentSchema'),
     MutedUser: require('./schemas/MutedUserSchema'),
+    AirdropWAIV: require('./schemas/AirdropWAIV'),
   },
 };

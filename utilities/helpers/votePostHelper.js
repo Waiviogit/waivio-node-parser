@@ -1,5 +1,5 @@
 const postModeration = require('utilities/moderation/postModeration');
-const { REDIS_KEY_VOTE_UPDATES } = require('constants/common');
+const { REDIS_KEY_VOTE_UPDATES, VOTE_FIELDS } = require('constants/common');
 const redisSetter = require('utilities/redis/redisSetter');
 const userValidator = require('validator/userValidator');
 const { Wobj, User, Post } = require('models');
@@ -92,10 +92,8 @@ const upVoteOnPost = async (data, weight) => {
 
 const updateVotesOnPost = async (data) => {
   data.post.active_votes = _.map(data.post.active_votes, (vote) => ({
-    voter: vote.voter,
+    ..._.pick(vote, VOTE_FIELDS),
     weight: Math.round(vote.rshares * 1e-6),
-    percent: vote.percent,
-    rshares: vote.rshares,
   }));
 
   data.post.author = _.get(data, 'guest_author', data.post.author);
