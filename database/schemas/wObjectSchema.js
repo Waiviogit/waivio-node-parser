@@ -59,6 +59,7 @@ const WObjectSchema = new Schema({
   activeCampaigns: { type: [mongoose.Types.ObjectId], default: [] },
   activeCampaignsCount: { type: Number, default: 0 },
   search: { type: [String], default: [] },
+  expertiseWAIV: { type: Number, index: true },
 },
 {
   strict: false,
