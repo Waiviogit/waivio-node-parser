@@ -1,6 +1,6 @@
 const { WObject } = require('database').models;
-const _ = require('lodash');
 const { redisSetter } = require('utilities/redis');
+const _ = require('lodash');
 
 module.exports = async () => {
   try {
