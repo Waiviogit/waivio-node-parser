@@ -1,4 +1,4 @@
-const { rewriteTags } = require('./rewriteTags');
+const rewriteTags = require('./rewriteTags');
 
 (async () => {
   await rewriteTags();
