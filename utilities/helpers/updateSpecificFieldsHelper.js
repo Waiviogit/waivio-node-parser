@@ -202,7 +202,7 @@ const checkExistingTags = async (tagCategories = [], objectType) => {
     if (!newTags.length) continue;
     let tags = [];
     for (const tag of newTags) tags = _.concat(tags, [0, tag.name]);
-    await redisSetter.addTagCategory({ categoryName: category.body, objectType: objectType === objectType, tags });
+    await redisSetter.addTagCategory({ categoryName: category.body, objectType, tags });
   }
 };
 
