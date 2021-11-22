@@ -14,7 +14,7 @@ const parse = async (votes) => {
   const { votesOps, hiveAccounts } = await votesFormat(votes);
   const { posts = [] } = await Post.getManyPosts(
     _.chain(votesOps)
-      .filter((v) => !!v.type)
+      .filter((v) => !!v.type && !v.processed)
       .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
       .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
       .value(),
