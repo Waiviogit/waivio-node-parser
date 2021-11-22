@@ -3,6 +3,7 @@ const {
   witnessVoteParser, transferParser, withdrawParser, recoveryParser, claimRewardParser,
 } = require('parsers');
 const { MAIN_OPS } = require('constants/parsersData');
+const _ = require('lodash');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
@@ -15,7 +16,8 @@ const parseSwitcher = async (transactions) => {
         if (!PARSE_ONLY_VOTES) {
           switch (operation[0]) {
             case MAIN_OPS.COMMENT:
-              await commentParser.parse(operation[1]);
+              const options = _.get(transaction, 'operations[1][1]');
+              await commentParser.parse(operation[1], options);
               break;
             case MAIN_OPS.CUSTOM_JSON:
               await customJsonParser.parse(operation[1], transaction.block_num);
