@@ -16,7 +16,7 @@ const parse = async (votes) => {
     _.chain(votesOps)
       .filter((v) => !!v.type)
       .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
-      .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink, processed: { $ne: true } }))
+      .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
       .value(),
   );
   const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts, hiveAccounts });

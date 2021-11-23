@@ -4,6 +4,8 @@ const { lastBlockClient } = require('utilities/redis/redis');
 const { VOTE_TYPES } = require('constants/parsersData');
 const moment = require('moment');
 const _ = require('lodash');
+const redisSetter = require('utilities/redis/redisSetter');
+const redisGetter = require('utilities/redis/redisGetter');
 
 const getUser = async (accountName) => {
   try {
@@ -48,8 +50,19 @@ const getDynamicGlobalProperties = async () => {
 
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll('current_price_info', lastBlockClient);
+  const expire = moment().subtract(1, 'days').valueOf();
+  const key = 'processed_likes';
+  await redisSetter.zremrangebyscore({ key, start: -Infinity, end: expire });
+  const votedPosts = await redisGetter.getProcessedVote({ key, start: 0, end: -1 });
 
-  for (const vote of votesOps) {
+  const resultVotes = votesOps.filter((e) => _.map(votedPosts, (el) => ({
+    voter: el.split(':')[0],
+    author: el.split(':')[1],
+    permlink: el.split(':')[2],
+  })).every((l) => l.voter !== e.voter || l.author !== e.author || l.permlink !== e.permlink));
+
+
+  for (const vote of resultVotes) {
     if (!vote.type) continue;
     const account = _.find(hiveAccounts, (el) => el.name === vote.voter);
     const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author) && p.permlink === vote.permlink);

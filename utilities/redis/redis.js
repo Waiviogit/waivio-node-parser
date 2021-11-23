@@ -15,6 +15,7 @@ expiredPostsClient.select(config.redis.expiredPosts);
 
 const publisher = redis.createClient({ db: config.redis.expiredPosts });
 const tagCategoriesClient = redis.createClient({ db: config.redis.tagCategories });
+const processedPostClient = redis.createClient({ db: config.redis.processedPost });
 
 const expiredListener = (onMessageCallBack) => {
   const subscribeExpired = () => {
@@ -27,5 +28,5 @@ const expiredListener = (onMessageCallBack) => {
 };
 
 module.exports = {
-  postRefsClient, lastBlockClient, expiredPostsClient, expiredListener, tagCategoriesClient,
+  postRefsClient, lastBlockClient, expiredPostsClient, expiredListener, tagCategoriesClient,processedPostClient
 };

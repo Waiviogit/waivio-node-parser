@@ -1,5 +1,5 @@
 const {
-  postRefsClient, lastBlockClient, expiredPostsClient, tagCategoriesClient,
+  postRefsClient, lastBlockClient, expiredPostsClient, tagCategoriesClient,processedPostClient,
 } = require('utilities/redis/redis');
 const { COMMENT_REF_TYPES } = require('constants/common');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
@@ -71,6 +71,11 @@ const hmsetAsync = async (key, data, client = lastBlockClient) => client.hmsetAs
 
 const sadd = async (key, data, client = expiredPostsClient) => client.saddAsync(key, data);
 
+const zremrangebyscore = async ({
+  key, start, end, client = processedPostClient,
+}) => client.zremrangebyscoreAsync(key, start, end);
+
+
 module.exports = {
   setExpiredPostTTL,
   setLastBlockNum,
@@ -81,4 +86,5 @@ module.exports = {
   addWobjRef,
   hmsetAsync,
   sadd,
+  zremrangebyscore
 };
