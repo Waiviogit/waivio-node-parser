@@ -50,17 +50,17 @@ const getDynamicGlobalProperties = async () => {
 
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll('current_price_info', lastBlockClient);
+
   const expire = moment().subtract(1, 'days').valueOf();
   const key = 'processed_likes';
   await redisSetter.zremrangebyscore({ key, start: -Infinity, end: expire });
   const votedPosts = await redisGetter.getProcessedVote({ key, start: 0, end: -1 });
 
-  const resultVotes = votesOps.filter((e) => _.map(votedPosts, (el) => ({
+  const resultVotes = _.filter(votesOps, (e) => _.every(_.map(votedPosts, (el) => ({
     voter: el.split(':')[0],
     author: el.split(':')[1],
     permlink: el.split(':')[2],
-  })).every((l) => l.voter !== e.voter || l.author !== e.author || l.permlink !== e.permlink));
-
+  })), (l) => l.voter !== e.voter && l.author !== e.author && l.permlink !== e.permlink));
 
   for (const vote of resultVotes) {
     if (!vote.type) continue;

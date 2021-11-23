@@ -10,8 +10,7 @@
       "lastBlock": 2,
       "actionsQueue": 3,
       "expiredPosts": 8,
-      "tagCategories": 9,
-      "processedPost": 5
+      "tagCategories": 9
     },
     "app": "waivio",
     "appHost": "waivio.com"
@@ -27,8 +26,7 @@
       "lastBlock": 2,
       "actionsQueue": 3,
       "expiredPosts": 8,
-      "tagCategories": 9,
-      "processedPost": 5
+      "tagCategories": 9
     },
     "app": "waiviodev",
     "appHost": "waiviodev.com"
@@ -44,8 +42,7 @@
       "lastBlock": 2,
       "actionsQueue": 3,
       "expiredPosts": 8,
-      "tagCategories": 9,
-      "processedPost": 5
+      "tagCategories": 9
     },
     "app": "waiviodev",
     "appHost": "waiviodev.com"
@@ -61,8 +58,7 @@
       "lastBlock": 7,
       "expiredPosts": 7,
       "tagCategories": 7,
-      "actionsQueue": 7,
-      "processedPost": 7
+      "actionsQueue": 7
     },
     "app": "waiviotest",
     "appHost": "waiviodev.com"
