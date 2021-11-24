@@ -13,7 +13,6 @@ const { chosenPostValidator } = require('validator');
 const postModel = require('models/PostModel');
 const moment = require('moment');
 const { postsUtil } = require('utilities/steemApi');
-
 const _ = require('lodash');
 
 const parse = async (operation) => { // data is operation[1] of transaction in block
@@ -50,7 +49,6 @@ const postSwitcher = async ({
 };
 
 const commentSwitcher = async ({ operation, metadata }) => {
-  // console.log('qqqqqqqqqqqqq', operation);
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
   }
