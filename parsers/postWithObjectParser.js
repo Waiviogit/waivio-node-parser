@@ -21,7 +21,9 @@ const {
   HIVE_ENGINE_TOKEN_TAGS,
 } = require('constants/common');
 
-const parse = async (operation, metadata, post, fromTTL) => {
+const parse = async ({
+  operation, metadata, post, fromTTL, options,
+}) => {
   if (!(await appHelper.checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
 
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
@@ -47,7 +49,9 @@ const parse = async (operation, metadata, post, fromTTL) => {
     blocked_for_apps: blockedForApps,
     guestInfo, // do we need this field?
   };
-  const result = await createOrUpdatePost(data, post, fromTTL, metadata);
+  const result = await createOrUpdatePost({
+    data, postData: post, fromTTL, metadata, options,
+  });
 
   if (_.get(result, 'error')) {
     console.error(result.error);
@@ -59,12 +63,18 @@ const parse = async (operation, metadata, post, fromTTL) => {
   }
 };
 
-const createOrUpdatePost = async (data, postData, fromTTL, metadata) => {
+const createOrUpdatePost = async ({
+  data, postData, fromTTL, metadata, options,
+}) => {
   let hivePost, err;
   const { post } = await Post.findOne({ author: data.author, permlink: data.permlink });
 
   let updPost, error;
   if (!post) {
+    if (!_.isEmpty(options)) {
+      data.percent_hbd = options.percent_hbd;
+      data.max_accepted_payout = options.max_accepted_payout;
+    }
     await addHiveEngineTTL({ postTags: _.get(metadata, 'tags'), author: data.author, permlink: data.permlink });
     data.wobjects = await postHelper.parseBodyWobjects(metadata, data.body);
     // validate post data

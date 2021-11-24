@@ -64,7 +64,9 @@ describe('On postWithObjectParser', async () => {
       beforeEach(async () => {
         await AppFactory.Create({ host: config.appHost });
         sinon.stub(postsUtil, 'getPost').callsFake((a, b) => ({ post: mockPost }));
-        await postWithObjectParser.parse(mockOp, mockMetadata);
+        await postWithObjectParser.parse({
+          operation: mockOp, metadata: mockMetadata,
+        });
         createdPost = await Post.findOne({ author: guestAuthor.name, permlink: mockPost.permlink });
       });
       afterEach(() => {
