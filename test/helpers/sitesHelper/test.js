@@ -475,7 +475,7 @@ describe('On sitesHelper', async () => {
       it('should return console.error when not valid action ', async () => {
         operation = mutedData({ follower: moderator, action: faker.random.string() });
         await sitesHelper.mutedUsers(operation);
-        expect(console.error).to.be.calledOnceWith('"action" must be one of [mute, unmute]');
+        expect(console.error).to.be.calledOnceWith('"action" must be one of [mute, unmute, updateHostList]');
       });
       it('should return console.error when not valid required_posting_auths ', async () => {
         operation = mutedData({ follower: faker.random.number() });
