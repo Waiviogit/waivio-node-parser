@@ -1,8 +1,14 @@
-const { postRefsClient, lastBlockClient, tagCategoriesClient } = require('utilities/redis/redis');
+const {
+  postRefsClient, lastBlockClient, tagCategoriesClient, expiredPostsClient,
+} = require('utilities/redis/redis');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 const getHashAll = async (key, client = postRefsClient) => client.hgetallAsync(key);
+
+const getProcessedVote = async ({
+  key, start, end, client = expiredPostsClient,
+}) => await client.zrevrangeAsync(key, start, end);
 
 const getLastBlockNum = async (key) => {
   if (!key) {
@@ -15,4 +21,6 @@ const getLastBlockNum = async (key) => {
 };
 const getTagCategories = async (key) => tagCategoriesClient.zrevrangeAsync(key, 0, -1);
 
-module.exports = { getHashAll, getLastBlockNum, getTagCategories };
+module.exports = {
+  getHashAll, getLastBlockNum, getTagCategories, getProcessedVote,
+};
