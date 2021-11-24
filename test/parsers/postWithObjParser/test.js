@@ -35,7 +35,7 @@ describe('postWithObjectParser', async () => {
         sinon.spy(postHelper, 'objectIdFromDateString');
         sinon.spy(postHelper, 'parseBodyWobjects');
         sinon.spy(postHelper, 'addToRelated');
-        result = await postWithObjectParser.parse(mockOp, mockMetadata);
+        result = await postWithObjectParser.parse({ operation: mockOp, metadata: mockMetadata });
       });
       afterEach(() => {
         sinon.restore();
@@ -96,7 +96,7 @@ describe('postWithObjectParser', async () => {
         sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
-        await postWithObjectParser.parse(mockOp, mockMetadata);
+        await postWithObjectParser.parse({ operation: mockOp, metadata: mockMetadata });
       });
       afterEach(() => {
         sinon.restore();
@@ -148,7 +148,7 @@ describe('postWithObjectParser', async () => {
         sinon.spy(postHelper, 'objectIdFromDateString');
         sinon.spy(postHelper, 'parseBodyWobjects');
         sinon.spy(postHelper, 'addToRelated');
-        await postWithObjectParser.parse(mockOp, mockMetadata);
+        await postWithObjectParser.parse({ operation: mockOp, metadata: mockMetadata });
       });
       afterEach(() => {
         sinon.restore();
@@ -211,7 +211,7 @@ describe('postWithObjectParser', async () => {
         app: faker.address.city(),
       };
       sinon.spy(postsUtil, 'getPost');
-      await postWithObjectParser.parse(mockOp, mockMetadata, updPost);
+      await postWithObjectParser.parse({ operation: mockOp, metadata: mockMetadata, post: updPost });
     });
     afterEach(() => {
       sinon.restore();
@@ -254,7 +254,7 @@ describe('postWithObjectParser', async () => {
         sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
         sinon.spy(postWithWobjValidator, 'validate');
         sinon.spy(postHelper, 'objectIdFromDateString');
-        await postWithObjectParser.parse(mockOp, mockMetadata);
+        await postWithObjectParser.parse({ operation: mockOp, metadata: mockMetadata });
       });
       afterEach(() => {
         sinon.restore();
