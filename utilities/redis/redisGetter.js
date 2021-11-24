@@ -6,7 +6,7 @@ const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 const getHashAll = async (key, client = postRefsClient) => client.hgetallAsync(key);
 
-const getProcessedVote = async ({
+const zrevrange = async ({
   key, start, end, client = expiredPostsClient,
 }) => await client.zrevrangeAsync(key, start, end);
 
@@ -22,5 +22,5 @@ const getLastBlockNum = async (key) => {
 const getTagCategories = async (key) => tagCategoriesClient.zrevrangeAsync(key, 0, -1);
 
 module.exports = {
-  getHashAll, getLastBlockNum, getTagCategories, getProcessedVote,
+  getHashAll, getLastBlockNum, getTagCategories, zrevrange,
 };

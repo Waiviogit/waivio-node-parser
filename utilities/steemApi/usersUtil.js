@@ -1,7 +1,7 @@
 const { hivedClient, hiveMindClient } = require('utilities/steemApi/createClient');
 const { getHashAll } = require('utilities/redis/redisGetter');
 const { lastBlockClient } = require('utilities/redis/redis');
-const { VOTE_TYPES } = require('constants/parsersData');
+const { VOTE_TYPES, REDIS_KEYS } = require('constants/parsersData');
 const moment = require('moment');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
@@ -47,20 +47,24 @@ const getDynamicGlobalProperties = async () => {
     return { error };
   }
 };
+const getSortedVotes = async (votes) => {
+  const expire = moment().subtract(1, 'days').valueOf();
+  await redisSetter.zremrangebyscore({ key: REDIS_KEYS.KEY, start: -Infinity, end: expire });
+  const votedPosts = await redisGetter.zrevrange({ key: REDIS_KEYS.KEY, start: 0, end: -1 });
+
+  const resultVotes = _.filter(votes, (e) => !_.some(_.map(votedPosts, (el) => ({
+    voter: el.split(':')[0],
+    author: el.split(':')[1],
+    permlink: el.split(':')[2],
+  })), (l) => l.voter === e.voter && l.author === e.author && l.permlink === e.permlink));
+
+  return { resultVotes, votedPosts };
+};
 
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll('current_price_info', lastBlockClient);
 
-  const expire = moment().subtract(1, 'days').valueOf();
-  const key = 'processed_likes';
-  await redisSetter.zremrangebyscore({ key, start: -Infinity, end: expire });
-  const votedPosts = await redisGetter.getProcessedVote({ key, start: 0, end: -1 });
-
-  const resultVotes = _.filter(votesOps, (e) => _.every(_.map(votedPosts, (el) => ({
-    voter: el.split(':')[0],
-    author: el.split(':')[1],
-    permlink: el.split(':')[2],
-  })), (l) => l.voter !== e.voter && l.author !== e.author && l.permlink !== e.permlink));
+  const { resultVotes } = await getSortedVotes(votesOps);
 
   for (const vote of resultVotes) {
     if (!vote.type) continue;
@@ -129,4 +133,5 @@ module.exports = {
   getMutedList,
   getUsers,
   getUser,
+  getSortedVotes,
 };
