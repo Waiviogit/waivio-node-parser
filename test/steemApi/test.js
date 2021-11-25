@@ -1,21 +1,10 @@
 const _ = require('lodash');
+const { faker, sinon } = require('test/testHelper');
 const { usersUtil } = require('../testHelper');
 const { expect, postsUtil } = require('../testHelper');
+const { redisGetter } = require('../../utilities/redis');
 
 const TEST_POST_ON_STEEMIT = { author: 'waiviodev', permlink: 'yqsgzu78um7' };
-
-const votes = [{
-  voter: 'fatherfaith',
-  author: 'fatherfaith',
-  permlink: 're-hiro-hive-r1wrny',
-  weight: 10000,
-},
-{
-  voter: 'krnel',
-  author: 'komrad',
-  permlink: 'prosperity-marketing-system',
-  weight: 10000,
-}];
 
 describe('Steem API', async () => {
   describe('Posts Util', async () => {
@@ -46,23 +35,26 @@ describe('Steem API', async () => {
     });
   });
   describe('User Util', async () => {
-    let result;
+    let result, check;
     before(async () => {
+      const votes = [];
+      for (let i = 0; i < _.random(2, 8); i++) {
+        votes.push({
+          voter: faker.random.word(),
+          author: faker.random.word(),
+          permlink: faker.random.word(),
+
+        });
+      }
+      const removedObj = _.sampleSize(votes, _.random(1, votes.length - 1));
+      const stauRes = _.map(removedObj, (el) => `${el.voter}:${el.author}:${el.permlink}`);
+
+      sinon.stub(redisGetter, 'zrevrange').returns(Promise.resolve(stauRes));
       result = await usersUtil.getSortedVotes(votes);
-      console.log('rrrr', result.resultVotes);
+      check = _.without(votes, ...removedObj);
     });
     it('should return sorted votes', () => {
-      const check = [{
-        voter: 'fatherfaith',
-        author: 'fatherfaith',
-        permlink: 're-hiro-hive-r1wrny',
-        weight: 10000,
-      }];
-      if (!_.isEqual(check, result.resultVotes)) {
-        throw new Error(
-          'Votes not sorted',
-        );
-      }
+      expect(result).to.deep.eq(check);
     });
   });
 });
