@@ -82,13 +82,10 @@ const commentSwitcher = async ({ operation, metadata }) => {
     `${operation.author}/${operation.permlink}`,
   );
 
-  const { post: existComment } = await postsUtil.getPost(operation.author, operation.permlink);
-  if (!existComment) {
-    await postModel.updateOne({
-      root_author: operation.parent_author,
-      permlink: operation.parent_permlink,
-    }, { $inc: { children: 1 } });
-  }
+  await postModel.updateOne({
+    root_author: operation.parent_author,
+    permlink: operation.parent_permlink,
+  }, { $inc: { children: 1 } });
 };
 
 module.exports = { parse, postSwitcher };
