@@ -81,11 +81,13 @@ const commentSwitcher = async ({ operation, metadata }) => {
     `${REDIS_KEY_CHILDREN_UPDATE}:${moment.utc().startOf('hour').format()}`,
     `${operation.author}/${operation.permlink}`,
   );
-
-  await postModel.updateOne({
-    root_author: operation.parent_author,
-    permlink: operation.parent_permlink,
-  }, { $inc: { children: 1 } });
+  const { post: existComment } = await postsUtil.getPost(operation.author, operation.permlink);
+  if (!existComment) {
+    await postModel.updateOne({
+      root_author: operation.parent_author,
+      permlink: operation.parent_permlink,
+    }, { $inc: { children: 1 } });
+  }
 };
 
 module.exports = { parse, postSwitcher };
