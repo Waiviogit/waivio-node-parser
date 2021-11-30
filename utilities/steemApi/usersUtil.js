@@ -48,9 +48,10 @@ const getDynamicGlobalProperties = async () => {
   }
 };
 
-const getSortedVotes = async (votes) => {
-  const votedPosts = await redisGetter.zrevrange({ key: REDIS_KEYS.KEY, start: 0, end: -1 });
-  return _.filter(votes, (e) => !_.some(_.map(votedPosts, (el) => ({
+const getProcessedVotes = async (votes) => {
+  const votedPosts = await redisGetter
+    .zrevrange({ key: REDIS_KEYS.PROCESSED_LIKES, start: 0, end: -1 });
+  return _.filter(votes, (e) => _.some(_.map(votedPosts, (el) => ({
     voter: el.split(':')[0],
     author: el.split(':')[1],
     permlink: el.split(':')[2],
@@ -58,13 +59,13 @@ const getSortedVotes = async (votes) => {
 };
 
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
-  const priceInfo = await getHashAll('current_price_info', lastBlockClient);
+  const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
 
   const expire = moment().subtract(1, 'days').valueOf();
-  await redisSetter.zremrangebyscore({ key: REDIS_KEYS.KEY, start: -Infinity, end: expire });
-  const resultVotes = await getSortedVotes(votesOps);
+  await redisSetter.zremrangebyscore({ key: REDIS_KEYS.PROCESSED_LIKES, start: -Infinity, end: expire });
+  const votesProcessedOnApi = await getProcessedVotes(votesOps);
 
-  for (const vote of resultVotes) {
+  for (const vote of votesOps) {
     if (!vote.type) continue;
     const account = _.find(hiveAccounts, (el) => el.name === vote.voter);
     const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author) && p.permlink === vote.permlink);
@@ -91,6 +92,9 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
       continue;
     }
     vote.rshares = rShares;
+    const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
+    if (processed) continue;
+
     post.active_votes.push({
       voter: vote.voter,
       percent: vote.weight,
@@ -128,8 +132,8 @@ module.exports = {
   getDynamicGlobalProperties,
   getCurrentPriceInfo,
   calculateVotePower,
+  getProcessedVotes,
   getMutedList,
   getUsers,
   getUser,
-  getSortedVotes,
 };
