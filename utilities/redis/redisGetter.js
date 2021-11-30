@@ -8,7 +8,7 @@ const getHashAll = async (key, client = postRefsClient) => client.hgetallAsync(k
 
 const zrevrange = async ({
   key, start, end, client = expiredPostsClient,
-}) => await client.zrevrangeAsync(key, start, end);
+}) => client.zrevrangeAsync(key, start, end);
 
 const getLastBlockNum = async (key) => {
   if (!key) {
