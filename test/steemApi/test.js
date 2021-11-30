@@ -1,8 +1,8 @@
 const _ = require('lodash');
-const { faker, sinon } = require('test/testHelper');
-const { usersUtil } = require('../testHelper');
-const { expect, postsUtil } = require('../testHelper');
-const { redisGetter } = require('../../utilities/redis');
+const {
+  faker, sinon, usersUtil, expect, postsUtil,
+} = require('test/testHelper');
+const redisGetter = require('utilities/redis/redisGetter');
 
 const TEST_POST_ON_STEEMIT = { author: 'waiviodev', permlink: 'yqsgzu78um7' };
 
