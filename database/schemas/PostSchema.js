@@ -58,6 +58,8 @@ const PostSchema = new Schema({
       voter: { type: String },
       weight: { type: Number },
       percent: { type: Number },
+      rshares: { type: Number },
+      rsharesWAIV: { type: Number },
     }],
     default: [],
   },
@@ -71,6 +73,8 @@ const PostSchema = new Schema({
   reblog_to: { type: { author: String, permlink: String } },
   reblogged_users: { type: [String], default: [] },
   blocked_for_apps: { type: [String] },
+  net_rshares_WAIV: { type: Number, default: 0 },
+  total_payout_WAIV: { type: Number, default: 0 },
 }, { strict: false, timestamps: true });
 
 PostSchema.index({ author: 1, permlink: 1 }, { unique: true });

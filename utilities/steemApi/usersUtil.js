@@ -94,13 +94,18 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     vote.rshares = rShares;
     const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
     if (processed) continue;
-
-    post.active_votes.push({
-      voter: vote.voter,
-      percent: vote.weight,
-      rshares: Math.round(rShares),
-      weight: Math.round(rShares * 1e-6),
-    });
+    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
+    voteInPost
+      ? Object.assign(
+        voteInPost,
+        { rshares: Math.round(rShares), weight: Math.round(rShares * 1e-6) },
+      )
+      : post.active_votes.push({
+        voter: vote.voter,
+        percent: vote.weight,
+        rshares: Math.round(rShares),
+        weight: Math.round(rShares * 1e-6),
+      });
     // such vote will not affect total payout
     if (!rShares) continue;
     // net_rshares sum of all post active_votes rshares negative and positive

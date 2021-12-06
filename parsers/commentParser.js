@@ -14,7 +14,7 @@ const postModel = require('models/PostModel');
 const moment = require('moment');
 const _ = require('lodash');
 
-const parse = async (operation) => { // data is operation[1] of transaction in block
+const parse = async (operation, options) => { // data is operation[1] of transaction in block
   let metadata;
 
   try {
@@ -29,7 +29,7 @@ const parse = async (operation) => { // data is operation[1] of transaction in b
 
   if (operation.parent_author === '' && metadata) {
     // comment without parent_author is POST
-    await postSwitcher({ operation, metadata });
+    await postSwitcher({ operation, metadata, options });
   } else if (operation.parent_author && operation.parent_permlink) {
     // comment with parent_author is REPLY TO POST
     await commentSwitcher(({ operation, metadata }));
@@ -37,13 +37,15 @@ const parse = async (operation) => { // data is operation[1] of transaction in b
 };
 
 const postSwitcher = async ({
-  operation, metadata, post, fromTTL = false,
+  operation, metadata, post, fromTTL = false, options,
 }) => {
   if (_.get(metadata.wobj, 'action') === 'createObjectType') {
     // case if user add wobjects when create post
     await objectTypeParser.parse(operation, metadata); // create new Object Type
   } else {
-    await postWithObjectsParser.parse(operation, metadata, post, fromTTL);
+    await postWithObjectsParser.parse({
+      operation, metadata, post, fromTTL, options,
+    });
   }
 };
 

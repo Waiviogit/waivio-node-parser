@@ -217,6 +217,7 @@ exports.hideCommentParser = async (operation) => {
     case HIDE_ACTION.HIDE:
       await hiddenCommentModel.update({ userName, author, permlink });
       const { post: comment } = await postsUtil.getPost(author, permlink);
+      if (!comment) return;
       const { post: dbPost } = await Post.findOne({
         root_author: comment.root_author, permlink: comment.root_permlink,
       });

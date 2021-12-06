@@ -75,6 +75,8 @@ const zremrangebyscore = async ({
   key, start, end, client = expiredPostsClient,
 }) => client.zremrangebyscoreAsync(key, start, end);
 
+const expire = async (key, time, client = expiredPostsClient) => client.expireAsync(key, time);
+
 module.exports = {
   setExpiredPostTTL,
   zremrangebyscore,
@@ -86,4 +88,5 @@ module.exports = {
   addWobjRef,
   hmsetAsync,
   sadd,
+  expire,
 };

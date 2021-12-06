@@ -83,3 +83,12 @@ exports.COMMENT_REF_TYPES = {
 
 exports.REDIS_KEY_VOTE_UPDATES = 'votesUpdate';
 exports.REDIS_KEY_CHILDREN_UPDATE = 'commentsCounterUpdate';
+
+exports.REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD = 'distributeHiveEngineReward';
+exports.EXPIRE_DISTRIBUTE_HIVE_ENGINE_REWARD = 345600;
+
+exports.HIVE_ENGINE_TOKEN_TAGS = {
+  WAIV: ['waivio', 'neoxian', 'palnet', 'waiv', 'food'],
+};
+
+exports.VOTE_FIELDS = ['voter', 'percent', 'rshares', 'rsharesWAIV'];
