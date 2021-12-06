@@ -71,10 +71,15 @@ const hmsetAsync = async (key, data, client = lastBlockClient) => client.hmsetAs
 
 const sadd = async (key, data, client = expiredPostsClient) => client.saddAsync(key, data);
 
+const zremrangebyscore = async ({
+  key, start, end, client = expiredPostsClient,
+}) => client.zremrangebyscoreAsync(key, start, end);
+
 const expire = async (key, time, client = expiredPostsClient) => client.expireAsync(key, time);
 
 module.exports = {
   setExpiredPostTTL,
+  zremrangebyscore,
   setLastBlockNum,
   addPostWithWobj,
   addTagCategory,

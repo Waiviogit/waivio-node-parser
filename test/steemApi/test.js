@@ -1,4 +1,8 @@
-const { expect, postsUtil } = require('../testHelper');
+const _ = require('lodash');
+const {
+  faker, sinon, usersUtil, expect, postsUtil,
+} = require('test/testHelper');
+const redisGetter = require('utilities/redis/redisGetter');
 
 const TEST_POST_ON_STEEMIT = { author: 'waiviodev', permlink: 'yqsgzu78um7' };
 
@@ -28,6 +32,29 @@ describe('Steem API', async () => {
       it('should return error', () => {
         expect(result).to.has.key('err');
       });
+    });
+  });
+  describe('User Util', async () => {
+    let result, processedVote;
+    before(async () => {
+      const votes = [];
+      for (let i = 0; i < _.random(2, 8); i++) {
+        votes.push({
+          voter: faker.random.word(),
+          author: faker.random.word(),
+          permlink: faker.random.word(),
+
+        });
+      }
+      processedVote = _.sampleSize(votes, _.random(1, votes.length - 1));
+      const stubProcessedVotes = _.map(processedVote, (el) => `${el.voter}:${el.author}:${el.permlink}`);
+
+      sinon.stub(redisGetter, 'zrevrange').returns(Promise.resolve(stubProcessedVotes));
+      result = await usersUtil.getProcessedVotes(votes);
+    });
+
+    it('should return votes processed on api', () => {
+      expect(result).to.have.all.members(processedVote);
     });
   });
 });

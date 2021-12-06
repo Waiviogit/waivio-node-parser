@@ -63,6 +63,12 @@ exports.VOTE_TYPES = {
   POST_WITH_WOBJ: 'post_with_wobj',
 };
 
+exports.REDIS_KEYS = {
+  PROCESSED_LIKES: 'processed_likes',
+  CURRENT_PRICE_INFO: 'current_price_info',
+  DYNAMIC_GLOBAL_PROPERTIES: 'dynamic_global_properties',
+};
+
 exports.HIDE_ACTION = {
   HIDE: 'hide',
   UNHIDE: 'unhide',
