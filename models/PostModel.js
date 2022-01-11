@@ -126,10 +126,19 @@ const updateOne = async (filter, updateData, options) => {
   }
 };
 
+const findOneAndDelete = async (filter, options) => {
+  try {
+    return { result: await PostModel.findOneAndDelete(filter, options).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   removeWobjectsFromPost,
   addWobjectsToPost,
   findByBothAuthors,
+  findOneAndDelete,
   getPostsRefs,
   getManyPosts,
   updateMany,

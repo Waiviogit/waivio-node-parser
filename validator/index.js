@@ -9,4 +9,5 @@ module.exports = {
   sitesValidator: require('./sitesValidator'),
   objectBotsValidator: require('./validateObjectBots'),
   jsonVoteValidator: require('./jsonVoteValidator'),
+  commentValidator: require('./commentValidator'),
 };
