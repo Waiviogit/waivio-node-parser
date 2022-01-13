@@ -157,6 +157,15 @@ describe('comment parser', async () => {
           qname: REDIS_QUEUE_DELETE_COMMENT,
         });
       });
+
+      it('should post not exists', async () => {
+        await commentParser.deleteComment(operation);
+        const post = await Post.findOne({
+          root_author: operation.author,
+          permlink: operation.permlink,
+        });
+        expect(post).to.not.exist;
+      });
     });
   });
 });
