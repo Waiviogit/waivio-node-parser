@@ -93,17 +93,18 @@ const commentSwitcher = async ({ operation, metadata }) => {
 
 const deleteComment = async (operation) => {
   const { value, error } = commentValidator.deleteCommentSchema.validate(operation);
-  if (error) return;
+  if (error) return false;
   const { result } = await postModel.findOneAndDelete(
     { root_author: value.author, permlink: value.permlink },
   );
-  if (!result) return;
+  if (!result) return false;
   const metadata = result.json_metadata ? jsonHelper.parseJson(result.json_metadata) : {};
-  if (!metadata.campaignId || !metadata.reservation_permlink) return;
-  const { campaignId, reservation_permlink } = metadata;
-  const message = JSON.stringify({ ...value, campaignId, reservation_permlink });
+  if (!metadata.campaignId || !metadata.reservation_permlink) return false;
 
-  return redisQueue.sendMessageToQueue({ message, qname: REDIS_QUEUE_DELETE_COMMENT });
+  const message = JSON.stringify(_.pick(metadata, ['campaignId', 'reservation_permlink']));
+
+  await redisQueue.sendMessageToQueue({ message, qname: REDIS_QUEUE_DELETE_COMMENT });
+  return true;
 };
 
 module.exports = { parse, postSwitcher, deleteComment };

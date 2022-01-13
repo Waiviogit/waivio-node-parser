@@ -1,7 +1,7 @@
 const { PostFactory, ObjectTypeFactory } = require('../../factories');
 const { faker } = require('../../testHelper');
 
-const getCreateObjectTypeMocks = (app) => {
+exports.getCreateObjectTypeMocks = (app) => {
   const metadataWobj = {
     wobj: {
       action: 'createObjectType',
@@ -15,7 +15,7 @@ const getCreateObjectTypeMocks = (app) => {
   return op;
 };
 
-const getCreateObjectMocks = async () => {
+exports.getCreateObjectMocks = async () => {
   const objectType = await ObjectTypeFactory.Create();
   const metadataWobj = {
     app: 'waiviotest',
@@ -33,4 +33,12 @@ const getCreateObjectMocks = async () => {
   return { ...op, parent_author: objectType.author };
 };
 
-module.exports = { getCreateObjectTypeMocks, getCreateObjectMocks };
+exports.mockDeleteCommentOp = ({ author, permlink } = {}) => ({
+  author: author || faker.name.firstName().toLowerCase(),
+  permlink: permlink || faker.name.firstName().toLowerCase(),
+});
+
+exports.mockMetadataDeleteComment = ({ campaignId, reservation_permlink } = {}) => ({
+  campaignId: campaignId || faker.name.firstName().toLowerCase(),
+  reservation_permlink: reservation_permlink || faker.name.firstName().toLowerCase(),
+});
