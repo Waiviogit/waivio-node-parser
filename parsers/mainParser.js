@@ -19,6 +19,9 @@ const parseSwitcher = async (transactions) => {
               const options = _.get(transaction, 'operations[1][1]');
               await commentParser.parse(operation[1], options);
               break;
+            case MAIN_OPS.DELETE_COMMENT:
+              await commentParser.deleteComment(operation[1]);
+              break;
             case MAIN_OPS.CUSTOM_JSON:
               await customJsonParser.parse(operation[1], transaction.block_num);
               break;

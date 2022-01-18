@@ -27,6 +27,7 @@
     "addObjectTypeToPost": "NODE_PATH=. node ./utilities/tasks/addObjectTypeOnPost/run.js",
     "addMissingTags": "NODE_PATH=. node ./utilities/tasks/addMissingTags/run.js",
     "setWaivExpertise": "NODE_PATH=. node ./utilities/tasks/setWaivExpertise/run.js",
+    "deleteComments": "NODE_PATH=. node ./utilities/tasks/deleteComments/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },

@@ -1,8 +1,9 @@
 const {
   expect, vipTicketsHelper, sinon, redis,
 } = require('test/testHelper');
-const { redisQueue, rsmqClient } = require('utilities/redis/rsmq');
+const redisQueue = require('utilities/redis/rsmq/redisQueue');
 const { Q_NAME } = require('constants/vipTicketsData');
+const sentryHelper = require('utilities/helpers/sentryHelper');
 const _ = require('lodash');
 const { transferData } = require('./mocks');
 
@@ -36,9 +37,9 @@ describe('On processTicketPurchase', async () => {
 
     it('should call captureException when can\'t create queue', async () => {
       sinon.stub(redisQueue, 'createQueue').returns(Promise.resolve({ error: 'error' }));
-      sinon.spy(vipTicketsHelper, 'captureException');
+      sinon.spy(sentryHelper, 'captureException');
       await vipTicketsHelper.processTicketPurchase(transferData());
-      expect(vipTicketsHelper.captureException).to.be.calledOnce;
+      expect(sentryHelper.captureException).to.be.calledOnce;
     });
 
     it('should return false when can\'t sendMessage to queue', async () => {
@@ -49,9 +50,9 @@ describe('On processTicketPurchase', async () => {
 
     it('should call captureException when can\'t sendMessage', async () => {
       sinon.stub(redisQueue, 'sendMessage').returns(Promise.resolve({ error: 'error' }));
-      sinon.spy(vipTicketsHelper, 'captureException');
+      sinon.spy(sentryHelper, 'captureException');
       await vipTicketsHelper.processTicketPurchase(transferData());
-      expect(vipTicketsHelper.captureException).to.be.calledOnce;
+      expect(sentryHelper.captureException).to.be.calledOnce;
     });
   });
 
@@ -59,7 +60,7 @@ describe('On processTicketPurchase', async () => {
     beforeEach(async () => {
       data = transferData();
       result = await vipTicketsHelper.processTicketPurchase(data);
-      ({ message } = await rsmqClient.receiveMessageAsync({ qname: Q_NAME, vt: 0 }));
+      ({ message } = await redisQueue.rsmqClient.receiveMessageAsync({ qname: Q_NAME, vt: 0 }));
       parcedMessage = JSON.parse(message);
     });
     it('should be the same data in message', async () => {
