@@ -14,6 +14,7 @@ exports.MAIN_OPS = {
   CHANGE_RECOVERY_ACCOUNT: 'change_recovery_account',
   TRANSFER_FROM_SAVINGS: 'transfer_from_savings',
   CLAIM_REWARD_BALANCE: 'claim_reward_balance',
+  DELETE_COMMENT: 'delete_comment',
 };
 
 exports.CUSTOM_JSON_OPS = {
