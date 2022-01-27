@@ -52,6 +52,7 @@ exports.CUSTOM_JSON_OPS = {
   GUEST_HIDE_POST: 'waivio_guest_hide_post',
   GUEST_HIDE_COMMENT: 'waivio_guest_hide_comment',
   WEBSITE_REFERRAL_PAYMENTS: 'website_referral_payments',
+  WAIVIO_HIVE_ENGINE: 'waivio_hive_engine',
 };
 
 exports.BELL_NOTIFICATIONS = {
