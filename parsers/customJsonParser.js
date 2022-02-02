@@ -4,6 +4,7 @@ const voteParsers = require('parsers/voteParser');
 const { ratingHelper, userHelper, sitesHelper } = require('utilities/helpers');
 const { customJsonOperations } = require('utilities/guestOperations');
 const { CUSTOM_JSON_OPS } = require('constants/parsersData');
+const hiveEngineCustom = require('utilities/customJsonHiveEngine/hiveEngineCustom');
 
 exports.parse = async (operation, blockNum) => {
   switch (operation.id) {
@@ -108,6 +109,10 @@ exports.parse = async (operation, blockNum) => {
       break;
     case CUSTOM_JSON_OPS.WEBSITE_REFERRAL_PAYMENTS:
       await sitesHelper.setWebsiteReferralAccount(operation);
+      break;
+    /** Hive engine */
+    case CUSTOM_JSON_OPS.WAIVIO_HIVE_ENGINE:
+      await hiveEngineCustom.parse(operation, blockNum);
       break;
   }
 };

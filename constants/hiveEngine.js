@@ -5,3 +5,7 @@ exports.TOKEN_WAIV = {
 };
 
 exports.ENGINE_TOKENS = [this.TOKEN_WAIV];
+
+exports.ENGINE_CUSTOM_METHODS = {
+  CREATE_DEPOSIT_RECORD: 'createDepositRecord',
+};

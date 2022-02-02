@@ -10,4 +10,5 @@ module.exports = {
   objectBotsValidator: require('./validateObjectBots'),
   jsonVoteValidator: require('./jsonVoteValidator'),
   commentValidator: require('./commentValidator'),
+  hiveEngineValidator: require('./hiveEngineValidator'),
 };
