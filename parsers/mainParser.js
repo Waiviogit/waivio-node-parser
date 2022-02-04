@@ -1,6 +1,6 @@
 const {
   customJsonParser, commentParser, voteParser, userParsers,
-  witnessVoteParser, transferParser, withdrawParser, recoveryParser, claimRewardParser,
+  witnessVoteParser, transferParser, withdrawParser, recoveryParser, claimRewardParser, delgationsParser,
 } = require('parsers');
 const { MAIN_OPS } = require('constants/parsersData');
 const _ = require('lodash');
@@ -41,6 +41,9 @@ const parseSwitcher = async (transactions) => {
               break;
             case MAIN_OPS.TRANSFER:
               await transferParser.parse(operation[1], transaction.block_num);
+              break;
+            case MAIN_OPS.DELEGATE_VESTING_SHARES:
+              await delgationsParser.parse(operation[1], transaction.block_num);
               break;
             case MAIN_OPS.WITHDRAW_VESTING:
               await withdrawParser.parse(operation[1]);
