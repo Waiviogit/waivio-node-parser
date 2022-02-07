@@ -16,7 +16,6 @@ exports.MAIN_OPS = {
   CLAIM_REWARD_BALANCE: 'claim_reward_balance',
   DELETE_COMMENT: 'delete_comment',
   DELEGATE_VESTING_SHARES: 'delegate_vesting_shares',
-  DELEGATE: 'delegate',
 };
 
 exports.CUSTOM_JSON_OPS = {

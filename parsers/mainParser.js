@@ -43,7 +43,7 @@ const parseSwitcher = async (transactions) => {
               await transferParser.parse(operation[1], transaction.block_num);
               break;
             case MAIN_OPS.DELEGATE_VESTING_SHARES:
-              await delgationsParser.parse(operation[1], transaction.block_num);
+              await delgationsParser.parse(operation[1]);
               break;
             case MAIN_OPS.WITHDRAW_VESTING:
               await withdrawParser.parse(operation[1]);
