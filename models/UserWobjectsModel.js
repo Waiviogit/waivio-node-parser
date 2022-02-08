@@ -7,3 +7,11 @@ exports.find = async (condition) => {
     return { error };
   }
 };
+
+exports.updateOne = async (condition, updateData, options) => {
+  try {
+    return { result: await UserWobjects.updateOne(condition, updateData, options) };
+  } catch (error) {
+    return { error };
+  }
+};

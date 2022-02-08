@@ -2,19 +2,21 @@ const notificationsUtil = require('utilities/notificationsApi/notificationsUtil'
 const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 const { chosenPostHelper, campaignHelper } = require('utilities/helpers');
 const postWithObjectsParser = require('parsers/postWithObjectParser');
-const { REDIS_KEY_CHILDREN_UPDATE } = require('constants/common');
+const { REDIS_KEY_CHILDREN_UPDATE, REDIS_QUEUE_DELETE_COMMENT } = require('constants/common');
 const guestCommentParser = require('parsers/guestCommentParser');
 const createObjectParser = require('parsers/createObjectParser');
 const appendObjectParser = require('parsers/appendObjectParser');
+const redisQueue = require('utilities/redis/rsmq/redisQueue');
 const objectTypeParser = require('parsers/objectTypeParser');
 const redisSetter = require('utilities/redis/redisSetter');
 const postHelper = require('utilities/helpers/postHelper');
-const { chosenPostValidator } = require('validator');
+const { chosenPostValidator, commentValidator } = require('validator');
+const jsonHelper = require('utilities/helpers/jsonHelper');
 const postModel = require('models/PostModel');
 const moment = require('moment');
 const _ = require('lodash');
 
-const parse = async (operation) => { // data is operation[1] of transaction in block
+const parse = async (operation, options) => { // data is operation[1] of transaction in block
   let metadata;
 
   try {
@@ -29,7 +31,7 @@ const parse = async (operation) => { // data is operation[1] of transaction in b
 
   if (operation.parent_author === '' && metadata) {
     // comment without parent_author is POST
-    await postSwitcher({ operation, metadata });
+    await postSwitcher({ operation, metadata, options });
   } else if (operation.parent_author && operation.parent_permlink) {
     // comment with parent_author is REPLY TO POST
     await commentSwitcher(({ operation, metadata }));
@@ -37,13 +39,15 @@ const parse = async (operation) => { // data is operation[1] of transaction in b
 };
 
 const postSwitcher = async ({
-  operation, metadata, post, fromTTL = false,
+  operation, metadata, post, fromTTL = false, options,
 }) => {
   if (_.get(metadata.wobj, 'action') === 'createObjectType') {
     // case if user add wobjects when create post
     await objectTypeParser.parse(operation, metadata); // create new Object Type
   } else {
-    await postWithObjectsParser.parse(operation, metadata, post, fromTTL);
+    await postWithObjectsParser.parse({
+      operation, metadata, post, fromTTL, options,
+    });
   }
 };
 
@@ -87,4 +91,20 @@ const commentSwitcher = async ({ operation, metadata }) => {
   }, { $inc: { children: 1 } });
 };
 
-module.exports = { parse, postSwitcher };
+const deleteComment = async (operation) => {
+  const { value, error } = commentValidator.deleteCommentSchema.validate(operation);
+  if (error) return false;
+  const { result } = await postModel.findOneAndDelete(
+    { root_author: value.author, permlink: value.permlink },
+  );
+  if (!result) return false;
+  const metadata = result.json_metadata ? jsonHelper.parseJson(result.json_metadata) : {};
+  if (!metadata.campaignId || !metadata.reservation_permlink) return false;
+
+  const message = JSON.stringify(_.pick(metadata, ['campaignId', 'reservation_permlink']));
+
+  await redisQueue.sendMessageToQueue({ message, qname: REDIS_QUEUE_DELETE_COMMENT });
+  return true;
+};
+
+module.exports = { parse, postSwitcher, deleteComment };

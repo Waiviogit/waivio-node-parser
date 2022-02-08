@@ -1,9 +1,11 @@
 const { hivedClient, hiveMindClient } = require('utilities/steemApi/createClient');
 const { getHashAll } = require('utilities/redis/redisGetter');
 const { lastBlockClient } = require('utilities/redis/redis');
-const { VOTE_TYPES } = require('constants/parsersData');
+const { VOTE_TYPES, REDIS_KEYS } = require('constants/parsersData');
 const moment = require('moment');
 const _ = require('lodash');
+const redisSetter = require('utilities/redis/redisSetter');
+const redisGetter = require('utilities/redis/redisGetter');
 
 const getUser = async (accountName) => {
   try {
@@ -46,8 +48,22 @@ const getDynamicGlobalProperties = async () => {
   }
 };
 
+const getProcessedVotes = async (votes) => {
+  const votedPosts = await redisGetter
+    .zrevrange({ key: REDIS_KEYS.PROCESSED_LIKES, start: 0, end: -1 });
+  return _.filter(votes, (e) => _.some(_.map(votedPosts, (el) => ({
+    voter: el.split(':')[0],
+    author: el.split(':')[1],
+    permlink: el.split(':')[2],
+  })), (l) => l.voter === e.voter && l.author === e.author && l.permlink === e.permlink));
+};
+
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
-  const priceInfo = await getHashAll('current_price_info', lastBlockClient);
+  const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
+
+  const expire = moment().subtract(1, 'days').valueOf();
+  await redisSetter.zremrangebyscore({ key: REDIS_KEYS.PROCESSED_LIKES, start: -Infinity, end: expire });
+  const votesProcessedOnApi = await getProcessedVotes(votesOps);
 
   for (const vote of votesOps) {
     if (!vote.type) continue;
@@ -76,12 +92,20 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
       continue;
     }
     vote.rshares = rShares;
-    post.active_votes.push({
-      voter: vote.voter,
-      percent: vote.weight,
-      rshares: Math.round(rShares),
-      weight: Math.round(rShares * 1e-6),
-    });
+    const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
+    if (processed) continue;
+    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
+    voteInPost
+      ? Object.assign(
+        voteInPost,
+        { rshares: Math.round(rShares), weight: Math.round(rShares * 1e-6) },
+      )
+      : post.active_votes.push({
+        voter: vote.voter,
+        percent: vote.weight,
+        rshares: Math.round(rShares),
+        weight: Math.round(rShares * 1e-6),
+      });
     // such vote will not affect total payout
     if (!rShares) continue;
     // net_rshares sum of all post active_votes rshares negative and positive
@@ -113,6 +137,7 @@ module.exports = {
   getDynamicGlobalProperties,
   getCurrentPriceInfo,
   calculateVotePower,
+  getProcessedVotes,
   getMutedList,
   getUsers,
   getUser,

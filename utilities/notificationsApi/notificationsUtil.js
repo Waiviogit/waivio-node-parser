@@ -138,12 +138,14 @@ const rejectUpdate = async (data) => {
   });
 };
 
-const getNameFromFields = (fields) => _
-  .chain(fields)
-  .filter((field) => field.name === 'name')
-  .sortBy('weight')
-  .first()
-  .value().body;
+const getNameFromFields = (fields) => {
+  const result = _.chain(fields)
+    .filter((field) => field.name === 'name')
+    .sortBy('weight')
+    .first()
+    .value();
+  return _.get(result, 'body');
+};
 
 module.exports = {
   reblog, follow, reply, custom, post, restaurantStatus, rejectUpdate,

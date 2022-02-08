@@ -14,6 +14,7 @@ exports.MAIN_OPS = {
   CHANGE_RECOVERY_ACCOUNT: 'change_recovery_account',
   TRANSFER_FROM_SAVINGS: 'transfer_from_savings',
   CLAIM_REWARD_BALANCE: 'claim_reward_balance',
+  DELETE_COMMENT: 'delete_comment',
 };
 
 exports.CUSTOM_JSON_OPS = {
@@ -51,6 +52,7 @@ exports.CUSTOM_JSON_OPS = {
   GUEST_HIDE_POST: 'waivio_guest_hide_post',
   GUEST_HIDE_COMMENT: 'waivio_guest_hide_comment',
   WEBSITE_REFERRAL_PAYMENTS: 'website_referral_payments',
+  WAIVIO_HIVE_ENGINE: 'waivio_hive_engine',
 };
 
 exports.BELL_NOTIFICATIONS = {
@@ -61,6 +63,12 @@ exports.BELL_NOTIFICATIONS = {
 exports.VOTE_TYPES = {
   APPEND_WOBJ: 'append_wobj',
   POST_WITH_WOBJ: 'post_with_wobj',
+};
+
+exports.REDIS_KEYS = {
+  PROCESSED_LIKES: 'processed_likes',
+  CURRENT_PRICE_INFO: 'current_price_info',
+  DYNAMIC_GLOBAL_PROPERTIES: 'dynamic_global_properties',
 };
 
 exports.HIDE_ACTION = {

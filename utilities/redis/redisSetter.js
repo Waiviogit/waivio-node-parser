@@ -65,13 +65,22 @@ const setLastBlockNum = async (blockNum, redisKey) => {
 const setExpiredPostTTL = async (name, id, timer, value = '') => {
   await expiredPostsClient.setAsync(`expire-${name}:${id}`, value, 'EX', timer);
 };
+
 const addTagCategory = async ({ categoryName, objectType, tags }) => tagCategoriesClient.zaddAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${objectType}:${categoryName}`, tags);
+
 const hmsetAsync = async (key, data, client = lastBlockClient) => client.hmsetAsync(key, data);
 
 const sadd = async (key, data, client = expiredPostsClient) => client.saddAsync(key, data);
 
+const zremrangebyscore = async ({
+  key, start, end, client = expiredPostsClient,
+}) => client.zremrangebyscoreAsync(key, start, end);
+
+const expire = async (key, time, client = expiredPostsClient) => client.expireAsync(key, time);
+
 module.exports = {
   setExpiredPostTTL,
+  zremrangebyscore,
   setLastBlockNum,
   addPostWithWobj,
   addTagCategory,
@@ -80,4 +89,5 @@ module.exports = {
   addWobjRef,
   hmsetAsync,
   sadd,
+  expire,
 };

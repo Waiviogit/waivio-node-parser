@@ -167,7 +167,10 @@ const findOrCreatePost = async ({ author, permlink }) => {
     if (dbPost) return { post: dbPost };
 
     const { post: newPost, error: parsePostError } = await postWithObjectParser
-      .parse(_.pick(post, ['author', 'permlink', 'body', 'json_metadata', 'title', 'parent_permlink', 'parent_author']), jsonHelper.parseJson(post.json_metadata));
+      .parse({
+        operation: _.pick(post, ['author', 'permlink', 'body', 'json_metadata', 'title', 'parent_permlink', 'parent_author']),
+        metadata: jsonHelper.parseJson(post.json_metadata),
+      });
 
     if (parsePostError) return { err: parsePostError };
     return { post: newPost };

@@ -1,10 +1,14 @@
 const config = require('config');
 const {
-  objectTypeParser, commentParser, createObjectParser, expect, sinon,
+  objectTypeParser, commentParser, createObjectParser, expect, sinon, faker, Post,
 } = require('test/testHelper');
-
-const { AppFactory } = require('test/factories');
-const { getCreateObjectTypeMocks, getCreateObjectMocks } = require('./mocks');
+const redisQueue = require('utilities/redis/rsmq/redisQueue');
+const _ = require('lodash');
+const { AppFactory, PostFactory } = require('test/factories');
+const { REDIS_QUEUE_DELETE_COMMENT } = require('constants/common');
+const {
+  getCreateObjectTypeMocks, getCreateObjectMocks, mockDeleteCommentOp, mockMetadataDeleteComment,
+} = require('./mocks');
 
 describe('comment parser', async () => {
   describe('when get operation with "parent_author"', async () => {
@@ -89,6 +93,78 @@ describe('comment parser', async () => {
           const expectedArg = JSON.parse(mockOp.json_metadata);
           expect(secondArg).to.deep.equal(expectedArg);
         });
+      });
+    });
+  });
+
+  describe('On deleteComment', async () => {
+    let operation, metadata, result;
+    beforeEach(async () => {
+      operation = mockDeleteCommentOp();
+      metadata = mockMetadataDeleteComment();
+      await PostFactory.Create({
+        root_author: operation.author,
+        permlink: operation.permlink,
+        additionsForMetadata: metadata,
+      });
+      sinon.spy(redisQueue, 'sendMessageToQueue');
+    });
+    afterEach(() => {
+      sinon.restore();
+    });
+    describe('On error or empty metadata', async () => {
+      it('should return false on validation operation failed', async () => {
+        result = await commentParser.deleteComment(_.pick(operation, _.sample(['author', 'permlink'])));
+        expect(result).to.be.equal(false);
+      });
+
+      it('should return false if post not found', async () => {
+        operation[_.sample(['author', 'permlink'])] = faker.name.firstName().toLowerCase();
+        result = await commentParser.deleteComment(operation);
+        expect(result).to.be.equal(false);
+      });
+
+      it('should return false if post not have campaignId or reservation_permlink', async () => {
+        const newMetadata = JSON.stringify(_.pick(metadata, _.sample(['campaignId', 'reservation_permlink'])));
+        await Post.updateOne(
+          {
+            root_author: operation.author,
+            permlink: operation.permlink,
+          },
+          { json_metadata: newMetadata },
+        );
+
+        result = await commentParser.deleteComment(operation);
+        expect(result).to.be.equal(false);
+      });
+    });
+
+    describe('On ok', async () => {
+      it('should return true', async () => {
+        result = await commentParser.deleteComment(operation);
+        expect(result).to.be.equal(true);
+      });
+
+      it('should call redisQueue sendMessageToQueue called once', async () => {
+        await commentParser.deleteComment(operation);
+        expect(redisQueue.sendMessageToQueue).to.be.calledOnce;
+      });
+
+      it('should call redisQueue sendMessageToQueue with proper params', async () => {
+        await commentParser.deleteComment(operation);
+        expect(redisQueue.sendMessageToQueue).to.be.calledWith({
+          message: JSON.stringify(metadata),
+          qname: REDIS_QUEUE_DELETE_COMMENT,
+        });
+      });
+
+      it('should post not exists', async () => {
+        await commentParser.deleteComment(operation);
+        const post = await Post.findOne({
+          root_author: operation.author,
+          permlink: operation.permlink,
+        });
+        expect(post).to.not.exist;
       });
     });
   });
