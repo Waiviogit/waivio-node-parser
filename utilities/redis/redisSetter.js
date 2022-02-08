@@ -65,7 +65,8 @@ const setLastBlockNum = async (blockNum, redisKey) => {
 const setExpiredPostTTL = async (name, id, timer, value = '') => {
   await expiredPostsClient.setAsync(`expire-${name}:${id}`, value, 'EX', timer);
 };
-const addTagCategory = async ({ categoryName, tags }) => tagCategoriesClient.zaddAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${categoryName}`, tags);
+
+const addTagCategory = async ({ categoryName, objectType, tags }) => tagCategoriesClient.zaddAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${objectType}:${categoryName}`, tags);
 
 const hmsetAsync = async (key, data, client = lastBlockClient) => client.hmsetAsync(key, data);
 
