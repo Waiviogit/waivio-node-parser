@@ -15,4 +15,5 @@ module.exports = {
   userParsers: require('./userParsers'),
   voteParser: require('./voteParser'),
   mainParser: require('./mainParser'),
+  delgationsParser: require('./delgationsParser'),
 };

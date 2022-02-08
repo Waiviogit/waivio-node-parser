@@ -15,7 +15,7 @@ const sendNotification = async (operation) => {
     block: await redisGetter.getLastBlockNum(),
     data: operation.data,
   };
-  request(reqData);
+  await request(reqData);
 };
 
 const request = async (reqData) => {
@@ -148,5 +148,5 @@ const getNameFromFields = (fields) => {
 };
 
 module.exports = {
-  reblog, follow, reply, custom, post, restaurantStatus, rejectUpdate,
+  reblog, follow, reply, custom, post, restaurantStatus, rejectUpdate, sendNotification,
 };
