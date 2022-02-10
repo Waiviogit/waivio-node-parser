@@ -194,7 +194,7 @@ const processingParent = async (authorPermlink, app) => {
   }
 };
 
-const checkExistingTags = async (tagCategories = []) => {
+const checkExistingTags = async (tagCategories = [], objectType) => {
   for (const category of tagCategories) {
     const existingTags = await redisGetter.getTagCategories(`tagCategory:${category.body}`);
     const newTags = _
@@ -202,7 +202,7 @@ const checkExistingTags = async (tagCategories = []) => {
     if (!newTags.length) continue;
     let tags = [];
     for (const tag of newTags) tags = _.concat(tags, [0, tag.name]);
-    await redisSetter.addTagCategory({ categoryName: category.body, tags });
+    await redisSetter.addTagCategory({ categoryName: category.body, objectType, tags });
   }
 };
 
@@ -228,7 +228,7 @@ const updateTagCategories = async (authorPermlink) => {
       return result;
     }, [])
     .value();
-  await checkExistingTags(tagCategories);
+  await checkExistingTags(tagCategories, tagCategoriesWobj.object_type);
 };
 
 const setMapToChildren = async (authorPermlink, map) => {
