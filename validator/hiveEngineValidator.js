@@ -3,6 +3,7 @@ const Joi = require('@hapi/joi');
 const options = { allowUnknown: true, stripUnknown: true };
 
 exports.createDepositSchema = Joi.object().keys({
+  transactionId: Joi.string().required(),
   userName: Joi.string().required(),
   from_coin: Joi.string().required(),
   to_coin: Joi.string().required(),
@@ -13,4 +14,5 @@ exports.createDepositSchema = Joi.object().keys({
   account: Joi.string(),
   memo: Joi.string(),
   blockNum: Joi.number().required(),
+  operation: Joi.string(),
 }).xor('address', 'account').options(options);

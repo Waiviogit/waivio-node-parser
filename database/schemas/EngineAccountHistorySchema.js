@@ -18,12 +18,12 @@ const EngineAccountHistorySchema = new Schema({
   tokenState: { type: String },
   authorperm: { type: String },
   rewardPoolId: { type: Number },
-  userName: { type: String, required: true, index: true },
-  destination: { type: String, required: true },
-  pair: { type: String, required: true },
+  destination: { type: String },
+  depositAccount: { type: String },
+  pair: { type: String },
   address: { type: String },
   memo: { type: String },
-  ex_rate: { type: Number, required: true },
+  ex_rate: { type: Number },
 });
 
 EngineAccountHistorySchema.index({ account: 1 });
