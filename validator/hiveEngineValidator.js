@@ -4,15 +4,15 @@ const options = { allowUnknown: true, stripUnknown: true };
 
 exports.createDepositSchema = Joi.object().keys({
   transactionId: Joi.string().required(),
-  userName: Joi.string().required(),
-  from_coin: Joi.string().required(),
-  to_coin: Joi.string().required(),
+  account: Joi.string().required(),
+  symbolIn: Joi.string().required(),
+  symbolOut: Joi.string().required(),
   destination: Joi.string().required(),
   pair: Joi.string().required(),
   ex_rate: Joi.number().required(),
   address: Joi.string(),
-  account: Joi.string(),
+  depositAccount: Joi.string(),
   memo: Joi.string(),
-  blockNum: Joi.number().required(),
+  refHiveBlockNumber: Joi.number().required(),
   operation: Joi.string(),
-}).xor('address', 'account').options(options);
+}).xor('address', 'depositAccount').options(options);

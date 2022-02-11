@@ -10,18 +10,21 @@ exports.create = async (payload, operation, blockNum, transactionId) => {
   const { error, value } = hiveEngineValidator
     .createDepositSchema
     .validate({
-      userName, blockNum, ...payload, operation: operation.id, transactionId,
+      account: userName,
+      destination: payload.destination,
+      pair: payload.pair,
+      ex_rate: payload.ex_rate,
+      memo: payload.memo,
+      symbolIn: payload.from_coin,
+      symbolOut: payload.to_coin,
+      refHiveBlockNumber: blockNum,
+      depositAccount: payload.account,
+      operation: operation.id,
+      transactionId,
+      address: payload.address,
     });
 
   if (error) return;
 
-  const result = _.omit(value, ['blockNum', 'from_coin', 'to_coin', 'account', 'userName']);
-  result.refHiveBlockNumber = value.blockNum;
-  result.symbolOut = value.from_coin;
-  result.account = value.userName;
-  result.symbolIn = value.to_coin;
-  if (value.account) {
-    result.depositAccount = value.account;
-  }
-  await EngineAccountHistory.create(result);
+  await EngineAccountHistory.create(value);
 };
