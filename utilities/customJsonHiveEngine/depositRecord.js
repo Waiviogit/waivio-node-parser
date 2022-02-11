@@ -1,6 +1,5 @@
 const { REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 const { hiveEngineValidator } = require('validator');
-// const { engineDepositModel } = require('models');
 const { EngineAccountHistory } = require('models');
 const _ = require('lodash');
 
