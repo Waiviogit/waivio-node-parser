@@ -3,7 +3,8 @@ const { hiveEngineValidator } = require('validator');
 const { EngineAccountHistory } = require('models');
 const _ = require('lodash');
 
-exports.create = async (payload, operation, blockNum, transactionId) => {
+exports.create = async (data, operation, blockNum, transactionId) => {
+  const { payload, action } = data;
   const userName = _.get(operation, REQUIRED_POSTING_AUTHS);
 
   const { error, value } = hiveEngineValidator
@@ -18,7 +19,7 @@ exports.create = async (payload, operation, blockNum, transactionId) => {
       symbolOut: payload.to_coin,
       refHiveBlockNumber: blockNum,
       depositAccount: payload.account,
-      operation: operation.id,
+      operation: action,
       transactionId,
       address: payload.address,
     });

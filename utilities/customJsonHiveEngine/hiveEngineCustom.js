@@ -4,7 +4,7 @@ const depositRecord = require('./depositRecord');
 
 exports.parse = async (operation, blockNum, transaction_id) => {
   const data = jsonHelper.parseJson(operation.json);
-  await (execute[data.action] || execute.default)(data.payload, operation, blockNum, transaction_id);
+  await (execute[data.action] || execute.default)(data, operation, blockNum, transaction_id);
 };
 
 const execute = {
