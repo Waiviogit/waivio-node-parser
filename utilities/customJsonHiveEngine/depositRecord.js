@@ -1,12 +1,12 @@
 const { REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 const { hiveEngineValidator } = require('validator');
 const { EngineAccountHistory } = require('models');
+const moment = require('moment');
 const _ = require('lodash');
 
-exports.create = async (data, operation, blockNum, transactionId) => {
+exports.create = async (data, operation, blockNum, transactionId, timestamp) => {
   const { payload, action } = data;
   const userName = _.get(operation, REQUIRED_POSTING_AUTHS);
-
   const { error, value } = hiveEngineValidator
     .createDepositSchema
     .validate({
@@ -22,6 +22,7 @@ exports.create = async (data, operation, blockNum, transactionId) => {
       operation: action,
       transactionId,
       address: payload.address,
+      timestamp: moment(timestamp).unix(),
     });
 
   if (error) return;

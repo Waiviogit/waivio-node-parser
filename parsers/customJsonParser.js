@@ -6,7 +6,7 @@ const { customJsonOperations } = require('utilities/guestOperations');
 const { CUSTOM_JSON_OPS } = require('constants/parsersData');
 const hiveEngineCustom = require('utilities/customJsonHiveEngine/hiveEngineCustom');
 
-exports.parse = async (operation, blockNum, transaction_id) => {
+exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
   switch (operation.id) {
     case CUSTOM_JSON_OPS.FOLLOW_WOBJECT:
       await followObjectParser.parse(operation);
@@ -112,7 +112,7 @@ exports.parse = async (operation, blockNum, transaction_id) => {
       break;
     /** Hive engine */
     case CUSTOM_JSON_OPS.WAIVIO_HIVE_ENGINE:
-      await hiveEngineCustom.parse(operation, blockNum, transaction_id);
+      await hiveEngineCustom.parse(operation, blockNum, transaction_id, timestamp);
       break;
   }
 };
