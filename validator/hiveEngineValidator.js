@@ -15,4 +15,5 @@ exports.createDepositSchema = Joi.object().keys({
   memo: Joi.string(),
   refHiveBlockNumber: Joi.number().required(),
   operation: Joi.string(),
+  timestamp: Joi.number(),
 }).xor('address', 'depositAccount').options(options);
