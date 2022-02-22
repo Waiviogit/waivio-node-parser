@@ -1,6 +1,6 @@
 const Joi = require('@hapi/joi');
 
-const options = { allowUnknown: true, stripUnknown: true, abortEarly: false };
+const options = { allowUnknown: true, stripUnknown: true };
 
 exports.createDepositSchema = Joi.object().keys({
   transactionId: Joi.string().required(),
