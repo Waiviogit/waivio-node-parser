@@ -7,6 +7,7 @@ const _ = require('lodash');
 exports.create = async (data, operation, blockNum, transactionId, timestamp) => {
   const { payload, action } = data;
   const userName = _.get(operation, REQUIRED_POSTING_AUTHS);
+
   const { error, value } = hiveEngineValidator
     .createDepositSchema
     .validate({
@@ -18,10 +19,11 @@ exports.create = async (data, operation, blockNum, transactionId, timestamp) => 
       symbolIn: payload.from_coin,
       symbolOut: payload.to_coin,
       refHiveBlockNumber: blockNum,
-      depositAccount: payload.account,
       operation: action,
       transactionId,
-      address: payload.address,
+      ...(payload.account && { depositAccount: payload.account }),
+      ...(payload.memo && { memo: JSON.stringify(payload.memo) }),
+      ...(payload.address && { address: payload.address }),
       timestamp: moment(timestamp).unix(),
     });
 

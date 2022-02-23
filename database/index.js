@@ -35,7 +35,6 @@ module.exports = {
     HiddenComment: require('./schemas/HiddenCommentSchema'),
     MutedUser: require('./schemas/MutedUserSchema'),
     AirdropWAIV: require('./schemas/AirdropWAIV'),
-    EngineDeposit: require('./schemas/EngineDepositSchema'),
     EngineAccountHistory: require('./schemas/EngineAccountHistorySchema'),
   },
 };

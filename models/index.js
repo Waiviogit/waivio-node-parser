@@ -18,5 +18,4 @@ module.exports = {
   hiddenPostModel: require('./hiddenPostModel'),
   hiddenCommentModel: require('./hiddenCommentModel'),
   mutedUserModel: require('./mutedUserModel'),
-  engineDepositModel: require('./engineDepositModel'),
 };
