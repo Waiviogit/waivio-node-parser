@@ -7,7 +7,7 @@ const _ = require('lodash');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
-const parseSwitcher = async (transactions) => {
+const parseSwitcher = async (transactions, timestamp) => {
   const votesOps = [];
 
   for (const transaction of transactions) {
@@ -23,7 +23,7 @@ const parseSwitcher = async (transactions) => {
               await commentParser.deleteComment(operation[1]);
               break;
             case MAIN_OPS.CUSTOM_JSON:
-              await customJsonParser.parse(operation[1], transaction.block_num);
+              await customJsonParser.parse(operation[1], transaction.block_num, transaction.transaction_id,timestamp);
               break;
             case MAIN_OPS.ACCOUNT_UPDATE:
             case MAIN_OPS.ACCOUNT_UPDATE2:

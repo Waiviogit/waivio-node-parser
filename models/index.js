@@ -9,6 +9,7 @@ module.exports = {
   UserWobjects: require('./UserWobjectsModel'),
   Subscriptions: require('./SubscriptionModel'),
   Campaign: require('./CampaignModel'),
+  EngineAccountHistory: require('./EngineAccountHistoryModel'),
   paymentHistoriesModel: require('./PaymentHistoriesModel'),
   wobjectSubscriptions: require('./wobjectSubscriptionModel'),
   websitePayments: require('./websitesPaymentsModel'),
@@ -17,5 +18,4 @@ module.exports = {
   hiddenPostModel: require('./hiddenPostModel'),
   hiddenCommentModel: require('./hiddenCommentModel'),
   mutedUserModel: require('./mutedUserModel'),
-  engineDepositModel: require('./engineDepositModel'),
 };
