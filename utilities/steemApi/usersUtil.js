@@ -61,7 +61,7 @@ const getProcessedVotes = async (votes) => {
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
 
-  const expire = moment().subtract(1, 'days').valueOf();
+  const expire = moment().subtract(1, 'hour').valueOf();
   await redisSetter.zremrangebyscore({ key: REDIS_KEYS.PROCESSED_LIKES, start: -Infinity, end: expire });
   const votesProcessedOnApi = await getProcessedVotes(votesOps);
 
@@ -91,14 +91,15 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
       vote.rshares = rShares || 1;
       continue;
     }
+    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
     vote.rshares = rShares;
     const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
     if (processed) continue;
-    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
+
     voteInPost
       ? Object.assign(
         voteInPost,
-        { rshares: Math.round(rShares), weight: Math.round(rShares * 1e-6) },
+        handleVoteInPost({ vote, voteInPost, rshares: rShares }),
       )
       : post.active_votes.push({
         voter: vote.voter,
@@ -107,9 +108,14 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
         weight: Math.round(rShares * 1e-6),
       });
     // such vote will not affect total payout
-    if (!rShares) continue;
+    if (!rShares && !voteInPost) continue;
     // net_rshares sum of all post active_votes rshares negative and positive
-    const tRShares = parseFloat(_.get(post, 'net_rshares', 0)) + rShares;
+    const tRShares = getPostNetRshares({
+      netRshares: parseFloat(_.get(post, 'net_rshares', 0)),
+      weight: vote.weight,
+      rshares: rShares,
+      voteInPost,
+    });
 
     const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
     // *price - to calculate in HBD
@@ -119,6 +125,35 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     post.pending_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
   }
   return posts;
+};
+
+const getPostNetRshares = ({
+  netRshares, weight, rshares, voteInPost,
+}) => {
+  if (voteInPost && weight === 0) {
+    return netRshares - voteInPost.rshares;
+  }
+  if (voteInPost) {
+    return netRshares - voteInPost.rshares + rshares;
+  }
+  return netRshares + rshares;
+};
+
+const handleVoteInPost = ({ vote, voteInPost, rshares }) => {
+  if (vote.weight === 0) {
+    return {
+      ...voteInPost,
+      percent: 0,
+      rshares: 0,
+      weight: 0,
+    };
+  }
+  return {
+    ...voteInPost,
+    rshares: Math.round(rshares),
+    weight: Math.round(rshares * 1e-6),
+    percent: vote.weight,
+  };
 };
 
 const getMutedList = async (name) => {
