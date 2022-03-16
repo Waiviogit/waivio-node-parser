@@ -69,7 +69,6 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     if (!vote.type) continue;
     const account = _.find(hiveAccounts, (el) => el.name === vote.voter);
     const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author) && p.permlink === vote.permlink);
-    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
     if (!account) continue;
     const voteWeight = vote.weight / 100;
     const decreasedPercent = ((voteWeight * 2) / 100);
@@ -92,6 +91,7 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
       vote.rshares = rShares || 1;
       continue;
     }
+    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
     vote.rshares = rShares;
     const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
     if (processed) continue;
