@@ -61,7 +61,7 @@ const getProcessedVotes = async (votes) => {
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
 
-  const expire = moment().subtract(1, 'days').valueOf();
+  const expire = moment().subtract(1, 'hour').valueOf();
   await redisSetter.zremrangebyscore({ key: REDIS_KEYS.PROCESSED_LIKES, start: -Infinity, end: expire });
   const votesProcessedOnApi = await getProcessedVotes(votesOps);
 
