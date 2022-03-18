@@ -61,8 +61,6 @@ const getProcessedVotes = async (votes) => {
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
 
-  const expire = moment().subtract(1, 'hour').valueOf();
-  await redisSetter.zremrangebyscore({ key: REDIS_KEYS.PROCESSED_LIKES, start: -Infinity, end: expire });
   const votesProcessedOnApi = await getProcessedVotes(votesOps);
 
   for (const vote of votesOps) {
@@ -94,8 +92,14 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
     vote.rshares = rShares;
     const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
-    if (processed) continue;
-
+    if (processed) {
+      await redisSetter.zrem({
+        key: REDIS_KEYS.PROCESSED_LIKES,
+        member: `${vote.voter}:${vote.author}:${vote.permlink}`,
+      });
+      continue;
+    }
+    const voteInPostRshares = _.get(voteInPost, 'rshares');
     voteInPost
       ? Object.assign(
         voteInPost,
@@ -113,8 +117,8 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     const tRShares = getPostNetRshares({
       netRshares: parseFloat(_.get(post, 'net_rshares', 0)),
       weight: vote.weight,
+      voteInPostRshares,
       rshares: rShares,
-      voteInPost,
     });
 
     const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
@@ -128,13 +132,13 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
 };
 
 const getPostNetRshares = ({
-  netRshares, weight, rshares, voteInPost,
+  netRshares, weight, rshares, voteInPostRshares,
 }) => {
-  if (voteInPost && weight === 0) {
-    return netRshares - voteInPost.rshares;
+  if (voteInPostRshares && weight === 0) {
+    return netRshares - voteInPostRshares;
   }
-  if (voteInPost) {
-    return netRshares - voteInPost.rshares + rshares;
+  if (voteInPostRshares) {
+    return netRshares - voteInPostRshares + rshares;
   }
   return netRshares + rshares;
 };
