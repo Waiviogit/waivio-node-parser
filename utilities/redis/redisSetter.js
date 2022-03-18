@@ -76,6 +76,10 @@ const zremrangebyscore = async ({
   key, start, end, client = expiredPostsClient,
 }) => client.zremrangebyscoreAsync(key, start, end);
 
+const zrem = async ({
+  key, member, client = expiredPostsClient,
+}) => client.zremAsync(key, member);
+
 const expire = async (key, time, client = expiredPostsClient) => client.expireAsync(key, time);
 
 module.exports = {
@@ -90,4 +94,5 @@ module.exports = {
   hmsetAsync,
   sadd,
   expire,
+  zrem,
 };

@@ -61,8 +61,6 @@ const getProcessedVotes = async (votes) => {
 const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
   const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
 
-  const expire = moment().subtract(1, 'hour').valueOf();
-  await redisSetter.zremrangebyscore({ key: REDIS_KEYS.PROCESSED_LIKES, start: -Infinity, end: expire });
   const votesProcessedOnApi = await getProcessedVotes(votesOps);
 
   for (const vote of votesOps) {
@@ -94,8 +92,13 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
     vote.rshares = rShares;
     const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
-    if (processed) continue;
-
+    if (processed) {
+      await redisSetter.zrem({
+        key: REDIS_KEYS.PROCESSED_LIKES,
+        member: `${vote.voter}:${vote.author}:${vote.permlink}`,
+      });
+      continue;
+    }
     voteInPost
       ? Object.assign(
         voteInPost,
