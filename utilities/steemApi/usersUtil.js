@@ -99,6 +99,7 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
       });
       continue;
     }
+    const voteInPostRshares = _.get(voteInPost, 'rshares');
     voteInPost
       ? Object.assign(
         voteInPost,
@@ -116,8 +117,8 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
     const tRShares = getPostNetRshares({
       netRshares: parseFloat(_.get(post, 'net_rshares', 0)),
       weight: vote.weight,
+      voteInPostRshares,
       rshares: rShares,
-      voteInPost,
     });
 
     const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
@@ -131,13 +132,13 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
 };
 
 const getPostNetRshares = ({
-  netRshares, weight, rshares, voteInPost,
+  netRshares, weight, rshares, voteInPostRshares,
 }) => {
-  if (voteInPost && weight === 0) {
-    return netRshares - voteInPost.rshares;
+  if (voteInPostRshares && weight === 0) {
+    return netRshares - voteInPostRshares;
   }
-  if (voteInPost) {
-    return netRshares - voteInPost.rshares + rshares;
+  if (voteInPostRshares) {
+    return netRshares - voteInPostRshares + rshares;
   }
   return netRshares + rshares;
 };
