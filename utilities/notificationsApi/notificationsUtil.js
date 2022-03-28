@@ -15,7 +15,7 @@ const sendNotification = async (operation) => {
     block: await redisGetter.getLastBlockNum(),
     data: operation.data,
   };
-  await request(reqData);
+  request(reqData);
 };
 
 const request = async (reqData) => {
