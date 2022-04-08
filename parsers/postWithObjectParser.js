@@ -20,6 +20,7 @@ const {
   EXPIRE_DISTRIBUTE_HIVE_ENGINE_REWARD,
   HIVE_ENGINE_TOKEN_TAGS,
 } = require('constants/common');
+const { VOTE_FIELDS } = require('../constants/common');
 
 const parse = async ({
   operation, metadata, post, fromTTL, options,
@@ -124,10 +125,6 @@ const createOrUpdatePost = async ({
   Object.assign(hivePost, data);
 
   const hiveVoters = _.map(hivePost.active_votes, (el) => el.voter);
-
-  _.forEach(post.active_votes, (el) => {
-    if (!_.includes(hiveVoters, el.voter)) hivePost.active_votes.push(el);
-  });
   hivePost.body = hivePost.body.substr(0, 2) === '@@'
     ? mergePosts(post.body, hivePost.body)
     : hivePost.body;
@@ -137,12 +134,26 @@ const createOrUpdatePost = async ({
   if (!postWithWobjValidator.validate({ wobjects: hivePost.wobjects })) {
     return { validationError: true };
   }
-  hivePost.active_votes = hivePost.active_votes.map((vote) => ({
-    voter: vote.voter,
-    weight: Math.round(vote.rshares * 1e-6),
-    percent: vote.percent,
-    rshares: vote.rshares,
-  }));
+
+  hivePost.active_votes = _.reduce(hivePost.active_votes, (acc, item) => {
+    acc.push({
+      ..._
+        .chain(item)
+        .merge(_.pick(
+          _.find(post.active_votes, { voter: item.voter }),
+          ['rsharesWAIV'],
+        ))
+        .pick(VOTE_FIELDS)
+        .value(),
+      weight: Math.round(item.rshares * 1e-6),
+    });
+    return acc;
+  },
+  []);
+
+  _.forEach(post.active_votes, (el) => {
+    if (!_.includes(hiveVoters, el.voter)) hivePost.active_votes.push(el);
+  });
   hivePost.language = await detectPostLanguageHelper(hivePost);
   hivePost.author = data.author;
 
