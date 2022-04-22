@@ -22,7 +22,7 @@ exports.create = async (data, operation, blockNum, transactionId, timestamp) => 
       operation: action,
       transactionId,
       ...(payload.account && { depositAccount: payload.account }),
-      ...(payload.memo && { memo: JSON.stringify(payload.memo) }),
+      ...(payload.memo && { memo: typeof payload.memo === 'string' ? payload.memo : JSON.stringify(payload.memo) }),
       ...(payload.address && { address: payload.address }),
       timestamp: moment(timestamp).unix(),
     });
