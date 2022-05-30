@@ -318,5 +318,12 @@ const parseCompanyId = (companyIdFromDb) => {
 };
 
 module.exports = {
-  update, processingParent, parseMap, parseSearchData, addSearchField, parseAddress, parseName,
+  update,
+  processingParent,
+  parseMap,
+  parseSearchData,
+  addSearchField,
+  parseAddress,
+  parseName,
+  parseCompanyId,
 };

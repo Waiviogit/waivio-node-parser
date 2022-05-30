@@ -42,6 +42,7 @@ const parseSearchField = (field) => {
     [FIELDS_NAMES.DESCRIPTION]: () => _.get(field, 'body').trim(),
     [FIELDS_NAMES.TITLE]: () => _.get(field, 'body').trim(),
     [FIELDS_NAMES.CATEGORY_ITEM]: () => _.get(field, 'body'),
+    [FIELDS_NAMES.COMPANY_ID]: () => updateSpecificFieldsHelper.parseCompanyId(_.get(field, 'body')).id,
   };
   return parseSearchData[field.name]();
 };
