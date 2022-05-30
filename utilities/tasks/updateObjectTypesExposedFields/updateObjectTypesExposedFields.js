@@ -3,7 +3,6 @@ const {
   OBJECT_TYPES_FOR_COMPANY,
   FIELDS_NAMES,
 } = require('../../../constants/wobjectsData');
-const addSearchesFields = require('../addSearchesFieldsToWobjects/addSearchesFieldsToWobjects');
 
 exports.updateObjectTypes = async () => {
   try {
