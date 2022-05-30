@@ -1,13 +1,10 @@
 const { ObjectType } = require('database').models;
-const {
-  OBJECT_TYPES_FOR_COMPANY,
-  FIELDS_NAMES,
-} = require('../../../constants/wobjectsData');
 
-exports.updateObjectTypes = async () => {
+exports.updateObjectTypes = async (updateObjectTypes, fieldName) => {
   try {
-    await ObjectType.updateMany({ name: { $in: OBJECT_TYPES_FOR_COMPANY } },
-      { $addToSet: { exposedFields: FIELDS_NAMES.COMPANY_ID } });
+    await ObjectType.updateMany({ name: { $in: updateObjectTypes } },
+      { $addToSet: { exposedFields: fieldName } });
+    console.log('task completed');
   } catch (error) {
     console.log('Saving error', error);
     console.log('task completed');
