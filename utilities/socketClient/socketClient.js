@@ -15,15 +15,12 @@ class SocketClient {
     this.ws.on('close', () => {
       this.ws = new WebSocket(url);
     });
-
-    this.ws.on('error', (data) => {
-      console.log(data);
-    });
   }
 
   sendMessage(message) {
     if (this.ws.readyState !== 1) {
       this.ws = new WebSocket(this.url);
+      return;
     }
     this.ws.send(message);
   }
