@@ -5,6 +5,7 @@ const {
 
 class SocketClient {
   constructor(url) {
+    this.url = url;
     this.ws = new WebSocket(url);
 
     this.ws.on('open', () => {
@@ -21,6 +22,9 @@ class SocketClient {
   }
 
   sendMessage(message) {
+    if (this.ws.readyState !== 1) {
+      this.ws = new WebSocket(this.url);
+    }
     this.ws.send(message);
   }
 }
