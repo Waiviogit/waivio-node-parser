@@ -3,23 +3,25 @@ const {
   BASE_URL, WS,
 } = require('constants/appData').notificationsApi;
 
+const { API_KEY } = process.env;
+
 class SocketClient {
   constructor(url) {
     this.url = url;
-    this.ws = new WebSocket(url);
+    this.ws = new WebSocket(this.url, [], { headers: { API_KEY } });
 
     this.ws.on('open', () => {
       console.info('socket connection open');
     });
 
     this.ws.on('close', () => {
-      this.ws = new WebSocket(url);
+      this.ws = new WebSocket(this.url, [], { headers: { API_KEY } });
     });
   }
 
   sendMessage(message) {
     if (this.ws.readyState !== 1) {
-      this.ws = new WebSocket(this.url);
+      this.ws = new WebSocket(this.url, [], { headers: { API_KEY } });
       return;
     }
     this.ws.send(message);
