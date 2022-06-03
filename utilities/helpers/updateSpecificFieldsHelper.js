@@ -252,7 +252,7 @@ const parseSearchData = (metadata) => {
   const searchFields = [];
   switch (fieldName) {
     case FIELDS_NAMES.NAME:
-      searchFields.push(...parseName(_.get(metadata, 'wobj.field.body', '')));
+      searchFields.push(parseName(_.get(metadata, 'wobj.field.body', '')));
       break;
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.TITLE:
@@ -274,6 +274,8 @@ const parseSearchData = (metadata) => {
 
       searchFields.push(id);
   }
+  console.log('searchFields', searchFields);
+  console.log('typeof searchFields', typeof searchFields);
   return searchFields;
 };
 
@@ -304,7 +306,7 @@ const parseAddress = (addressFromDB) => {
   return { addresses: [addressWithoutSpaces, addressWithSpaces] };
 };
 
-const parseName = (rawName) => [rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
+const parseName = (rawName) => createEdgeNGrams([rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')], FIELDS_NAMES.NAME);
 
 const parseCompanyId = (companyIdFromDb) => {
   let rawCompanyId;
@@ -315,6 +317,46 @@ const parseCompanyId = (companyIdFromDb) => {
   } catch (error) {
     return { error };
   }
+};
+
+const createEdgeNGrams = (str, field) => {
+  // как-то сделать шоб тут была либо строка, либо массив...? или прогнаться циклом по массиву внутри функции парсинга имени?
+  console.log('str', str);
+  console.log('field', field);
+  if (str && str.length > 3) {
+    const minGram = 3;
+    const maxGram = str.length;
+
+    if (field === FIELDS_NAMES.NAME) {
+      console.log('in if');
+      return str.reduce((ngrams, token) => {
+        if (token.length > minGram) {
+          for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
+            ngrams = [...ngrams, token.substr(0, i)];
+          }
+        } else {
+          ngrams = [...ngrams, token];
+        }
+
+        return ngrams;
+      }, []);
+    }
+    console.log('after if');
+
+    return str.split(' ').reduce((ngrams, token) => {
+      if (token.length > minGram) {
+        for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
+          ngrams = [...ngrams, token.substr(0, i)];
+        }
+      } else {
+        ngrams = [...ngrams, token];
+      }
+
+      return ngrams;
+    }, []).join(' ');
+  }
+
+  return str;
 };
 
 module.exports = {
