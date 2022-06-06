@@ -193,9 +193,17 @@ const findOne = async (name) => {
   }
 };
 
-const find = async (condition) => {
+const find = async (condition, select = {}) => {
   try {
-    return { users: await UserModel.find(condition).lean() };
+    return { users: await UserModel.find(condition, select).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const createMany = async (data) => {
+  try {
+    await UserModel.create(data);
   } catch (error) {
     return { error };
   }
@@ -215,4 +223,5 @@ module.exports = {
   updateOnNewPost,
   findOne,
   find,
+  createMany,
 };
