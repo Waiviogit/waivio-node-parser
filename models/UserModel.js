@@ -204,7 +204,7 @@ const find = async (condition, select = {}) => {
 const createMany = async (data) => {
   try {
     const users = await UserModel.create(data);
-    console.log(`${data.length} users created`);
+    console.log(`${users.length} users created`);
 
     return { users };
   } catch (error) {
