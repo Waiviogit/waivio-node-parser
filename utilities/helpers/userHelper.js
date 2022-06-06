@@ -49,11 +49,12 @@ exports.checkAndCreateByArray = async (names) => {
   const { users } = await userModel.find({
     name:
       { $in: _.map(steemUsers, (user) => user.name) },
-  }, { name: 1 });
-  const notExistingUsers = users.length ? _.filter(steemUsers, (steemUser) => _.some(users,
-    (user) => user.name !== steemUser.name)) : steemUsers;
-  await userModel.createMany(_.map(notExistingUsers, (user) => _.pick(user, 'name')));
-  for (const user of steemUsers) {
+  }, { name: 1, stage_version: 1 });
+  const notExistingUsers = users.length ? _.filter(steemUsers, (steemUser) => !_.some(users,
+    (user) => _.includes(user.name, steemUser.name))) : steemUsers;
+  const { users: savedUsers } = await userModel.createMany(_.map(notExistingUsers, (user) => _.pick(user, 'name')));
+  users.push(...savedUsers);
+  for (const user of users) {
     if (_.get(user, 'stage_version') === 0) await importUser.send(user.name);
   }
 
