@@ -26,7 +26,7 @@ exports.checkAndCreateUser = async (userName) => {
   const { user, error } = await userModel.checkAndCreate(userName);
   if (error) return { error };
   if (_.get(user, 'stage_version') === 0) {
-    const { response, error: importError } = await importUser.send(userName);
+    const { error: importError } = await importUser.send(userName);
     if (importError) {
       return { error: importError };
     }
@@ -46,12 +46,18 @@ exports.checkAndCreateByArray = async (names) => {
   if (_.isEmpty(names)) return { hiveAccounts: [] };
 
   const { users: steemUsers = [] } = await usersUtil.getUsers(names);
-  for (const steemUser of steemUsers) {
-    const { user } = await userModel.checkAndCreate(steemUser.name);
-    if (_.get(user, 'stage_version') === 0) {
-      await importUser.send(user.name);
-    }
+  const { users } = await userModel.find({
+    name:
+      { $in: _.map(steemUsers, (user) => user.name) },
+  }, { name: 1, stage_version: 1 });
+  const notExistingUsers = users.length ? _.filter(steemUsers, (steemUser) => !_.some(users,
+    (user) => _.includes(user.name, steemUser.name))) : steemUsers;
+  const { users: savedUsers } = await userModel.createMany(_.map(notExistingUsers, (user) => _.pick(user, 'name')));
+  if (savedUsers && savedUsers.length) users.push(...savedUsers);
+  for (const user of users) {
+    if (_.get(user, 'stage_version') === 0) await importUser.send(user.name);
   }
+
   return { hiveAccounts: steemUsers };
 };
 

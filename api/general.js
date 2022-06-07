@@ -82,7 +82,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     if (blockNum >= lastBlockNumMainParse - 1) return false;
   }
 
-  const { block, error } = await blocksUtil.getBlock(blockNum, CURRENT_NODE);
+  const { block, error } = await getBlock(blockNum, CURRENT_NODE);
 
   if (error) {
     console.error(error);
