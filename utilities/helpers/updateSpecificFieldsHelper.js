@@ -31,6 +31,7 @@ const update = async ({
       });
       break;
     case FIELDS_NAMES.NAME:
+      // description & title отдельно!!! не нграмить!!!
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
       await addSearchField({
@@ -258,10 +259,10 @@ const parseSearchData = (metadata) => {
     case FIELDS_NAMES.TITLE:
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.CATEGORY_ITEM:
-      searchFields.push(_.get(metadata, 'wobj.field.body', '').trim());
+      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.body', '').trim()));
       break;
     case FIELDS_NAMES.PHONE:
-      searchFields.push(_.get(metadata, 'wobj.field.number', ''));
+      searchFields.push(...createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')));
       break;
     case FIELDS_NAMES.ADDRESS:
       const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
@@ -269,7 +270,7 @@ const parseSearchData = (metadata) => {
       searchFields.push(...addresses);
       break;
     case FIELDS_NAMES.COMPANY_ID:
-      const { id, error } = parseCompanyId(_.get(metadata, 'wobj.field.body', ''));
+      const { id, error } = parseCompanyId((_.get(metadata, 'wobj.field.body', '')));
       if (error) return { err: error };
 
       searchFields.push(id);
@@ -303,13 +304,19 @@ const parseAddress = (addressFromDB) => {
     .replace(/^,*/, '')
     .replace(/[,\s]{2,}/, ',');
   const addressWithSpaces = addressWithoutSpaces.replace(/,(?=[^\s])/g, ', ');
-  return { addresses: [addressWithoutSpaces, addressWithSpaces] };
+  const addressesInNgrams = [];
+  for (const el of addressWithoutSpaces.split(',')) {
+    addressesInNgrams.push(createEdgeNGrams(el, FIELDS_NAMES.ADDRESS));
+  }
+  console.log('addressesInNgrams', addressesInNgrams);
+
+  return { addresses: addressesInNgrams };
 };
 
 const parseName = (rawName) => {
   const names = [rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
   const namesInNgrams = [];
-  for (const name of names) namesInNgrams.push(...createEdgeNGrams(name, FIELDS_NAMES.NAME));
+  for (const name of names) namesInNgrams.push(createEdgeNGrams(name, FIELDS_NAMES.NAME));
 
   return namesInNgrams;
 };
@@ -318,15 +325,17 @@ const parseCompanyId = (companyIdFromDb) => {
   let rawCompanyId;
   try {
     rawCompanyId = JSON.parse(companyIdFromDb);
+    console.log('rawCompanyId', rawCompanyId);
+    const bla = createEdgeNGrams(_.get(rawCompanyId, 'companyId'));
+    console.log('bla', bla);
 
-    return { id: _.get(rawCompanyId, 'companyId') };
+    return { id: createEdgeNGrams(_.get(rawCompanyId, 'companyId')) };
   } catch (error) {
     return { error };
   }
 };
 
 const createEdgeNGrams = (str, field) => {
-  // как-то сделать шоб тут была либо строка, либо массив...? или прогнаться циклом по массиву внутри функции парсинга имени?
   console.log('str', str);
   console.log('field', field);
   if (str && str.length > 3) {
@@ -334,8 +343,36 @@ const createEdgeNGrams = (str, field) => {
     const maxGram = str.length;
 
     if (field === FIELDS_NAMES.NAME) {
+      const arrayOfStrings = [];
       console.log('in if');
-      return str.split('').reduce((ngrams, token) => {
+      if (str.length > minGram) {
+        for (let i = minGram; i <= maxGram && i <= str.length; ++i) {
+          arrayOfStrings.push(str.substr(0, i));
+        }
+      } else {
+        arrayOfStrings.push(str);
+      }
+      console.log('arrayOfStrings', arrayOfStrings);
+      return arrayOfStrings.join(' ');
+    }
+
+    // if (field === FIELDS_NAMES.ADDRESS) {
+    //   return str.split(' ')
+    //     .reduce((ngrams, token) => {
+    //       if (token.length > minGram) {
+    //         for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
+    //           ngrams = [...ngrams, token.substr(0, i)];
+    //         }
+    //       } else {
+    //         ngrams = [...ngrams, token];
+    //       }
+    //
+    //       return ngrams;
+    //     }, []);
+    // }
+
+    return str.split(' ')
+      .reduce((ngrams, token) => {
         if (token.length > minGram) {
           for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
             ngrams = [...ngrams, token.substr(0, i)];
@@ -345,21 +382,8 @@ const createEdgeNGrams = (str, field) => {
         }
 
         return ngrams;
-      }, []);
-    }
-    console.log('after if');
-
-    return str.split(' ').reduce((ngrams, token) => {
-      if (token.length > minGram) {
-        for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
-          ngrams = [...ngrams, token.substr(0, i)];
-        }
-      } else {
-        ngrams = [...ngrams, token];
-      }
-
-      return ngrams;
-    }, []).join(' ');
+      }, [])
+      .join(' ');
   }
 
   return str;
