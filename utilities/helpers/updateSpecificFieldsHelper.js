@@ -252,7 +252,7 @@ const parseSearchData = (metadata) => {
   const searchFields = [];
   switch (fieldName) {
     case FIELDS_NAMES.NAME:
-      searchFields.push(parseName(_.get(metadata, 'wobj.field.body', '')));
+      searchFields.push(...parseName(_.get(metadata, 'wobj.field.body', '')));
       break;
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.TITLE:
@@ -306,7 +306,13 @@ const parseAddress = (addressFromDB) => {
   return { addresses: [addressWithoutSpaces, addressWithSpaces] };
 };
 
-const parseName = (rawName) => createEdgeNGrams([rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')], FIELDS_NAMES.NAME);
+const parseName = (rawName) => {
+  const names = [rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
+  const namesInNgrams = [];
+  for (const name of names) namesInNgrams.push(...createEdgeNGrams(name, FIELDS_NAMES.NAME));
+
+  return namesInNgrams;
+};
 
 const parseCompanyId = (companyIdFromDb) => {
   let rawCompanyId;
@@ -329,7 +335,7 @@ const createEdgeNGrams = (str, field) => {
 
     if (field === FIELDS_NAMES.NAME) {
       console.log('in if');
-      return str.reduce((ngrams, token) => {
+      return str.split('').reduce((ngrams, token) => {
         if (token.length > minGram) {
           for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
             ngrams = [...ngrams, token.substr(0, i)];
