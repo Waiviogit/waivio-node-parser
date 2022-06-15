@@ -25,6 +25,7 @@ const update = async ({
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.PHONE:
     case FIELDS_NAMES.ADDRESS:
+    case FIELDS_NAMES.COMPANY_ID:
       await addSearchField({
         authorPermlink, newWords: parseSearchData(metadata),
       });
@@ -267,6 +268,11 @@ const parseSearchData = (metadata) => {
       if (err) return { err };
       searchFields.push(...addresses);
       break;
+    case FIELDS_NAMES.COMPANY_ID:
+      const { id, error } = parseCompanyId(_.get(metadata, 'wobj.field.body', ''));
+      if (error) return { err: error };
+
+      searchFields.push(id);
   }
   return searchFields;
 };
@@ -300,6 +306,24 @@ const parseAddress = (addressFromDB) => {
 
 const parseName = (rawName) => [rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
 
+const parseCompanyId = (companyIdFromDb) => {
+  let rawCompanyId;
+  try {
+    rawCompanyId = JSON.parse(companyIdFromDb);
+
+    return { id: _.get(rawCompanyId, 'companyId') };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
-  update, processingParent, parseMap, parseSearchData, addSearchField, parseAddress, parseName,
+  update,
+  processingParent,
+  parseMap,
+  parseSearchData,
+  addSearchField,
+  parseAddress,
+  parseName,
+  parseCompanyId,
 };

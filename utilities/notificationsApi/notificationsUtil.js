@@ -4,8 +4,11 @@ const { redisGetter } = require('utilities/redis');
 const {
   Post, Wobj, UserWobjects, CommentModel,
 } = require('models');
-const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
+const {
+  HOST, BASE_URL, SET_NOTIFICATION, WS_SET_NOTIFICATION,
+} = require('constants/appData').notificationsApi;
 const { postsUtil } = require('utilities/steemApi');
+const { socketClient } = require('utilities/socketClient/socketClient');
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
 
@@ -15,7 +18,12 @@ const sendNotification = async (operation) => {
     block: await redisGetter.getLastBlockNum(),
     data: operation.data,
   };
-  request(reqData);
+  sendSocketNotification(reqData);
+};
+
+const sendSocketNotification = (operation) => {
+  const message = JSON.stringify({ method: WS_SET_NOTIFICATION, payload: operation });
+  socketClient.sendMessage(message);
 };
 
 const request = async (reqData) => {

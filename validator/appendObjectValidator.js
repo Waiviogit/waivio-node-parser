@@ -4,6 +4,7 @@ const { commentRefGetter } = require('utilities/commentRefService');
 const { validateUserOnBlacklist } = require('validator/userValidator');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/wobjectsData');
+const { OBJECT_TYPES_FOR_COMPANY } = require('../constants/wobjectsData');
 
 const validate = async (data, operation) => {
   if (!await validateUserOnBlacklist(operation.author)
@@ -124,7 +125,7 @@ const validateSpecifiedFields = async (data) => {
       if (!_.get(data, 'field.id')) {
         throw new Error(`Can't append ${FIELDS_NAMES.TAG_CATEGORY} ${data.field.body}, "id" is required`);
       }
-      // tagCategory must to be unique by id
+      // tagCategory must be unique by id
       const { wobject: tagCategoryWobj } = await Wobj.getOne({
         author_permlink: data.author_permlink,
       });
@@ -182,6 +183,26 @@ const validateSpecifiedFields = async (data) => {
       );
       if (field) {
         throw new Error(`Can't append ${FIELDS_NAMES.AUTHORITY} the same field from this creator is exists`);
+      }
+      break;
+
+    case FIELDS_NAMES.COMPANY_ID:
+      const { wobject: companyObject } = await Wobj.getOne({
+        author_permlink: data.author_permlink,
+      });
+      if (!_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)) {
+        throw new Error(`Can't append ${FIELDS_NAMES.COMPANY_ID} as the object type is not corresponding`);
+      }
+      const { field: companyField } = await Wobj.getField(
+        data.field.author, data.field.permlink, data.author_permlink, {
+          'fields.name': FIELDS_NAMES.COMPANY_ID,
+          'fields.creator': data.field.creator,
+        },
+      );
+      if (companyField) {
+        if (_.includes(companyField.body, data.field.body)) {
+          throw new Error(`Can't append ${FIELDS_NAMES.COMPANY_ID} as the same field from this creator exists`);
+        }
       }
       break;
   }

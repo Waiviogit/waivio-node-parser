@@ -28,6 +28,7 @@ exports.FIELDS_NAMES = {
   CHART_ID: 'chartid',
   PAGE_CONTENT: 'pageContent',
   LIST_ITEM: 'listItem',
+  COMPANY_ID: 'companyId',
 };
 
 exports.SEARCH_FIELDS = [
@@ -39,6 +40,7 @@ exports.SEARCH_FIELDS = [
   this.FIELDS_NAMES.TITLE,
   this.FIELDS_NAMES.DESCRIPTION,
   this.FIELDS_NAMES.CATEGORY_ITEM,
+  this.FIELDS_NAMES.COMPANY_ID,
 ];
 
 exports.AUTHORITY_FIELD_ENUM = {
@@ -61,6 +63,10 @@ exports.OBJECT_TYPES = {
   PLACE: 'place',
   CRYPTO: 'crypto',
   HOTEL: 'hotel',
+  ORGANIZATION: 'organization',
+  MOTEL: 'motel',
+  RESORT: 'resort',
+  BnB: 'b&b',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
@@ -102,3 +108,15 @@ exports.OBJECT_TYPES_WITH_ALBUM = [
 ];
 
 exports.WOBJECT_LATEST_POSTS_COUNT = 30;
+
+exports.OBJECT_TYPES_FOR_COMPANY = [
+  this.OBJECT_TYPES.BnB,
+  this.OBJECT_TYPES.BUSINESS,
+  this.OBJECT_TYPES.COMPANY,
+  this.OBJECT_TYPES.HOTEL,
+  this.OBJECT_TYPES.MOTEL,
+  this.OBJECT_TYPES.ORGANIZATION,
+  this.OBJECT_TYPES.PLACE,
+  this.OBJECT_TYPES.RESORT,
+  this.OBJECT_TYPES.RESTAURANT,
+];
