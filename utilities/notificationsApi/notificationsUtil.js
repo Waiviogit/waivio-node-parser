@@ -8,7 +8,7 @@ const {
   HOST, BASE_URL, SET_NOTIFICATION, WS_SET_NOTIFICATION,
 } = require('constants/appData').notificationsApi;
 const { postsUtil } = require('utilities/steemApi');
-//const { socketClient } = require('utilities/socketClient/socketClient');
+const { socketClient } = require('utilities/socketClient/socketClient');
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
 
@@ -18,7 +18,7 @@ const sendNotification = async (operation) => {
     block: await redisGetter.getLastBlockNum(),
     data: operation.data,
   };
- // sendSocketNotification(reqData);
+  sendSocketNotification(reqData);
 };
 
 const sendSocketNotification = (operation) => {

@@ -13,7 +13,7 @@ const validate = async (data, operation) => {
   }
 
   validateFields(data);
- // await validatePostLinks(operation);
+  await validatePostLinks(operation);
   await validateSameFields(data);
   await validateFieldBlacklist({ author_permlink: data.author_permlink, fieldName: _.get(data, 'field.name') });
   await validateSpecifiedFields(data, operation);

@@ -32,7 +32,6 @@ const prepareSearchFieldsToUpdate = (wobjects) => {
     field.name));
     if (!fieldsToUpdate.length) return;
 
-    // ТЕЛЕФОН МОЖЕТ БЫТЬ И В БАДИ, И ПОЛЕ НАМБЕР!!! СДЕЛАТЬ ГЕГ БАДИ ЕСЛИ ОНО НЕ ПУСТОЕ, ЗАТЕМ - НАМБЕР. ДОКИНУТЬ ПОЛЕ НАМБЕР РУКАМИ
     const parsedFields = _.filter(_.flatten(_.map(fieldsToUpdate, (field) => {
       try {
         if (_.includes(field.body, '":"')) return Object.values(JSON.parse(field.body));
