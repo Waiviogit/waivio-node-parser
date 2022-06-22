@@ -31,7 +31,6 @@ const update = async ({
       });
       break;
     case FIELDS_NAMES.NAME:
-      // description & title отдельно!!! не нграмить!!!
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
       await addSearchField({
@@ -248,35 +247,42 @@ const setMapToChildren = async (authorPermlink, map) => {
 };
 
 const parseSearchData = (metadata) => {
-  const fieldName = _.get(metadata, 'wobj.field.name');
+  const fieldName = _.get(metadata, 'wobj.field.name', '') || _.get(metadata, 'name', '');
   if (!_.includes(SEARCH_FIELDS, fieldName)) return;
+
   const searchFields = [];
   switch (fieldName) {
     case FIELDS_NAMES.NAME:
-      searchFields.push(...parseName(_.get(metadata, 'wobj.field.body', '')));
+      searchFields.push(parseName(_.get(metadata, 'wobj.field.body', '')
+          || _.get(metadata, 'body', '')));
       break;
     case FIELDS_NAMES.EMAIL:
+    case FIELDS_NAMES.CATEGORY_ITEM:
+      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.body', '').trim()
+          || _.get(metadata, 'body', '')));
+      break;
     case FIELDS_NAMES.TITLE:
     case FIELDS_NAMES.DESCRIPTION:
-    case FIELDS_NAMES.CATEGORY_ITEM:
-      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.body', '').trim()));
+      searchFields.push(_.get(metadata, 'wobj.field.body', '').trim());
       break;
     case FIELDS_NAMES.PHONE:
-      searchFields.push(...createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')));
+      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')
+          || _.get(metadata, 'number', '')));
       break;
     case FIELDS_NAMES.ADDRESS:
-      const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
+      const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', '')
+          || _.get(metadata, 'body', ''));
       if (err) return { err };
       searchFields.push(...addresses);
       break;
     case FIELDS_NAMES.COMPANY_ID:
-      const { id, error } = parseCompanyId((_.get(metadata, 'wobj.field.body', '')));
+      const { id, error } = parseCompanyId((_.get(metadata, 'wobj.field.body', '')
+          || _.get(metadata, 'body', '')));
       if (error) return { err: error };
 
       searchFields.push(id);
   }
-  console.log('searchFields', searchFields);
-  console.log('typeof searchFields', typeof searchFields);
+
   return searchFields;
 };
 
@@ -303,31 +309,24 @@ const parseAddress = (addressFromDB) => {
   const addressWithoutSpaces = address.substr(0, address.length - 1)
     .replace(/^,*/, '')
     .replace(/[,\s]{2,}/, ',');
-  const addressWithSpaces = addressWithoutSpaces.replace(/,(?=[^\s])/g, ', ');
   const addressesInNgrams = [];
   for (const el of addressWithoutSpaces.split(',')) {
     addressesInNgrams.push(createEdgeNGrams(el, FIELDS_NAMES.ADDRESS));
   }
-  console.log('addressesInNgrams', addressesInNgrams);
 
   return { addresses: addressesInNgrams };
 };
 
 const parseName = (rawName) => {
-  const names = [rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
-  const namesInNgrams = [];
-  for (const name of names) namesInNgrams.push(createEdgeNGrams(name, FIELDS_NAMES.NAME));
+  const names = rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '');
 
-  return namesInNgrams;
+  return createEdgeNGrams(names, FIELDS_NAMES.NAME);
 };
 
 const parseCompanyId = (companyIdFromDb) => {
   let rawCompanyId;
   try {
     rawCompanyId = JSON.parse(companyIdFromDb);
-    console.log('rawCompanyId', rawCompanyId);
-    const bla = createEdgeNGrams(_.get(rawCompanyId, 'companyId'));
-    console.log('bla', bla);
 
     return { id: createEdgeNGrams(_.get(rawCompanyId, 'companyId')) };
   } catch (error) {
@@ -336,15 +335,12 @@ const parseCompanyId = (companyIdFromDb) => {
 };
 
 const createEdgeNGrams = (str, field) => {
-  console.log('str', str);
-  console.log('field', field);
   if (str && str.length > 3) {
     const minGram = 3;
     const maxGram = str.length;
 
-    if (field === FIELDS_NAMES.NAME) {
+    if (field === FIELDS_NAMES.NAME || field === FIELDS_NAMES.ADDRESS) {
       const arrayOfStrings = [];
-      console.log('in if');
       if (str.length > minGram) {
         for (let i = minGram; i <= maxGram && i <= str.length; ++i) {
           arrayOfStrings.push(str.substr(0, i));
@@ -352,24 +348,9 @@ const createEdgeNGrams = (str, field) => {
       } else {
         arrayOfStrings.push(str);
       }
-      console.log('arrayOfStrings', arrayOfStrings);
+
       return arrayOfStrings.join(' ');
     }
-
-    // if (field === FIELDS_NAMES.ADDRESS) {
-    //   return str.split(' ')
-    //     .reduce((ngrams, token) => {
-    //       if (token.length > minGram) {
-    //         for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
-    //           ngrams = [...ngrams, token.substr(0, i)];
-    //         }
-    //       } else {
-    //         ngrams = [...ngrams, token];
-    //       }
-    //
-    //       return ngrams;
-    //     }, []);
-    // }
 
     return str.split(' ')
       .reduce((ngrams, token) => {
