@@ -272,7 +272,7 @@ const parseSearchData = (metadata) => {
       searchFields.push(...addresses);
       break;
     case FIELDS_NAMES.COMPANY_ID:
-      const { id, error } = parseCompanyId((_.get(metadata, 'wobj.field.body', '')));
+      const { id, error } = parseCompanyId(_.get(metadata, 'wobj.field.body', ''));
       if (error) return { err: error };
 
       searchFields.push(id);
