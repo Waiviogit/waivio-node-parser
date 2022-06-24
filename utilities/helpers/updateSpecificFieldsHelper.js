@@ -247,37 +247,32 @@ const setMapToChildren = async (authorPermlink, map) => {
 };
 
 const parseSearchData = (metadata) => {
-  const fieldName = _.get(metadata, 'wobj.field.name', '') || _.get(metadata, 'name', '');
+  const fieldName = _.get(metadata, 'wobj.field.name');
   if (!_.includes(SEARCH_FIELDS, fieldName)) return;
 
   const searchFields = [];
   switch (fieldName) {
     case FIELDS_NAMES.NAME:
-      searchFields.push(parseName(_.get(metadata, 'wobj.field.body', '')
-          || _.get(metadata, 'body', '')));
+      searchFields.push(parseName(_.get(metadata, 'wobj.field.body', '')));
       break;
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.CATEGORY_ITEM:
-      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.body', '').trim()
-          || _.get(metadata, 'body', '')));
+      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.body', '').trim()));
       break;
     case FIELDS_NAMES.TITLE:
     case FIELDS_NAMES.DESCRIPTION:
       searchFields.push(_.get(metadata, 'wobj.field.body', '').trim());
       break;
     case FIELDS_NAMES.PHONE:
-      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')
-          || _.get(metadata, 'number', '')));
+      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')));
       break;
     case FIELDS_NAMES.ADDRESS:
-      const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', '')
-          || _.get(metadata, 'body', ''));
+      const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
       if (err) return { err };
       searchFields.push(...addresses);
       break;
     case FIELDS_NAMES.COMPANY_ID:
-      const { id, error } = parseCompanyId((_.get(metadata, 'wobj.field.body', '')
-          || _.get(metadata, 'body', '')));
+      const { id, error } = parseCompanyId((_.get(metadata, 'wobj.field.body', '')));
       if (error) return { err: error };
 
       searchFields.push(id);
