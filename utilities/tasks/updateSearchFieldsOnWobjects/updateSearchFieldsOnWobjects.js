@@ -32,7 +32,8 @@ exports.updateSearchFieldsOnWobjects = async () => {
 const prepareSearchFieldsToUpdate = (wobjects) => {
   for (const wobject of wobjects) {
     const fieldsToUpdate = _.filter(wobject.fields, (field) => _.includes([FIELDS_NAMES.NAME,
-      FIELDS_NAMES.EMAIL, FIELDS_NAMES.PHONE, FIELDS_NAMES.ADDRESS, FIELDS_NAMES.CATEGORY_ITEM, FIELDS_NAMES.COMPANY_ID],
+      FIELDS_NAMES.EMAIL, FIELDS_NAMES.PHONE, FIELDS_NAMES.ADDRESS, FIELDS_NAMES.CATEGORY_ITEM,
+      FIELDS_NAMES.COMPANY_ID, FIELDS_NAMES.DESCRIPTION, FIELDS_NAMES.TITLE],
     field.name));
     if (!fieldsToUpdate.length) continue;
 
