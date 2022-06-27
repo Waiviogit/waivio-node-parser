@@ -14,14 +14,17 @@ class SocketClient {
       console.info('socket connection open');
     });
 
-    this.ws.on('close', () => {
-      this.ws = new WebSocket(this.url, [], { headers: { API_KEY } });
+    this.ws.on('error', () => {
+      this.ws.close();
     });
   }
 
   sendMessage(message) {
     if (this.ws.readyState !== 1) {
       this.ws = new WebSocket(this.url, [], { headers: { API_KEY } });
+      this.ws.on('error', () => {
+        this.ws.close();
+      });
       return;
     }
     this.ws.send(message);
