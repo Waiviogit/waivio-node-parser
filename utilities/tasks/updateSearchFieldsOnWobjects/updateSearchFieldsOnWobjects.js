@@ -1,6 +1,5 @@
 const { WObject } = require('database').models;
 const _ = require('lodash');
-const { ObjectId } = require('bson');
 const { FIELDS_NAMES } = require('../../../constants/wobjectsData');
 const { parseSearchData } = require('../../helpers/updateSpecificFieldsHelper');
 
@@ -63,7 +62,7 @@ const prepareDataForBulkWrite = (wobjects) => {
   for (const wobject of wobjects) {
     bulkArr.push({
       updateOne: {
-        filter: { _id: ObjectId(wobject._id) },
+        filter: { _id: wobject._id },
         update: { $set: { search: _.uniq(wobject.search), processed: true } },
       },
     });
