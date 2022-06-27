@@ -64,7 +64,7 @@ const prepareDataForBulkWrite = (wobjects) => {
     bulkArr.push({
       updateOne: {
         filter: { _id: ObjectId(wobject._id) },
-        update: { $set: { search: wobject.search, processed: true } },
+        update: { $set: { search: _.uniq(wobject.search), processed: true } },
       },
     });
   }
