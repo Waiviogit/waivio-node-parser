@@ -8,7 +8,7 @@ exports.updateSearchFieldsOnWobjects = async () => {
   try {
     console.time('updateSearchFieldsOnWobjects');
     await WObject.updateMany({ $unset: { search: '' } });
-    const wobjects = await WObject.find({ search: null }, { fields: 1 }, {}).lean();
+    const wobjects = await WObject.find({ processed: false }, { fields: 1 }, {}).lean();
     if (!wobjects.length) return;
 
     const wobjectsWithFields = _.filter(wobjects, (obj) => obj.fields.length);
