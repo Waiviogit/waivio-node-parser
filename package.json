@@ -29,7 +29,7 @@
     "setWaivExpertise": "NODE_PATH=. node ./utilities/tasks/setWaivExpertise/run.js",
     "deleteComments": "NODE_PATH=. node ./utilities/tasks/deleteComments/run.js",
     "updateObjectTypes": "NODE_PATH=. node ./utilities/tasks/updateObjectTypesExposedFields/run.js",
-    "updateSearchFieldsOnWobjects": "node ./utilities/tasks/updateSearchFieldsOnWobjects/run.js",
+    "updateSearchFieldsOnWobjects": "NODE_PATH=. API_KEY=dfsdf node ./utilities/tasks/updateSearchFieldsOnWobjects/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
