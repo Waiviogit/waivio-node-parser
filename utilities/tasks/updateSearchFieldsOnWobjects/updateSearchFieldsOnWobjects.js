@@ -6,14 +6,20 @@ const { parseSearchData } = require('../../helpers/updateSpecificFieldsHelper');
 exports.updateSearchFieldsOnWobjects = async () => {
   try {
     console.time('updateSearchFieldsOnWobjects');
-    await WObject.updateMany({ $unset: { search: '' } });
-    const wobjects = await WObject.find({ processed: false }, { fields: 1 }, {}).lean();
-    if (!wobjects.length) return;
+    let wobjects = [];
+    do {
+      wobjects = await WObject.find({ processed: false }, { fields: 1 }).limit(1000).lean();
+      if (!wobjects.length) return;
 
-    const wobjectsWithFields = _.filter(wobjects, (obj) => obj.fields.length);
-    prepareSearchFieldsToUpdate(wobjectsWithFields);
-    const bulkArr = prepareDataForBulkWrite(wobjectsWithFields);
-    if (bulkArr.length) await WObject.bulkWrite(bulkArr);
+      const wobjectsWithFields = _.filter(wobjects, (obj) => obj.fields.length);
+      if (!wobjectsWithFields.length) return;
+
+      prepareSearchFieldsToUpdate(wobjectsWithFields);
+      const bulkArr = prepareDataForBulkWrite(wobjectsWithFields);
+      if (!bulkArr.length) return;
+
+      await WObject.bulkWrite(bulkArr);
+    } while (wobjects.length);
     console.log('task completed successfully');
     console.timeEnd('updateSearchFieldsOnWobjects');
   } catch (error) {
