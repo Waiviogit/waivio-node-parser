@@ -253,7 +253,7 @@ const parseSearchData = (metadata) => {
   const searchFields = [];
   switch (fieldName) {
     case FIELDS_NAMES.NAME:
-      searchFields.push(parseName(_.get(metadata, 'wobj.field.body', '')));
+      searchFields.push(...parseName(_.get(metadata, 'wobj.field.body', '')));
       break;
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.CATEGORY_ITEM:
@@ -313,9 +313,14 @@ const parseAddress = (addressFromDB) => {
 };
 
 const parseName = (rawName) => {
-  const names = rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '');
+  const names = [rawName.trim(), rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')];
 
-  return createEdgeNGrams(names, FIELDS_NAMES.NAME);
+  const namesNGrams = [];
+  for (const el of names) {
+    namesNGrams.push(createEdgeNGrams(el, FIELDS_NAMES.NAME));
+  }
+
+  return namesNGrams;
 };
 
 const parseCompanyId = (companyIdFromDb) => {
