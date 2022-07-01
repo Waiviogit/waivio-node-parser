@@ -264,7 +264,8 @@ const parseSearchData = (metadata) => {
       searchFields.push(_.get(metadata, 'wobj.field.body', '').trim());
       break;
     case FIELDS_NAMES.PHONE:
-      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')));
+      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '').trim()
+        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')));
       break;
     case FIELDS_NAMES.ADDRESS:
       const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
