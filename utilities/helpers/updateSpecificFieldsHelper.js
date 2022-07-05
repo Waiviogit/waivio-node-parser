@@ -261,11 +261,12 @@ const parseSearchData = (metadata) => {
       break;
     case FIELDS_NAMES.TITLE:
     case FIELDS_NAMES.DESCRIPTION:
-      searchFields.push(_.get(metadata, 'wobj.field.body', '').trim());
+      searchFields.push(_.get(metadata, 'wobj.field.body', '').trim()
+        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '));
       break;
     case FIELDS_NAMES.PHONE:
       searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '').trim()
-        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')));
+        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' ')));
       break;
     case FIELDS_NAMES.ADDRESS:
       const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
