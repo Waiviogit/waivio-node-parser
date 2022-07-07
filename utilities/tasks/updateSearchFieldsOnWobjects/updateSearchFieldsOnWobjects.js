@@ -44,7 +44,7 @@ const prepareSearchFieldsToUpdate = (wobjects) => {
 
 const addSearchFields = (fields, authorPermlink) => {
   const searchFieldsToAdd = [];
-  searchFieldsToAdd.push(createEdgeNGrams(authorPermlink.replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, ' '), 'permlink'));
+  searchFieldsToAdd.push(createEdgeNGrams(authorPermlink.replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, ''), 'permlink'));
   const metadataArray = _.map(fields, (field) => ({
     wobj: {
       field: {
