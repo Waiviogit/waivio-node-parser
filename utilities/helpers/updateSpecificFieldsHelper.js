@@ -315,7 +315,7 @@ const parseAddress = (addressFromDB) => {
   return { addresses: addressesInNgrams };
 };
 
-const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '), FIELDS_NAMES.NAME);
+const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '), FIELDS_NAMES.NAME);
 
 const parseCompanyId = (companyIdFromDb) => {
   let rawCompanyId;
