@@ -13,7 +13,7 @@ const validate = async (data, operation) => {
   }
 
   validateFields(data);
-//  await validatePostLinks(operation);
+  await validatePostLinks(operation);
   await validateSameFields(data);
   await validateFieldBlacklist({ author_permlink: data.author_permlink, fieldName: _.get(data, 'field.name') });
   await validateSpecifiedFields(data, operation);
@@ -197,13 +197,12 @@ const validateSpecifiedFields = async (data) => {
       if (objectTypeNotCorresponding) {
         throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
       }
-      // тут сделать проверку на то что приходит ссылка
       if (fieldName === FIELDS_NAMES.PRODUCT_ID) {
         try {
           const productId = JSON.parse(data.field.body);
-          if (productId.productIdimage) {
+          if (productId.productIdImage) {
             try {
-              const url = new URL(productId.productIdimage);
+              const url = new URL(productId.productIdImage);
             } catch (e) {
               throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID image is not a link"`);
             }

@@ -73,7 +73,6 @@ const loadNextBlock = async ({
 
 // return true if block exist and parsed, else - false
 const loadBlock = async (blockNum, transactionsParserCallback) => {
-  console.log('blockNum', blockNum);
   /*
     To prevent situation when vote parser went further than the main parser,
     check the current block less than last handled on main parser
