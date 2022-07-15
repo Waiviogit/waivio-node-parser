@@ -1,14 +1,15 @@
 const { WObject } = require('database').models;
 const _ = require('lodash');
 const { FIELDS_NAMES } = require('../../../constants/wobjectsData');
-const { parseSearchData } = require('../../helpers/updateSpecificFieldsHelper');
+const { parseSearchData, createEdgeNGrams } = require('../../helpers/updateSpecificFieldsHelper');
 
 exports.updateSearchFieldsOnWobjects = async () => {
   try {
     console.time('updateSearchFieldsOnWobjects');
     let wobjects = [];
     do {
-      wobjects = await WObject.find({ processed: false }, { fields: 1 }).limit(1000).lean();
+      wobjects = await WObject.find({ processed: false }, { fields: 1, author_permlink: 1 })
+        .limit(1000).lean();
       if (!wobjects.length) return;
 
       const wobjectsWithFields = _.filter(wobjects, (obj) => obj.fields.length);
@@ -37,12 +38,13 @@ const prepareSearchFieldsToUpdate = (wobjects) => {
     field.name));
     if (!fieldsToUpdate.length) continue;
 
-    wobject.search = addSearchFields(fieldsToUpdate);
+    wobject.search = addSearchFields(fieldsToUpdate, wobject.author_permlink);
   }
 };
 
-const addSearchFields = (fields) => {
+const addSearchFields = (fields, authorPermlink) => {
   const searchFieldsToAdd = [];
+  searchFieldsToAdd.push(createEdgeNGrams(authorPermlink.replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, ''), 'permlink'));
   const metadataArray = _.map(fields, (field) => ({
     wobj: {
       field: {

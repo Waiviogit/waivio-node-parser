@@ -262,12 +262,13 @@ const parseSearchData = (metadata) => {
       break;
     case FIELDS_NAMES.TITLE:
     case FIELDS_NAMES.DESCRIPTION:
-      searchFields.push(_.get(metadata, 'wobj.field.body', '').trim()
-        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '));
+      searchFields.push(_.get(metadata, 'wobj.field.body', '')
+        .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
+        .replace(/  +/g, ' ').trim());
       break;
     case FIELDS_NAMES.PHONE:
-      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '').trim()
-        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' ')));
+      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')
+        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]+/g, '').split(' ').join('').trim()));
       break;
     case FIELDS_NAMES.ADDRESS:
       const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
@@ -316,7 +317,7 @@ const parseAddress = (addressFromDB) => {
   return { addresses: addressesInNgrams };
 };
 
-const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '), FIELDS_NAMES.NAME);
+const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '), FIELDS_NAMES.NAME);
 
 const parseId = (idFromDb) => {
   let rawId;
@@ -334,7 +335,7 @@ const createEdgeNGrams = (str, field) => {
     const minGram = 3;
     const maxGram = str.length;
 
-    if (field === FIELDS_NAMES.NAME || field === FIELDS_NAMES.ADDRESS) {
+    if (field === FIELDS_NAMES.NAME || field === FIELDS_NAMES.ADDRESS || field === 'permlink') {
       const arrayOfStrings = [];
       if (str.length > minGram) {
         for (let i = minGram; i <= maxGram && i <= str.length; ++i) {
@@ -373,5 +374,6 @@ module.exports = {
   addSearchField,
   parseAddress,
   parseName,
-  parseCompanyId: parseId,
+  parseId,
+  createEdgeNGrams,
 };

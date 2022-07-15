@@ -2,6 +2,7 @@ const { Wobj, User } = require('models');
 const { createObjectValidator } = require('validator');
 const { commentRefSetter, commentRefGetter } = require('utilities/commentRefService');
 const { wobjectHelper, userHelper } = require('utilities/helpers');
+const { createEdgeNGrams } = require('../utilities/helpers/updateSpecificFieldsHelper');
 
 const parse = async (operation, metadata) => {
   const data = {
@@ -13,7 +14,7 @@ const parse = async (operation, metadata) => {
     is_posting_open: metadata.wobj.is_posting_open,
     is_extending_open: metadata.wobj.is_extending_open,
     default_name: metadata.wobj.default_name,
-    search: operation.permlink,
+    search: createEdgeNGrams(operation.permlink.replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, ''), 'permlink'),
   };
   const { wobject, error } = await createObject(data, operation);
   if (error) console.error(error);
