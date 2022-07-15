@@ -193,7 +193,7 @@ const validateSpecifiedFields = async (data) => {
         author_permlink: data.author_permlink,
       });
       const objectTypeNotCorresponding = !_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
-          && !_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.obj);
+          && !_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type);
       if (objectTypeNotCorresponding) {
         throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
       }
