@@ -4,7 +4,7 @@ const { commentRefGetter } = require('utilities/commentRefService');
 const { validateUserOnBlacklist } = require('validator/userValidator');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/wobjectsData');
-const { OBJECT_TYPES_FOR_COMPANY } = require('../constants/wobjectsData');
+const { OBJECT_TYPES_FOR_COMPANY, OBJECT_TYPES_FOR_PRODUCT } = require('../constants/wobjectsData');
 
 const validate = async (data, operation) => {
   if (!await validateUserOnBlacklist(operation.author)
@@ -81,7 +81,8 @@ const validateFieldBlacklist = async ({ author_permlink: authorPermlink, fieldNa
 
 // validate all special fields(e.g.map, categoryItem, newsFilter etc.)
 const validateSpecifiedFields = async (data) => {
-  switch (_.get(data, 'field.name')) {
+  const fieldName = _.get(data, 'field.name');
+  switch (fieldName) {
     case FIELDS_NAMES.PARENT:
       const { wobject: parentWobject } = await Wobj.getOne({ author_permlink: data.field.body });
       if (!parentWobject) {
@@ -187,21 +188,38 @@ const validateSpecifiedFields = async (data) => {
       break;
 
     case FIELDS_NAMES.COMPANY_ID:
+    case FIELDS_NAMES.PRODUCT_ID:
       const { wobject: companyObject } = await Wobj.getOne({
         author_permlink: data.author_permlink,
       });
-      if (!_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)) {
-        throw new Error(`Can't append ${FIELDS_NAMES.COMPANY_ID} as the object type is not corresponding`);
+      const objectTypeNotCorresponding = !_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
+          && !_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type);
+      if (objectTypeNotCorresponding) {
+        throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
       }
-      const { field: companyField } = await Wobj.getField(
+      if (fieldName === FIELDS_NAMES.PRODUCT_ID) {
+        try {
+          const productId = JSON.parse(data.field.body);
+          if (productId.productIdImage) {
+            try {
+              const url = new URL(productId.productIdImage);
+            } catch (e) {
+              throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID image is not a link"`);
+            }
+          }
+        } catch (error) {
+          throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${error}`);
+        }
+      }
+      const { field: fieldFromDb } = await Wobj.getField(
         data.field.author, data.field.permlink, data.author_permlink, {
-          'fields.name': FIELDS_NAMES.COMPANY_ID,
+          'fields.name': fieldName,
           'fields.creator': data.field.creator,
         },
       );
-      if (companyField) {
-        if (_.includes(companyField.body, data.field.body)) {
-          throw new Error(`Can't append ${FIELDS_NAMES.COMPANY_ID} as the same field from this creator exists`);
+      if (fieldFromDb) {
+        if (_.includes(fieldFromDb.body, data.field.body)) {
+          throw new Error(`Can't append ${fieldName} as the same field from this creator exists`);
         }
       }
       break;
