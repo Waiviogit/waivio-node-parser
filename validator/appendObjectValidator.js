@@ -189,11 +189,14 @@ const validateSpecifiedFields = async (data) => {
 
     case FIELDS_NAMES.COMPANY_ID:
     case FIELDS_NAMES.PRODUCT_ID:
+    case FIELDS_NAMES.GROUP_ID:
       const { wobject: companyObject } = await Wobj.getOne({
         author_permlink: data.author_permlink,
       });
-      const objectTypeNotCorresponding = !_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
-          && !_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type);
+      const objectTypeNotCorresponding = !(_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
+              && fieldName === FIELDS_NAMES.COMPANY_ID)
+          && !(_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)
+              && (fieldName === FIELDS_NAMES.PRODUCT_ID || fieldName === FIELDS_NAMES.GROUP_ID));
       if (objectTypeNotCorresponding) {
         throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
       }

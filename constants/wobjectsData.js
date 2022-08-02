@@ -30,6 +30,7 @@ exports.FIELDS_NAMES = {
   LIST_ITEM: 'listItem',
   COMPANY_ID: 'companyId',
   PRODUCT_ID: 'productId',
+  GROUP_ID: 'groupId',
 };
 
 exports.SEARCH_FIELDS = [
