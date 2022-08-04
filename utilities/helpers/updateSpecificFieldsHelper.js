@@ -26,6 +26,7 @@ const update = async ({
     case FIELDS_NAMES.PHONE:
     case FIELDS_NAMES.ADDRESS:
     case FIELDS_NAMES.COMPANY_ID:
+    case FIELDS_NAMES.PRODUCT_ID:
       await addSearchField({
         authorPermlink, newWords: parseSearchData(metadata),
       });
@@ -275,7 +276,8 @@ const parseSearchData = (metadata) => {
       searchFields.push(...addresses);
       break;
     case FIELDS_NAMES.COMPANY_ID:
-      const { id, error } = parseCompanyId(_.get(metadata, 'wobj.field.body', ''));
+    case FIELDS_NAMES.PRODUCT_ID:
+      const { id, error } = parseId(_.get(metadata, 'wobj.field.body', ''));
       if (error) return { err: error };
 
       searchFields.push(id);
@@ -317,12 +319,12 @@ const parseAddress = (addressFromDB) => {
 
 const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '), FIELDS_NAMES.NAME);
 
-const parseCompanyId = (companyIdFromDb) => {
-  let rawCompanyId;
+const parseId = (idFromDb) => {
+  let rawId;
   try {
-    rawCompanyId = JSON.parse(companyIdFromDb);
+    rawId = JSON.parse(idFromDb);
 
-    return { id: createEdgeNGrams(_.get(rawCompanyId, 'companyId')) };
+    return { id: createEdgeNGrams(_.get(rawId, 'companyId') || _.get(rawId, 'productId')) };
   } catch (error) {
     return { error };
   }
@@ -372,6 +374,6 @@ module.exports = {
   addSearchField,
   parseAddress,
   parseName,
-  parseCompanyId,
+  parseId,
   createEdgeNGrams,
 };

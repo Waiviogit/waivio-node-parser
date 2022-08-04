@@ -29,6 +29,7 @@ exports.FIELDS_NAMES = {
   PAGE_CONTENT: 'pageContent',
   LIST_ITEM: 'listItem',
   COMPANY_ID: 'companyId',
+  PRODUCT_ID: 'productId',
 };
 
 exports.SEARCH_FIELDS = [
@@ -41,6 +42,7 @@ exports.SEARCH_FIELDS = [
   this.FIELDS_NAMES.DESCRIPTION,
   this.FIELDS_NAMES.CATEGORY_ITEM,
   this.FIELDS_NAMES.COMPANY_ID,
+  this.FIELDS_NAMES.PRODUCT_ID,
 ];
 
 exports.AUTHORITY_FIELD_ENUM = {
@@ -119,4 +121,9 @@ exports.OBJECT_TYPES_FOR_COMPANY = [
   this.OBJECT_TYPES.PLACE,
   this.OBJECT_TYPES.RESORT,
   this.OBJECT_TYPES.RESTAURANT,
+];
+
+exports.OBJECT_TYPES_FOR_PRODUCT = [
+  this.OBJECT_TYPES.PRODUCT,
+  this.OBJECT_TYPES.SERVICE,
 ];
