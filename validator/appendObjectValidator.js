@@ -227,7 +227,7 @@ const validateProductId = async (body) => {
 
   const textMatch = `\"${productId.productId}\"}`;
   const regexMatch = new RegExp(`"productId":"${productId.productId}","productIdType":"${productId.productIdType}"`);
-  const { result, error: dbError } = await Wobj.findSameProductId(textMatch, regexMatch);
+  const { result, error: dbError } = await Wobj.findSameFieldBody(textMatch, regexMatch);
   if (dbError) throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${dbError}`);
   if (result) throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: this product id already exists`);
 };

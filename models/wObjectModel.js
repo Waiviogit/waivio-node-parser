@@ -272,7 +272,7 @@ const find = async (condition, select, sort = {}, skip = 0, limit) => {
   }
 };
 
-const findSameProductId = async (textMatch, regexMatch) => {
+const findSameFieldBody = async (textMatch, regexMatch) => {
   try {
     const [result] = await WObjectModel.aggregate([
       {
@@ -308,5 +308,5 @@ module.exports = {
   pushNewPost,
   updateMany,
   getMany,
-  findSameProductId
+  findSameFieldBody
 };
