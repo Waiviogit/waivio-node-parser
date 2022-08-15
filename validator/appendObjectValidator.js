@@ -202,37 +202,40 @@ const validateSpecifiedFields = async (data) => {
       if (objectTypeNotCorresponding) {
         throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
       }
-      if (fieldName === FIELDS_NAMES.PRODUCT_ID) {
-        try {
-          const productId = JSON.parse(data.field.body);
-          if (productId.productIdImage) {
-            try {
-              const url = new URL(productId.productIdImage);
-            } catch (e) {
-              throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID image is not a link"`);
-            }
-          }
-        } catch (error) {
-          throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${error}`);
-        }
-      }
-      const { field: fieldFromDb } = await Wobj.getField(
-        data.field.author, data.field.permlink, data.author_permlink, {
-          'fields.name': fieldName,
-          'fields.creator': data.field.creator,
-        },
-      );
-      if (fieldFromDb) {
-        if (_.includes(fieldFromDb.body, data.field.body)) {
-          throw new Error(`Can't append ${fieldName} as the same field from this creator exists`);
-        }
-      }
+      if (fieldName === FIELDS_NAMES.PRODUCT_ID) await validateProductId(data.field.body);
       break;
     case FIELDS_NAMES.OPTIONS:
       const { error } = optionsSchema.validate(jsonHelper.parseJson(data.field.body));
       if (error) throw new Error(`Can't append ${fieldName}${error.message}`);
       break;
   }
+};
+
+const validateProductId = async (body) => {
+  let productId;
+  try {
+    productId = JSON.parse(body);
+  } catch (error) {
+    throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${error}`);
+  }
+
+  if (!productId.productIdType) {
+    throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID type is not provided"`);
+  }
+
+  if (productId.productIdImage) {
+    try {
+      const url = new URL(productId.productIdImage);
+    } catch (e) {
+      throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID image is not a link"`);
+    }
+  }
+
+  const textMatch = `\"${productId.productId}\"}`;
+  const regexMatch = new RegExp(`"productId":"${productId.productId}","productIdType":"${productId.productIdType}"`);
+  const { result, error: dbError } = await Wobj.findSameFieldBody(textMatch, regexMatch);
+  if (dbError) throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${dbError}`);
+  if (result) throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: this product id already exists`);
 };
 
 module.exports = { validate };
