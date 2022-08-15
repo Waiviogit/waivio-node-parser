@@ -3,6 +3,7 @@ const {
 } = require('test/testHelper');
 const { appendObjectValidator } = require('validator');
 const { ObjectFactory, AppendObject } = require('test/factories');
+const { FIELDS_NAMES } = require('../../../constants/wobjectsData');
 
 describe('appendObjectValidator', async () => {
   let wobject, mockData, mockOp, blackList;
@@ -32,7 +33,6 @@ describe('appendObjectValidator', async () => {
   afterEach(async () => {
     sinon.restore();
   });
-
 
   describe('on valid input', async () => {
     it('should not throw error if all fields is exist', async () => {
@@ -180,6 +180,33 @@ describe('appendObjectValidator', async () => {
     });
 
     describe('when validateSpecifiedFields', async () => {
+      describe('on options field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.OPTIONS;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            category: faker.random.string(),
+            value: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if body has no category', async () => {
+          mockData.field.body = JSON.stringify({
+            category: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if body has no value', async () => {
+          mockData.field.body = JSON.stringify({
+            value: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on parent field', async () => {
         it('should be rejected if body refer to non existing wobject', async () => {
           mockData.field.name = 'parent';
