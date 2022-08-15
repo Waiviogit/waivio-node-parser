@@ -5,6 +5,8 @@ const { validateUserOnBlacklist } = require('validator/userValidator');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/wobjectsData');
 const { OBJECT_TYPES_FOR_COMPANY, OBJECT_TYPES_FOR_PRODUCT } = require('../constants/wobjectsData');
+const { optionsSchema } = require('./joi/appendObjects.schema');
+const jsonHelper = require('../utilities/helpers/jsonHelper');
 
 const validate = async (data, operation) => {
   if (!await validateUserOnBlacklist(operation.author)
@@ -225,6 +227,10 @@ const validateSpecifiedFields = async (data) => {
           throw new Error(`Can't append ${fieldName} as the same field from this creator exists`);
         }
       }
+      break;
+    case FIELDS_NAMES.OPTIONS:
+      const { error } = optionsSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (error) throw new Error(`Can't append ${fieldName}${error.message}`);
       break;
   }
 };
