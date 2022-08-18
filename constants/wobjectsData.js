@@ -35,6 +35,8 @@ exports.FIELDS_NAMES = {
   AGE_RANGE: 'ageRange',
   PUBLICATION_DATE: 'publicationDate',
   LANGUAGE: 'language',
+  WEIGHT: 'weight',
+  DIMENSIONS: 'dimensions',
 };
 
 exports.SEARCH_FIELDS = [
@@ -131,4 +133,28 @@ exports.OBJECT_TYPES_FOR_COMPANY = [
 exports.OBJECT_TYPES_FOR_PRODUCT = [
   this.OBJECT_TYPES.PRODUCT,
   this.OBJECT_TYPES.SERVICE,
+];
+
+exports.WEIGHT_UNITS = [
+  't',
+  'kg',
+  'gm',
+  'mg',
+  'mcg',
+  'st',
+  'lb',
+  'oz',
+];
+
+exports.DIMENSION_UNITS = [
+  'km',
+  'm',
+  'cm',
+  'mm',
+  'μm',
+  'mi',
+  'yd',
+  'ft',
+  'in',
+  'nmi',
 ];
