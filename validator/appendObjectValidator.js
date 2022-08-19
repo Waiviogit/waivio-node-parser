@@ -5,7 +5,7 @@ const { validateUserOnBlacklist } = require('validator/userValidator');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/wobjectsData');
 const { OBJECT_TYPES_FOR_COMPANY, OBJECT_TYPES_FOR_PRODUCT } = require('../constants/wobjectsData');
-const { optionsSchema } = require('./joi/appendObjects.schema');
+const { optionsSchema, weightSchema, dimensionsSchema } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
 const validate = async (data, operation) => {
@@ -205,8 +205,16 @@ const validateSpecifiedFields = async (data) => {
       if (fieldName === FIELDS_NAMES.PRODUCT_ID) await validateProductId(data.field.body);
       break;
     case FIELDS_NAMES.OPTIONS:
-      const { error } = optionsSchema.validate(jsonHelper.parseJson(data.field.body));
-      if (error) throw new Error(`Can't append ${fieldName}${error.message}`);
+      const { error: optErr } = optionsSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (optErr) throw new Error(`Can't append ${fieldName}${optErr.message}`);
+      break;
+    case FIELDS_NAMES.WEIGHT:
+      const { error: weightErr } = weightSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (weightErr) throw new Error(`Can't append ${fieldName}${weightErr.message}`);
+      break;
+    case FIELDS_NAMES.DIMENSIONS:
+      const { error: dimensionErr } = dimensionsSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (dimensionErr) throw new Error(`Can't append ${fieldName}${dimensionErr.message}`);
       break;
   }
 };

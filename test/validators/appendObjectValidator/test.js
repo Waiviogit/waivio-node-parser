@@ -3,7 +3,12 @@ const {
 } = require('test/testHelper');
 const { appendObjectValidator } = require('validator');
 const { ObjectFactory, AppendObject } = require('test/factories');
-const { FIELDS_NAMES } = require('../../../constants/wobjectsData');
+const _ = require('lodash');
+const {
+  FIELDS_NAMES,
+  WEIGHT_UNITS,
+  DIMENSION_UNITS,
+} = require('../../../constants/wobjectsData');
 
 describe('appendObjectValidator', async () => {
   let wobject, mockData, mockOp, blackList;
@@ -180,6 +185,70 @@ describe('appendObjectValidator', async () => {
     });
 
     describe('when validateSpecifiedFields', async () => {
+      describe('on weight field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.WEIGHT;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            value: _.random(1, 100),
+            unit: _.sample(WEIGHT_UNITS),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if body unit not on list', async () => {
+          mockData.field.body = JSON.stringify({
+            value: _.random(1, 100),
+            unit: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be with wrong data types', async () => {
+          mockData.field.body = JSON.stringify({
+            value: faker.random.string(),
+            unit: _.random(1, 100),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on dimensions field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.DIMENSIONS;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            length: _.random(1, 100),
+            width: _.random(1, 100),
+            depth: _.random(1, 100),
+            unit: _.sample(DIMENSION_UNITS),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if body unit not on list', async () => {
+          mockData.field.body = JSON.stringify({
+            length: _.random(1, 100),
+            width: _.random(1, 100),
+            depth: _.random(1, 100),
+            unit: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be with negative values', async () => {
+          mockData.field.body = JSON.stringify({
+            length: _.random(-99, -1),
+            width: _.random(-99, -1),
+            depth: _.random(-99, -1),
+            unit: _.sample(DIMENSION_UNITS),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on options field', async () => {
         beforeEach(() => {
           mockData.field.name = FIELDS_NAMES.OPTIONS;
