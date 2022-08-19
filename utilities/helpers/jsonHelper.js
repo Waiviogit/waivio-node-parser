@@ -1,7 +1,7 @@
-exports.parseJson = (json) => {
+exports.parseJson = (json, errorType = {}) => {
   try {
     return JSON.parse(json);
   } catch (error) {
-    return {};
+    return errorType;
   }
 };

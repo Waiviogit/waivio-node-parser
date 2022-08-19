@@ -14,6 +14,64 @@ describe('UpdateSpecificFieldsHelper', async () => {
     await dropDatabase();
     wobject = await ObjectFactory.Create({ object_type: OBJECT_TYPES.RESTAURANT });
   });
+  describe('on authors field', async () => {
+    let appendObject, person1, person2;
+    beforeEach(async () => {
+      person1 = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PERSON });
+      person2 = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PERSON });
+      ({ appendObject, wobject } = await AppendObject.Create(
+        {
+          name: FIELDS_NAMES.AUTHORS,
+          body: JSON.stringify([{
+            name: faker.random.string(),
+            authorPermlink: person1.author_permlink,
+          }, {
+            name: faker.random.string(),
+            authorPermlink: person2.author_permlink,
+          },
+          ]),
+        },
+      ));
+      await updateSpecificFieldsHelper.update({
+        author: appendObject.author, permlink: appendObject.permlink, authorPermlink: wobject.author_permlink,
+      });
+      person1 = await WObject.findOne({ author_permlink: person1.author_permlink }).lean();
+      person2 = await WObject.findOne({ author_permlink: person2.author_permlink }).lean();
+    });
+
+    it('should children includes person1', async () => {
+      expect(person1.children.includes(wobject.author_permlink)).to.be.true;
+    });
+
+    it('should children includes person2', async () => {
+      expect(person2.children.includes(wobject.author_permlink)).to.be.true;
+    });
+  });
+
+  describe('on publisher field', async () => {
+    let appendObject, publisher;
+    beforeEach(async () => {
+      publisher = await ObjectFactory.Create({ object_type: OBJECT_TYPES.BUSINESS });
+      ({ appendObject, wobject } = await AppendObject.Create(
+        {
+          name: FIELDS_NAMES.PUBLISHER,
+          body: JSON.stringify({
+            name: faker.random.string(),
+            authorPermlink: publisher.author_permlink,
+          }),
+        },
+      ));
+      await updateSpecificFieldsHelper.update({
+        author: appendObject.author, permlink: appendObject.permlink, authorPermlink: wobject.author_permlink,
+      });
+      publisher = await WObject.findOne({ author_permlink: publisher.author_permlink }).lean();
+    });
+
+    it('should children includes', async () => {
+      expect(publisher.children.includes(wobject.author_permlink)).to.be.true;
+    });
+  });
+
   describe('on "parent" field', () => {
     let updWobj, fields = [], activeVotes;
     const adminName = faker.name.firstName();

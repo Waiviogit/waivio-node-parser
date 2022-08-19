@@ -289,8 +289,19 @@ const findSameFieldBody = async (textMatch, regexMatch) => {
   }
 };
 
+const findOne = async ({ filter, projection = {}, options = {} }) => {
+  try {
+    const wobject = await WObjectModel.findOne(filter, projection, options).lean();
+
+    return { wobject };
+  } catch (e) {
+    return { error: e };
+  }
+};
+
 module.exports = {
   find,
+  findOne,
   getOne,
   create,
   update,
@@ -308,5 +319,5 @@ module.exports = {
   pushNewPost,
   updateMany,
   getMany,
-  findSameFieldBody
+  findSameFieldBody,
 };
