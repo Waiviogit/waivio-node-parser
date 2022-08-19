@@ -37,6 +37,8 @@ exports.FIELDS_NAMES = {
   LANGUAGE: 'language',
   WEIGHT: 'weight',
   DIMENSIONS: 'dimensions',
+  AUTHORS: 'authors',
+  PUBLISHER: 'publisher',
 };
 
 exports.SEARCH_FIELDS = [

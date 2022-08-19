@@ -5,7 +5,10 @@ const { validateUserOnBlacklist } = require('validator/userValidator');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/wobjectsData');
 const { OBJECT_TYPES_FOR_COMPANY, OBJECT_TYPES_FOR_PRODUCT } = require('../constants/wobjectsData');
-const { optionsSchema, weightSchema, dimensionsSchema } = require('./joi/appendObjects.schema');
+const {
+  optionsSchema, weightSchema, dimensionsSchema, authorsSchema,
+  publisherSchema,
+} = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
 const validate = async (data, operation) => {
@@ -216,7 +219,40 @@ const validateSpecifiedFields = async (data) => {
       const { error: dimensionErr } = dimensionsSchema.validate(jsonHelper.parseJson(data.field.body));
       if (dimensionErr) throw new Error(`Can't append ${fieldName}${dimensionErr.message}`);
       break;
+    case FIELDS_NAMES.AUTHORS:
+      const notValidAuthors = await validateAuthorsField(data.field.body);
+      if (notValidAuthors) throw new Error(`Can't append ${fieldName}`);
+      break;
+    case FIELDS_NAMES.PUBLISHER:
+      const notValidPublisher = await validatePublisherField(data.field.body);
+      if (notValidPublisher) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
+};
+
+const validatePublisherField = async (body) => {
+  const publisher = jsonHelper.parseJson(body, null);
+  if (!publisher) return true;
+  const { error } = publisherSchema.validate(publisher);
+  if (error) return true;
+  const { wobject } = await Wobj.findOne({
+    filter: { author_permlink: publisher.authorPermlink, object_type: OBJECT_TYPES.BUSINESS },
+  });
+  if (!wobject) return true;
+  return false;
+};
+
+const validateAuthorsField = async (body) => {
+  const authors = jsonHelper.parseJson(body, null);
+  if (!authors) return true;
+  const { error } = authorsSchema.validate(authors);
+  if (error) return true;
+  const wobjectPermlinks = _.map(authors, 'authorPermlink');
+  const { wobjects } = await Wobj.getMany({
+    condition: { author_permlink: { $in: wobjectPermlinks }, object_type: OBJECT_TYPES.PERSON },
+  });
+  if (wobjects.length !== wobjectPermlinks.length) return true;
+  return false;
 };
 
 const validateProductId = async (body) => {

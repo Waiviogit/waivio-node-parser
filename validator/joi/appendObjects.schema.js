@@ -24,3 +24,13 @@ exports.dimensionsSchema = Joi.object().keys({
   depth: Joi.number().min(0).required(),
   unit: Joi.string().valid(...DIMENSION_UNITS).required(),
 }).options(options);
+
+exports.authorsSchema = Joi.array().items(Joi.object().keys({
+  name: Joi.string().required(),
+  authorPermlink: Joi.string().required(),
+}).required()).options(options);
+
+exports.publisherSchema = Joi.object().keys({
+  name: Joi.string().required(),
+  authorPermlink: Joi.string().required(),
+}).options(options);
