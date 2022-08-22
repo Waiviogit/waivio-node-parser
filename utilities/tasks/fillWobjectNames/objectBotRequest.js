@@ -19,7 +19,7 @@ module.exports = async (wobject, host) => {
       });
       return result.status;
     } catch (error) {
-      console.error(error);
+      console.error(error.message);
     }
   }
 };

@@ -23,7 +23,7 @@ const parse = async (operation, metadata) => {
     console.log(`Field ${metadata.wobj.field.name}, with value: ${metadata.wobj.field.body} added to wobject ${data.author_permlink}!\n`);
     return true;
   } if (error) {
-    console.error(error);
+    console.error(error.message);
     return false;
   }
 };

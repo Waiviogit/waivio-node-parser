@@ -89,7 +89,7 @@ exports.guestCommentFromTTL = async (author, permlink) => {
   if (!guestInfo) return;
   delete comment.active_votes;
   const { error } = await CommentModel.createOrUpdate({ ...comment, guestInfo });
-  if (error) return console.error(error);
+  if (error) return console.error(error.message);
   console.log(`Guest comment created: ${author}/${permlink}, guest name: ${guestInfo.userId}`);
 };
 

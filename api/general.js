@@ -2,6 +2,7 @@ const { redisGetter, redisSetter } = require('utilities/redis');
 const blocksUtil = require('utilities/steemApi/blocksUtil');
 const { HIVED_NODES } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
+const { socketHiveClient } = require('../utilities/socketClient/hiveSocket');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 let CURRENT_NODE = HIVED_NODES[0];
@@ -85,7 +86,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
   const { block, error } = await getBlock(blockNum, CURRENT_NODE);
 
   if (error) {
-    console.error(error);
+    console.error(error.message);
     changeNodeUrl();
     return false;
   }
@@ -102,6 +103,8 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
 
 const getBlock = async (blockNum, hiveUrl) => {
   try {
+    const resp = await socketHiveClient.getBlock(blockNum);
+    if (!resp.error) return { block: resp };
     const hive = new Client(hiveUrl);
     const block = await hive.database.call('get_block', [blockNum]);
     return { block };
