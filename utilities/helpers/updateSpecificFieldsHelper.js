@@ -10,6 +10,7 @@ const {
 } = require('constants/wobjectsData');
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
+const jsonHelper = require('utilities/helpers/jsonHelper');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -129,6 +130,10 @@ const update = async ({
         await updateSitesObjects(field.creator);
       }
       return;
+    case FIELDS_NAMES.AUTHORS:
+      return updateOnAuthors({ field, authorPermlink });
+    case FIELDS_NAMES.PUBLISHER:
+      return updateOnPublisher({ field, authorPermlink });
   }
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
@@ -143,6 +148,26 @@ const update = async ({
     });
   }
 };
+
+const updateOnAuthors = async ({ field, authorPermlink }) => {
+  const body = jsonHelper.parseJson(field.body, null);
+  if (!body) return;
+  const permlinks = _.map(body, 'authorPermlink');
+  return addChildrenToObjects({ permlinks, childrenPermlink: authorPermlink });
+};
+
+const updateOnPublisher = async ({ field, authorPermlink }) => {
+  const body = jsonHelper.parseJson(field.body, null);
+  if (!body) return;
+  return addChildrenToObjects(
+    { permlinks: [body.authorPermlink], childrenPermlink: authorPermlink },
+  );
+};
+
+const addChildrenToObjects = async ({ permlinks, childrenPermlink }) => Wobj.updateMany(
+  { author_permlink: { $in: permlinks } },
+  { $addToSet: { children: childrenPermlink } },
+);
 
 const parseMap = (map) => {
   let parsedMap;
@@ -268,7 +293,8 @@ const parseSearchData = (metadata) => {
       break;
     case FIELDS_NAMES.PHONE:
       searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')
-        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]+/g, '').split(' ').join('').trim()));
+        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]+/g, '').split(' ').join('')
+        .trim()));
       break;
     case FIELDS_NAMES.ADDRESS:
       const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));

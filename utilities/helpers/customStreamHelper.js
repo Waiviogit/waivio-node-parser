@@ -23,7 +23,7 @@ const runCustomStream = async ({
       console.log('Stream started!');
     }
   } catch (e) {
-    console.error(e);
+    console.error(e.message);
   }
 };
 

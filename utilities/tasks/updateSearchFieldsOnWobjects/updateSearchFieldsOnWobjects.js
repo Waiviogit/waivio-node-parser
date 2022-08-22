@@ -24,7 +24,7 @@ exports.updateSearchFieldsOnWobjects = async () => {
     console.log('task completed successfully');
     console.timeEnd('updateSearchFieldsOnWobjects');
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     console.log('task completed');
     console.timeEnd('updateSearchFieldsOnWobjects');
   }

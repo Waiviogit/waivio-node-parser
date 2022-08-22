@@ -5,6 +5,11 @@ const { validateUserOnBlacklist } = require('validator/userValidator');
 const { validateNewsFilter, validateMap } = require('validator/specifiedFieldsValidator');
 const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/wobjectsData');
 const { OBJECT_TYPES_FOR_COMPANY, OBJECT_TYPES_FOR_PRODUCT } = require('../constants/wobjectsData');
+const {
+  optionsSchema, weightSchema, dimensionsSchema, authorsSchema,
+  publisherSchema,
+} = require('./joi/appendObjects.schema');
+const jsonHelper = require('../utilities/helpers/jsonHelper');
 
 const validate = async (data, operation) => {
   if (!await validateUserOnBlacklist(operation.author)
@@ -189,41 +194,92 @@ const validateSpecifiedFields = async (data) => {
 
     case FIELDS_NAMES.COMPANY_ID:
     case FIELDS_NAMES.PRODUCT_ID:
+    case FIELDS_NAMES.GROUP_ID:
       const { wobject: companyObject } = await Wobj.getOne({
         author_permlink: data.author_permlink,
       });
-      const objectTypeNotCorresponding = !_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
-          && !_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type);
+      const objectTypeNotCorresponding = !(_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
+              && fieldName === FIELDS_NAMES.COMPANY_ID)
+          && !(_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)
+              && (fieldName === FIELDS_NAMES.PRODUCT_ID || fieldName === FIELDS_NAMES.GROUP_ID));
       if (objectTypeNotCorresponding) {
         throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
       }
-      if (fieldName === FIELDS_NAMES.PRODUCT_ID) {
-        try {
-          const productId = JSON.parse(data.field.body);
-          if (productId.productIdImage) {
-            try {
-              const url = new URL(productId.productIdImage);
-            } catch (e) {
-              throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID image is not a link"`);
-            }
-          }
-        } catch (error) {
-          throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${error}`);
-        }
-      }
-      const { field: fieldFromDb } = await Wobj.getField(
-        data.field.author, data.field.permlink, data.author_permlink, {
-          'fields.name': fieldName,
-          'fields.creator': data.field.creator,
-        },
-      );
-      if (fieldFromDb) {
-        if (_.includes(fieldFromDb.body, data.field.body)) {
-          throw new Error(`Can't append ${fieldName} as the same field from this creator exists`);
-        }
-      }
+      if (fieldName === FIELDS_NAMES.PRODUCT_ID) await validateProductId(data.field.body);
+      break;
+    case FIELDS_NAMES.OPTIONS:
+      const { error: optErr } = optionsSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (optErr) throw new Error(`Can't append ${fieldName}${optErr.message}`);
+      break;
+    case FIELDS_NAMES.WEIGHT:
+      const { error: weightErr } = weightSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (weightErr) throw new Error(`Can't append ${fieldName}${weightErr.message}`);
+      break;
+    case FIELDS_NAMES.DIMENSIONS:
+      const { error: dimensionErr } = dimensionsSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (dimensionErr) throw new Error(`Can't append ${fieldName}${dimensionErr.message}`);
+      break;
+    case FIELDS_NAMES.AUTHORS:
+      const notValidAuthors = await validateAuthorsField(data.field.body);
+      if (notValidAuthors) throw new Error(`Can't append ${fieldName}`);
+      break;
+    case FIELDS_NAMES.PUBLISHER:
+      const notValidPublisher = await validatePublisherField(data.field.body);
+      if (notValidPublisher) throw new Error(`Can't append ${fieldName}`);
       break;
   }
+};
+
+const validatePublisherField = async (body) => {
+  const publisher = jsonHelper.parseJson(body, null);
+  if (!publisher) return true;
+  const { error } = publisherSchema.validate(publisher);
+  if (error) return true;
+  const { wobject } = await Wobj.findOne({
+    filter: { author_permlink: publisher.authorPermlink, object_type: OBJECT_TYPES.BUSINESS },
+  });
+  if (!wobject) return true;
+  return false;
+};
+
+const validateAuthorsField = async (body) => {
+  const authors = jsonHelper.parseJson(body, null);
+  if (!authors) return true;
+  const { error } = authorsSchema.validate(authors);
+  if (error) return true;
+  const wobjectPermlinks = _.map(authors, 'authorPermlink');
+  const { wobjects } = await Wobj.getMany({
+    condition: { author_permlink: { $in: wobjectPermlinks }, object_type: OBJECT_TYPES.PERSON },
+  });
+  if (wobjects.length !== wobjectPermlinks.length) return true;
+  return false;
+};
+
+const validateProductId = async (body) => {
+  let productId;
+  try {
+    productId = JSON.parse(body);
+  } catch (error) {
+    throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${error}`);
+  }
+
+  if (!productId.productIdType) {
+    throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID type is not provided"`);
+  }
+
+  if (productId.productIdImage) {
+    try {
+      const url = new URL(productId.productIdImage);
+    } catch (e) {
+      throw new Error(`Error on "${FIELDS_NAMES.PRODUCT_ID}: product ID image is not a link"`);
+    }
+  }
+
+  const textMatch = `\"${productId.productId}\"}`;
+  const regexMatch = new RegExp(`"productId":"${productId.productId}","productIdType":"${productId.productIdType}"`);
+  const { result, error: dbError } = await Wobj.findSameFieldBody(textMatch, regexMatch);
+  if (dbError) throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: ${dbError}`);
+  if (result) throw new Error(`Error on parse "${FIELDS_NAMES.PRODUCT_ID}" field: this product id already exists`);
 };
 
 module.exports = { validate };

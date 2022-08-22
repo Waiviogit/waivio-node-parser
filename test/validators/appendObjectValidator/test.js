@@ -3,6 +3,13 @@ const {
 } = require('test/testHelper');
 const { appendObjectValidator } = require('validator');
 const { ObjectFactory, AppendObject } = require('test/factories');
+const _ = require('lodash');
+const {
+  FIELDS_NAMES,
+  WEIGHT_UNITS,
+  DIMENSION_UNITS,
+  OBJECT_TYPES,
+} = require('../../../constants/wobjectsData');
 
 describe('appendObjectValidator', async () => {
   let wobject, mockData, mockOp, blackList;
@@ -32,7 +39,6 @@ describe('appendObjectValidator', async () => {
   afterEach(async () => {
     sinon.restore();
   });
-
 
   describe('on valid input', async () => {
     it('should not throw error if all fields is exist', async () => {
@@ -180,6 +186,176 @@ describe('appendObjectValidator', async () => {
     });
 
     describe('when validateSpecifiedFields', async () => {
+      describe('on publisher field', async () => {
+        let publisher, randomType;
+        beforeEach(async () => {
+          mockData.field.name = FIELDS_NAMES.PUBLISHER;
+          publisher = await ObjectFactory.Create({ object_type: OBJECT_TYPES.BUSINESS });
+          randomType = await ObjectFactory.Create({ object_type: _.sample(_.filter(Object.values(OBJECT_TYPES), OBJECT_TYPES.BUSINESS)) });
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            name: faker.random.string(),
+            authorPermlink: publisher.author_permlink,
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type invalid', async () => {
+          mockData.field.body = JSON.stringify({
+            name: faker.random.string(),
+            authorPermlink: randomType.author_permlink,
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if on bad data', async () => {
+          mockData.field.body = JSON.stringify({
+            name: faker.random.string(),
+            authorPermlink: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on author field', async () => {
+        let author1, author2, randomType;
+        beforeEach(async () => {
+          mockData.field.name = FIELDS_NAMES.AUTHORS;
+          author1 = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PERSON });
+          author2 = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PERSON });
+          randomType = await ObjectFactory.Create({ object_type: _.sample(_.filter(Object.values(OBJECT_TYPES), OBJECT_TYPES.PERSON)) });
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify([{
+            name: faker.random.string(),
+            authorPermlink: author1.author_permlink,
+          },
+          {
+            name: faker.random.string(),
+            authorPermlink: author2.author_permlink,
+          },
+          ]);
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if one type invalid', async () => {
+          mockData.field.body = JSON.stringify([{
+            name: faker.random.string(),
+            authorPermlink: author1.author_permlink,
+          },
+          {
+            name: faker.random.string(),
+            authorPermlink: randomType.author_permlink,
+          },
+          ]);
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if on bad data', async () => {
+          mockData.field.body = JSON.stringify([{
+            name: faker.random.string(),
+            authorPermlink: _.random(1, 100),
+          },
+          {
+            name: faker.random.string(),
+            authorPermlink: randomType.author_permlink,
+          },
+          ]);
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+      describe('on weight field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.WEIGHT;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            value: _.random(1, 100),
+            unit: _.sample(WEIGHT_UNITS),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if body unit not on list', async () => {
+          mockData.field.body = JSON.stringify({
+            value: _.random(1, 100),
+            unit: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be with wrong data types', async () => {
+          mockData.field.body = JSON.stringify({
+            value: faker.random.string(),
+            unit: _.random(1, 100),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on dimensions field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.DIMENSIONS;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            length: _.random(1, 100),
+            width: _.random(1, 100),
+            depth: _.random(1, 100),
+            unit: _.sample(DIMENSION_UNITS),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if body unit not on list', async () => {
+          mockData.field.body = JSON.stringify({
+            length: _.random(1, 100),
+            width: _.random(1, 100),
+            depth: _.random(1, 100),
+            unit: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be with negative values', async () => {
+          mockData.field.body = JSON.stringify({
+            length: _.random(-99, -1),
+            width: _.random(-99, -1),
+            depth: _.random(-99, -1),
+            unit: _.sample(DIMENSION_UNITS),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on options field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.OPTIONS;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            category: faker.random.string(),
+            value: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if body has no category', async () => {
+          mockData.field.body = JSON.stringify({
+            category: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if body has no value', async () => {
+          mockData.field.body = JSON.stringify({
+            value: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on parent field', async () => {
         it('should be rejected if body refer to non existing wobject', async () => {
           mockData.field.name = 'parent';

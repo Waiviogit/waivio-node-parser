@@ -272,8 +272,36 @@ const find = async (condition, select, sort = {}, skip = 0, limit) => {
   }
 };
 
+const findSameFieldBody = async (textMatch, regexMatch) => {
+  try {
+    const [result] = await WObjectModel.aggregate([
+      {
+        $match: { $text: { $search: textMatch } },
+      },
+      {
+        $match: { 'fields.body': { $regex: regexMatch } },
+      },
+    ]);
+
+    return { result };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const findOne = async ({ filter, projection = {}, options = {} }) => {
+  try {
+    const wobject = await WObjectModel.findOne(filter, projection, options).lean();
+
+    return { wobject };
+  } catch (e) {
+    return { error: e };
+  }
+};
+
 module.exports = {
   find,
+  findOne,
   getOne,
   create,
   update,
@@ -291,4 +319,5 @@ module.exports = {
   pushNewPost,
   updateMany,
   getMany,
+  findSameFieldBody,
 };

@@ -17,7 +17,7 @@ const parse = async (operation, metadata) => {
     search: createEdgeNGrams(operation.permlink.replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, ''), 'permlink'),
   };
   const { wobject, error } = await createObject(data, operation);
-  if (error) console.error(error);
+  if (error) console.error(error.message);
   if (wobject) console.log(`Waivio object ${data.default_name} created!\n`);
   await wobjectHelper.addSupposedUpdates(wobject);
 };
