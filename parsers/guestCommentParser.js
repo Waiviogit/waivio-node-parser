@@ -21,6 +21,6 @@ exports.parse = async ({ operation, metadata }) => {
     root_permlink: comment.parent_permlink,
     guestInfo,
   });
-  if (error) return console.error(error);
+  if (error) return console.error(error.message);
   console.log(`Guest comment created: ${operation.author}/${operation.permlink}, guest name: ${guestInfo.userId}`);
 };

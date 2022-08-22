@@ -24,7 +24,7 @@ const parse = async (operation, options) => { // data is operation[1] of transac
       metadata = JSON.parse(operation.json_metadata); // parse json_metadata from string to JSON
     }
   } catch (e) {
-    console.error(e);
+    console.error(e.message);
   }
 
   if (!(await checkAppBlacklistValidity(metadata))) return;

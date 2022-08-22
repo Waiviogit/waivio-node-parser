@@ -52,7 +52,7 @@ exports.updateAccountParser = async (operation) => {
     );
 
     if (error) {
-      console.error(error);
+      console.error(error.message);
     } else if (result) {
       console.log(`User ${operation.account} update "json_metadata"`);
     }

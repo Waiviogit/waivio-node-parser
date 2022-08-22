@@ -14,7 +14,7 @@ const parse = async (operation, metadata) => {
     await createObjectType(data);
     console.log(`Object Type ${data.name} created!`);
   } catch (e) {
-    console.error(e);
+    console.error(e.message);
   }
 };
 

@@ -30,7 +30,7 @@ const updateAppChosenPost = async (operation) => {
   // get parent post to extract "title"
   const { post, err } = await postsUtil.getPost(operation.parent_author, operation.parent_permlink);
   if (err) {
-    console.error(err);
+    console.error(err.message);
     return;
   }
   const { app, error } = await App.updateChosenPost({
@@ -41,7 +41,7 @@ const updateAppChosenPost = async (operation) => {
     period: getPeriodFromBodyStr(operation.body),
   });
   if (error) {
-    return console.error(error);
+    return console.error(error.message);
   }
   console.log(`${userName} successfully update chosen post for app ${appName}!`);
 };

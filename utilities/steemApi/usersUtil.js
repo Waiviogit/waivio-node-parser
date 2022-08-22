@@ -6,9 +6,14 @@ const moment = require('moment');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
 const redisGetter = require('utilities/redis/redisGetter');
+const { socketHiveClient } = require('../socketClient/hiveSocket');
 
 const getUser = async (accountName) => {
   try {
+    const result = await socketHiveClient.getAccounts([accountName]);
+    if (!_.get(result, 'error')) {
+      return { user: result[0] };
+    }
     const [user] = await hivedClient.database.getAccounts([accountName]);
     return { user };
   } catch (error) {
@@ -18,6 +23,10 @@ const getUser = async (accountName) => {
 
 const getUsers = async (accountNames) => {
   try {
+    const result = await socketHiveClient.getAccounts(accountNames);
+    if (!_.get(result, 'error')) {
+      return { users: result };
+    }
     const users = await hivedClient.database.getAccounts(accountNames);
     return { users };
   } catch (error) {
