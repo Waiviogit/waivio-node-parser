@@ -78,6 +78,7 @@ exports.OBJECT_TYPES = {
   MOTEL: 'motel',
   RESORT: 'resort',
   BnB: 'b&b',
+  BOOK: 'book',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
@@ -135,6 +136,7 @@ exports.OBJECT_TYPES_FOR_COMPANY = [
 exports.OBJECT_TYPES_FOR_PRODUCT = [
   this.OBJECT_TYPES.PRODUCT,
   this.OBJECT_TYPES.SERVICE,
+  this.OBJECT_TYPES.BOOK,
 ];
 
 exports.WEIGHT_UNITS = [

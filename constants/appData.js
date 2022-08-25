@@ -92,12 +92,12 @@ const COMMON_RPC_NODES = [
 ];
 
 const HIVED_NODES = [
-  'https://blocks.waivio.com',
+  // 'https://blocks.waivio.com',
   ...COMMON_RPC_NODES,
 ];
 
 const HIVE_MIND_NODES = [
-  'https://blocks.waivio.com:8082',
+  // 'https://blocks.waivio.com:8082',
   ...COMMON_RPC_NODES,
 ];
 
