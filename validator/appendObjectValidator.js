@@ -227,6 +227,9 @@ const validateSpecifiedFields = async (data) => {
       const notValidPublisher = await validatePublisherField(data.field.body);
       if (notValidPublisher) throw new Error(`Can't append ${fieldName}`);
       break;
+    case FIELDS_NAMES.PRINT_LENGTH:
+      if (_.isNaN(Number(data.field.body))) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
 };
 
