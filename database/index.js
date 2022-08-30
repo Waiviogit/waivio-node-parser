@@ -26,6 +26,7 @@ module.exports = {
     Comment: require('./schemas/CommentSchema'),
     Subscriptions: require('./schemas/SubscriptionSchema'),
     Campaign: require('./schemas/CampaignSchema'),
+    CampaignV2: require('./schemas/CampaignV2Schema'),
     PaymentHistories: require('./schemas/PaymentHistoriesSchema'),
     WobjectSubscriptions: require('./schemas/WobjectSubscriptionSchema'),
     WebsitePayments: require('./schemas/WebsitePaymentsSchema'),
