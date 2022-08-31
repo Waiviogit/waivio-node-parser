@@ -186,6 +186,20 @@ describe('appendObjectValidator', async () => {
     });
 
     describe('when validateSpecifiedFields', async () => {
+      describe('on printLength field', async () => {
+        beforeEach(async () => {
+          mockData.field.name = FIELDS_NAMES.PRINT_LENGTH;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = String(_.random(0, 100));
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type invalid', async () => {
+          mockData.field.body = faker.random.string();
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
       describe('on publisher field', async () => {
         let publisher, randomType;
         beforeEach(async () => {

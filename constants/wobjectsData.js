@@ -39,6 +39,7 @@ exports.FIELDS_NAMES = {
   DIMENSIONS: 'dimensions',
   AUTHORS: 'authors',
   PUBLISHER: 'publisher',
+  PRINT_LENGTH: 'printLength',
 };
 
 exports.SEARCH_FIELDS = [
