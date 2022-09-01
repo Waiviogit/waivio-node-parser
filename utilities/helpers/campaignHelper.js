@@ -11,12 +11,16 @@ exports.parseReservationConversation = async (operation, metadata) => {
 
   const { result: campaignV2 } = await CampaignV2
     .findOne({
-      filter: { users: { $elemMatch: { reservationPermlink: operation.parent_permlink } } },
-      projection: { 'users.$': 1 },
+      filter: {
+        $or: [
+          { users: { $elemMatch: { reservationPermlink: operation.parent_permlink } } },
+          { activationPermlink: operation.parent_permlink },
+        ],
+      },
     });
-  const condition = (!campaign || !campaignV2)
+  const condition = !campaign
     && !_.includes(CAMPAIGNS_META, _.get(metadata, 'waivioRewards.type'));
-
+  if (campaignV2) return false;
   if (condition) return true;
   const reservedUser = _.find(_.get(campaign, 'users', []), (u) => u.rootName === operation.parent_author);
   await Campaign.updateOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } },
