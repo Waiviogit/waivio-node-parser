@@ -21,6 +21,10 @@ const getLastBlockNum = async (key) => {
 };
 const getTagCategories = async (key) => tagCategoriesClient.zrevrangeAsync(key, 0, -1);
 
+const sismember = async ({
+  key, member, client = expiredPostsClient,
+}) => client.sismemberAsync(key, member);
+
 module.exports = {
-  getHashAll, getLastBlockNum, getTagCategories, zrevrange,
+  getHashAll, getLastBlockNum, getTagCategories, zrevrange, sismember,
 };
