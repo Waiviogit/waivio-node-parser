@@ -10,6 +10,7 @@ const { postWithWobjValidator } = require('validator');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { commentRefSetter } = require('utilities/commentRefService');
 const { setExpiredPostTTL, sadd, expire } = require('utilities/redis/redisSetter');
+const redisGetter = require('utilities/redis/redisGetter');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const notificationsUtils = require('utilities/notificationsApi/notificationsUtil');
 const {
@@ -19,8 +20,9 @@ const {
   REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD,
   EXPIRE_DISTRIBUTE_HIVE_ENGINE_REWARD,
   HIVE_ENGINE_TOKEN_TAGS,
+  GREY_LIST_KEY,
+  VOTE_FIELDS,
 } = require('constants/common');
-const { VOTE_FIELDS } = require('../constants/common');
 
 const parse = async ({
   operation, metadata, post, fromTTL, options,
@@ -168,7 +170,13 @@ const createOrUpdatePost = async ({
 };
 
 const addHiveEngineTTL = async ({ postTags, author, permlink }) => {
+  if (process.env.NODE_ENV !== 'production') return;
   if (_.isEmpty(postTags)) return;
+  const isInGreyList = !!await redisGetter.sismember({
+    key: GREY_LIST_KEY,
+    member: author,
+  });
+  if (isInGreyList) return;
   const tokens = getHiveEngineTokensFromTags(postTags);
   for (const token of tokens) {
     const key = `${REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD}:${token}:${moment.utc().startOf('day').format()}`;
