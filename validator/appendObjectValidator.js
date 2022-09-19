@@ -238,6 +238,7 @@ const validatePublisherField = async (body) => {
   if (!publisher) return true;
   const { error } = publisherSchema.validate(publisher);
   if (error) return true;
+  if (!publisher.authorPermlink) return false;
   const { wobject } = await Wobj.findOne({
     filter: { author_permlink: publisher.authorPermlink, object_type: OBJECT_TYPES.BUSINESS },
   });
@@ -250,11 +251,12 @@ const validateAuthorsField = async (body) => {
   if (!authors) return true;
   const { error } = authorsSchema.validate(authors);
   if (error) return true;
-  const wobjectPermlinks = _.map(authors, 'authorPermlink');
-  const { wobjects } = await Wobj.getMany({
-    condition: { author_permlink: { $in: wobjectPermlinks }, object_type: OBJECT_TYPES.PERSON },
+  if (!authors.authorPermlink) return false;
+
+  const { wobject } = await Wobj.findOne({
+    filter: { author_permlink: authors.authorPermlink, object_type: OBJECT_TYPES.PERSON },
   });
-  if (wobjects.length !== wobjectPermlinks.length) return true;
+  if (!wobject) return true;
   return false;
 };
 
