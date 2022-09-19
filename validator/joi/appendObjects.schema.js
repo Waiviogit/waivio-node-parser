@@ -25,12 +25,12 @@ exports.dimensionsSchema = Joi.object().keys({
   unit: Joi.string().valid(...DIMENSION_UNITS).required(),
 }).options(options);
 
-exports.authorsSchema = Joi.array().items(Joi.object().keys({
+exports.authorsSchema = Joi.object().keys({
   name: Joi.string().required(),
-  authorPermlink: Joi.string().required(),
-}).required()).options(options);
+  authorPermlink: Joi.string(),
+}).options(options);
 
 exports.publisherSchema = Joi.object().keys({
   name: Joi.string().required(),
-  authorPermlink: Joi.string().required(),
+  authorPermlink: Joi.string(),
 }).options(options);
