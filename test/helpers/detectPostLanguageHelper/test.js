@@ -36,8 +36,8 @@ describe('detectPostLanguageHelper', async () => {
 
       for (const test of cases) {
         it(`should correct detect language for post with title ${test.params.title}`, async () => {
-          const lang = await detectPostLanguageHelper(test.params);
-          expect(lang).to.eq(test.exp_result);
+          const { language } = await detectPostLanguageHelper(test.params);
+          expect(language).to.eq(test.exp_result);
         });
       }
     });
