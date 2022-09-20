@@ -15,36 +15,26 @@ describe('UpdateSpecificFieldsHelper', async () => {
     wobject = await ObjectFactory.Create({ object_type: OBJECT_TYPES.RESTAURANT });
   });
   describe('on authors field', async () => {
-    let appendObject, person1, person2;
+    let appendObject, person1;
     beforeEach(async () => {
       person1 = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PERSON });
-      person2 = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PERSON });
       ({ appendObject, wobject } = await AppendObject.Create(
         {
           name: FIELDS_NAMES.AUTHORS,
-          body: JSON.stringify([{
+          body: JSON.stringify({
             name: faker.random.string(),
             authorPermlink: person1.author_permlink,
-          }, {
-            name: faker.random.string(),
-            authorPermlink: person2.author_permlink,
-          },
-          ]),
+          }),
         },
       ));
       await updateSpecificFieldsHelper.update({
         author: appendObject.author, permlink: appendObject.permlink, authorPermlink: wobject.author_permlink,
       });
       person1 = await WObject.findOne({ author_permlink: person1.author_permlink }).lean();
-      person2 = await WObject.findOne({ author_permlink: person2.author_permlink }).lean();
     });
 
     it('should children includes person1', async () => {
       expect(person1.children.includes(wobject.author_permlink)).to.be.true;
-    });
-
-    it('should children includes person2', async () => {
-      expect(person2.children.includes(wobject.author_permlink)).to.be.true;
     });
   });
 

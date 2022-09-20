@@ -131,9 +131,8 @@ const update = async ({
       }
       return;
     case FIELDS_NAMES.AUTHORS:
-      return updateOnAuthors({ field, authorPermlink });
     case FIELDS_NAMES.PUBLISHER:
-      return updateOnPublisher({ field, authorPermlink });
+      return updateChildrenSingle({ field, authorPermlink });
   }
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
@@ -149,16 +148,10 @@ const update = async ({
   }
 };
 
-const updateOnAuthors = async ({ field, authorPermlink }) => {
+const updateChildrenSingle = async ({ field, authorPermlink }) => {
   const body = jsonHelper.parseJson(field.body, null);
   if (!body) return;
-  const permlinks = _.map(body, 'authorPermlink');
-  return addChildrenToObjects({ permlinks, childrenPermlink: authorPermlink });
-};
-
-const updateOnPublisher = async ({ field, authorPermlink }) => {
-  const body = jsonHelper.parseJson(field.body, null);
-  if (!body) return;
+  if (!body.authorPermlink) return;
   return addChildrenToObjects(
     { permlinks: [body.authorPermlink], childrenPermlink: authorPermlink },
   );
