@@ -84,10 +84,12 @@ const createOrUpdatePost = async ({
     if (!postWithWobjValidator.validate({ wobjects: data.wobjects })) {
       return { validationError: true };
     }
+    const { language, languages } = await detectPostLanguageHelper(data);
     data.depth = 0;
     data.reblogged_by = [];
     data.root_title = data.title;
-    data.language = await detectPostLanguageHelper(data);
+    data.language = language;
+    data.languages = languages;
     data.created = moment().format('YYYY-MM-DDTHH:mm:ss');
     data.cashout_time = moment().add(7, 'days').toISOString();
     data.url = `/${data.parent_permlink}/@${data.root_author}/${data.permlink}`;
@@ -156,7 +158,9 @@ const createOrUpdatePost = async ({
   _.forEach(post.active_votes, (el) => {
     if (!_.includes(hiveVoters, el.voter)) hivePost.active_votes.push(el);
   });
-  hivePost.language = await detectPostLanguageHelper(hivePost);
+  const { language, languages } = await detectPostLanguageHelper(data);
+  hivePost.language = language;
+  hivePost.languages = languages;
   hivePost.author = data.author;
 
   ({ result: updPost, error } = await Post.update(hivePost));
