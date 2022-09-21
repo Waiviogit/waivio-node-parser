@@ -70,6 +70,7 @@ exports.REDIS_KEYS = {
   PROCESSED_LIKES: 'processed_likes:hive',
   CURRENT_PRICE_INFO: 'current_price_info',
   DYNAMIC_GLOBAL_PROPERTIES: 'dynamic_global_properties',
+  TX_ID_MAIN: 'main_parser_tx_id',
 };
 
 exports.HIDE_ACTION = {

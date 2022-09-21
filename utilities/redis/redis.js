@@ -27,5 +27,9 @@ const expiredListener = (onMessageCallBack) => {
 };
 
 module.exports = {
-  postRefsClient, lastBlockClient, expiredPostsClient, expiredListener, tagCategoriesClient,
+  postRefsClient,
+  lastBlockClient,
+  expiredPostsClient,
+  expiredListener,
+  tagCategoriesClient,
 };
