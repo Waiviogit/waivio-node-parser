@@ -58,7 +58,6 @@ const setLastBlockNum = async (blockNum, redisKey) => {
     let key = PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
     if (redisKey) key = redisKey;
     await lastBlockClient.setAsync(key, blockNum);
-    await lastBlockClient.publish(key, blockNum);
   }
 };
 
@@ -82,6 +81,10 @@ const zrem = async ({
 
 const expire = async (key, time, client = expiredPostsClient) => client.expireAsync(key, time);
 
+const publishToChannel = async ({ channel, msg, client = lastBlockClient }) => {
+  await client.publishAsync(channel, msg);
+};
+
 module.exports = {
   setExpiredPostTTL,
   zremrangebyscore,
@@ -95,4 +98,5 @@ module.exports = {
   sadd,
   expire,
   zrem,
+  publishToChannel,
 };

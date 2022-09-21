@@ -15,8 +15,11 @@ const jsonHelper = require('utilities/helpers/jsonHelper');
 const postModel = require('models/PostModel');
 const moment = require('moment');
 const _ = require('lodash');
+const { REDIS_KEYS } = require('constants/parsersData');
 
-const parse = async (operation, options) => { // data is operation[1] of transaction in block
+const parse = async ({
+  operation, options, transactionId,
+}) => {
   let metadata;
 
   try {
@@ -36,6 +39,10 @@ const parse = async (operation, options) => { // data is operation[1] of transac
     // comment with parent_author is REPLY TO POST
     await commentSwitcher(({ operation, metadata }));
   }
+  await redisSetter.publishToChannel({
+    channel: REDIS_KEYS.TX_ID_MAIN,
+    msg: transactionId,
+  });
 };
 
 const postSwitcher = async ({
