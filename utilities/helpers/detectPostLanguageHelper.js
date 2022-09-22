@@ -43,6 +43,26 @@ const languageList = {
   'zh-CN': 'cmn',
 };
 
+const getFormattedLanguages = ({ languages = [] }) => {
+  const LANGUAGE_LIST = _.invert(languageList);
+  let addMore = true;
+  if (!languages.length) return [];
+  const result = languages.reduce((acc, el, i) => {
+    const [lang] = el;
+    if (lang === 'crt') return acc;
+    const supportedLang = LANGUAGE_LIST[lang];
+    if (!supportedLang || !addMore) return acc;
+    acc.push(supportedLang);
+    if (lang === 'eng' && !i) addMore = false;
+    return acc;
+  }, []);
+  if (!result.length) return result;
+  if (!result.includes(LANGUAGE_LIST.eng)) {
+    return [result[0]];
+  }
+  return result;
+};
+
 /**
  * Detect language of Post content depend on User preference
  * @param title Title of the post
@@ -55,10 +75,13 @@ module.exports = async ({ title = '', body = '', author } = {}) => {
   let text = `${title.replace(/(?:!?\[(.*?)\]\((.*?)\))|(<\/?[^>]+(>|$))/g, '')}\n`;
   text += body.replace(/(?:!?\[(.*?)\]\((.*?)\))|(<\/?[^>]+(>|$))/g, '');
   let existLanguages = franc.all(text, { only: Object.values(languageList) });
+  const languages = getFormattedLanguages({ languages: _.take(existLanguages, 2) });
+
   existLanguages = existLanguages.map((item) => ({
     language: findCorrectLanguageFormat(item[0]),
     rate: item[1],
   }));
+
   // if lib didn't match any language ¯\_(ツ)_/¯
   if (_.isEmpty(existLanguages)) {
     // chose language from author language, english has priority
@@ -85,7 +108,11 @@ module.exports = async ({ title = '', body = '', author } = {}) => {
     .value();
   if (overlapLang) return overlapLang;
   // else just return top from matched languages
-  return existLanguages[0].language;
+
+  return {
+    language: existLanguages[0].language,
+    languages,
+  };
 };
 
 /**

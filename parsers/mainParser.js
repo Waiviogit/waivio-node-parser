@@ -16,14 +16,17 @@ const parseSwitcher = async (transactions, timestamp) => {
         if (!PARSE_ONLY_VOTES) {
           switch (operation[0]) {
             case MAIN_OPS.COMMENT:
-              const options = _.get(transaction, 'operations[1][1]');
-              await commentParser.parse(operation[1], options);
+              await commentParser.parse({
+                operation: operation[1],
+                options: _.get(transaction, 'operations[1][1]'),
+                transactionId: _.get(transaction, 'transaction_id'),
+              });
               break;
             case MAIN_OPS.DELETE_COMMENT:
               await commentParser.deleteComment(operation[1]);
               break;
             case MAIN_OPS.CUSTOM_JSON:
-              await customJsonParser.parse(operation[1], transaction.block_num, transaction.transaction_id,timestamp);
+              await customJsonParser.parse(operation[1], transaction.block_num, transaction.transaction_id, timestamp);
               break;
             case MAIN_OPS.ACCOUNT_UPDATE:
             case MAIN_OPS.ACCOUNT_UPDATE2:

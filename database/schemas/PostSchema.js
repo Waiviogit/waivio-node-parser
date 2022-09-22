@@ -70,6 +70,7 @@ const PostSchema = new Schema({
     object_type: { type: String, index: true },
   }],
   language: { type: String, default: 'en-US' },
+  languages: { type: [String], default: ['en-US'], index: true },
   reblog_to: { type: { author: String, permlink: String } },
   reblogged_users: { type: [String], default: [] },
   blocked_for_apps: { type: [String] },
