@@ -4,7 +4,6 @@ const { commentRefSetter, commentRefGetter } = require('utilities/commentRefServ
 const { wobjectHelper, userHelper } = require('utilities/helpers');
 const { createEdgeNGrams } = require('../utilities/helpers/updateSpecificFieldsHelper');
 const { publishToChannel } = require('../utilities/redis/redisSetter');
-const { DatafinityObject } = require('../models');
 
 const parse = async (operation, metadata) => {
   const data = {
@@ -22,7 +21,7 @@ const parse = async (operation, metadata) => {
   if (error) console.error(error.message);
   if (wobject) console.log(`Waivio object ${data.default_name} created!\n`);
   await wobjectHelper.addSupposedUpdates(wobject);
-  await publishIfDatafinityObjectCreated(data);
+  await publishIfDatafinityObjectCreated(data, metadata);
 };
 
 const createObject = async (data, operation) => {
@@ -49,9 +48,8 @@ const createObject = async (data, operation) => {
   }
 };
 
-const publishIfDatafinityObjectCreated = async (data) => {
-  const { datafinityObject, error } = await DatafinityObject.getOne({ author_permlink: data.author_permlink });
-  if (!datafinityObject || error) return;
+const publishIfDatafinityObjectCreated = async (data, metadata) => {
+  if (!metadata.datafinityObject) return;
 
   await publishToChannel({
     channel: 'datafinityObject',

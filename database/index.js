@@ -37,6 +37,5 @@ module.exports = {
     MutedUser: require('./schemas/MutedUserSchema'),
     AirdropWAIV: require('./schemas/AirdropWAIV'),
     EngineAccountHistory: require('./schemas/EngineAccountHistorySchema'),
-    DatafinityObject: require('./schemas/DatafinityObjectSchema')
   },
 };

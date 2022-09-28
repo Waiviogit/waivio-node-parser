@@ -19,5 +19,4 @@ module.exports = {
   hiddenPostModel: require('./hiddenPostModel'),
   hiddenCommentModel: require('./hiddenCommentModel'),
   mutedUserModel: require('./mutedUserModel'),
-  DatafinityObject: require('./DatafinityObjectModel'),
 };
