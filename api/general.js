@@ -104,8 +104,9 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
 
 const getBlock = async (blockNum, hiveUrl) => {
   try {
-    const resp = await socketHiveClient.getBlock(blockNum);
-    if (!_.get(resp, 'error')) return { block: resp };
+    // comment while our node up to 26
+    // const resp = await socketHiveClient.getBlock(blockNum);
+    // if (!_.get(resp, 'error')) return { block: resp };
     const hive = new Client(hiveUrl);
     const block = await hive.database.call('get_block', [blockNum]);
     return { block };
