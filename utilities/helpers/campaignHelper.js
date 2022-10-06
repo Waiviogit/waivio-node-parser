@@ -6,17 +6,17 @@ const CAMPAIGNS_META = ['waivio_activate_campaign', 'waivio_stop_campaign', 'sto
 
 // need replace notification to campaign service
 exports.parseReservationConversation = async (operation, metadata) => {
-  const { result: campaign } = await Campaign
-    .findOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } });
-
   const { result: campaignV2 } = await CampaignV2
     .findOne({
       filter: { users: { $elemMatch: { reservationPermlink: operation.parent_permlink } } },
       projection: { 'users.$': 1 },
     });
-  const condition = (!campaign || !campaignV2)
-    && !_.includes(CAMPAIGNS_META, _.get(metadata, 'waivioRewards.type'));
+  if (campaignV2) return false;
 
+  const { result: campaign } = await Campaign
+    .findOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } });
+
+  const condition = !campaign && !_.includes(CAMPAIGNS_META, _.get(metadata, 'waivioRewards.type'));
   if (condition) return true;
   const reservedUser = _.find(_.get(campaign, 'users', []), (u) => u.rootName === operation.parent_author);
   await Campaign.updateOne({ users: { $elemMatch: { permlink: operation.parent_permlink } } },
