@@ -84,7 +84,9 @@ const commentSwitcher = async ({ operation, metadata }) => {
   }
   // add wobjects if comment on first level has links in body
   await postHelper.parseCommentBodyWobjects({
-    body: operation.body, author: operation.parent_author, permlink: operation.parent_permlink,
+    body: operation.body,
+    author: operation.parent_author,
+    permlink: operation.parent_permlink,
   });
 
   await redisSetter.sadd(
