@@ -9,6 +9,9 @@ const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
 const { RE_HTTPS, RE_WOBJECT_REF, RE_HASHTAGS } = require('constants/regExp');
 const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
+const { postWithWobjValidator } = require('../../validator');
+const detectPostLanguageHelper = require('./detectPostLanguageHelper');
+const { commentRefSetter } = require('../commentRefService');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -47,6 +50,7 @@ exports.createPost = async ({
   const { post, err } = await postsUtil.getPost(author, permlink);
   if (!post) return;
   if (err || !post.author || !post.body) return console.error(`Post @${author}/${permlink} not found or was deleted!`);
+  if (post.parent_author) return;
   const metadata = this.parseMetadata(post.json_metadata);
   if (!metadata) return;
   await commentParser.postSwitcher({
@@ -63,6 +67,7 @@ exports.createPost = async ({
     post,
     fromTTL,
   });
+  return true;
 };
 
 exports.parseMetadata = (metadata) => {
@@ -193,7 +198,36 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
   }
 };
 
-exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
+const restoreOldPost = async ({ author, permlink }) => {
+  const { post, err } = await postsUtil.getPost(author, permlink);
+  if (!post) return;
+  if (err || !post.author || !post.body) return;
+  if (post.parent_author) return;
+  const metadata = this.parseMetadata(post.json_metadata);
+  if (!metadata) return;
+  post.wobjects = await this.parseBodyWobjects(metadata, post.body);
+  if (!postWithWobjValidator.validate({ wobjects: post.wobjects })) {
+    return;
+  }
+  const { language, languages } = await detectPostLanguageHelper(post);
+  post.language = language;
+  post.languages = languages;
+  post._id = new ObjectId(moment.utc(post.created).unix());
+  post.createdAt = moment.utc(post.created).format();
+
+  const { result: updPost, error } = await Post.create(post);
+  if (error) return;
+  await commentRefSetter.addPostRef(
+    `${post.root_author}_${post.permlink}`,
+    post.wobjects,
+  );
+  await this.addToRelated(post.wobjects, metadata.image, `${post.author}_${post.permlink}`);
+  return true;
+};
+
+exports.parseCommentBodyWobjects = async ({
+  body = '', author, permlink,
+}) => {
   const matches = _.uniq([
     ...getBodyLinksArray(body, RE_HASHTAGS),
     ...getBodyLinksArray(body, RE_WOBJECT_REF),
@@ -203,7 +237,10 @@ exports.parseCommentBodyWobjects = async ({ body = '', author, permlink }) => {
   const { post } = await Post.findByBothAuthors({
     author, permlink, select: { wobjects: 1, _id: 0 },
   });
-  if (!post) return false;
+  if (!post) {
+    const created = await restoreOldPost({ author, permlink });
+    if (!created) return false;
+  }
 
   const { result } = await Wobj.find(
     { author_permlink: { $in: matches } },
