@@ -40,6 +40,8 @@ exports.FIELDS_NAMES = {
   AUTHORS: 'authors',
   PUBLISHER: 'publisher',
   PRINT_LENGTH: 'printLength',
+  WIDGET: 'widget',
+  NEWS_FEED: 'newsFeed',
 };
 
 exports.SEARCH_FIELDS = [
@@ -80,6 +82,8 @@ exports.OBJECT_TYPES = {
   RESORT: 'resort',
   BnB: 'b&b',
   BOOK: 'book',
+  WIDGET: 'widget',
+  NEWS_FEED: 'news feed',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
