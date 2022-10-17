@@ -86,16 +86,25 @@ module.exports = async ({ title = '', body = '', author } = {}) => {
   if (_.isEmpty(existLanguages)) {
     // chose language from author language, english has priority
     if (_.isEmpty(userLanguages) || (userLanguages.length === 1 && _.get(userLanguages, '[0]') === 'auto')) {
-      return 'en-US';
+      return {
+        language: 'en-US',
+        languages,
+      };
     }
     if (userLanguages.includes('en-US')) {
-      return 'en-US';
+      return {
+        language: 'en-US',
+        languages,
+      };
     }
     const index = userLanguages.indexOf('auto');
     if (index !== -1) {
       userLanguages.splice(index, 1);
     }
-    return _.first(userLanguages);
+    return {
+      language: _.first(userLanguages),
+      languages,
+    };
   }
   // else if matched languages not empty,
   // get top 5 matched languages,
@@ -106,7 +115,12 @@ module.exports = async ({ title = '', body = '', author } = {}) => {
     .filter((item) => userLanguages.includes(item.language))
     .get('[0].language')
     .value();
-  if (overlapLang) return overlapLang;
+  if (overlapLang) {
+    return {
+      language: overlapLang,
+      languages,
+    };
+  }
   // else just return top from matched languages
 
   return {
