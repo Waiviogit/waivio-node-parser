@@ -31,6 +31,7 @@
     "updateObjectTypes": "NODE_PATH=. API_KEY=dfsdf node ./utilities/tasks/updateObjectTypesExposedFields/run.js",
     "updateSearchFieldsOnWobjects": "NODE_PATH=. API_KEY=dfsdf node ./utilities/tasks/updateSearchFieldsOnWobjects/run.js",
     "addTokenRates": "NODE_PATH=. node ./utilities/tasks/addTokenRateUsd/addTokenRateUsd.js",
+    "redetectLanguage": "NODE_PATH=. node ./utilities/tasks/redetectLanguage/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },

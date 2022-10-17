@@ -336,6 +336,53 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on widget field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.WIDGET;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            column: faker.random.string(),
+            type: faker.random.string(),
+            content: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if one missing', async () => {
+          mockData.field.body = JSON.stringify({
+            column: faker.random.string(),
+            type: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on newsFeed field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.NEWS_FEED;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            allowList: [[faker.random.string()]],
+            ignoreList: [faker.random.string()],
+            typeList: [faker.random.string()],
+            authors: [faker.random.string()],
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if wrong types', async () => {
+          mockData.field.body = JSON.stringify({
+            allowList: [[faker.random.number()]],
+            ignoreList: [faker.random.string()],
+            typeList: [faker.random.string()],
+            authors: [faker.random.string()],
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on options field', async () => {
         beforeEach(() => {
           mockData.field.name = FIELDS_NAMES.OPTIONS;
