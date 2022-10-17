@@ -3,9 +3,11 @@ const {
   FIELDS_NAMES, RATINGS_UPDATE_COUNT, AUTHORITY_FIELD_ENUM, OBJECT_TYPES,
 } = require('constants/wobjectsData');
 const {
-  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config, App,
+  expect, updateSpecificFieldsHelper, WObject, faker, dropDatabase, postHelper, config, App, Department,
 } = require('test/testHelper');
-const { AppendObject, ObjectFactory, AppFactory } = require('test/factories');
+const {
+  AppendObject, ObjectFactory, AppFactory, DepartmentFactory,
+} = require('test/factories');
 
 describe('UpdateSpecificFieldsHelper', async () => {
   let wobject, parent;
@@ -14,6 +16,87 @@ describe('UpdateSpecificFieldsHelper', async () => {
     await dropDatabase();
     wobject = await ObjectFactory.Create({ object_type: OBJECT_TYPES.RESTAURANT });
   });
+
+  describe('on departments field', async () => {
+    let appendObject, updatedObject, department;
+    const mainBody = faker.random.string();
+    const relatedBody = faker.random.string();
+    beforeEach(async () => {
+      await DepartmentFactory.Create({ name: mainBody });
+
+      ({ appendObject, wobject } = await AppendObject.Create(
+        {
+          name: FIELDS_NAMES.DEPARTMENTS,
+          body: mainBody,
+        },
+      ));
+      await AppendObject.Create(
+        {
+          name: FIELDS_NAMES.DEPARTMENTS,
+          body: relatedBody,
+          root_wobj: wobject.author_permlink,
+        },
+      );
+      await updateSpecificFieldsHelper.update({
+        author: appendObject.author,
+        permlink: appendObject.permlink,
+        authorPermlink: wobject.author_permlink,
+      });
+
+      updatedObject = await WObject.findOne({ author_permlink: wobject.author_permlink }).lean();
+      department = await Department.findOne({ name: mainBody }).lean();
+    });
+
+    it('should department objectsCount eq 1', async () => {
+      expect(department.objectsCount).to.be.eq(1);
+    });
+
+    it('should department name eq mainBody', async () => {
+      expect(department.name).to.be.eq(mainBody);
+    });
+
+    it('should department related includes relatedBody', async () => {
+      expect(department.related.includes(relatedBody)).to.be.true;
+    });
+
+    it('should object departments  includes mainBody', async () => {
+      expect(updatedObject.departments.includes(mainBody)).to.be.true;
+    });
+
+    it('should department objectsCount stay 1 id we have 2 same updates', async () => {
+      ({ appendObject, wobject } = await AppendObject.Create(
+        {
+          name: FIELDS_NAMES.DEPARTMENTS,
+          body: mainBody,
+          root_wobj: wobject.author_permlink,
+        },
+      ));
+      await updateSpecificFieldsHelper.update({
+        author: appendObject.author,
+        permlink: appendObject.permlink,
+        authorPermlink: wobject.author_permlink,
+      });
+      department = await Department.findOne({ name: mainBody }).lean();
+      expect(department.objectsCount).to.be.eq(1);
+    });
+
+    it('should department objectsCount incr if 2 different objects', async () => {
+      ({ appendObject, wobject } = await AppendObject.Create(
+        {
+          name: FIELDS_NAMES.DEPARTMENTS,
+          body: mainBody,
+        },
+      ));
+      await updateSpecificFieldsHelper.update({
+        author: appendObject.author,
+        permlink: appendObject.permlink,
+        authorPermlink: wobject.author_permlink,
+      });
+      department = await Department.findOne({ name: mainBody }).lean();
+      expect(department.objectsCount).to.be.eq(2);
+    });
+  });
+
   describe('on authors field', async () => {
     let appendObject, person1;
     beforeEach(async () => {

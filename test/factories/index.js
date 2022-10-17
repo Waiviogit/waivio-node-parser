@@ -18,4 +18,5 @@ module.exports = {
   HiddenPostsFactory: require('./HiddenPosts/HiddenPostsFactory'),
   HiddenCommentFactory: require('./HiddenComment/HiddenCommentFactory'),
   MutedUsersFactory: require('./MutedUsers/MutedUsersFactory'),
+  DepartmentFactory: require('./Department/DepartmentFactory'),
 };
