@@ -20,4 +20,5 @@ module.exports = {
   hiddenCommentModel: require('./hiddenCommentModel'),
   mutedUserModel: require('./mutedUserModel'),
   Department: require('./DepartmentModel'),
+  GuestWallet: require('./GuestWalletModel'),
 };
