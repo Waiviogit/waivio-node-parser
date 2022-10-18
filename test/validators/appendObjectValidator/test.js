@@ -383,6 +383,23 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on departments field', async () => {
+        const body = `S${faker.random.string()}K`;
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.DEPARTMENTS;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = body;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be lowercase', async () => {
+          mockData.field.body = body;
+          await appendObjectValidator.validate(mockData, mockOp);
+          expect(mockData.field.body).to.be.eq(body.toLowerCase());
+        });
+      });
+
       describe('on options field', async () => {
         beforeEach(() => {
           mockData.field.name = FIELDS_NAMES.OPTIONS;
