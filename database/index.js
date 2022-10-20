@@ -38,5 +38,6 @@ module.exports = {
     AirdropWAIV: require('./schemas/AirdropWAIV'),
     EngineAccountHistory: require('./schemas/EngineAccountHistorySchema'),
     Department: require('./schemas/DepartmentSchema'),
+    GuestWallet: require('./schemas/GuestWalletSchema'),
   },
 };

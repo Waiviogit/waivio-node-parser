@@ -1,5 +1,5 @@
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { sitesHelper, vipTicketsHelper } = require('utilities/helpers');
+const { sitesHelper, vipTicketsHelper, hiveEngineHelper } = require('utilities/helpers');
 const { TRANSFER_ID, REFUND_ID } = require('constants/sitesData');
 const { TICKETS_ACCOUNT } = require('constants/vipTicketsData');
 const { MEMO_ID } = require('constants/parsersData');
@@ -18,6 +18,10 @@ const parse = async (operation, blockNum) => {
           operation.from = memo.from;
           await vipTicketsHelper.processTicketPurchase({ ...operation, blockNum });
         }
+        break;
+      case MEMO_ID.HIVE_ENGINE:
+        await hiveEngineHelper.parseEngineTransfer({ operation, memo });
+        break;
     }
   }
   if (operation.to === TICKETS_ACCOUNT && _.get(memo, 'id') !== MEMO_ID.GUEST_TRANSFER) {
