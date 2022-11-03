@@ -42,6 +42,7 @@ exports.FIELDS_NAMES = {
   PRINT_LENGTH: 'printLength',
   WIDGET: 'widget',
   NEWS_FEED: 'newsFeed',
+  DEPARTMENTS: 'departments',
 };
 
 exports.SEARCH_FIELDS = [

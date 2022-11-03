@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const config = require('config');
-const { Wobj, App } = require('models');
+const { Wobj, App, Department } = require('models');
 const { tagsParser } = require('utilities/restaurantTagsParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { processWobjects } = require('utilities/helpers/wobjectHelper');
@@ -133,6 +133,9 @@ const update = async ({
     case FIELDS_NAMES.AUTHORS:
     case FIELDS_NAMES.PUBLISHER:
       return updateChildrenSingle({ field, authorPermlink });
+    case FIELDS_NAMES.DEPARTMENTS:
+      await manageDepartments({ field, authorPermlink });
+      break;
   }
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
@@ -146,6 +149,37 @@ const update = async ({
       fieldName: field.name,
     });
   }
+};
+
+const manageDepartments = async ({ field, authorPermlink }) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+  if (!wobject) return;
+  const sameDepartmentFields = _.filter(
+    wobject.fields,
+    (f) => f.name === FIELDS_NAMES.DEPARTMENTS && f.body === field.body,
+  );
+
+  const related = _.filter(
+    wobject.fields,
+    (f) => f.name === FIELDS_NAMES.DEPARTMENTS && f.body !== field.body,
+  );
+  const { result, error } = await Department.findOneOrCreateByName(field.body);
+  if (error) return;
+
+  const needUpdateCount = sameDepartmentFields.length === 1;
+
+  await Wobj.update(
+    { author_permlink: authorPermlink },
+    { $addToSet: { departments: result.name } },
+  );
+
+  await Department.updateOne({
+    filter: {},
+    update: {
+      ...(needUpdateCount && { $inc: { objectsCount: 1 } }),
+      $addToSet: { related: { $each: _.map(related, 'body') } },
+    },
+  });
 };
 
 const updateChildrenSingle = async ({ field, authorPermlink }) => {

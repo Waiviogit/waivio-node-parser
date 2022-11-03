@@ -4,7 +4,7 @@ const {
   DIMENSION_UNITS,
 } = require('../../constants/wobjectsData');
 
-const options = { allowUnknown: true, stripUnknown: true };
+const options = { allowUnknown: true, stripUnknown: true, convert: true };
 
 exports.optionsSchema = Joi.object().keys({
   category: Joi.string().required(),
@@ -41,10 +41,13 @@ exports.widgetSchema = Joi.object().keys({
   content: Joi.string().required(),
 }).options(options);
 
-
 exports.newsFeedSchema = Joi.object().keys({
   allowList: Joi.array().items(Joi.array().items(Joi.string())),
   ignoreList: Joi.array().items(Joi.string()),
   typeList: Joi.array().items(Joi.string()),
   authors: Joi.array().items(Joi.string()),
+}).options(options);
+
+exports.departmentsSchema = Joi.object().keys({
+  department: Joi.string().lowercase(),
 }).options(options);
