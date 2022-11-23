@@ -6,6 +6,7 @@ const {
   MIN_PERCENT_TO_SHOW_UPDATE, VOTE_STATUSES, INDEPENDENT_FIELDS,
   ADMIN_ROLES, categorySwitcher, FIELDS_NAMES, ARRAY_FIELDS,
 } = require('constants/wobjectsData');
+const supposedUpdatesTranslate = require('translations/supposedUpdates');
 
 const DEFAULT_UPDATES_CREATOR = 'monterey';
 
@@ -14,7 +15,7 @@ const DEFAULT_UPDATES_CREATOR = 'monterey';
  * Get list of supposed updates and send its to ImportService for create
  * @param wobject {Object}
  */
-const addSupposedUpdates = async (wobject) => {
+const addSupposedUpdates = async (wobject, locale) => {
   if (!_.get(wobject, 'object_type')) return;
   const { objectType, error: objTypeError } = await ObjectType.getOne({
     name: wobject.object_type,
@@ -27,11 +28,13 @@ const addSupposedUpdates = async (wobject) => {
   importWobjData.fields = [];
   supposedUpdates.forEach((update) => {
     _.get(update, 'values', []).forEach((value) => {
+      const body = supposedUpdatesTranslate[value][locale] || supposedUpdatesTranslate[value]['en-US'];
       const field = {
         name: update.name,
-        body: value,
+        body,
         permlink: `${wobject.author_permlink}-${update.name.toLowerCase()}-${randomString(5)}`,
         creator: DEFAULT_UPDATES_CREATOR,
+        locale,
       };
       if (update.id_path) field[update.id_path] = uuid();
       importWobjData.fields.push(field);
