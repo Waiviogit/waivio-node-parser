@@ -53,7 +53,7 @@ module.exports = {
   },
   Consensus: {
     'en-US': 'Consensus',
-    'ru-RU': 'Консенсус',
+    'ru-RU': 'Согласованность',
     'af-ZA': 'Konsensus',
     'ar-SA': 'إجماع',
     'ca-ES': 'Consens',
@@ -74,7 +74,7 @@ module.exports = {
     'ms-MY': 'Konsensus',
     'pl-PL': 'Zgoda',
     'pt-BR': 'Consenso',
-    'uk-UA': 'Консенсус',
+    'uk-UA': 'Узгодженість',
     'zh-CN': '共识',
   },
   Quality: {
@@ -105,7 +105,7 @@ module.exports = {
   },
   Value: {
     'en-US': 'Value',
-    'ru-RU': 'Ценность',
+    'ru-RU': 'Стоимость',
     'af-ZA': 'Waarde',
     'ar-SA': 'قيمة',
     'ca-ES': 'Valor',
@@ -126,7 +126,7 @@ module.exports = {
     'ms-MY': 'Nilai',
     'pl-PL': 'Wartość',
     'pt-BR': 'Valor',
-    'uk-UA': 'Значення',
+    'uk-UA': 'Вартість',
     'zh-CN': '价值',
   },
   Pros: {
@@ -261,7 +261,7 @@ module.exports = {
   },
   Overall: {
     'en-US': 'Overall',
-    'ru-RU': 'Общий',
+    'ru-RU': 'Общее впечатление',
     'af-ZA': 'Algehele',
     'ar-SA': 'شاملة',
     'ca-ES': 'En general',
@@ -282,7 +282,7 @@ module.exports = {
     'ms-MY': 'Secara keseluruhan',
     'pl-PL': 'Ogólny',
     'pt-BR': 'No geral',
-    'uk-UA': 'В цілому',
+    'uk-UA': 'Загальне враження',
     'zh-CN': '全面的',
   },
   Usability: {
@@ -308,7 +308,7 @@ module.exports = {
     'ms-MY': 'Kebolehgunaan',
     'pl-PL': 'Użyteczność',
     'pt-BR': 'Usabilidade',
-    'uk-UA': 'Юзабіліті',
+    'uk-UA': 'Зручність використання',
     'zh-CN': '可用性',
   },
   Accuracy: {
@@ -339,7 +339,7 @@ module.exports = {
   },
   Highlights: {
     'en-US': 'Highlights',
-    'ru-RU': 'Особенности',
+    'ru-RU': 'Основные моменты',
     'af-ZA': 'Hoogtepunte',
     'ar-SA': 'يسلط الضوء',
     'ca-ES': 'Destacats',
@@ -391,7 +391,7 @@ module.exports = {
   },
   Occupation: {
     'en-US': 'Occupation',
-    'ru-RU': 'Занятие',
+    'ru-RU': 'Занятость',
     'af-ZA': 'Beroep',
     'ar-SA': 'إشغال',
     'ca-ES': 'Ocupació',
@@ -412,7 +412,7 @@ module.exports = {
     'ms-MY': 'Pekerjaan',
     'pl-PL': 'Zawód',
     'pt-BR': 'Ocupação',
-    'uk-UA': 'Окупація',
+    'uk-UA': 'Зайнятість',
     'zh-CN': '职业',
   },
   Interests: {
@@ -625,7 +625,7 @@ module.exports = {
   },
   'Good For': {
     'en-US': 'Good For',
-    'ru-RU': 'Хорош для',
+    'ru-RU': 'Подходит для',
     'af-ZA': 'Goed vir',
     'ar-SA': 'جيدة ل',
     'ca-ES': 'Bo per',
