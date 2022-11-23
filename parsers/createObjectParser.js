@@ -2,6 +2,7 @@ const { Wobj, User } = require('models');
 const { createObjectValidator } = require('validator');
 const { commentRefSetter, commentRefGetter } = require('utilities/commentRefService');
 const { wobjectHelper, userHelper } = require('utilities/helpers');
+const _ = require('lodash');
 const { createEdgeNGrams } = require('../utilities/helpers/updateSpecificFieldsHelper');
 
 const parse = async (operation, metadata) => {
@@ -19,7 +20,9 @@ const parse = async (operation, metadata) => {
   const { wobject, error } = await createObject(data, operation);
   if (error) console.error(error.message);
   if (wobject) console.log(`Waivio object ${data.default_name} created!\n`);
-  await wobjectHelper.addSupposedUpdates(wobject);
+
+  const locale = _.get(metadata, 'wobj.locale', 'en-US');
+  await wobjectHelper.addSupposedUpdates(wobject, locale);
 };
 
 const createObject = async (data, operation) => {
