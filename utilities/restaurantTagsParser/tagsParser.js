@@ -70,11 +70,9 @@ const parseIngredients = ({
   string, fields, id, authorPermlink, tag, tagsSource,
 }) => {
   const appends = [];
-  if (!id) {
-    const tagCategory = createTag({ name: 'tagCategory', body: tag, authorPermlink });
-    appends.push(tagCategory);
-    id = tagCategory.id;
-  }
+  let newId;
+  if (!id) newId = uuid.v1();
+
   try {
     _.forEach(Object.keys(tagsSource), (key) => {
       const regexp = new RegExp(`\\b(${key.toLowerCase()})\\b`, 'g');
@@ -82,12 +80,18 @@ const parseIngredients = ({
           && !_.find(fields,
             (field) => field.name === 'categoryItem' && field.body === tagsSource[key])) {
         appends.push(createTag({
-          name: 'categoryItem', body: tagsSource[key], id, authorPermlink, tag,
+          name: 'categoryItem', body: tagsSource[key], id: id || newId, authorPermlink, tag,
         }));
       }
     });
   } catch (error) {
     return [];
+  }
+  if (appends.length && !id) {
+    const tagCategory = createTag({
+      name: 'tagCategory', body: tag, authorPermlink, id: newId,
+    });
+    appends.unshift(tagCategory);
   }
 
   return appends;
