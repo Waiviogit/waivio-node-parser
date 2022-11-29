@@ -336,6 +336,70 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on widget field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.WIDGET;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            column: faker.random.string(),
+            type: faker.random.string(),
+            content: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if one missing', async () => {
+          mockData.field.body = JSON.stringify({
+            column: faker.random.string(),
+            type: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on newsFeed field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.NEWS_FEED;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            allowList: [[faker.random.string()]],
+            ignoreList: [faker.random.string()],
+            typeList: [faker.random.string()],
+            authors: [faker.random.string()],
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if wrong types', async () => {
+          mockData.field.body = JSON.stringify({
+            allowList: [[faker.random.number()]],
+            ignoreList: [faker.random.string()],
+            typeList: [faker.random.string()],
+            authors: [faker.random.string()],
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on departments field', async () => {
+        const body = `S${faker.random.string()}K`;
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.DEPARTMENTS;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = body;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be lowercase', async () => {
+          mockData.field.body = body;
+          await appendObjectValidator.validate(mockData, mockOp);
+          expect(mockData.field.body).to.be.eq(body.toLowerCase());
+        });
+      });
+
       describe('on options field', async () => {
         beforeEach(() => {
           mockData.field.name = FIELDS_NAMES.OPTIONS;

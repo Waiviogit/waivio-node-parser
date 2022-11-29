@@ -3,7 +3,7 @@ const {
   BASE_URL, WS,
 } = require('constants/appData').notificationsApi;
 
-const { API_KEY } = process.env;
+const { API_KEY = '' } = process.env;
 
 class SocketClient {
   constructor(url) {

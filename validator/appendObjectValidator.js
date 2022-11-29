@@ -7,7 +7,7 @@ const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/
 const { OBJECT_TYPES_FOR_COMPANY, OBJECT_TYPES_FOR_PRODUCT } = require('../constants/wobjectsData');
 const {
   optionsSchema, weightSchema, dimensionsSchema, authorsSchema,
-  publisherSchema,
+  publisherSchema, widgetSchema, newsFeedSchema, departmentsSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -216,7 +216,8 @@ const validateSpecifiedFields = async (data) => {
       if (weightErr) throw new Error(`Can't append ${fieldName}${weightErr.message}`);
       break;
     case FIELDS_NAMES.DIMENSIONS:
-      const { error: dimensionErr } = dimensionsSchema.validate(jsonHelper.parseJson(data.field.body));
+      const { error: dimensionErr } = dimensionsSchema
+        .validate(jsonHelper.parseJson(data.field.body));
       if (dimensionErr) throw new Error(`Can't append ${fieldName}${dimensionErr.message}`);
       break;
     case FIELDS_NAMES.AUTHORS:
@@ -229,6 +230,20 @@ const validateSpecifiedFields = async (data) => {
       break;
     case FIELDS_NAMES.PRINT_LENGTH:
       if (_.isNaN(Number(data.field.body))) throw new Error(`Can't append ${fieldName}`);
+      break;
+    case FIELDS_NAMES.WIDGET:
+      const { error: widgetErr } = widgetSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (widgetErr) throw new Error(`Can't append ${fieldName}${widgetErr.message}`);
+      break;
+    case FIELDS_NAMES.NEWS_FEED:
+      const { error: newsFeedErr } = newsFeedSchema.validate(jsonHelper.parseJson(data.field.body));
+      if (newsFeedErr) throw new Error(`Can't append ${fieldName}${newsFeedErr.message}`);
+      break;
+    case FIELDS_NAMES.DEPARTMENTS:
+      const { value, error: departmentsErr } = departmentsSchema
+        .validate({ department: data.field.body });
+      if (departmentsErr) throw new Error(`Can't append ${fieldName}${departmentsErr.message}`);
+      data.field.body = value.department;
       break;
   }
 };

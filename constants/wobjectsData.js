@@ -40,6 +40,11 @@ exports.FIELDS_NAMES = {
   AUTHORS: 'authors',
   PUBLISHER: 'publisher',
   PRINT_LENGTH: 'printLength',
+  WIDGET: 'widget',
+  NEWS_FEED: 'newsFeed',
+  DEPARTMENTS: 'departments',
+  BLOG: 'blog',
+  FORM: 'form',
 };
 
 exports.SEARCH_FIELDS = [
@@ -80,6 +85,8 @@ exports.OBJECT_TYPES = {
   RESORT: 'resort',
   BnB: 'b&b',
   BOOK: 'book',
+  WIDGET: 'widget',
+  NEWS_FEED: 'news feed',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
@@ -133,6 +140,37 @@ exports.OBJECT_TYPES_FOR_COMPANY = [
   this.OBJECT_TYPES.RESORT,
   this.OBJECT_TYPES.RESTAURANT,
 ];
+
+exports.INDEPENDENT_FIELDS = [
+  this.FIELDS_NAMES.STATUS,
+  this.FIELDS_NAMES.MAP,
+  this.FIELDS_NAMES.PARENT,
+];
+
+exports.ARRAY_FIELDS = [
+  this.FIELDS_NAMES.CATEGORY_ITEM,
+  this.FIELDS_NAMES.LIST_ITEM,
+  this.FIELDS_NAMES.TAG_CATEGORY,
+  this.FIELDS_NAMES.GALLERY_ITEM,
+  this.FIELDS_NAMES.GALLERY_ALBUM,
+  this.FIELDS_NAMES.RATING,
+  this.FIELDS_NAMES.BUTTON,
+  this.FIELDS_NAMES.PHONE,
+  this.FIELDS_NAMES.BLOG,
+  this.FIELDS_NAMES.FORM,
+  this.FIELDS_NAMES.NEWS_FILTER,
+  this.FIELDS_NAMES.COMPANY_ID,
+  this.FIELDS_NAMES.PRODUCT_ID,
+  this.FIELDS_NAMES.OPTIONS,
+  this.FIELDS_NAMES.AUTHORS,
+  this.FIELDS_NAMES.DEPARTMENTS,
+];
+
+exports.categorySwitcher = {
+  galleryAlbum: this.FIELDS_NAMES.GALLERY_ITEM,
+  galleryItem: this.FIELDS_NAMES.GALLERY_ITEM,
+  tagCategory: this.FIELDS_NAMES.CATEGORY_ITEM,
+};
 
 exports.OBJECT_TYPES_FOR_PRODUCT = [
   this.OBJECT_TYPES.PRODUCT,

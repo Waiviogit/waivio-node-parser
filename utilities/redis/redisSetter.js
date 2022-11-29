@@ -58,6 +58,7 @@ const setLastBlockNum = async (blockNum, redisKey) => {
     let key = PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
     if (redisKey) key = redisKey;
     await lastBlockClient.setAsync(key, blockNum);
+    lastBlockClient.publish(key, blockNum);
   }
 };
 
