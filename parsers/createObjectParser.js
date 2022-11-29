@@ -4,6 +4,7 @@ const { commentRefSetter, commentRefGetter } = require('utilities/commentRefServ
 const { wobjectHelper, userHelper } = require('utilities/helpers');
 const _ = require('lodash');
 const { createEdgeNGrams } = require('../utilities/helpers/updateSpecificFieldsHelper');
+const { publishToChannel } = require('../utilities/redis/redisSetter');
 
 const parse = async (operation, metadata) => {
   const data = {
@@ -23,6 +24,7 @@ const parse = async (operation, metadata) => {
 
   const locale = _.get(metadata, 'wobj.locale', 'en-US');
   await wobjectHelper.addSupposedUpdates(wobject, locale);
+  await publishIfDatafinityObjectCreated(data, metadata);
 };
 
 const createObject = async (data, operation) => {
@@ -47,6 +49,17 @@ const createObject = async (data, operation) => {
   } catch (error) {
     return { error };
   }
+};
+
+const publishIfDatafinityObjectCreated = async (data, metadata) => {
+  if (!metadata.datafinityObject) return;
+
+  await publishToChannel({
+    channel: 'datafinityObject',
+    msg: JSON.stringify({
+      user: data.creator, author_permlink: data.author_permlink,
+    }),
+  });
 };
 
 module.exports = { parse };
