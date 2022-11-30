@@ -14,6 +14,7 @@ const DEFAULT_UPDATES_CREATOR = 'monterey';
  * Unique script to fill objects with supposed updates for specified ObjectType.
  * Get list of supposed updates and send its to ImportService for create
  * @param wobject {Object}
+ * @param locale {string}
  */
 const addSupposedUpdates = async (wobject, locale) => {
   if (!_.get(wobject, 'object_type')) return;
