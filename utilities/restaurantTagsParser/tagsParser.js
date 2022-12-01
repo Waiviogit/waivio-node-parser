@@ -11,6 +11,9 @@ THIS MODULE PARSE TAGS FROM FIELDS BODY AND SEND TO IMPORT SERVICE
  */
 
 const createTags = async ({ field, authorPermlink }) => {
+  const locale = _.get(field, 'locale');
+  if (locale !== 'en-US') return;
+
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   if (!wobject || !_.find(wobject.fields, (obj) => obj.name === 'name')) return 0;
   if (!_.includes(CREATE_TAGS_ON_UPDATE_TYPES, wobject.object_type)) return 0;
