@@ -86,7 +86,7 @@ exports.OBJECT_TYPES = {
   BnB: 'b&b',
   BOOK: 'book',
   WIDGET: 'widget',
-  NEWS_FEED: 'news feed',
+  NEWS_FEED: 'newsfeed',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
