@@ -9,8 +9,9 @@ const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
 const { REVIEW_DEBTS_TYPES } = require('constants/campaigns');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const { ERROR } = require('constants/common');
-const { REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
+const { REQUIRED_POSTING_AUTHS, REDIS_KEYS } = require('constants/parsersData');
 const config = require('config');
+const redisSetter = require('utilities/redis/redisSetter');
 
 /**
  * Create user in DB if it not exist,
@@ -146,20 +147,24 @@ const referralValidation = async (json, author, postingAuth) => {
   return { result: true };
 };
 
-exports.confirmReferralStatus = async (data) => {
+exports.confirmReferralStatus = async (data, transactionId) => {
   const json = jsonHelper.parseJson(data.json);
   if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
   const author = _.get(json, 'agent');
 
   const { error } = await referralValidation(json, author, _.get(data, REQUIRED_POSTING_AUTHS));
   if (error) return { error };
+  await redisSetter.publishToChannel({
+    channel: REDIS_KEYS.TX_ID_MAIN,
+    msg: transactionId,
+  });
 
   /** Set user referral status */
   return userModel.updateOne({ name: author },
     { $set: { referralStatus: REFERRAL_STATUSES.ACTIVATED } });
 };
 
-exports.rejectReferralStatus = async (data) => {
+exports.rejectReferralStatus = async (data, transactionId) => {
   const json = jsonHelper.parseJson(data.json);
   if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
   const author = _.get(json, 'agent');
@@ -181,4 +186,8 @@ exports.rejectReferralStatus = async (data) => {
     { referral: { $elemMatch: { agent: author, endedAt: { $gt: moment.utc().toDate() } } } },
     { $set: { 'referral.$.endedAt': new Date() } },
   );
+  await redisSetter.publishToChannel({
+    channel: REDIS_KEYS.TX_ID_MAIN,
+    msg: transactionId,
+  });
 };

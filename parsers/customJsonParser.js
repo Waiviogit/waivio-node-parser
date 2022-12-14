@@ -31,10 +31,10 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
       break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:
-      await userHelper.rejectReferralStatus(operation);
+      await userHelper.rejectReferralStatus(operation, transaction_id);
       break;
     case CUSTOM_JSON_OPS.CONFIRM_REFERRAL_LICENCE:
-      await userHelper.confirmReferralStatus(operation);
+      await userHelper.confirmReferralStatus(operation, transaction_id);
       break;
     case CUSTOM_JSON_OPS.ADD_REFERRAL_AGENT:
       await userHelper.checkAndSetReferral(operation);
