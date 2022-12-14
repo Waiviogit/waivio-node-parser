@@ -390,6 +390,26 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on features field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.FEATURES;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = JSON.stringify({
+            key: faker.random.string(),
+            value: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if one missing', async () => {
+          mockData.field.body = JSON.stringify({
+            key: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on newsFeed field', async () => {
         beforeEach(() => {
           mockData.field.name = FIELDS_NAMES.NEWS_FEED;

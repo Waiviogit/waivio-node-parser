@@ -35,6 +35,11 @@ exports.publisherSchema = Joi.object().keys({
   authorPermlink: Joi.string(),
 }).options(options);
 
+exports.featuresSchema = Joi.object().keys({
+  key: Joi.string().required(),
+  value: Joi.string().required(),
+}).options(options);
+
 exports.namePermlinkSchema = Joi.object().keys({
   name: Joi.string(),
   authorPermlink: Joi.string(),

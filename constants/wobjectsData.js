@@ -48,6 +48,7 @@ exports.FIELDS_NAMES = {
   MERCHANT: 'merchant',
   MANUFACTURER: 'manufacturer',
   BRAND: 'brand',
+  FEATURES: 'features',
 };
 
 exports.SEARCH_FIELDS = [
