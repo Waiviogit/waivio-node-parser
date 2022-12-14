@@ -7,7 +7,7 @@ const { AUTHORITY_FIELD_ENUM, FIELDS_NAMES, OBJECT_TYPES } = require('constants/
 const { OBJECT_TYPES_FOR_COMPANY, OBJECT_TYPES_FOR_PRODUCT } = require('../constants/wobjectsData');
 const {
   optionsSchema, weightSchema, dimensionsSchema, authorsSchema,
-  publisherSchema, widgetSchema, newsFeedSchema, departmentsSchema,
+  publisherSchema, widgetSchema, newsFeedSchema, departmentsSchema, namePermlinkSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -245,7 +245,26 @@ const validateSpecifiedFields = async (data) => {
       if (departmentsErr) throw new Error(`Can't append ${fieldName}${departmentsErr.message}`);
       data.field.body = value.department;
       break;
+    case FIELDS_NAMES.MANUFACTURER:
+    case FIELDS_NAMES.MERCHANT:
+    case FIELDS_NAMES.BRAND:
+      const notValidMerchant = await nameOrPermlinkValidation(data.field.body);
+      if (notValidMerchant) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
+};
+
+const nameOrPermlinkValidation = async (body) => {
+  const object = jsonHelper.parseJson(body, null);
+  if (!object) return true;
+  const { error } = namePermlinkSchema.validate(object);
+  if (error) return true;
+  if (!object.authorPermlink) return false;
+  const { wobject } = await Wobj.findOne({
+    filter: { author_permlink: object.authorPermlink, object_type: OBJECT_TYPES.PRODUCT },
+  });
+  if (!wobject) return true;
+  return false;
 };
 
 const validatePublisherField = async (body) => {
