@@ -20,6 +20,8 @@ const addSupposedUpdates = async (wobject, locale, metadata) => {
   if (!_.get(wobject, 'object_type')) return;
 
   const importObject = !!metadata.datafinityObject;
+  if (importObject) return;
+
   const { objectType, error: objTypeError } = await ObjectType.getOne({
     name: wobject.object_type,
   });
@@ -29,9 +31,7 @@ const addSupposedUpdates = async (wobject, locale, metadata) => {
   if (_.isEmpty(supposedUpdates)) return;
   const importWobjData = _.pick(wobject, ['author_permlink', 'object_type']);
   importWobjData.fields = [];
-  if (importObject) {
-    importWobjData.importingAccount = wobject.creator;
-  }
+
   supposedUpdates.forEach((update) => {
     _.get(update, 'values', []).forEach((value) => {
       const body = supposedUpdatesTranslate[value][locale] || supposedUpdatesTranslate[value]['en-US'];
