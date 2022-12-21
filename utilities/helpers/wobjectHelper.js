@@ -16,8 +16,10 @@ const DEFAULT_UPDATES_CREATOR = 'monterey';
  * @param wobject {Object}
  * @param locale {string}
  */
-const addSupposedUpdates = async (wobject, locale) => {
+const addSupposedUpdates = async (wobject, locale, metadata) => {
   if (!_.get(wobject, 'object_type')) return;
+
+  const importObject = !!metadata.datafinityObject;
   const { objectType, error: objTypeError } = await ObjectType.getOne({
     name: wobject.object_type,
   });
@@ -27,6 +29,9 @@ const addSupposedUpdates = async (wobject, locale) => {
   if (_.isEmpty(supposedUpdates)) return;
   const importWobjData = _.pick(wobject, ['author_permlink', 'object_type']);
   importWobjData.fields = [];
+  if (importObject) {
+    importWobjData.importingAccount = wobject.creator;
+  }
   supposedUpdates.forEach((update) => {
     _.get(update, 'values', []).forEach((value) => {
       const body = supposedUpdatesTranslate[value][locale] || supposedUpdatesTranslate[value]['en-US'];

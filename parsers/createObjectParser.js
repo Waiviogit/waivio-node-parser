@@ -23,7 +23,7 @@ const parse = async (operation, metadata) => {
   if (wobject) console.log(`Waivio object ${data.default_name} created!\n`);
 
   const locale = _.get(metadata, 'wobj.locale', 'en-US');
-  await wobjectHelper.addSupposedUpdates(wobject, locale);
+  await wobjectHelper.addSupposedUpdates(wobject, locale, metadata);
   await publishIfDatafinityObjectCreated(data, metadata);
 };
 
