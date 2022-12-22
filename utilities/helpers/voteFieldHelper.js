@@ -118,7 +118,7 @@ const upDownVoteOnAppend = async ({
  * @returns {Number} Number from -100 to 100
  */
 const calculateVotePercent = (percent) => {
-  if (percent % 10 === 0) return _.round((percent / 100), 1);
+  if (percent % 2 === 0) return _.round((percent / 100), 1);
   return -_.round((percent / 100), 1);
 };
 
