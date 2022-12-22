@@ -45,6 +45,10 @@ exports.FIELDS_NAMES = {
   DEPARTMENTS: 'departments',
   BLOG: 'blog',
   FORM: 'form',
+  MERCHANT: 'merchant',
+  MANUFACTURER: 'manufacturer',
+  BRAND: 'brand',
+  FEATURES: 'features',
 };
 
 exports.SEARCH_FIELDS = [
