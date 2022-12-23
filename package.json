@@ -7,7 +7,7 @@
     "url": "git+https://github.com/Waiviogit/waivio-node-parser.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "fixEmptyWobject": "node ./utilities/tasks/appendWobjectFields/run.js",
     "createMissedUsers": "NODE_PATH=. node ./utilities/tasks/checkAndCreateSteemUsers/run.js",
