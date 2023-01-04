@@ -59,5 +59,5 @@ exports.newsFeedSchema = Joi.object().keys({
 }).options(options);
 
 exports.departmentsSchema = Joi.object().keys({
-  department: Joi.string().lowercase(),
+  department: Joi.string().required(),
 }).options(options);
