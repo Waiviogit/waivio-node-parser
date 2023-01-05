@@ -163,6 +163,7 @@ const manageDepartments = async ({ field, authorPermlink }) => {
     wobject.fields,
     (f) => f.name === FIELDS_NAMES.DEPARTMENTS && f.body !== field.body,
   );
+
   const { result, error } = await Department.findOneOrCreateByName(field.body);
   if (error) return;
 
@@ -174,7 +175,7 @@ const manageDepartments = async ({ field, authorPermlink }) => {
   );
 
   await Department.updateOne({
-    filter: {},
+    filter: { name: field.body },
     update: {
       ...(needUpdateCount && { $inc: { objectsCount: 1 } }),
       $addToSet: { related: { $each: _.map(related, 'body') } },
