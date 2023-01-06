@@ -37,7 +37,6 @@ const parse = async ({
   // find apps where author is muted
   const { mutedUsers } = await mutedUserModel.find({ userName: author });
   const blockedForApps = _.reduce(mutedUsers, (acc, value) => _.union(acc, value.mutedForApps), []);
-
   const data = {
     title: operation.title,
     parent_author: operation.parent_author,
@@ -49,6 +48,7 @@ const parse = async ({
     json_metadata: operation.json_metadata,
     body: operation.body,
     root_author: operation.author,
+    beneficiaries: _.get(options, 'extensions[0][1].beneficiaries', []),
     blocked_for_apps: blockedForApps,
     guestInfo, // do we need this field?
   };
