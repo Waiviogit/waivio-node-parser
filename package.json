@@ -33,6 +33,7 @@
     "addTokenRates": "NODE_PATH=. node ./utilities/tasks/addTokenRateUsd/addTokenRateUsd.js",
     "redetectLanguage": "NODE_PATH=. node ./utilities/tasks/redetectLanguage/run.js",
     "setDepartments": "NODE_PATH=. node ./utilities/tasks/setDepartments/run.js",
+    "updateVotesOnFields": "NODE_PATH=. node ./utilities/tasks/updateVotesOnFields/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
