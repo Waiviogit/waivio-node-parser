@@ -262,9 +262,9 @@ exports.updateSupportedObjects = async ({ host, app }) => {
 
 exports.mutedUsers = async ({ follower, following, action }) => {
   let globalMuteApps;
-  if (!_.isArray(following) || typeof following !== 'string') return;
 
   if (typeof following === 'string') following = [following];
+  if (!_.isArray(following)) return;
   const { result: apps } = await App.find({ $or: [{ owner: follower }, { moderators: follower }] });
   if (_.includes(CAN_MUTE_GLOBAL, follower)) globalMuteApps = await getAllAppsHost();
 
