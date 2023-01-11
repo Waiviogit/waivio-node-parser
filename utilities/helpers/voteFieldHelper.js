@@ -56,9 +56,14 @@ const unVoteOnAppend = async (data) => {
 // author, permlink, author_permlink, weight, creator,
 // existingVote:{voter, rshares_weight, weight, percent}
 const addVoteOnField = async (data) => {
-  data.percent = calculateVotePercent(data.percent);
-  data.weight = (data.weight + data.rshares_weight * 0.25) * (data.percent / 100);
-  await upDownVoteOnAppend({ ...data });
+  // fix to const to sow proper percent on front
+  const percent = calculateVotePercent(data.percent);
+  const weight = (data.weight + data.rshares_weight * 0.25) * (data.percent / 100);
+  await upDownVoteOnAppend({
+    ...data,
+    percent,
+    weight,
+  });
 
   await Wobj.addVote({
     ...data,
@@ -118,8 +123,8 @@ const upDownVoteOnAppend = async ({
  * @returns {Number} Number from -100 to 100
  */
 const calculateVotePercent = (percent) => {
-  if (percent % 2 === 0) return _.round((percent / 100), 1);
-  return -_.round((percent / 100), 1);
+  if (percent % 2 === 0) return (percent / 100);
+  return -(percent / 100);
 };
 
 const handleSpecifiedField = async (author, permlink, authorPermlink, voter, percent) => {
