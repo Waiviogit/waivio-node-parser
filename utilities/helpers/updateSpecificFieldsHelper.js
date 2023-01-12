@@ -174,11 +174,20 @@ const manageDepartments = async ({ field, authorPermlink }) => {
     { $addToSet: { departments: result.name } },
   );
 
+  const relatedNames = _.map(related, 'body');
+
   await Department.updateOne({
     filter: { name: field.body },
     update: {
       ...(needUpdateCount && { $inc: { objectsCount: 1 } }),
-      $addToSet: { related: { $each: _.map(related, 'body') } },
+      $addToSet: { related: { $each: relatedNames } },
+    },
+  });
+
+  await Department.updateMany({
+    filter: { name: { $in: relatedNames } },
+    update: {
+      $addToSet: { related: field.body },
     },
   });
 };
