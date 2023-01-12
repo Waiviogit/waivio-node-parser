@@ -64,7 +64,7 @@ const parseSwitcher = async (transactions, timestamp) => {
               await transferParser.parseFromSavings(operation[1]);
               break;
             case MAIN_OPS.CLAIM_REWARD_BALANCE:
-              await claimRewardParser.parse(operation[1]);
+              await claimRewardParser.parse(operation[1], _.get(transaction, 'transaction_id'));
               break;
           }
         } else if (operation[0] === MAIN_OPS.VOTE) {

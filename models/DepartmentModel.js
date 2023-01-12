@@ -17,3 +17,11 @@ exports.updateOne = async ({ filter, update, options }) => {
     return { error };
   }
 };
+
+exports.updateMany = async ({ filter, update, options }) => {
+  try {
+    return { result: await Department.updateMany(filter, update, options) };
+  } catch (error) {
+    return { error };
+  }
+};
