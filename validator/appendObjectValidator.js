@@ -298,7 +298,7 @@ const validateSpecifiedFields = async (data) => {
     case FIELDS_NAMES.MANUFACTURER:
     case FIELDS_NAMES.MERCHANT:
     case FIELDS_NAMES.BRAND:
-      const notValidMerchant = await nameOrPermlinkValidation(data.field.body);
+      const notValidMerchant = await nameOrPermlinkValidation(data.field.body, [OBJECT_TYPES.BUSINESS]);
       if (notValidMerchant) throw new Error(`Can't append ${fieldName}`);
       break;
     case FIELDS_NAMES.FEATURES:
@@ -308,7 +308,7 @@ const validateSpecifiedFields = async (data) => {
   }
 };
 
-const nameOrPermlinkValidation = async (body) => {
+const nameOrPermlinkValidation = async (body, types = []) => {
   const object = jsonHelper.parseJson(body, null);
   if (!object) return true;
   const { error } = namePermlinkSchema.validate(object);
@@ -317,7 +317,9 @@ const nameOrPermlinkValidation = async (body) => {
   const { wobject } = await Wobj.findOne({
     filter: {
       author_permlink: object.authorPermlink,
-      object_type: OBJECT_TYPES.PRODUCT,
+      object_type: {
+        $in: types,
+      },
     },
   });
   if (!wobject) return true;
