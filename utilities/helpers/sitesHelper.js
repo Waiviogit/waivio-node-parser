@@ -62,7 +62,7 @@ exports.activationActions = async (operation, activate) => {
     owner: author,
     inherited: true,
     status: activate ? { $in: [STATUSES.PENDING, STATUSES.INACTIVE] } : STATUSES.ACTIVE,
-    $or: [{ deactivatedAt: null }, { deactivatedAt: { $gt: moment.utc().subtract(6, 'month').toDate() } }],
+    // $or: [{ deactivatedAt: null }, { deactivatedAt: { $gt: moment.utc().subtract(6, 'month').toDate() } }],
   };
   const { result, error } = await App.findOne(condition);
   if (error || !result) {
