@@ -6,6 +6,7 @@ const {
 const { SEARCH_FIELDS, FIELDS_NAMES } = require('constants/wobjectsData');
 const { ObjectFactory } = require('test/factories');
 const { getMocksData } = require('./mocks');
+const { createEdgeNGrams } = require('../../../utilities/helpers/updateSpecificFieldsHelper');
 
 describe('Append object parser', async () => {
   let mockData, wobject, updateSpecificFieldsHelperStub, blackList;
@@ -99,70 +100,45 @@ describe('Append object parser', async () => {
   describe('parseSearchData', async () => {
     let searchFields, fieldValue;
     it('should return undefined if the field name not include in search fields', async () => {
-      const metadata = {
-        wobj: {
-          field: {
-            name: _.chain(FIELDS_NAMES).omit(SEARCH_FIELDS).sample(),
-            body: faker.name.firstName().toLowerCase(),
-          },
-        },
+      const field = {
+        name: _.chain(FIELDS_NAMES).omit(SEARCH_FIELDS).sample(),
+        body: faker.name.firstName().toLowerCase(),
       };
-      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(field);
       expect(searchFields).to.be.undefined;
     });
     it('should return name/email as a search word', async () => {
       fieldValue = faker.name.firstName().toLowerCase();
-      const metadata = {
-        wobj: {
-          field: {
-            name: _.sample([FIELDS_NAMES.NAME, FIELDS_NAMES.EMAIL]),
-            body: fieldValue,
-          },
-        },
+      const field = {
+        name: _.sample([FIELDS_NAMES.NAME, FIELDS_NAMES.EMAIL]),
+        body: fieldValue,
       };
-      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
-      expect(fieldValue).to.be.equal(...searchFields);
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(field);
+      expect(createEdgeNGrams(fieldValue, field.name)).to.be.equal(...searchFields);
     });
     it('should return phone as a search word', async () => {
       fieldValue = faker.name.firstName().toLowerCase();
-      const metadata = {
-        wobj: { field: { name: FIELDS_NAMES.PHONE, number: fieldValue } },
+      const field = {
+        name: FIELDS_NAMES.PHONE, number: fieldValue,
       };
-      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
-      expect(fieldValue).to.be.equal(...searchFields);
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(field);
+      expect(createEdgeNGrams(fieldValue, field.name)).to.be.equal(...searchFields);
     });
     it('should return address as a search word', async () => {
       const rawAddress = '{"address":"Kyiv","street":"Strees","city":"Kyiv","state":"State","postalCode":"01111","country":"Ukraine"}';
-      const expectedAddress = 'Kyiv,Strees,Kyiv,State,01111,Ukraine';
-      const metadata = {
-        wobj: { field: { name: FIELDS_NAMES.ADDRESS, body: rawAddress } },
+      const expectedAddress = [
+        'Kyi Kyiv',
+        'Str Stre Stree Strees',
+        'Kyi Kyiv',
+        'Sta Stat State',
+        '011 0111 01111',
+        'Ukr Ukra Ukrai Ukrain Ukraine',
+      ];
+      const field = {
+        name: FIELDS_NAMES.ADDRESS, body: rawAddress,
       };
-      searchFields = await updateSpecificFieldsHelper.parseSearchData(metadata);
-      expect(expectedAddress).to.be.eq(...searchFields);
-    });
-  });
-
-  describe('parseAddress', async () => {
-    it('should parsed address as each address-value separated by commas', () => {
-      const rawAddress = '{"address":"Kyiv","street":"Strees","city":"Kyiv","state":"","postalCode":"01111","country":"Ukraine"}';
-      const expectedAddress = ['Kyiv,Strees,Kyiv,01111,Ukraine', 'Kyiv, Strees, Kyiv, 01111, Ukraine'];
-      const { addresses } = updateSpecificFieldsHelper.parseAddress(rawAddress);
-      expect(expectedAddress).to.be.deep.eq(addresses);
-    });
-    it('should parsed address as each address-value separated by commas', () => {
-      const { err } = updateSpecificFieldsHelper.parseAddress(faker.random.string(10));
-      expect(err).is.exist;
-    });
-  });
-
-  describe('parseName', async () => {
-    const name = '$Nando\'s? ({West} [Vanc%ouver])';
-    it('should parsed parse the name excluding the following characters: . % ? + * | {} [] () <> “” ^ \' " \\ - _ = ! & $ :', () => {
-      const expectedNames = ['$Nando\'s? ({West} [Vanc%ouver])', 'Nandos West Vancouver'];
-      expect(expectedNames).to.be.deep.eq(updateSpecificFieldsHelper.parseName(name));
-    });
-    it('should return two names: original and modified', () => {
-      expect(updateSpecificFieldsHelper.parseName(name)).to.have.length(2);
+      searchFields = await updateSpecificFieldsHelper.parseSearchData(field);
+      expect(expectedAddress).to.be.deep.eq(searchFields);
     });
   });
 });

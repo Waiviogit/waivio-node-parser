@@ -1,7 +1,6 @@
 const _ = require('lodash');
-const { updateSpecificFieldsHelper } = require('utilities/helpers');
-const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { WObject } = require('database').models;
+const { parseSearchData, addSearchField } = require('utilities/helpers/updateSpecificFieldsHelper');
 
 module.exports = async (fieldName) => {
   if (fieldName === 'author_permlink') return getAuthorPermlinks();
@@ -12,13 +11,13 @@ module.exports = async (fieldName) => {
       console.error(`Failed to parse the address for the object: ${wobj.author_permlink} with error:`, err);
       continue;
     }
-    try {
-      await WObject.updateOne({ _id: wobj._id }, { $addToSet: { search: _.flatten(newFields) } });
-    } catch (error) {
-      console.log('Saving error', error);
-      return { error };
-    }
+
+    await addSearchField({
+      authorPermlink: wobj.author_permlink,
+      newWords: _.flatten(newFields),
+    });
   }
+  console.log(`${fieldName} added to search`);
 };
 
 const getFieldsData = async (fields, fieldNameForParse) => {
@@ -26,25 +25,11 @@ const getFieldsData = async (fields, fieldNameForParse) => {
     return {
       newFields: _.chain(fields)
         .filter((field) => field.name === fieldNameForParse)
-        .map((field) => parseSearchField(field)).value(),
+        .map((field) => parseSearchData(field)).value(),
     };
   } catch (err) {
     return { err };
   }
-};
-
-const parseSearchField = (field) => {
-  const parseSearchData = {
-    [FIELDS_NAMES.NAME]: () => updateSpecificFieldsHelper.parseName(_.get(field, 'body')),
-    [FIELDS_NAMES.EMAIL]: () => _.get(field, 'body').trim(),
-    [FIELDS_NAMES.PHONE]: () => (_.get(field, 'number') || _.get(field, 'body')).trim(),
-    [FIELDS_NAMES.ADDRESS]: () => updateSpecificFieldsHelper.parseAddress(_.get(field, 'body')).addresses,
-    [FIELDS_NAMES.DESCRIPTION]: () => _.get(field, 'body').trim(),
-    [FIELDS_NAMES.TITLE]: () => _.get(field, 'body').trim(),
-    [FIELDS_NAMES.CATEGORY_ITEM]: () => _.get(field, 'body'),
-    [FIELDS_NAMES.COMPANY_ID]: () => updateSpecificFieldsHelper.parseCompanyId(_.get(field, 'body')).id,
-  };
-  return parseSearchData[field.name]();
 };
 
 const getAuthorPermlinks = async () => {
