@@ -421,40 +421,17 @@ const parseBodyProperty = ({ body, propertyName }) => {
   return createEdgeNGrams(property);
 };
 
-const createEdgeNGrams = (str, field) => {
-  if (str && str.length > 3) {
-    const minGram = 3;
-    const maxGram = str.length;
+const createEdgeNGrams = (str) => {
+  const minGram = 3;
+  if (str && str.length <= minGram) return str;
 
-    if (field === FIELDS_NAMES.NAME || field === FIELDS_NAMES.ADDRESS || field === 'permlink') {
-      const arrayOfStrings = [];
-      if (str.length > minGram) {
-        for (let i = minGram; i <= maxGram && i <= str.length; ++i) {
-          arrayOfStrings.push(str.substr(0, i));
-        }
-      } else {
-        arrayOfStrings.push(str);
-      }
+  const arrayOfStrings = [];
 
-      return arrayOfStrings.join(' ');
-    }
-
-    return str.split(' ')
-      .reduce((ngrams, token) => {
-        if (token.length > minGram) {
-          for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
-            ngrams = [...ngrams, token.substr(0, i)];
-          }
-        } else {
-          ngrams = [...ngrams, token];
-        }
-
-        return ngrams;
-      }, [])
-      .join(' ');
+  for (let i = minGram; i <= str.length; ++i) {
+    arrayOfStrings.push(str.substr(0, i));
   }
 
-  return str;
+  return arrayOfStrings.join(' ');
 };
 
 module.exports = {
