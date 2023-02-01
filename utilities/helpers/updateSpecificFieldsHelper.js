@@ -28,15 +28,19 @@ const update = async ({
     case FIELDS_NAMES.ADDRESS:
     case FIELDS_NAMES.COMPANY_ID:
     case FIELDS_NAMES.PRODUCT_ID:
+    case FIELDS_NAMES.GROUP_ID:
+    case FIELDS_NAMES.BRAND:
+    case FIELDS_NAMES.MANUFACTURER:
+    case FIELDS_NAMES.MERCHANT:
       await addSearchField({
-        authorPermlink, newWords: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(field),
       });
       break;
     case FIELDS_NAMES.NAME:
     case FIELDS_NAMES.DESCRIPTION:
     case FIELDS_NAMES.TITLE:
       await addSearchField({
-        authorPermlink, newWords: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(field),
       });
       await tagsParser.createTags({ authorPermlink, field });
       break;
@@ -110,7 +114,7 @@ const update = async ({
       break;
     case FIELDS_NAMES.CATEGORY_ITEM:
       await addSearchField({
-        authorPermlink, newWords: parseSearchData(metadata),
+        authorPermlink, newWords: parseSearchData(field),
       });
       await updateTagCategories(authorPermlink);
       break;
@@ -132,6 +136,9 @@ const update = async ({
       return;
     case FIELDS_NAMES.AUTHORS:
     case FIELDS_NAMES.PUBLISHER:
+      await addSearchField({
+        authorPermlink, newWords: parseSearchData(field),
+      });
       return updateChildrenSingle({ field, authorPermlink });
     case FIELDS_NAMES.DEPARTMENTS:
       await manageDepartments({ field, authorPermlink });
@@ -309,41 +316,54 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
-const parseSearchData = (metadata) => {
-  const fieldName = _.get(metadata, 'wobj.field.name');
+const parseSearchData = (field) => {
+  const fieldName = _.get(field, 'name');
+  const fieldBody = _.get(field, 'body', '');
   if (!_.includes(SEARCH_FIELDS, fieldName)) return;
 
   const searchFields = [];
   switch (fieldName) {
     case FIELDS_NAMES.NAME:
-      searchFields.push(parseName(_.get(metadata, 'wobj.field.body', '')));
+      searchFields.push(parseName(fieldBody));
       break;
     case FIELDS_NAMES.EMAIL:
     case FIELDS_NAMES.CATEGORY_ITEM:
-      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.body', '').trim()));
+    case FIELDS_NAMES.GROUP_ID:
+      searchFields.push(createEdgeNGrams(fieldBody.trim()));
       break;
     case FIELDS_NAMES.TITLE:
     case FIELDS_NAMES.DESCRIPTION:
-      searchFields.push(_.get(metadata, 'wobj.field.body', '')
+      searchFields.push(fieldBody
         .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
         .replace(/  +/g, ' ').trim());
       break;
     case FIELDS_NAMES.PHONE:
-      searchFields.push(createEdgeNGrams(_.get(metadata, 'wobj.field.number', '')
+      searchFields.push(createEdgeNGrams(_.get(field, 'number', '')
         .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]+/g, '').split(' ').join('')
         .trim()));
       break;
     case FIELDS_NAMES.ADDRESS:
-      const { addresses, err } = parseAddress(_.get(metadata, 'wobj.field.body', ''));
+      const { addresses, err } = parseAddress(fieldBody);
       if (err) return { err };
       searchFields.push(...addresses);
       break;
     case FIELDS_NAMES.COMPANY_ID:
     case FIELDS_NAMES.PRODUCT_ID:
-      const { id, error } = parseId(_.get(metadata, 'wobj.field.body', ''));
+      const { id, error } = parseId(fieldBody);
       if (error) return { err: error };
-
       searchFields.push(id);
+      break;
+    case FIELDS_NAMES.AUTHORS:
+    case FIELDS_NAMES.PUBLISHER:
+    case FIELDS_NAMES.BRAND:
+    case FIELDS_NAMES.MANUFACTURER:
+    case FIELDS_NAMES.MERCHANT:
+      const nameProperty = parseBodyProperty({
+        body: fieldBody,
+        propertyName: 'name',
+      });
+      if (nameProperty) searchFields.push(nameProperty);
+      break;
   }
 
   return searchFields;
@@ -393,40 +413,25 @@ const parseId = (idFromDb) => {
   }
 };
 
-const createEdgeNGrams = (str, field) => {
-  if (str && str.length > 3) {
-    const minGram = 3;
-    const maxGram = str.length;
+const parseBodyProperty = ({ body, propertyName }) => {
+  const parsedBody = jsonHelper.parseJson(body, null);
+  if (!parsedBody) return;
+  const property = _.get(parsedBody, propertyName);
+  if (!property) return;
+  return createEdgeNGrams(property);
+};
 
-    if (field === FIELDS_NAMES.NAME || field === FIELDS_NAMES.ADDRESS || field === 'permlink') {
-      const arrayOfStrings = [];
-      if (str.length > minGram) {
-        for (let i = minGram; i <= maxGram && i <= str.length; ++i) {
-          arrayOfStrings.push(str.substr(0, i));
-        }
-      } else {
-        arrayOfStrings.push(str);
-      }
+const createEdgeNGrams = (str) => {
+  const minGram = 3;
+  if (str && str.length <= minGram) return str;
 
-      return arrayOfStrings.join(' ');
-    }
+  const arrayOfStrings = [];
 
-    return str.split(' ')
-      .reduce((ngrams, token) => {
-        if (token.length > minGram) {
-          for (let i = minGram; i <= maxGram && i <= token.length; ++i) {
-            ngrams = [...ngrams, token.substr(0, i)];
-          }
-        } else {
-          ngrams = [...ngrams, token];
-        }
-
-        return ngrams;
-      }, [])
-      .join(' ');
+  for (let i = minGram; i <= str.length; ++i) {
+    arrayOfStrings.push(str.substr(0, i));
   }
 
-  return str;
+  return arrayOfStrings.join(' ');
 };
 
 module.exports = {
