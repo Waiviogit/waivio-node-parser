@@ -171,7 +171,10 @@ const manageDepartments = async ({ field, authorPermlink }) => {
     (f) => f.name === FIELDS_NAMES.DEPARTMENTS && f.body !== field.body,
   );
 
-  const { result, error } = await Department.findOneOrCreateByName(field.body);
+  const { result, error } = await Department.findOneOrCreateByName({
+    name: field.body,
+    search: parseName(field.body),
+  });
   if (error) return;
 
   const needUpdateCount = sameDepartmentFields.length === 1;
@@ -400,7 +403,7 @@ const parseAddress = (addressFromDB) => {
   return { addresses: addressesInNgrams };
 };
 
-const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '), FIELDS_NAMES.NAME);
+const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '));
 
 const parseId = (idFromDb) => {
   let rawId;
