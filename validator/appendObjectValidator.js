@@ -22,8 +22,6 @@ const {
   optionsSchema,
   weightSchema,
   dimensionsSchema,
-  authorsSchema,
-  publisherSchema,
   widgetSchema,
   newsFeedSchema,
   departmentsSchema,
@@ -329,7 +327,7 @@ const nameOrPermlinkValidation = async (body, types = []) => {
 const validatePublisherField = async (body) => {
   const publisher = jsonHelper.parseJson(body, null);
   if (!publisher) return true;
-  const { error } = publisherSchema.validate(publisher);
+  const { error } = namePermlinkSchema.validate(publisher);
   if (error) return true;
   if (!publisher.authorPermlink) return false;
   const { wobject } = await Wobj.findOne({
@@ -345,7 +343,7 @@ const validatePublisherField = async (body) => {
 const validateAuthorsField = async (body) => {
   const authors = jsonHelper.parseJson(body, null);
   if (!authors) return true;
-  const { error } = authorsSchema.validate(authors);
+  const { error } = namePermlinkSchema.validate(authors);
   if (error) return true;
   if (!authors.authorPermlink) return false;
 
