@@ -49,6 +49,9 @@ exports.FIELDS_NAMES = {
   MANUFACTURER: 'manufacturer',
   BRAND: 'brand',
   FEATURES: 'features',
+  RELATED: 'related',
+  ADD_ON: 'add-on',
+  SIMILAR: 'similar',
 };
 
 exports.SEARCH_FIELDS = [

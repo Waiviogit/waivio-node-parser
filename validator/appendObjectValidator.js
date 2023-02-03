@@ -303,7 +303,22 @@ const validateSpecifiedFields = async (data) => {
       const { error: featuresErr } = featuresSchema.validate(jsonHelper.parseJson(data.field.body));
       if (featuresErr) throw new Error(`Can't append ${fieldName}${featuresErr.message}`);
       break;
+    case FIELDS_NAMES.RELATED:
+    case FIELDS_NAMES.ADD_ON:
+    case FIELDS_NAMES.SIMILAR:
+      const notValidObj = await permlinkValidation(data.field.body);
+      if (notValidObj) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
+};
+
+const permlinkValidation = async (authorPermlink) => {
+  const { wobject } = await Wobj.findOne({
+    filter: {
+      author_permlink: authorPermlink,
+    },
+  });
+  return !wobject;
 };
 
 const nameOrPermlinkValidation = async (body, types = []) => {
