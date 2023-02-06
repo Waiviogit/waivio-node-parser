@@ -3,6 +3,7 @@ const { Wobj, User } = require('models');
 const appHelper = require('utilities/helpers/appHelper');
 const updateSpecificFieldsHelper = require('utilities/helpers/updateSpecificFieldsHelper');
 const userHelper = require('utilities/helpers/userHelper');
+const { FIELDS_NAMES } = require('constants/wobjectsData');
 /**
  * Handle votes on append objects(Fields).
  * DownVotes do not use in app(only "UnVote" if vote already exist)
@@ -20,6 +21,8 @@ const voteOnField = async (data) => {
 
   if (fieldError) return { error: fieldError };
   if (!field) return { error: { status: 404, message: 'Field not found!' } };
+  const valid = specificFieldChecker({ field, vote: data });
+  if (!valid) return { error: new Error('voteOnField validation failed') };
 
   if (_.get(field, 'active_votes')) {
     data.existingVote = field.active_votes.find((v) => v.voter === data.voter);
@@ -134,6 +137,20 @@ const handleSpecifiedField = async (author, permlink, authorPermlink, voter, per
   await updateSpecificFieldsHelper.update({
     author, permlink, authorPermlink, voter, percent,
   });
+};
+
+/**
+ * @param field {{name: String, creator: String}}
+ * @param vote {{ voter: String}}
+ * @returns {Boolean}
+ */
+const specificFieldChecker = ({ field, vote }) => {
+  switch (field.name) {
+    case FIELDS_NAMES.AUTHORITY:
+      return field.creator === vote.voter;
+    default:
+      return true;
+  }
 };
 
 module.exports = { voteOnField };
