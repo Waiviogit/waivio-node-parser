@@ -1,10 +1,10 @@
 const { Department } = require('database').models;
 
-exports.findOneOrCreateByName = async (name) => {
+exports.findOneOrCreateByName = async ({ name, search }) => {
   try {
     const department = await Department.findOne({ name }).lean();
     if (department) return { result: department };
-    return { result: (await Department.create({ name })).toObject() };
+    return { result: (await Department.create({ name, search })).toObject() };
   } catch (error) {
     return { error };
   }

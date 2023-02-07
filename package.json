@@ -35,6 +35,8 @@
     "setDepartments": "NODE_PATH=. node ./utilities/tasks/setDepartments/run.js",
     "updateVotesOnFields": "NODE_PATH=. node ./utilities/tasks/updateVotesOnFields/run.js",
     "updateDepartmentsRelated": "NODE_PATH=. node ./utilities/tasks/updateDepartmentsRelated/run.js",
+    "addSearchToDepartments": "NODE_PATH=. node ./utilities/tasks/addSearchToDepartments/run.js",
+    "addTopDepartments": "NODE_PATH=. node ./utilities/tasks/addTopDepartments/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
