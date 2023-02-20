@@ -28,6 +28,7 @@ const {
   departmentsSchema,
   namePermlinkSchema,
   featuresSchema,
+  shopFilterSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -308,6 +309,11 @@ const validateSpecifiedFields = async (data) => {
     case FIELDS_NAMES.REMOVE:
       const notPost = await postLinkValidation(data.field.body);
       if (notPost) throw new Error(`Can't append ${fieldName}`);
+      break;
+    case FIELDS_NAMES.SHOP_FILTER:
+      const { error: shopFilterErr } = shopFilterSchema
+        .validate(jsonHelper.parseJson(data.field.body));
+      if (shopFilterErr) throw new Error(`Can't append ${fieldName}${shopFilterErr.message}`);
       break;
   }
 };

@@ -51,3 +51,11 @@ exports.newsFeedSchema = Joi.object().keys({
 exports.departmentsSchema = Joi.object().keys({
   department: Joi.string().required(),
 }).options(options);
+
+exports.shopFilterSchema = Joi.object().keys({
+  type: Joi.string(),
+  departments: Joi.array().items(Joi.string()),
+  tags: Joi.array().items(Joi.string()),
+  authorities: Joi.array().items(Joi.string()),
+}).or('type', 'departments', 'tags', 'authorities')
+  .options(options);
