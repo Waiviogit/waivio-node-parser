@@ -2,6 +2,7 @@ const _ = require('lodash');
 const {
   Wobj,
   ObjectType,
+  Post,
 } = require('models');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { validateUserOnBlacklist } = require('validator/userValidator');
@@ -303,7 +304,20 @@ const validateSpecifiedFields = async (data) => {
       const { error: featuresErr } = featuresSchema.validate(jsonHelper.parseJson(data.field.body));
       if (featuresErr) throw new Error(`Can't append ${fieldName}${featuresErr.message}`);
       break;
+    case FIELDS_NAMES.PIN:
+    case FIELDS_NAMES.REMOVE:
+      const notPost = await postLinkValidation(data.field.body);
+      if (notPost) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
+};
+
+const postLinkValidation = async (body) => {
+  if (!body) return true;
+  const [author, permlink] = body.split('/');
+  if (!author || !permlink) return true;
+  const { post } = await Post.findOne({ author, permlink });
+  return !post;
 };
 
 const nameOrPermlinkValidation = async (body, types = []) => {

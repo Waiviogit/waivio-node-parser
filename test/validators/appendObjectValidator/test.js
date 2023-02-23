@@ -2,7 +2,7 @@ const {
   expect, faker, ObjectType, WObject, sinon, AppModel,
 } = require('test/testHelper');
 const { appendObjectValidator } = require('validator');
-const { ObjectFactory, AppendObject } = require('test/factories');
+const { ObjectFactory, AppendObject, PostFactory } = require('test/factories');
 const _ = require('lodash');
 const {
   FIELDS_NAMES,
@@ -228,6 +228,24 @@ describe('appendObjectValidator', async () => {
             name: faker.random.string(),
             authorPermlink: faker.random.string(),
           });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on pin, remove field', async () => {
+        const existPost = { author: faker.random.string(), permlink: faker.random.string() };
+        const notExistPost = { author: faker.random.string(), permlink: faker.random.string() };
+        beforeEach(async () => {
+          mockData.field.name = _.sample([FIELDS_NAMES.PIN, FIELDS_NAMES.REMOVE]);
+          await PostFactory.Create(existPost);
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = `${existPost.author}/${existPost.permlink}`;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type invalid', async () => {
+          mockData.field.body = `${notExistPost.author}/${notExistPost.permlink}`;
           await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
         });
       });
