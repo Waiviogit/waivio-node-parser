@@ -1,4 +1,4 @@
-const { App, Post } = require('models');
+const { App, Post, hiddenPostModel } = require('models');
 const _ = require('lodash');
 
 /*
@@ -40,4 +40,74 @@ exports.checkDownVote = async ({
     permlink,
     ...updateData,
   });
+};
+
+exports.addToSiteModeratorsHiddenPosts = async ({ moderator, host }) => {
+  const { result: postIds } = await hiddenPostModel.find({
+    filter: { userName: moderator },
+  });
+  if (_.isEmpty(postIds)) return;
+
+  const { result: posts } = await Post.find({
+    filter: { _id: { $in: _.map(postIds, 'postId') } },
+    projection: {
+      author: 1,
+      permlink: 1,
+    },
+  });
+  const updateData = { $addToSet: { blocked_for_apps: host } };
+
+  for (const post of posts) {
+    const { author, permlink } = post;
+    await Post.updateMany({ permlink: `${author}/${permlink}` }, updateData);
+    await Post.update({
+      author,
+      permlink,
+      ...updateData,
+    });
+  }
+};
+
+exports.removeFromSiteModeratorsHiddenPosts = async ({ moderator, host }) => {
+  const { result: app, error } = await App.findOne({ host });
+  if (error) {
+    console.error(error);
+    return { error };
+  }
+  const moderatorsList = [moderator, app.owner, ...app.moderators];
+
+  const { result: postIds } = await hiddenPostModel.find({
+    filter: { userName: { $in: moderatorsList } },
+  });
+  if (_.isEmpty(postIds)) return;
+
+  const deletedModeratorList = _.filter(postIds, (p) => p.userName === moderator);
+  if (_.isEmpty(deletedModeratorList)) return;
+  const currentModeratorsList = _.filter(postIds, (p) => p.userName !== moderator);
+
+  const postsToRestore = _.difference(
+    _.map(deletedModeratorList, 'postId'),
+    _.map(currentModeratorsList, 'postId'),
+  );
+
+  if (_.isEmpty(postsToRestore)) return;
+
+  const { result: posts } = await Post.find({
+    filter: { _id: { $in: postsToRestore } },
+    projection: {
+      author: 1,
+      permlink: 1,
+    },
+  });
+
+  const updateData = { $pull: { blocked_for_apps: host } };
+  for (const post of posts) {
+    const { author, permlink } = post;
+    await Post.updateMany({ permlink: `${author}/${permlink}` }, updateData);
+    await Post.update({
+      author,
+      permlink,
+      ...updateData,
+    });
+  }
 };

@@ -134,6 +134,14 @@ const findOneAndDelete = async (filter, options) => {
   }
 };
 
+const find = async ({ filter, projection, options }) => {
+  try {
+    return { result: await PostModel.find(filter, projection, options).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   removeWobjectsFromPost,
   addWobjectsToPost,
@@ -146,4 +154,5 @@ module.exports = {
   findOne,
   create,
   update,
+  find,
 };
