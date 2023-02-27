@@ -80,7 +80,11 @@ exports.removeFromSiteModeratorsHiddenPosts = async ({ moderator, host }) => {
     console.error(error);
     return { error };
   }
-  const moderatorsList = [moderator, app.owner, ...app.moderators];
+  const moderatorsList = [
+    moderator,
+    _.get(app, 'owner'),
+    ..._.get(app, 'moderators', []),
+  ];
 
   const { result: postIds } = await hiddenPostModel.find({
     filter: { userName: { $in: moderatorsList } },
