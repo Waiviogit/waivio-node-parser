@@ -1,12 +1,19 @@
 const { App, Post, hiddenPostModel } = require('models');
 const _ = require('lodash');
+const { CAN_MUTE_GLOBAL } = require('constants/sitesData');
+
+const getModeratedApps = async (user) => {
+  if (_.includes(CAN_MUTE_GLOBAL, user)) {
+    const { result } = await App.find({}, { host: 1 });
+    return _.map(result, 'host');
+  }
+  const { apps } = await App.findByModeration(user);
+  return _.map(apps, 'host');
+};
 
 const addToSiteModeratorsHiddenPosts = async (moderator) => {
-  const { apps, error } = await App.findByModeration(moderator);
-  if (error) {
-    console.error(error);
-    return { error };
-  }
+  const apps = await getModeratedApps(moderator);
+  if (_.isEmpty(apps)) return;
   const { result: postIds } = await hiddenPostModel.find({
     filter: { userName: moderator },
   });
@@ -18,7 +25,7 @@ const addToSiteModeratorsHiddenPosts = async (moderator) => {
       permlink: 1,
     },
   });
-  const updateData = { $addToSet: { blocked_for_apps: { $each: _.map(apps, (a) => a.host) } } };
+  const updateData = { $addToSet: { blocked_for_apps: { $each: apps } } };
 
   for (const post of posts) {
     const { author, permlink } = post;
@@ -35,12 +42,15 @@ const addHiddenPosts = async () => {
   const { result } = await App.find({}, { owner: 1, moderators: 1 });
 
   const moderators = _.compact(
-    _.uniq(
-      _.reduce(result, (acc, el) => [...acc, el.owner, ...el.moderators], []),
-    ),
+    _.uniq([
+      ..._.reduce(result, (acc, el) => [...acc, el.owner, ...el.moderators], []),
+      ...CAN_MUTE_GLOBAL,
+    ]),
   );
 
-  for (const moderator of moderators) await addToSiteModeratorsHiddenPosts(moderator);
+  for (const moderator of moderators) {
+    await addToSiteModeratorsHiddenPosts(moderator);
+  }
 
   console.info('task completed');
 };

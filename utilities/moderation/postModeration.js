@@ -1,4 +1,5 @@
 const { App, Post, hiddenPostModel } = require('models');
+const { CAN_MUTE_GLOBAL } = require('constants/sitesData');
 const _ = require('lodash');
 
 /*
@@ -10,6 +11,15 @@ const _ = require('lodash');
     Note: downvote from moderator indicate block post in app only if post have
     wobjects, which current moderator now is moderating.
  */
+
+const getModeratedApps = async (user) => {
+  if (_.includes(CAN_MUTE_GLOBAL, user)) {
+    const { result } = await App.find({}, { host: 1 });
+    return _.map(result, 'host');
+  }
+  const { apps } = await App.findByModeration(user);
+  return _.map(apps, 'host');
+};
 
 /**
  * Check downvote on post as block(ignore) content in specified APP
@@ -23,15 +33,11 @@ const _ = require('lodash');
 exports.checkDownVote = async ({
   voter, author, permlink, guestAuthor, hide = true,
 }) => {
-  const { apps, error } = await App.findByModeration(voter);
-  if (error) {
-    console.error(error);
-    return { error };
-  }
-  if (!apps || _.isEmpty(apps)) return;
+  const apps = getModeratedApps(voter);
+  if (_.isEmpty(apps)) return;
   const updateData = hide
-    ? { $addToSet: { blocked_for_apps: { $each: [...apps.map((a) => a.host)] } } }
-    : { $pull: { blocked_for_apps: { $in: apps.map((a) => a.host) } } };
+    ? { $addToSet: { blocked_for_apps: { $each: apps } } }
+    : { $pull: { blocked_for_apps: { $in: apps } } };
   /** Update reblogs */
   await Post.updateMany({ permlink: `${author}/${permlink}` }, updateData);
 
