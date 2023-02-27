@@ -33,7 +33,7 @@ const getModeratedApps = async (user) => {
 exports.checkDownVote = async ({
   voter, author, permlink, guestAuthor, hide = true,
 }) => {
-  const apps = getModeratedApps(voter);
+  const apps = await getModeratedApps(voter);
   if (_.isEmpty(apps)) return;
   const updateData = hide
     ? { $addToSet: { blocked_for_apps: { $each: apps } } }
