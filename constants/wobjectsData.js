@@ -51,6 +51,7 @@ exports.FIELDS_NAMES = {
   FEATURES: 'features',
   PIN: 'pin',
   REMOVE: 'remove',
+  SHOP_FILTER: 'shopFilter',
 };
 
 exports.SEARCH_FIELDS = [
@@ -70,7 +71,6 @@ exports.SEARCH_FIELDS = [
   this.FIELDS_NAMES.BRAND,
   this.FIELDS_NAMES.MANUFACTURER,
   this.FIELDS_NAMES.MERCHANT,
-
 ];
 
 exports.AUTHORITY_FIELD_ENUM = {
@@ -100,6 +100,7 @@ exports.OBJECT_TYPES = {
   BOOK: 'book',
   WIDGET: 'widget',
   NEWS_FEED: 'newsfeed',
+  SHOP: 'shop',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [

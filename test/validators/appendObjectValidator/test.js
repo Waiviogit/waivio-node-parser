@@ -250,6 +250,28 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on shopFilter field', async () => {
+        const validBody = JSON.stringify(_.pick({
+          type: faker.random.string(),
+          departments: [faker.random.string()],
+          tags: [faker.random.string()],
+          authorities: [faker.random.string()],
+        }, _.sample(['type', 'departments', 'tags', 'authorities'])));
+
+        beforeEach(async () => {
+          mockData.field.name = FIELDS_NAMES.SHOP_FILTER;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = validBody;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type invalid', async () => {
+          mockData.field.body = JSON.stringify({});
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on brand, merchant, manufacturer field', async () => {
         let product, randomType;
         beforeEach(async () => {
