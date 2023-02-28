@@ -11,6 +11,7 @@ const {
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
 const jsonHelper = require('utilities/helpers/jsonHelper');
+const uuid = require('uuid');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -28,7 +29,6 @@ const update = async ({
     case FIELDS_NAMES.ADDRESS:
     case FIELDS_NAMES.COMPANY_ID:
     case FIELDS_NAMES.PRODUCT_ID:
-    case FIELDS_NAMES.GROUP_ID:
     case FIELDS_NAMES.BRAND:
     case FIELDS_NAMES.MANUFACTURER:
     case FIELDS_NAMES.MERCHANT:
@@ -143,6 +143,11 @@ const update = async ({
     case FIELDS_NAMES.DEPARTMENTS:
       await manageDepartments({ field, authorPermlink });
       break;
+    case FIELDS_NAMES.GROUP_ID:
+      await addSearchField({
+        authorPermlink, newWords: parseSearchData(field),
+      });
+      await updateMetaGroupId({ authorPermlink });
   }
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
@@ -156,6 +161,34 @@ const update = async ({
       fieldName: field.name,
     });
   }
+};
+
+const addToAllMetaGroup = async ({ groupIds, metaGroupId }) => {
+  while (true) {
+    const { result, error } = await Wobj.findByGroupIds({ groupIds, metaGroupId });
+    if (error) break;
+    if (_.isEmpty(result)) break;
+    for (const resultElement of result) {
+      groupIds = _.uniq([...groupIds, ...getObjectGroupIds(resultElement)]);
+    }
+    await Wobj.updateMany(
+      { author_permlink: { $in: _.map(result, 'author_permlink') } },
+      { metaGroupId },
+    );
+  }
+};
+
+const getObjectGroupIds = (wobject) => _.chain(wobject.fields)
+  .filter((f) => f.name === FIELDS_NAMES.GROUP_ID)
+  .map((el) => el.body)
+  .value();
+
+const updateMetaGroupId = async ({ authorPermlink }) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+  if (!wobject) return;
+  const metaGroupId = wobject.metaGroupId ? wobject.metaGroupId : uuid.v4();
+  const groupIds = getObjectGroupIds(wobject);
+  await addToAllMetaGroup({ groupIds, metaGroupId });
 };
 
 const manageDepartments = async ({ field, authorPermlink }) => {
