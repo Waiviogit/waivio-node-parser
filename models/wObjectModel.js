@@ -1,6 +1,10 @@
 const WObjectModel = require('database').models.WObject;
 const ObjectTypes = require('database').models.ObjectType;
 const { WOBJECT_LATEST_POSTS_COUNT } = require('constants/wobjectsData');
+const {
+  FIELDS_NAMES,
+  OBJECT_TYPES,
+} = require('../constants/wobjectsData');
 
 const create = async (data) => {
   const newWObject = new WObjectModel(data);
@@ -299,6 +303,35 @@ const findOne = async ({ filter, projection = {}, options = {} }) => {
   }
 };
 
+const findByGroupIds = async ({ groupIds, metaGroupId }) => {
+  try {
+    return {
+      result: await WObjectModel.find({
+        fields: {
+          $elemMatch: {
+            name: FIELDS_NAMES.GROUP_ID,
+            body: { $in: groupIds },
+          },
+        },
+        object_type: {
+          $in: [
+            OBJECT_TYPES.PRODUCT,
+            OBJECT_TYPES.BOOK,
+            OBJECT_TYPES.SERVICE,
+          ],
+        },
+        metaGroupId: { $ne: metaGroupId },
+      },
+      {
+        fields: 1,
+        author_permlink: 1,
+      }).lean(),
+    };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   find,
   findOne,
@@ -320,4 +353,5 @@ module.exports = {
   updateMany,
   getMany,
   findSameFieldBody,
+  findByGroupIds,
 };

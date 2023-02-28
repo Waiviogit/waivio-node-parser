@@ -216,3 +216,9 @@ exports.DIMENSION_UNITS = [
   'in',
   'nmi',
 ];
+
+exports.OBJECT_TYPES_FOR_GROUP_ID = [
+  this.OBJECT_TYPES.PRODUCT,
+  this.OBJECT_TYPES.SERVICE,
+  this.OBJECT_TYPES.BOOK,
+];

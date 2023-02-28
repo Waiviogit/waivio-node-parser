@@ -61,6 +61,7 @@ const WObjectSchema = new Schema({
   search: { type: [String], default: [] },
   expertiseWAIV: { type: Number, index: true },
   departments: { type: [String], index: true },
+  metaGroupId: { type: String, index: true },
 },
 {
   strict: false,
