@@ -38,7 +38,7 @@
     "addSearchToDepartments": "NODE_PATH=. node ./utilities/tasks/addSearchToDepartments/run.js",
     "addTopDepartments": "NODE_PATH=. node ./utilities/tasks/addTopDepartments/run.js",
     "addModeratorsHiddenPosts": "NODE_PATH=. node ./utilities/tasks/addModeratorsHiddenPosts/run.js",
-    "addMetaGroupId": " node ./utilities/tasks/addMetaGroupId/run.js",
+    "addMetaGroupId": "NODE_PATH=. node ./utilities/tasks/addMetaGroupId/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
