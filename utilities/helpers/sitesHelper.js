@@ -7,6 +7,7 @@ const {
 } = require('models');
 const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
+const postModeration = require('utilities/moderation/postModeration');
 const { sitesValidator, objectBotsValidator } = require('validator');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const appHelper = require('utilities/helpers/appHelper');
@@ -32,6 +33,8 @@ exports.createWebsite = async (operation) => {
     await this.changeManagersMuteList({
       mangerName, host: json.host, action: MUTE_ACTION.MUTE,
     });
+    await postModeration
+      .addToSiteModeratorsHiddenPosts({ host: json.host, moderator: mangerName });
   }
 };
 
@@ -49,6 +52,8 @@ exports.deleteWebsite = async (operation) => {
     await this.changeManagersMuteList({
       mangerName, host: app.host, action: MUTE_ACTION.UNMUTE,
     });
+    await postModeration
+      .removeFromSiteModeratorsHiddenPosts({ host: app.host, moderator: mangerName });
   }
 };
 
@@ -148,6 +153,13 @@ exports.websiteAuthorities = async (operation, type, add) => {
         host: json.host,
         action: add ? MUTE_ACTION.MUTE : MUTE_ACTION.UPDATE_HOST_LIST,
       });
+      if (add) {
+        await postModeration
+          .addToSiteModeratorsHiddenPosts({ host: json.host, moderator: mangerName });
+      } else {
+        await postModeration
+          .removeFromSiteModeratorsHiddenPosts({ host: json.host, moderator: mangerName });
+      }
     }
   }
 };

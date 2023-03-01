@@ -37,6 +37,9 @@
     "updateDepartmentsRelated": "NODE_PATH=. node ./utilities/tasks/updateDepartmentsRelated/run.js",
     "addSearchToDepartments": "NODE_PATH=. node ./utilities/tasks/addSearchToDepartments/run.js",
     "addTopDepartments": "NODE_PATH=. node ./utilities/tasks/addTopDepartments/run.js",
+    "addModeratorsHiddenPosts": "NODE_PATH=. node ./utilities/tasks/addModeratorsHiddenPosts/run.js",
+    "addMetaGroupId": "NODE_PATH=. node ./utilities/tasks/addMetaGroupId/run.js",
+    "pullDepartments": "NODE_PATH=. node ./utilities/tasks/pullDepartments/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },

@@ -36,7 +36,7 @@ const updateChosenPost = async ({
  */
 const findByModeration = async (userName) => {
   try {
-    const apps = await App.find({ moderators: userName }).lean();
+    const apps = await App.find({ $or: [{ moderators: userName }, { owner: userName }] }).lean();
     return { apps };
   } catch (error) {
     return { error };

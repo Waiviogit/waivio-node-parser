@@ -15,3 +15,11 @@ exports.deleteOne = async ({ userName, postId }) => {
     return { error };
   }
 };
+
+exports.find = async ({ filter, projection, options }) => {
+  try {
+    return { result: await HiddenPost.find(filter, projection, options).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
