@@ -141,7 +141,12 @@ const update = async ({
       });
       return updateChildrenSingle({ field, authorPermlink });
     case FIELDS_NAMES.DEPARTMENTS:
-      await manageDepartments({ field, authorPermlink });
+      await manageDepartments({
+        field,
+        authorPermlink,
+        app,
+        percent,
+      });
       break;
     case FIELDS_NAMES.GROUP_ID:
       await addSearchField({
@@ -191,7 +196,58 @@ const updateMetaGroupId = async ({ authorPermlink }) => {
   await addToAllMetaGroup({ groupIds, metaGroupId });
 };
 
-const manageDepartments = async ({ field, authorPermlink }) => {
+const removeFromDepartments = async ({
+  authorPermlink,
+  department,
+  relatedNames,
+  wobject,
+  app,
+}) => {
+  const processed = await processWobjects({
+    wobjects: [wobject], app, fields: [FIELDS_NAMES.DEPARTMENTS], returnArray: false,
+  });
+
+  const notRejected = _.find(
+    _.get(processed, 'departments'),
+    (d) => _.get(d, 'body') === department,
+  );
+  if (notRejected) return;
+
+  await Wobj.update(
+    { author_permlink: authorPermlink },
+    { $pull: { departments: department } },
+  );
+
+  for (const relatedEl of relatedNames) {
+    const andCondition = [
+      { departments: department },
+      { departments: relatedEl },
+      { author_permlink: { $ne: authorPermlink } },
+    ];
+    const { wobject: result } = await Wobj.findOne({
+      filter: { $and: andCondition },
+      projection: { _id: 1 },
+    });
+    if (!result) {
+      await Department.updateOne({
+        filter: { name: relatedEl },
+        update: {
+          $pull: { related: department },
+        },
+      });
+      await Department.updateOne({
+        filter: { name: department },
+        update: {
+          $pull: { related: relatedEl },
+        },
+      });
+    }
+  }
+};
+
+const manageDepartments = async ({
+  field, authorPermlink, percent, app,
+}) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   if (!wobject) return;
   const sameDepartmentFields = _.filter(
@@ -203,6 +259,19 @@ const manageDepartments = async ({ field, authorPermlink }) => {
     wobject.fields,
     (f) => f.name === FIELDS_NAMES.DEPARTMENTS && f.body !== field.body,
   );
+  const relatedNames = _.map(related, 'body');
+
+  if (percent && percent <= 0) {
+    const department = field.body;
+    await removeFromDepartments({
+      authorPermlink,
+      department,
+      relatedNames,
+      wobject,
+      app,
+    });
+    return;
+  }
 
   const { result, error } = await Department.findOneOrCreateByName({
     name: field.body,
@@ -216,8 +285,6 @@ const manageDepartments = async ({ field, authorPermlink }) => {
     { author_permlink: authorPermlink },
     { $addToSet: { departments: result.name } },
   );
-
-  const relatedNames = _.map(related, 'body');
 
   await Department.updateOne({
     filter: { name: field.body },
@@ -480,4 +547,5 @@ module.exports = {
   parseName,
   parseId,
   createEdgeNGrams,
+  removeFromDepartments,
 };
