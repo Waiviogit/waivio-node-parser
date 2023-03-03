@@ -54,7 +54,7 @@ exports.departmentsSchema = Joi.object().keys({
 
 exports.shopFilterSchema = Joi.object().keys({
   type: Joi.string(),
-  departments: Joi.array().items(Joi.string()),
+  departments: Joi.array().items(Joi.array().items(Joi.string())),
   tags: Joi.array().items(Joi.string()),
   authorities: Joi.array().items(Joi.string()),
 }).or('type', 'departments', 'tags', 'authorities')
