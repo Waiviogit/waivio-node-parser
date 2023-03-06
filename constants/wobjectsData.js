@@ -178,6 +178,8 @@ exports.ARRAY_FIELDS = [
   this.FIELDS_NAMES.OPTIONS,
   this.FIELDS_NAMES.AUTHORS,
   this.FIELDS_NAMES.DEPARTMENTS,
+  // works different from waivio.api used only for task
+  this.FIELDS_NAMES.AUTHORITY,
 ];
 
 exports.categorySwitcher = {

@@ -40,6 +40,7 @@
     "addModeratorsHiddenPosts": "NODE_PATH=. node ./utilities/tasks/addModeratorsHiddenPosts/run.js",
     "addMetaGroupId": "NODE_PATH=. node ./utilities/tasks/addMetaGroupId/run.js",
     "pullDepartments": "NODE_PATH=. node ./utilities/tasks/pullDepartments/run.js",
+    "fillUserShopDeselect": "NODE_PATH=. node ./utilities/tasks/fillUserShopDeselect/run.js",
     "start": "node ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
