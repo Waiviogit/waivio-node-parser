@@ -168,7 +168,7 @@ const manageAuthorities = async ({
         { author_permlink: authorPermlink },
         { $pull: { [`authority.${field.body}`]: field.creator } },
       );
-      await userShopDeselectModel.deleteOne({
+      await userShopDeselectModel.create({
         authorPermlink,
         userName: field.creator,
       });
@@ -177,7 +177,7 @@ const manageAuthorities = async ({
         { author_permlink: authorPermlink },
         { $addToSet: { [`authority.${field.body}`]: field.creator } },
       );
-      await userShopDeselectModel.create({
+      await userShopDeselectModel.deleteOne({
         authorPermlink,
         userName: field.creator,
       });
