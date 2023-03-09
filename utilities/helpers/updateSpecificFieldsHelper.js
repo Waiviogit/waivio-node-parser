@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const config = require('config');
-const { Wobj, App, Department } = require('models');
+const {
+  Wobj, App, Department, userShopDeselectModel,
+} = require('models');
 const { tagsParser } = require('utilities/restaurantTagsParser');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { processWobjects } = require('utilities/helpers/wobjectHelper');
@@ -119,20 +121,9 @@ const update = async ({
       await updateTagCategories(authorPermlink);
       break;
     case FIELDS_NAMES.AUTHORITY:
-      if (!voter || field.creator === voter) {
-        if (percent <= 0) {
-          await Wobj.update(
-            { author_permlink: authorPermlink },
-            { $pull: { [`authority.${field.body}`]: field.creator } },
-          );
-        } else if (!_.isNumber(percent) || percent > 0) {
-          await Wobj.update(
-            { author_permlink: authorPermlink },
-            { $addToSet: { [`authority.${field.body}`]: field.creator } },
-          );
-        }
-        await updateSitesObjects(field.creator);
-      }
+      await manageAuthorities({
+        voter, field, percent, authorPermlink,
+      });
       return;
     case FIELDS_NAMES.AUTHORS:
     case FIELDS_NAMES.PUBLISHER:
@@ -165,6 +156,33 @@ const update = async ({
       author_permlink: authorPermlink,
       fieldName: field.name,
     });
+  }
+};
+
+const manageAuthorities = async ({
+  voter, field, percent, authorPermlink,
+}) => {
+  if (!voter || field.creator === voter) {
+    if (percent <= 0) {
+      await Wobj.update(
+        { author_permlink: authorPermlink },
+        { $pull: { [`authority.${field.body}`]: field.creator } },
+      );
+      await userShopDeselectModel.create({
+        authorPermlink,
+        userName: field.creator,
+      });
+    } else if (!_.isNumber(percent) || percent > 0) {
+      await Wobj.update(
+        { author_permlink: authorPermlink },
+        { $addToSet: { [`authority.${field.body}`]: field.creator } },
+      );
+      await userShopDeselectModel.deleteOne({
+        authorPermlink,
+        userName: field.creator,
+      });
+    }
+    await updateSitesObjects(field.creator);
   }
 };
 

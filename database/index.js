@@ -39,5 +39,6 @@ module.exports = {
     EngineAccountHistory: require('./schemas/EngineAccountHistorySchema'),
     Department: require('./schemas/DepartmentSchema'),
     GuestWallet: require('./schemas/GuestWalletSchema'),
+    UserShopDeselect: require('./schemas/UserShopDeselectSchema'),
   },
 };
