@@ -234,13 +234,8 @@ const removeFromDepartments = async ({
   );
 
   for (const relatedEl of relatedNames) {
-    const andCondition = [
-      { departments: department },
-      { departments: relatedEl },
-      { author_permlink: { $ne: authorPermlink } },
-    ];
     const { wobject: result } = await Wobj.findOne({
-      filter: { $and: andCondition },
+      filter: { departments: { $all: [department, relatedEl] } },
       projection: { _id: 1 },
     });
     if (!result) {
