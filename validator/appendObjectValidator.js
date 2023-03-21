@@ -29,6 +29,7 @@ const {
   namePermlinkSchema,
   featuresSchema,
   shopFilterSchema,
+  menuItemSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -315,7 +316,28 @@ const validateSpecifiedFields = async (data) => {
         .validate(jsonHelper.parseJson(data.field.body));
       if (shopFilterErr) throw new Error(`Can't append ${fieldName}${shopFilterErr.message}`);
       break;
+    case FIELDS_NAMES.MENU_ITEM:
+      const notValidMenuItem = await menuItemValidation(data.field.body);
+      if (notValidMenuItem) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
+};
+
+const menuItemValidation = async (body) => {
+  const parsedBody = jsonHelper.parseJson(body, null);
+  if (!parsedBody) return true;
+  const { error: menuItemErr } = menuItemSchema
+    .validate(parsedBody);
+  if (menuItemErr) return true;
+  if (!parsedBody.linkToObject) return false;
+  const { wobject } = await Wobj.findOne({
+    filter: {
+      author_permlink: parsedBody.linkToObject,
+    },
+    projection: { _id: 1 },
+  });
+  if (!wobject) return true;
+  return false;
 };
 
 const postLinkValidation = async (body) => {

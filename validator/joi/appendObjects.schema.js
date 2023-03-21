@@ -59,3 +59,12 @@ exports.shopFilterSchema = Joi.object().keys({
   authorities: Joi.array().items(Joi.string()),
 }).or('type', 'departments', 'tags', 'authorities')
   .options(options);
+
+exports.menuItemSchema = Joi.object().keys({
+  title: Joi.string().required(),
+  style: Joi.string().required(),
+  image: Joi.string(),
+  linkToObject: Joi.string(),
+  linkToWeb: Joi.string().uri(),
+}).or('linkToObject', 'linkToWeb')
+  .options(options);

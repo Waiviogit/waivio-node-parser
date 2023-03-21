@@ -304,6 +304,62 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on menuItem field', async () => {
+        let product, randomType;
+        beforeEach(async () => {
+          mockData.field.name = FIELDS_NAMES.MENU_ITEM;
+          product = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PRODUCT });
+        });
+        it('should be fulfilled if body valid with object', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToObject: product.author_permlink,
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be fulfilled if body valid with uri', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToWeb: faker.internet.url(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type missing', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if  object  missing', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToObject: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if link to web not valid', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToWeb: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on author field', async () => {
         let author1, randomType;
         beforeEach(async () => {

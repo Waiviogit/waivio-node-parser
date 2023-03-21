@@ -52,6 +52,7 @@ exports.FIELDS_NAMES = {
   PIN: 'pin',
   REMOVE: 'remove',
   SHOP_FILTER: 'shopFilter',
+  MENU_ITEM: 'menuItem',
 };
 
 exports.SEARCH_FIELDS = [
