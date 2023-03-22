@@ -2,6 +2,7 @@ const _ = require('lodash');
 const {
   Wobj,
   ObjectType,
+  Post,
 } = require('models');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { validateUserOnBlacklist } = require('validator/userValidator');
@@ -27,6 +28,8 @@ const {
   departmentsSchema,
   namePermlinkSchema,
   featuresSchema,
+  shopFilterSchema,
+  menuItemSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -303,7 +306,46 @@ const validateSpecifiedFields = async (data) => {
       const { error: featuresErr } = featuresSchema.validate(jsonHelper.parseJson(data.field.body));
       if (featuresErr) throw new Error(`Can't append ${fieldName}${featuresErr.message}`);
       break;
+    case FIELDS_NAMES.PIN:
+    case FIELDS_NAMES.REMOVE:
+      const notPost = await postLinkValidation(data.field.body);
+      if (notPost) throw new Error(`Can't append ${fieldName}`);
+      break;
+    case FIELDS_NAMES.SHOP_FILTER:
+      const { error: shopFilterErr } = shopFilterSchema
+        .validate(jsonHelper.parseJson(data.field.body));
+      if (shopFilterErr) throw new Error(`Can't append ${fieldName}${shopFilterErr.message}`);
+      break;
+    case FIELDS_NAMES.MENU_ITEM:
+      const notValidMenuItem = await menuItemValidation(data.field.body);
+      if (notValidMenuItem) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
+};
+
+const menuItemValidation = async (body) => {
+  const parsedBody = jsonHelper.parseJson(body, null);
+  if (!parsedBody) return true;
+  const { error: menuItemErr } = menuItemSchema
+    .validate(parsedBody);
+  if (menuItemErr) return true;
+  if (!parsedBody.linkToObject) return false;
+  const { wobject } = await Wobj.findOne({
+    filter: {
+      author_permlink: parsedBody.linkToObject,
+    },
+    projection: { _id: 1 },
+  });
+  if (!wobject) return true;
+  return false;
+};
+
+const postLinkValidation = async (body) => {
+  if (!body) return true;
+  const [author, permlink] = body.split('/');
+  if (!author || !permlink) return true;
+  const { post } = await Post.findOne({ author, permlink });
+  return !post;
 };
 
 const nameOrPermlinkValidation = async (body, types = []) => {

@@ -50,6 +50,10 @@ exports.FIELDS_NAMES = {
   MANUFACTURER: 'manufacturer',
   BRAND: 'brand',
   FEATURES: 'features',
+  PIN: 'pin',
+  REMOVE: 'remove',
+  SHOP_FILTER: 'shopFilter',
+  MENU_ITEM: 'menuItem',
 };
 
 exports.SEARCH_FIELDS = [
@@ -69,7 +73,6 @@ exports.SEARCH_FIELDS = [
   this.FIELDS_NAMES.BRAND,
   this.FIELDS_NAMES.MANUFACTURER,
   this.FIELDS_NAMES.MERCHANT,
-
 ];
 
 exports.AUTHORITY_FIELD_ENUM = {
@@ -99,6 +102,7 @@ exports.OBJECT_TYPES = {
   BOOK: 'book',
   WIDGET: 'widget',
   NEWS_FEED: 'newsfeed',
+  SHOP: 'shop',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
@@ -176,6 +180,8 @@ exports.ARRAY_FIELDS = [
   this.FIELDS_NAMES.OPTIONS,
   this.FIELDS_NAMES.AUTHORS,
   this.FIELDS_NAMES.DEPARTMENTS,
+  // works different from waivio.api used only for task
+  this.FIELDS_NAMES.AUTHORITY,
 ];
 
 exports.categorySwitcher = {
@@ -213,4 +219,10 @@ exports.DIMENSION_UNITS = [
   'ft',
   'in',
   'nmi',
+];
+
+exports.OBJECT_TYPES_FOR_GROUP_ID = [
+  this.OBJECT_TYPES.PRODUCT,
+  this.OBJECT_TYPES.SERVICE,
+  this.OBJECT_TYPES.BOOK,
 ];

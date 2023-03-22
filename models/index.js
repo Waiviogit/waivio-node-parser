@@ -21,4 +21,5 @@ module.exports = {
   mutedUserModel: require('./mutedUserModel'),
   Department: require('./DepartmentModel'),
   GuestWallet: require('./GuestWalletModel'),
+  userShopDeselectModel: require('./userShopDeselectModel'),
 };

@@ -4,10 +4,11 @@ const { User, Post } = require('models');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
-const { VOTE_TYPES, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
+const { VOTE_TYPES, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, REDIS_KEYS } = require('constants/parsersData');
 const { ERROR } = require('constants/common');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const jsonHelper = require('utilities/helpers/jsonHelper');
+const redisSetter = require('utilities/redis/redisSetter');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -57,6 +58,10 @@ const parseVoteByType = async (voteOp, posts) => {
       author_permlink: voteOp.root_wobj,
       rshares: voteOp.rshares,
       // posts,
+    });
+    await redisSetter.publishToChannel({
+      channel: REDIS_KEYS.TX_ID_MAIN,
+      msg: voteOp.transaction_id,
     });
   }
 };
