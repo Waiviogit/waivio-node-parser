@@ -31,14 +31,12 @@ module.exports = async () => {
             oldSort,
             f.name === FIELDS_NAMES.LIST_ITEM ? f.body : f.permlink,
           );
-        const filter = _.chain(object.fields)
-          .filter(filterFunction)
-          .map((f) => (f.name === FIELDS_NAMES.LIST_ITEM ? f.body : f.permlink))
-          .value();
-
-        if (!_.isEmpty(filter)) {
-          console.log();
-        }
+        const filter = object.object_type === OBJECT_TYPES.LIST
+          ? _.chain(object.fields)
+            .filter(filterFunction)
+            .map((f) => (f.name === FIELDS_NAMES.LIST_ITEM ? f.body : f.permlink))
+            .value()
+          : [];
 
         const newBody = JSON.stringify({
           include: oldSort,
