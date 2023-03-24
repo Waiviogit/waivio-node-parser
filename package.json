@@ -42,7 +42,7 @@
     "pullDepartments": "NODE_PATH=. node ./utilities/tasks/pullDepartments/run.js",
     "fillUserShopDeselect": "NODE_PATH=. node ./utilities/tasks/fillUserShopDeselect/run.js",
     "changeSortCustomFormat": "NODE_PATH=. node ./utilities/tasks/changeSortCustomFormat/run.js",
-    "start": "node ./bin/service.js",
+    "start": "node --max-old-space-size=400 ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
   "dependencies": {
