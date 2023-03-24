@@ -24,6 +24,7 @@ module.exports = async () => {
         if (field.name !== FIELDS_NAMES.SORT_CUSTOM) continue;
         const oldSort = jsonHelper.parseJson(field.body, null);
         if (!oldSort) continue;
+        if (oldSort.include) continue;
 
         const filterFunction = (f) => f._id < field._id
           && _.includes(fieldsCanBeInSortCustom, f.name)
