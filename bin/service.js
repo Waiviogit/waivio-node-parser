@@ -33,6 +33,7 @@ const onError = (error) => {
 const app = require('../app');
 const debug = require('debug')('waivio-node-parser:server');
 const http = require('http');
+const { closeMongoConnections } = require('../database');
 
 /**
  * Normalize a port into a number, string, or false.
@@ -68,7 +69,6 @@ app.set('port', port);
 
 const server = http.createServer(app);
 
-
 /**
  * Event listener for HTTP server "listening" event.
  */
@@ -86,3 +86,16 @@ const onListening = () => {
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+const signalHandler = async (signal) => {
+  console.info(`${signal} signal received.`);
+  console.log('Closing http server.');
+  await server.close();
+  console.log('Sever is closed...');
+  await closeMongoConnections();
+  process.exit(0);
+};
+
+process.on('SIGINT', signalHandler);
+process.on('SIGTERM', signalHandler);
+process.on('SIGQUIT', signalHandler);

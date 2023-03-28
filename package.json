@@ -42,6 +42,7 @@
     "pullDepartments": "NODE_PATH=. node ./utilities/tasks/pullDepartments/run.js",
     "fillUserShopDeselect": "NODE_PATH=. node ./utilities/tasks/fillUserShopDeselect/run.js",
     "changeSortCustomFormat": "NODE_PATH=. node ./utilities/tasks/changeSortCustomFormat/run.js",
+    "recalcDepartments": "NODE_PATH=. node ./utilities/tasks/recalcDepartments/run.js",
     "start": "node --max-old-space-size=400 ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
@@ -62,7 +63,7 @@
     "franc-min": "^4.1.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "mongoose": "^5.7.12",
+    "mongoose": "^7.0.0",
     "mongoose-float": "^1.0.4",
     "morgan": "~1.9.0",
     "proxyquire": "^2.1.3",
