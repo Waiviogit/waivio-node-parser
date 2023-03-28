@@ -25,3 +25,11 @@ exports.updateMany = async ({ filter, update, options }) => {
     return { error };
   }
 };
+
+exports.find = async ({ filter, projection, options }) => {
+  try {
+    return { result: await Department.find(filter, projection, options).lean() };
+  } catch (error) {
+    return { error };
+  }
+};

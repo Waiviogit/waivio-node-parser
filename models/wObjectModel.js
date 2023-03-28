@@ -1,5 +1,6 @@
 const WObjectModel = require('database').models.WObject;
 const ObjectTypes = require('database').models.ObjectType;
+const _ = require('lodash');
 const { WOBJECT_LATEST_POSTS_COUNT } = require('constants/wobjectsData');
 const {
   FIELDS_NAMES,
@@ -332,6 +333,30 @@ const findByGroupIds = async ({ groupIds, metaGroupId }) => {
   }
 };
 
+const departmentUniqCount = async (department) => {
+  try {
+    const result = await WObjectModel.aggregate([
+      {
+        $match: {
+          departments: department,
+        },
+      },
+      {
+        $group: {
+          _id: '$metaGroupId',
+        },
+      },
+      {
+        $count: 'count',
+      },
+    ]);
+    const count = _.get(result, '[0].count', 0);
+    return { result: count };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   find,
   findOne,
@@ -354,4 +379,5 @@ module.exports = {
   getMany,
   findSameFieldBody,
   findByGroupIds,
+  departmentUniqCount,
 };

@@ -290,6 +290,7 @@ const manageDepartments = async ({
   if (error) return;
 
   const needUpdateCount = sameDepartmentFields.length === 1;
+  const { result: objectsCount } = await Wobj.departmentUniqCount(field.body);
 
   await Wobj.update(
     { author_permlink: authorPermlink },
@@ -299,7 +300,7 @@ const manageDepartments = async ({
   await Department.updateOne({
     filter: { name: field.body },
     update: {
-      ...(needUpdateCount && { $inc: { objectsCount: 1 } }),
+      ...(needUpdateCount && objectsCount && { $set: { objectsCount } }),
       $addToSet: { related: { $each: relatedNames } },
     },
   });
