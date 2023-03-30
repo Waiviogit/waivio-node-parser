@@ -1,6 +1,6 @@
 const {
   redisGetter,
-  redisSetter
+  redisSetter,
 } = require('utilities/redis');
 const blocksUtil = require('utilities/steemApi/blocksUtil');
 const { HIVED_NODES } = require('constants/appData');
@@ -109,7 +109,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
 
   const {
     block,
-    error
+    error,
   } = await getBlock(blockNum, CURRENT_NODE);
 
   if (error) {
