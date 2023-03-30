@@ -1,4 +1,7 @@
-const { redisGetter, redisSetter } = require('utilities/redis');
+const {
+  redisGetter,
+  redisSetter
+} = require('utilities/redis');
 const blocksUtil = require('utilities/steemApi/blocksUtil');
 const { HIVED_NODES } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
@@ -21,7 +24,10 @@ let CURRENT_NODE = HIVED_NODES[0];
  * @returns {Promise<boolean>}
  */
 const getBlockNumberStream = async ({
-  startFromBlock, startFromCurrent, key, finishBlock,
+  startFromBlock,
+  startFromCurrent,
+  key,
+  finishBlock,
   transactionsParserCallback,
 }) => {
   if (startFromCurrent) {
@@ -36,7 +42,10 @@ const getBlockNumberStream = async ({
     );
   } else if (startFromBlock && Number.isInteger(startFromBlock)) {
     await loadNextBlock({
-      startBlock: startFromBlock, key, finishBlock, transactionsParserCallback,
+      startBlock: startFromBlock,
+      key,
+      finishBlock,
+      transactionsParserCallback,
     });
   } else {
     await loadNextBlock({ transactionsParserCallback });
@@ -44,21 +53,46 @@ const getBlockNumberStream = async ({
   return true;
 };
 
+const getNextBlockNum = async (startBlock, isFirstIteration) => {
+  if (isFirstIteration && startBlock) {
+    return startBlock;
+  }
+  return redisGetter.getLastBlockNum();
+};
+
+const updateLastBlockNum = async (lastBlockNum, key) => {
+  await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
+};
+
 const loadNextBlock = async ({
-  startBlock, key = '', finishBlock, transactionsParserCallback,
+  startBlock,
+  key = '',
+  finishBlock,
+  transactionsParserCallback,
 }) => {
   let lastBlockNum;
+  let isFirstIteration = true;
 
-  while (true) {
-    lastBlockNum = await redisGetter.getLastBlockNum();
+  const shouldContinue = (lastBlock, finish) => {
+    if (finish) {
+      return lastBlock <= finishBlock;
+    }
+    return true;
+  };
+
+  while (shouldContinue(lastBlockNum, finishBlock)) {
+    lastBlockNum = await getNextBlockNum(startBlock, isFirstIteration);
     console.time(lastBlockNum);
     const loadResult = await loadBlock(lastBlockNum, transactionsParserCallback);
     console.timeEnd(lastBlockNum);
+
     if (loadResult) {
-      await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
-      continue;
+      await updateLastBlockNum(lastBlockNum, key);
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    isFirstIteration = false;
   }
 };
 
@@ -73,7 +107,10 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     if (blockNum >= lastBlockNumMainParse - 1) return false;
   }
 
-  const { block, error } = await getBlock(blockNum, CURRENT_NODE);
+  const {
+    block,
+    error
+  } = await getBlock(blockNum, CURRENT_NODE);
 
   if (error) {
     console.error(error.message);
