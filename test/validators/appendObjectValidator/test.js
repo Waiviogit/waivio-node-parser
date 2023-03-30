@@ -360,6 +360,23 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on add-on, related, similar field', async () => {
+        let product, randomType;
+        beforeEach(async () => {
+          mockData.field.name = _.sample([FIELDS_NAMES.ADD_ON, FIELDS_NAMES.SIMILAR, FIELDS_NAMES.RELATED]);
+          randomType = await ObjectFactory.Create({ object_type: _.sample(OBJECT_TYPES) });
+        });
+        it('should be fulfilled if object exist', async () => {
+          mockData.field.body = randomType.author_permlink;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if object not exist', async () => {
+          mockData.field.body = faker.random.string();
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on author field', async () => {
         let author1, randomType;
         beforeEach(async () => {

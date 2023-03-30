@@ -54,6 +54,9 @@ exports.FIELDS_NAMES = {
   REMOVE: 'remove',
   SHOP_FILTER: 'shopFilter',
   MENU_ITEM: 'menuItem',
+  RELATED: 'related',
+  ADD_ON: 'add-on',
+  SIMILAR: 'similar',
 };
 
 exports.SEARCH_FIELDS = [
