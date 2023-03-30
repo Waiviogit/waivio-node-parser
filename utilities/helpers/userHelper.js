@@ -34,7 +34,20 @@ exports.checkAndCreateUser = async (userName) => {
   }
   return { user };
 };
+const getHiveUsers = async (names) => {
+  if (names.length < 10) {
+    const { users: steemUsers = [] } = await usersUtil.getUsers(names);
+    return steemUsers;
+  }
+  const size = 10;
+  const arrayOfArrays = [];
+  for (let i = 0; i < names.length; i += size) {
+    arrayOfArrays.push(names.slice(i, i + size));
+  }
+  const resp = await Promise.all(arrayOfArrays.map(async (el) => usersUtil.getUsers(el)));
 
+  return _.flatten(_.map(resp, 'users'));
+};
 /**
  * Create users in DB if they not exist,
  * if user already exists - just return
@@ -46,7 +59,8 @@ exports.checkAndCreateUser = async (userName) => {
 exports.checkAndCreateByArray = async (names) => {
   if (_.isEmpty(names)) return { hiveAccounts: [] };
 
-  const { users: steemUsers = [] } = await usersUtil.getUsers(names);
+  const steemUsers = await getHiveUsers(names);
+
   const { users } = await userModel.find({
     name:
       { $in: _.map(steemUsers, (user) => user.name) },
