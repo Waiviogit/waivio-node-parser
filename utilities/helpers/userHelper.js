@@ -46,7 +46,7 @@ const getHiveUsers = async (names) => {
   }
   const resp = await Promise.all(arrayOfArrays.map(async (el) => usersUtil.getUsers(el)));
 
-  return _.flatten(_.map(resp, 'users'));
+  return _.compact(_.flatten(_.map(resp, 'users')));
 };
 /**
  * Create users in DB if they not exist,
