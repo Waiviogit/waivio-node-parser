@@ -13,15 +13,15 @@ const voteOnPost = async (data) => {
 
   const weight = Math.round(currentVote.rshares * 1e-6);
 
-  // if (await userValidator.validateUserOnBlacklist([data.voter, data.post.author, data.guest_author])) {
-  await unvoteOnPost(data);
-  if (data.percent < 0) {
-    await downVoteOnPost(data, weight); // case for down-vote
-  } else if (data.percent > 0) {
-    await upVoteOnPost(data, weight); // case for up-vote
+  if (await userValidator.validateUserOnBlacklist([data.voter, data.post.author, data.guest_author])) {
+    await unvoteOnPost(data);
+    if (data.percent < 0) {
+      await downVoteOnPost(data, weight); // case for down-vote
+    } else if (data.percent > 0) {
+      await upVoteOnPost(data, weight); // case for up-vote
+    }
   }
-  // }
- // await updateVotesOnPost(data);
+  // await updateVotesOnPost(data);
 };
 
 // method also using as undo previous vote before up- or down-vote
