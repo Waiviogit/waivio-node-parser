@@ -1,7 +1,9 @@
 const { Wobj, User } = require('models');
+const uuid = require('uuid');
 const { createObjectValidator } = require('validator');
 const { commentRefSetter, commentRefGetter } = require('utilities/commentRefService');
 const { wobjectHelper, userHelper } = require('utilities/helpers');
+const { OBJECT_TYPES_FOR_GROUP_ID } = require('constants/wobjectsData');
 const _ = require('lodash');
 const { createEdgeNGrams } = require('../utilities/helpers/updateSpecificFieldsHelper');
 const { publishToChannel } = require('../utilities/redis/redisSetter');
@@ -33,6 +35,9 @@ const createObject = async (data, operation) => {
 
     const objectTypeRef = await commentRefGetter.getCommentRef(`${operation.parent_author}_${operation.parent_permlink}`);
     data.object_type = objectTypeRef.name;
+    if (_.includes(OBJECT_TYPES_FOR_GROUP_ID, data.object_type)) {
+      data.metaGroupId = uuid.v4();
+    }
 
     const { wObject, error } = await Wobj.create(data);
     if (error) return { error };

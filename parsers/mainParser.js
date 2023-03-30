@@ -68,7 +68,10 @@ const parseSwitcher = async (transactions, timestamp) => {
               break;
           }
         } else if (operation[0] === MAIN_OPS.VOTE) {
-          votesOps.push(operation[1]);
+          votesOps.push({
+            ...operation[1],
+            transaction_id: _.get(transaction, 'transaction_id'),
+          });
         }
       }
     }

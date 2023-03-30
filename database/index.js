@@ -3,18 +3,22 @@ const config = require('config');
 
 const URI = `mongodb://${config.db.host}:${config.db.port}/${config.db.database}`;
 
-mongoose.connect(URI, {
-  useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true, useUnifiedTopology: true,
-})
+mongoose.connect(URI)
   .then(() => console.log('connection successful!'))
   .catch((error) => console.error(error));
 
 mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
+mongoose.connection.on('close', () => console.log(`closed ${config.db.database}`));
+
+const closeMongoConnections = async () => {
+  await mongoose.connection.close(false);
+};
 
 mongoose.Promise = global.Promise;
 
 module.exports = {
   Mongoose: mongoose,
+  closeMongoConnections,
   models: {
     WObject: require('./schemas/wObjectSchema'),
     User: require('./schemas/UserSchema'),
@@ -39,5 +43,6 @@ module.exports = {
     EngineAccountHistory: require('./schemas/EngineAccountHistorySchema'),
     Department: require('./schemas/DepartmentSchema'),
     GuestWallet: require('./schemas/GuestWalletSchema'),
+    UserShopDeselect: require('./schemas/UserShopDeselectSchema'),
   },
 };

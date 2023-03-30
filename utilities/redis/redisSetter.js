@@ -86,6 +86,9 @@ const publishToChannel = async ({ channel, msg, client = lastBlockClient }) => {
   await client.publishAsync(channel, msg);
 };
 
+const incrementTag = async ({ categoryName, tag, objectType }) => tagCategoriesClient.zincrbyAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${objectType}:${categoryName}`, 1, tag);
+const incrementDepartmentTag = async ({ categoryName, tag, department }) => tagCategoriesClient.zincrbyAsync(`${FIELDS_NAMES.DEPARTMENTS}:${department}:${categoryName}`, 1, tag);
+
 module.exports = {
   setExpiredPostTTL,
   zremrangebyscore,
@@ -100,4 +103,6 @@ module.exports = {
   expire,
   zrem,
   publishToChannel,
+  incrementTag,
+  incrementDepartmentTag,
 };

@@ -1,8 +1,10 @@
 const _ = require('lodash');
 const config = require('config');
-const { Wobj, App, Department } = require('models');
+const {
+  Wobj, App, Department, userShopDeselectModel, ObjectType,
+} = require('models');
 const { tagsParser } = require('utilities/restaurantTagsParser');
-const { redisGetter, redisSetter } = require('utilities/redis');
+const { redisSetter } = require('utilities/redis');
 const { processWobjects } = require('utilities/helpers/wobjectHelper');
 const { validateMap } = require('validator/specifiedFieldsValidator');
 const {
@@ -11,6 +13,7 @@ const {
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
 const jsonHelper = require('utilities/helpers/jsonHelper');
+const uuid = require('uuid');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -28,7 +31,6 @@ const update = async ({
     case FIELDS_NAMES.ADDRESS:
     case FIELDS_NAMES.COMPANY_ID:
     case FIELDS_NAMES.PRODUCT_ID:
-    case FIELDS_NAMES.GROUP_ID:
     case FIELDS_NAMES.BRAND:
     case FIELDS_NAMES.MANUFACTURER:
     case FIELDS_NAMES.MERCHANT:
@@ -109,30 +111,16 @@ const update = async ({
         await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
       }
       break;
-    case FIELDS_NAMES.TAG_CATEGORY:
-      await updateTagCategories(authorPermlink);
-      break;
     case FIELDS_NAMES.CATEGORY_ITEM:
       await addSearchField({
         authorPermlink, newWords: parseSearchData(field),
       });
-      await updateTagCategories(authorPermlink);
+      await updateTagCategories({ authorPermlink, field });
       break;
     case FIELDS_NAMES.AUTHORITY:
-      if (!voter || field.creator === voter) {
-        if (percent <= 0) {
-          await Wobj.update(
-            { author_permlink: authorPermlink },
-            { $pull: { [`authority.${field.body}`]: field.creator } },
-          );
-        } else if (!_.isNumber(percent) || percent > 0) {
-          await Wobj.update(
-            { author_permlink: authorPermlink },
-            { $addToSet: { [`authority.${field.body}`]: field.creator } },
-          );
-        }
-        await updateSitesObjects(field.creator);
-      }
+      await manageAuthorities({
+        voter, field, percent, authorPermlink,
+      });
       return;
     case FIELDS_NAMES.AUTHORS:
     case FIELDS_NAMES.PUBLISHER:
@@ -141,8 +129,18 @@ const update = async ({
       });
       return updateChildrenSingle({ field, authorPermlink });
     case FIELDS_NAMES.DEPARTMENTS:
-      await manageDepartments({ field, authorPermlink });
+      await manageDepartments({
+        field,
+        authorPermlink,
+        app,
+        percent,
+      });
       break;
+    case FIELDS_NAMES.GROUP_ID:
+      await addSearchField({
+        authorPermlink, newWords: parseSearchData(field),
+      });
+      await updateMetaGroupId({ authorPermlink });
   }
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
@@ -158,7 +156,108 @@ const update = async ({
   }
 };
 
-const manageDepartments = async ({ field, authorPermlink }) => {
+const manageAuthorities = async ({
+  voter, field, percent, authorPermlink,
+}) => {
+  if (!voter || field.creator === voter) {
+    if (percent <= 0) {
+      await Wobj.update(
+        { author_permlink: authorPermlink },
+        { $pull: { [`authority.${field.body}`]: field.creator } },
+      );
+      await userShopDeselectModel.create({
+        authorPermlink,
+        userName: field.creator,
+      });
+    } else if (!_.isNumber(percent) || percent > 0) {
+      await Wobj.update(
+        { author_permlink: authorPermlink },
+        { $addToSet: { [`authority.${field.body}`]: field.creator } },
+      );
+      await userShopDeselectModel.deleteOne({
+        authorPermlink,
+        userName: field.creator,
+      });
+    }
+    await updateSitesObjects(field.creator);
+  }
+};
+
+const addToAllMetaGroup = async ({ groupIds, metaGroupId }) => {
+  while (true) {
+    const { result, error } = await Wobj.findByGroupIds({ groupIds, metaGroupId });
+    if (error) break;
+    if (_.isEmpty(result)) break;
+    for (const resultElement of result) {
+      groupIds = _.uniq([...groupIds, ...getObjectGroupIds(resultElement)]);
+    }
+    await Wobj.updateMany(
+      { author_permlink: { $in: _.map(result, 'author_permlink') } },
+      { metaGroupId },
+    );
+  }
+};
+
+const getObjectGroupIds = (wobject) => _.chain(wobject.fields)
+  .filter((f) => f.name === FIELDS_NAMES.GROUP_ID)
+  .map((el) => el.body)
+  .value();
+
+const updateMetaGroupId = async ({ authorPermlink }) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+  if (!wobject) return;
+  const metaGroupId = wobject.metaGroupId ? wobject.metaGroupId : uuid.v4();
+  const groupIds = getObjectGroupIds(wobject);
+  await addToAllMetaGroup({ groupIds, metaGroupId });
+};
+
+const removeFromDepartments = async ({
+  authorPermlink,
+  department,
+  relatedNames,
+  wobject,
+  app,
+}) => {
+  const processed = await processWobjects({
+    wobjects: [wobject], app, fields: [FIELDS_NAMES.DEPARTMENTS], returnArray: false,
+  });
+
+  const notRejected = _.find(
+    _.get(processed, 'departments'),
+    (d) => _.get(d, 'body') === department,
+  );
+  if (notRejected) return;
+
+  await Wobj.update(
+    { author_permlink: authorPermlink },
+    { $pull: { departments: department } },
+  );
+
+  for (const relatedEl of relatedNames) {
+    const { wobject: result } = await Wobj.findOne({
+      filter: { departments: { $all: [department, relatedEl] } },
+      projection: { _id: 1 },
+    });
+    if (!result) {
+      await Department.updateOne({
+        filter: { name: relatedEl },
+        update: {
+          $pull: { related: department },
+        },
+      });
+      await Department.updateOne({
+        filter: { name: department },
+        update: {
+          $pull: { related: relatedEl },
+        },
+      });
+    }
+  }
+};
+
+const manageDepartments = async ({
+  field, authorPermlink, percent, app,
+}) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   if (!wobject) return;
   const sameDepartmentFields = _.filter(
@@ -170,23 +269,38 @@ const manageDepartments = async ({ field, authorPermlink }) => {
     wobject.fields,
     (f) => f.name === FIELDS_NAMES.DEPARTMENTS && f.body !== field.body,
   );
+  const relatedNames = _.map(related, 'body');
 
-  const { result, error } = await Department.findOneOrCreateByName(field.body);
+  if (percent && percent <= 0) {
+    const department = field.body;
+    await removeFromDepartments({
+      authorPermlink,
+      department,
+      relatedNames,
+      wobject,
+      app,
+    });
+    return;
+  }
+
+  const { result, error } = await Department.findOneOrCreateByName({
+    name: field.body,
+    search: parseName(field.body),
+  });
   if (error) return;
 
   const needUpdateCount = sameDepartmentFields.length === 1;
+  const { result: objectsCount } = await Wobj.departmentUniqCount(field.body);
 
   await Wobj.update(
     { author_permlink: authorPermlink },
     { $addToSet: { departments: result.name } },
   );
 
-  const relatedNames = _.map(related, 'body');
-
   await Department.updateOne({
     filter: { name: field.body },
     update: {
-      ...(needUpdateCount && { $inc: { objectsCount: 1 } }),
+      ...(needUpdateCount && objectsCount && { $set: { objectsCount } }),
       $addToSet: { related: { $each: relatedNames } },
     },
   });
@@ -197,6 +311,21 @@ const manageDepartments = async ({ field, authorPermlink }) => {
       $addToSet: { related: field.body },
     },
   });
+
+  const supposedUpdates = await getTagCategoryToUpdate(wobject.object_type);
+  if (_.isEmpty(supposedUpdates)) return;
+  const tagFields = _.filter(
+    wobject.fields,
+    (f) => _.includes(supposedUpdates, f.tagCategory),
+  );
+
+  for (const tagField of tagFields) {
+    await redisSetter.incrementDepartmentTag({
+      categoryName: tagField.tagCategory,
+      tag: tagField.body,
+      department: field.body,
+    });
+  }
 };
 
 const updateChildrenSingle = async ({ field, authorPermlink }) => {
@@ -265,41 +394,32 @@ const processingParent = async (authorPermlink, app) => {
   }
 };
 
-const checkExistingTags = async (tagCategories = [], objectType) => {
-  for (const category of tagCategories) {
-    const existingTags = await redisGetter.getTagCategories(`tagCategory:${category.body}`);
-    const newTags = _
-      .filter(category.categoryItems, (o) => !_.includes(existingTags, o.name) && o.weight > 0);
-    if (!newTags.length) continue;
-    let tags = [];
-    for (const tag of newTags) tags = _.concat(tags, [0, tag.name]);
-    await redisSetter.addTagCategory({ categoryName: category.body, objectType, tags });
-  }
+const getTagCategoryToUpdate = async (objectType) => {
+  const { objectType: result } = await ObjectType.getOne({ name: objectType });
+  const tagCategories = _.find(result.supposed_updates, (u) => u.name === 'tagCategory');
+
+  return _.get(tagCategories, 'values', []);
 };
 
-const updateTagCategories = async (authorPermlink) => {
-  let tagCategories = [];
-  const { wobject: tagCategoriesWobj } = await Wobj.getOne({ author_permlink: authorPermlink });
-  tagCategories = _.chain(tagCategoriesWobj)
-    .get('fields', [])
-    .filter((i) => i.name === FIELDS_NAMES.TAG_CATEGORY || i.name === FIELDS_NAMES.CATEGORY_ITEM)
-    .groupBy('id')
-    // here is array of arrays
-    .reduce((result, items) => {
-      let category = {};
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].name === FIELDS_NAMES.TAG_CATEGORY) [category] = items.splice(i, 1);
-      }
-      result.push({
-        ...category,
-        categoryItems: [...items.map((i) => ({
-          locale: i.locale, name: i.body, weight: i.weight,
-        }))],
-      });
-      return result;
-    }, [])
-    .value();
-  await checkExistingTags(tagCategories, tagCategoriesWobj.object_type);
+const updateTagCategories = async ({ authorPermlink, field }) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+  if (!wobject) return;
+  const supposedUpdates = await getTagCategoryToUpdate(wobject.object_type);
+  if (!_.includes(supposedUpdates, field.tagCategory)) return;
+
+  await redisSetter.incrementTag({
+    objectType: wobject.object_type,
+    tag: field.body,
+    categoryName: field.tagCategory,
+  });
+  if (_.isEmpty(wobject.departments)) return;
+  for (const department of wobject.departments) {
+    await redisSetter.incrementDepartmentTag({
+      categoryName: field.tagCategory,
+      tag: field.body,
+      department,
+    });
+  }
 };
 
 const setMapToChildren = async (authorPermlink, map) => {
@@ -400,7 +520,7 @@ const parseAddress = (addressFromDB) => {
   return { addresses: addressesInNgrams };
 };
 
-const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '), FIELDS_NAMES.NAME);
+const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '));
 
 const parseId = (idFromDb) => {
   let rawId;
@@ -444,4 +564,5 @@ module.exports = {
   parseName,
   parseId,
   createEdgeNGrams,
+  removeFromDepartments,
 };

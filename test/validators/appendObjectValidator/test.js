@@ -2,7 +2,7 @@ const {
   expect, faker, ObjectType, WObject, sinon, AppModel,
 } = require('test/testHelper');
 const { appendObjectValidator } = require('validator');
-const { ObjectFactory, AppendObject } = require('test/factories');
+const { ObjectFactory, AppendObject, PostFactory } = require('test/factories');
 const _ = require('lodash');
 const {
   FIELDS_NAMES,
@@ -232,6 +232,46 @@ describe('appendObjectValidator', async () => {
         });
       });
 
+      describe('on pin, remove field', async () => {
+        const existPost = { author: faker.random.string(), permlink: faker.random.string() };
+        const notExistPost = { author: faker.random.string(), permlink: faker.random.string() };
+        beforeEach(async () => {
+          mockData.field.name = _.sample([FIELDS_NAMES.PIN, FIELDS_NAMES.REMOVE]);
+          await PostFactory.Create(existPost);
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = `${existPost.author}/${existPost.permlink}`;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type invalid', async () => {
+          mockData.field.body = `${notExistPost.author}/${notExistPost.permlink}`;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on shopFilter field', async () => {
+        const validBody = JSON.stringify(_.pick({
+          type: faker.random.string(),
+          departments: [faker.random.string()],
+          tags: [faker.random.string()],
+          authorities: [faker.random.string()],
+        }, _.sample(['type', 'departments', 'tags', 'authorities'])));
+
+        beforeEach(async () => {
+          mockData.field.name = FIELDS_NAMES.SHOP_FILTER;
+        });
+        it('should be fulfilled if body valid', async () => {
+          mockData.field.body = validBody;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type invalid', async () => {
+          mockData.field.body = JSON.stringify({});
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
       describe('on brand, merchant, manufacturer field', async () => {
         let product, randomType;
         beforeEach(async () => {
@@ -259,6 +299,62 @@ describe('appendObjectValidator', async () => {
           mockData.field.body = JSON.stringify({
             name: faker.random.string(),
             authorPermlink: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+      });
+
+      describe('on menuItem field', async () => {
+        let product, randomType;
+        beforeEach(async () => {
+          mockData.field.name = FIELDS_NAMES.MENU_ITEM;
+          product = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PRODUCT });
+        });
+        it('should be fulfilled if body valid with object', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToObject: product.author_permlink,
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be fulfilled if body valid with uri', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToWeb: faker.internet.url(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if  type missing', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if  object  missing', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToObject: faker.random.string(),
+          });
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
+        });
+
+        it('should be rejected if link to web not valid', async () => {
+          mockData.field.body = JSON.stringify({
+            title: faker.random.string(),
+            style: faker.random.string(),
+            image: faker.random.string(),
+            linkToWeb: faker.random.string(),
           });
           await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
         });
