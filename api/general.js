@@ -49,38 +49,16 @@ const loadNextBlock = async ({
 }) => {
   let lastBlockNum;
 
-  if (startBlock) {
-    lastBlockNum = startBlock;
-    if (finishBlock && startBlock >= finishBlock) {
-      console.log('Task finished');
-      return;
-    }
-  } else {
-    lastBlockNum = await redisGetter.getLastBlockNum();
-  }
-
   while (true) {
     lastBlockNum = await redisGetter.getLastBlockNum();
+    console.time(lastBlockNum);
     const loadResult = await loadBlock(lastBlockNum, transactionsParserCallback);
+    console.timeEnd(lastBlockNum);
     if (loadResult) {
       await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
       continue;
-    } else {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      continue;
     }
-  }
-
-  if (loadResult) {
-    await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
-    await loadNextBlock({
-      startBlock: lastBlockNum + 1, key, transactionsParserCallback, finishBlock,
-    });
-  } else {
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    await loadNextBlock({
-      startBlock: lastBlockNum, key, transactionsParserCallback, finishBlock,
-    });
   }
 };
 
@@ -107,9 +85,9 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     console.error(`EMPTY BLOCK: ${blockNum}`);
     return true;
   }
-  console.time(block.transactions[0].block_num);
+
   await transactionsParserCallback(block.transactions, block.timestamp);
-  console.timeEnd(block.transactions[0].block_num);
+
   return true;
 };
 
