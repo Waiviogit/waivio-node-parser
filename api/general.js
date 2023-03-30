@@ -58,7 +58,18 @@ const loadNextBlock = async ({
   } else {
     lastBlockNum = await redisGetter.getLastBlockNum();
   }
-  const loadResult = await loadBlock(lastBlockNum, transactionsParserCallback);
+
+  while (true) {
+    lastBlockNum = await redisGetter.getLastBlockNum();
+    const loadResult = await loadBlock(lastBlockNum, transactionsParserCallback);
+    if (loadResult) {
+      await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
+      continue;
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      continue;
+    }
+  }
 
   if (loadResult) {
     await redisSetter.setLastBlockNum(lastBlockNum + 1, key);
