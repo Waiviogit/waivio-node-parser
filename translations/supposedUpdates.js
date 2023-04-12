@@ -1,4 +1,7 @@
 module.exports = {
+  Books: {
+    'en-US': 'Books',
+  },
   Category: {
     'en-US': 'Category',
     'ru-RU': 'Категория',

@@ -4,7 +4,9 @@ const { User, Post } = require('models');
 const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
-const { VOTE_TYPES, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, REDIS_KEYS } = require('constants/parsersData');
+const {
+  VOTE_TYPES, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, REDIS_KEYS,
+} = require('constants/parsersData');
 const { ERROR } = require('constants/common');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const jsonHelper = require('utilities/helpers/jsonHelper');
@@ -24,6 +26,9 @@ const parse = async (votes) => {
   await sendLikeNotification(votesOps);
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithVotes);
+  }));
+  await Promise.all(posts.map(async (post) => {
+    await votePostHelper.updateVotesOnPost({ post });
   }));
   console.log(`Parsed votes: ${votesOps.length}`);
 };

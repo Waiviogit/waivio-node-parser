@@ -320,6 +320,12 @@ const validateSpecifiedFields = async (data) => {
       const notValidMenuItem = await menuItemValidation(data.field.body);
       if (notValidMenuItem) throw new Error(`Can't append ${fieldName}`);
       break;
+    case FIELDS_NAMES.RELATED:
+    case FIELDS_NAMES.ADD_ON:
+    case FIELDS_NAMES.SIMILAR:
+      const notValidObj = await permlinkValidation(data.field.body);
+      if (notValidObj) throw new Error(`Can't append ${fieldName}`);
+      break;
   }
 };
 
@@ -346,6 +352,15 @@ const postLinkValidation = async (body) => {
   if (!author || !permlink) return true;
   const { post } = await Post.findOne({ author, permlink });
   return !post;
+};
+
+const permlinkValidation = async (authorPermlink) => {
+  const { wobject } = await Wobj.findOne({
+    filter: {
+      author_permlink: authorPermlink,
+    },
+  });
+  return !wobject;
 };
 
 const nameOrPermlinkValidation = async (body, types = []) => {
