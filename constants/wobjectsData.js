@@ -55,7 +55,7 @@ exports.FIELDS_NAMES = {
   SHOP_FILTER: 'shopFilter',
   MENU_ITEM: 'menuItem',
   RELATED: 'related',
-  ADD_ON: 'add-on',
+  ADD_ON: 'addOn',
   SIMILAR: 'similar',
 };
 
