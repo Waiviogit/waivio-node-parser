@@ -21,6 +21,7 @@ const voteOnPost = async (data) => {
       await upVoteOnPost(data, weight); // case for up-vote
     }
   }
+  await updateVotesOnPost(data);
 };
 
 // method also using as undo previous vote before up- or down-vote
@@ -103,4 +104,4 @@ const updateVotesOnPost = async (data) => {
   );
 };
 
-module.exports = { voteOnPost, updateVotesOnPost };
+module.exports = { voteOnPost };

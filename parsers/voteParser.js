@@ -27,9 +27,6 @@ const parse = async (votes) => {
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithVotes);
   }));
-  await Promise.all(posts.map(async (post) => {
-    await votePostHelper.updateVotesOnPost({ post });
-  }));
   console.log(`Parsed votes: ${votesOps.length}`);
 };
 
