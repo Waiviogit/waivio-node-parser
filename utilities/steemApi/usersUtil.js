@@ -67,7 +67,7 @@ const getProcessedVotes = async (votes) => {
   })), (l) => l.voter === e.voter && l.author === e.author && l.permlink === e.permlink));
 };
 
-const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
+const calculateVotePower = async ({ votesOps, posts }) => {
   const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
 
   const votesProcessedOnApi = await getProcessedVotes(votesOps);
