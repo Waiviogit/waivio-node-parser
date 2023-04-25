@@ -21,7 +21,6 @@ const voteOnPost = async (data) => {
       await upVoteOnPost(data, weight); // case for up-vote
     }
   }
-  await updateVotesOnPost(data);
 };
 
 // method also using as undo previous vote before up- or down-vote
@@ -100,8 +99,8 @@ const updateVotesOnPost = async (data) => {
   await Post.update(data.post); // update post info in DB
   await redisSetter.sadd(
     `${REDIS_KEY_VOTE_UPDATES}:${moment.utc().startOf('hour').format()}`,
-    `${data.author}/${data.permlink}`,
+    `${data.post.author}/${data.post.permlink}`,
   );
 };
 
-module.exports = { voteOnPost };
+module.exports = { voteOnPost, updateVotesOnPost };

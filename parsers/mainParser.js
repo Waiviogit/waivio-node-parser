@@ -8,7 +8,17 @@ const _ = require('lodash');
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 const parseSwitcher = async (transactions, timestamp) => {
-  const votesOps = [];
+  if (PARSE_ONLY_VOTES) {
+    const votes = transactions.filter((t) => t.op.type === 'vote_operation').map((t) => ({ ...t.op.value, transaction_id: t.trx_id }));
+    const ops = transactions.filter((t) => t.op.type === 'effective_comment_vote_operation').map((t) => {
+      const original = _.find(votes, (v) => v?.transaction_id === t?.trx_id);
+     return  { ...t.op.value, transaction_id: t.trx_id, weight : original?.weight ?? t.weight };
+
+    });
+    await voteParser.parse(ops);
+
+    return;
+  }
 
   for (const transaction of transactions) {
     if (transaction && transaction.operations && transaction.operations[0]) {
@@ -35,9 +45,6 @@ const parseSwitcher = async (transactions, timestamp) => {
             case MAIN_OPS.CREATE_CLAIMED_ACCOUNT:
             case MAIN_OPS.ACCOUNT_CREATE:
               await userParsers.createUser(operation[1]);
-              break;
-            case MAIN_OPS.VOTE:
-              votesOps.push(operation[1]);
               break;
             case MAIN_OPS.ACCOUNT_WITNES_VOTE:
               await witnessVoteParser.parse(operation[1]);
@@ -67,18 +74,9 @@ const parseSwitcher = async (transactions, timestamp) => {
               await claimRewardParser.parse(operation[1], _.get(transaction, 'transaction_id'));
               break;
           }
-        } else if (operation[0] === MAIN_OPS.VOTE) {
-          votesOps.push({
-            ...operation[1],
-            transaction_id: _.get(transaction, 'transaction_id'),
-          });
         }
       }
     }
-  }
-
-  if (PARSE_ONLY_VOTES) {
-    await voteParser.parse(votesOps);
   }
 };
 

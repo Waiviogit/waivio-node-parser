@@ -74,25 +74,11 @@ const calculateVotePower = async ({ votesOps, posts, hiveAccounts }) => {
 
   for (const vote of votesOps) {
     if (!vote.type) continue;
-    const account = _.find(hiveAccounts, (el) => el.name === vote.voter);
-    const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author) && p.permlink === vote.permlink);
-    if (!account) continue;
-    const voteWeight = vote.weight / 100;
-    const decreasedPercent = ((voteWeight * 2) / 100);
-    // here we find out what was the votingPower before vote
-    const votingPower = vote.type === VOTE_TYPES.APPEND_WOBJ && vote.json
-      ? account.voting_power
-      : (100 * account.voting_power) / (100 - decreasedPercent);
 
-    const vests = parseFloat(account.vesting_shares)
-      + parseFloat(account.received_vesting_shares) - parseFloat(account.delegated_vesting_shares);
+    const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author)
+      && p.permlink === vote.permlink);
 
-    const accountVotingPower = Math.min(10000, votingPower);
-
-    const power = (((accountVotingPower / 100) * voteWeight)) / 50;
-    const rShares = Math.abs((vests * power * 100)) > 50000000
-      ? (vests * power * 100) - 50000000
-      : 0;
+    const rShares = vote.rshares;
     const createdOverAWeek = moment().diff(moment(_.get(post, 'createdAt')), 'day') > 7;
     if (!post || createdOverAWeek) {
       vote.rshares = rShares || 1;

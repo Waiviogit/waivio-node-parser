@@ -6,6 +6,7 @@ const blocksUtil = require('utilities/steemApi/blocksUtil');
 const { HIVED_NODES } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
 const _ = require('lodash');
+const axios = require('axios');
 const { socketHiveClient } = require('../utilities/socketClient/hiveSocket');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
@@ -104,7 +105,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
      */
   if (PARSE_ONLY_VOTES) {
     const lastBlockNumMainParse = await redisGetter.getLastBlockNum('last_block_num');
-    if (blockNum >= lastBlockNumMainParse - 1) return false;
+    if (blockNum >= lastBlockNumMainParse - 3) return false;
   }
 
   const {
@@ -133,13 +134,45 @@ const getBlock = async (blockNum, hiveUrl) => {
     // comment while our node up to 26
     // const resp = await socketHiveClient.getBlock(blockNum);
     // if (!_.get(resp, 'error')) return { block: resp };
+    if (PARSE_ONLY_VOTES) {
+      const block = await getBlockREST(blockNum, hiveUrl);
+      return { block };
+    }
+
     const hive = new Client(hiveUrl);
     const block = await hive.database.call('get_block', [blockNum]);
+
     return { block };
   } catch (error) {
     return { error };
   }
 };
+
+const getBlockREST = async (blockNum, hiveUrl) => {
+  try {
+    const resp = await socketHiveClient.getOpsInBlock(blockNum);
+    if (!_.get(resp, 'error')) return { result: resp };
+    const instance = axios.create();
+    const result = await instance.post(
+      hiveUrl,
+      getOpsInBlockReqData(blockNum),
+    );
+
+    return { transactions: _.get(result, 'data.result.ops') };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const getOpsInBlockReqData = (blockNum) => ({
+  jsonrpc: '2.0',
+  method: 'account_history_api.get_ops_in_block',
+  params: {
+    block_num: blockNum,
+    only_virtual: false,
+  },
+  id: 1,
+});
 
 const changeNodeUrl = () => {
   const index = HIVED_NODES.indexOf(CURRENT_NODE);
