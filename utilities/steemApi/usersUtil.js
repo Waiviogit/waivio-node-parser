@@ -78,7 +78,7 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     const post = _.find(posts, (p) => (p.author === vote.author || p.author === vote.guest_author)
       && p.permlink === vote.permlink);
 
-    const rShares = vote.rshares;
+    const rShares = +vote.rshares;
     const createdOverAWeek = moment().diff(moment(_.get(post, 'createdAt')), 'day') > 7;
     if (!post || createdOverAWeek) {
       vote.rshares = rShares || 1;
