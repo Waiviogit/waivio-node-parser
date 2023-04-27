@@ -27,6 +27,9 @@ const parse = async (votes) => {
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithVotes);
   }));
+  await Promise.all(posts.map(async (post) => {
+    await votePostHelper.updateVotesOnPost({ post });
+  }));
   console.log(`Parsed votes: ${votesOps.length}`);
 };
 
@@ -115,7 +118,6 @@ const votePostWithObjects = async (data) => {
 };
 
 const votesFormat = async (votesOps) => {
-  let accounts = [];
   votesOps = _
     .chain(votesOps)
     .orderBy(['weight'], ['desc'])
@@ -123,7 +125,7 @@ const votesFormat = async (votesOps) => {
     .value();
   for (const voteOp of votesOps) {
     const response = await commentRefGetter.getCommentRef(`${voteOp.author}_${voteOp.permlink}`);
-    accounts = _.concat(accounts, voteOp.author, voteOp.voter);
+
     if (_.get(response, 'type')) {
       voteOp.type = response.type;
       voteOp.root_wobj = response.root_wobj;
@@ -140,8 +142,8 @@ const votesFormat = async (votesOps) => {
       voteOp.wobjects = wobjects;
     }
   }
-  const { hiveAccounts } = await userHelper.checkAndCreateByArray(_.uniq(accounts));
-  return { votesOps, hiveAccounts };
+
+  return { votesOps };
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
 // Use this method when get vote from block but node still not perform this vote on database_api
