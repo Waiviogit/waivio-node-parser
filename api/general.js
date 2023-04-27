@@ -150,8 +150,8 @@ const getBlock = async (blockNum, hiveUrl) => {
 
 const getBlockREST = async (blockNum, hiveUrl) => {
   try {
-    const resp = await socketHiveClient.getOpsInBlock(blockNum);
-    if (!_.get(resp, 'error')) return { result: resp };
+    // const resp = await socketHiveClient.getOpsInBlock(blockNum);
+    // if (!_.get(resp, 'error')) return { result: resp };
     const instance = axios.create();
     const result = await instance.post(
       hiveUrl,
