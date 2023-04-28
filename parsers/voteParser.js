@@ -62,6 +62,7 @@ const parseVoteByType = async (voteOp, posts) => {
       percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
       author_permlink: voteOp.root_wobj,
       rshares: voteOp.rshares,
+      json: !!voteOp.json,
       // posts,
     });
     await redisSetter.publishToChannel({
@@ -71,10 +72,39 @@ const parseVoteByType = async (voteOp, posts) => {
   }
 };
 
+const calcAppendRshares = async ({ vote }) => {
+  const { user: account } = await usersUtil.getUser(vote.voter);
+  if (!account) return 1;
+
+  const voteWeight = vote.weight / 100;
+  const decreasedPercent = ((voteWeight * 2) / 100);
+  // here we find out what was the votingPower before vote
+  const votingPower = vote.json
+    ? account.voting_power
+    : (100 * account.voting_power) / (100 - decreasedPercent);
+
+  const vests = parseFloat(account.vesting_shares)
+    + parseFloat(account.received_vesting_shares) - parseFloat(account.delegated_vesting_shares);
+
+  const accountVotingPower = Math.min(10000, votingPower);
+
+  const power = (((accountVotingPower / 100) * voteWeight)) / 50;
+  const rShares = Math.abs((vests * power * 100)) > 50000000
+    ? (vests * power * 100) - 50000000
+    : 0;
+
+  return Math.round(rShares);
+};
+
 const voteAppendObject = async (data) => {
   // data include: author, permlink, percent, voter, author_permlink, rshares
   // author and permlink - identity of field
   // author_permlink - identity of wobject
+
+  if (data.rshares === 1 && !data.voter.includes('_')) {
+    // calc rshares after week
+    data.rshares = await calcAppendRshares({ vote: data });
+  }
   let { weight, error } = await User.checkForObjectShares({
     name: data.voter,
     author_permlink: data.author_permlink,
@@ -170,6 +200,7 @@ const customJSONAppendVote = async (operation) => {
   const { error, value } = jsonVoteValidator.voteSchema.validate(json);
   if (error) return;
   value.json = true;
+  value.rshares = 1;
   await parse([value]);
 };
 
