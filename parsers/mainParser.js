@@ -9,16 +9,16 @@ const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
 const parseSwitcher = async (transactions, timestamp) => {
   if (PARSE_ONLY_VOTES) {
-    const votes = transactions.filter((t) => t.op.type === 'vote_operation').map((t) => ({ ...t.op.value, transaction_id: t.trx_id }));
-    const ops = transactions.filter((t) => t.op.type === 'effective_comment_vote_operation').map((t) => {
-      const original = votes.find((v) => v?.transaction_id === t?.trx_id);
+    const ops = transactions.filter((t) => t.op.type === 'effective_comment_vote_operation').map((t) => ({ ...t.op.value, transaction_id: t.trx_id }));
+    const votes = transactions.filter((t) => t.op.type === 'vote_operation').map((t) => {
+      const effectiveVote = ops.find((v) => v?.transaction_id === t?.trx_id);
       return {
         ...t?.op?.value,
         transaction_id: t?.trx_id,
-        weight: original?.weight ?? t?.weight,
+        rshares: +(effectiveVote?.rshares ?? 1),
       };
     });
-    await voteParser.parse(ops);
+    await voteParser.parse(votes);
 
     return;
   }
