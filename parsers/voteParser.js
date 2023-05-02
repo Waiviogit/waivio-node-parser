@@ -63,6 +63,7 @@ const parseVoteByType = async (voteOp, posts) => {
       author_permlink: voteOp.root_wobj,
       rshares: voteOp.rshares,
       json: !!voteOp.json,
+      weight: voteOp.weight,
       // posts,
     });
     await redisSetter.publishToChannel({
