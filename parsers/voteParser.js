@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { postsUtil, usersUtil } = require('utilities/steemApi');
 const { User, Post } = require('models');
-const { voteFieldHelper, votePostHelper, userHelper } = require('utilities/helpers');
+const { voteFieldHelper, votePostHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
 const {
@@ -92,7 +92,7 @@ const calcAppendRshares = async ({ vote }) => {
   const power = (((accountVotingPower / 100) * voteWeight)) / 50;
   const rShares = Math.abs((vests * power * 100)) > 50000000
     ? (vests * power * 100) - 50000000
-    : 0;
+    : 1;
 
   return Math.round(rShares);
 };
@@ -200,9 +200,15 @@ const customJSONAppendVote = async (operation) => {
   }
   const { error, value } = jsonVoteValidator.voteSchema.validate(json);
   if (error) return;
-  value.json = true;
-  value.rshares = 1;
-  await parse([value]);
+
+  await parse([
+    {
+      ...value,
+      json: true,
+      rshares: 1,
+      transaction_id: operation.transaction_id,
+    },
+  ]);
 };
 
 module.exports = { parse, votesFormat, customJSONAppendVote };
