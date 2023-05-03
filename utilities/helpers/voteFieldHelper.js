@@ -16,7 +16,9 @@ const { FIELDS_NAMES } = require('constants/wobjectsData');
  */
 const voteOnField = async (data) => {
   const { field, error: fieldError } = await Wobj.getField(
-    data.author, data.permlink, data.author_permlink,
+    data.author,
+    data.permlink,
+    data.author_permlink,
   );
 
   if (fieldError) return { error: fieldError };
@@ -35,7 +37,11 @@ const voteOnField = async (data) => {
     await addVoteOnField(data);
   }
   await handleSpecifiedField(
-    data.author, data.permlink, data.author_permlink, data.voter, data.percent,
+    data.author,
+    data.permlink,
+    data.author_permlink,
+    data.voter,
+    data.percent,
   );
 };
 
@@ -47,7 +53,7 @@ const unVoteOnAppend = async (data) => {
   if (existingVote && existingVote.percent && existingVote.weight) {
     await upDownVoteOnAppend({
       ...data,
-      weight: -existingVote.weight,
+      weight: -(existingVote.weight + 1),
       percent: existingVote.percent,
       rshares_weight: -existingVote.rshares_weight || 0,
     });
