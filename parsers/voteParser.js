@@ -200,9 +200,15 @@ const customJSONAppendVote = async (operation) => {
   }
   const { error, value } = jsonVoteValidator.voteSchema.validate(json);
   if (error) return;
-  value.json = true;
-  value.rshares = 1;
-  await parse([value]);
+
+  await parse([
+    {
+      ...value,
+      json: true,
+      rshares: 1,
+      transaction_id: operation.transaction_id,
+    },
+  ]);
 };
 
 module.exports = { parse, votesFormat, customJSONAppendVote };

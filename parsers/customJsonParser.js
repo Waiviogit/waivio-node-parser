@@ -21,7 +21,10 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
       await userParsers.subscribeNotificationsParser(operation);
       break;
     case CUSTOM_JSON_OPS.VOTE_APPEND:
-      await voteParsers.customJSONAppendVote(operation);
+      await voteParsers.customJSONAppendVote({
+        ...operation,
+        transaction_id,
+      });
       break;
     case CUSTOM_JSON_OPS.HIDE_POST:
       await userParsers.hidePostParser(operation);
