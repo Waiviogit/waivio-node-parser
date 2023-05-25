@@ -129,6 +129,12 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
   return true;
 };
 
+const timeout = (ms) => new Promise((resolve, reject) => {
+  setTimeout(() => {
+    reject(new Error(`Timed out in ${ms}ms.`));
+  }, ms);
+});
+
 const getBlock = async (blockNum, hiveUrl) => {
   try {
     // comment while our node up to 26
@@ -138,9 +144,14 @@ const getBlock = async (blockNum, hiveUrl) => {
       const block = await getBlockREST(blockNum, hiveUrl);
       return { block };
     }
-
+    console.log('client create');
     const hive = new Client(hiveUrl);
-    const block = await hive.database.call('get_block', [blockNum]);
+    console.log('get_block');
+    const block = await Promise.race([
+      hive.database.call('get_block', [blockNum]),
+      timeout(8000),
+    ]);
+    console.log(' receive get_block');
 
     return { block };
   } catch (error) {

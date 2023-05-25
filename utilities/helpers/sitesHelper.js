@@ -30,9 +30,11 @@ exports.createWebsite = async (operation) => {
 
   const managerNames = _.compact([...CAN_MUTE_GLOBAL, json.owner]);
   for (const mangerName of managerNames) {
+    console.log('changeManagersMuteList');
     await this.changeManagersMuteList({
       mangerName, host: json.host, action: MUTE_ACTION.MUTE,
     });
+    console.log('addToSiteModeratorsHiddenPosts');
     await postModeration
       .addToSiteModeratorsHiddenPosts({ host: json.host, moderator: mangerName });
   }
@@ -361,6 +363,7 @@ const processMutedBySiteAdministration = async ({
 }) => {
   switch (action) {
     case MUTE_ACTION.MUTE:
+      console.log('Post.updateMany');
       await Post.updateMany(
         { $or: [{ author: userName }, { permlink: { $regex: new RegExp(`^${userName}\/`) } }] },
         { $addToSet: { blocked_for_apps: { $each: mutedForApps } } },
@@ -377,7 +380,7 @@ const processMutedBySiteAdministration = async ({
         mutedForApps,
         _.flatMap(mutedByOthers, (el) => el.mutedForApps),
       );
-
+      console.log('Post.updateMany');
       await Post.updateMany(
         { $or: [{ author: userName }, { permlink: { $regex: new RegExp(`^${userName}\/`) } }] },
         { $pullAll: { blocked_for_apps: unmuteFor } },
