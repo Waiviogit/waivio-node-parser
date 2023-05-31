@@ -62,3 +62,10 @@ exports.PATH = {
 exports.CAN_MUTE_GLOBAL = process.env.CAN_MUTE_GLOBAL
   ? process.env.CAN_MUTE_GLOBAL.split(',')
   : [];
+
+exports.SOCIAL_HOSTS = ['social.gifts', 'socialgifts.pp.ua'];
+
+exports.SHOP_SETTINGS_TYPE = {
+  USER: 'user',
+  OBJECT: 'object',
+};

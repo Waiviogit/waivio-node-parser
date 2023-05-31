@@ -1,10 +1,15 @@
 const { SUPPORTED_CURRENCIES, APP_LANGUAGES } = require('constants/common');
-const { STATUSES, SUPPORTED_COLORS } = require('constants/sitesData');
+const { STATUSES, SUPPORTED_COLORS, SHOP_SETTINGS_TYPE } = require('constants/sitesData');
 const { REFERRAL_TYPES } = require('constants/appData');
 const mongoose = require('mongoose');
 const _ = require('lodash');
 
 const { Schema } = mongoose;
+
+const ShopSettingsSchema = new Schema({
+  type: { type: String, enum: Object.values(SHOP_SETTINGS_TYPE) },
+  value: { type: String },
+}, { _id: false });
 
 const topUsersSchema = new Schema({
   name: { type: String, required: true },
@@ -71,6 +76,7 @@ const Configuration = new Schema({
   desktopMap: { type: MapPoints },
   mobileMap: { type: MapPoints },
   availableCities: { type: [CitySchema], default: [] },
+  shopSettings: { type: ShopSettingsSchema },
   colors: { type: Colors, default: () => ({}) },
 
 }, { _id: false });
