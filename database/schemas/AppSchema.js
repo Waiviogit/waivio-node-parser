@@ -73,6 +73,7 @@ const Configuration = new Schema({
   desktopLogo: { type: String },
   mobileLogo: { type: String },
   aboutObject: { type: String },
+  mainBanner: { type: String },
   desktopMap: { type: MapPoints },
   mobileMap: { type: MapPoints },
   availableCities: { type: [CitySchema], default: [] },
