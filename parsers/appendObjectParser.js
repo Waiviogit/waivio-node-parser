@@ -44,7 +44,9 @@ const trimObjectValues = (body) => {
   const obj = jsonHelper.parseJson(body, null);
   if (!obj) return body;
   for (const objElement in obj) {
-    obj[objElement] = obj[objElement].trim();
+    if (typeof obj[objElement] === 'string') {
+      obj[objElement] = obj[objElement].trim();
+    }
   }
   return JSON.stringify(obj);
 };
