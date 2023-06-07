@@ -1,21 +1,11 @@
 const { Wobj } = require('models');
 const { appendObjectValidator } = require('validator');
 const { commentRefSetter } = require('utilities/commentRefService');
-const { updateSpecificFieldsHelper } = require('utilities/helpers');
+const { updateSpecificFieldsHelper, jsonHelper } = require('utilities/helpers');
+const { FIELDS_NAMES } = require('constants/wobjectsData');
 
 const parse = async (operation, metadata) => {
-  const data = {
-    author_permlink: operation.parent_permlink,
-    field: {
-      creator: metadata.wobj.creator,
-      author: operation.author,
-      permlink: operation.permlink,
-    },
-  };
-
-  for (const fieldItem in metadata.wobj.field) {
-    data.field[fieldItem] = metadata.wobj.field[fieldItem];
-  }
+  const data = formField({ operation, metadata });
 
   const { result, error } = await appendObject(data, operation, metadata);
 
@@ -48,6 +38,51 @@ const appendObject = async (data, operation, metadata) => {
   } catch (error) {
     return { error };
   }
+};
+
+const trimObjectValues = (body) => {
+  const obj = jsonHelper.parseJson(body, null);
+  if (!obj) return body;
+  for (const objElement in obj) {
+    obj[objElement] = obj[objElement].trim();
+  }
+  return JSON.stringify(obj);
+};
+
+const fieldTrimmer = {
+  [FIELDS_NAMES.OPTIONS]: trimObjectValues,
+  [FIELDS_NAMES.PRODUCT_ID]: trimObjectValues,
+  [FIELDS_NAMES.COMPANY_ID]: trimObjectValues,
+  [FIELDS_NAMES.WEIGHT]: trimObjectValues,
+  [FIELDS_NAMES.DIMENSIONS]: trimObjectValues,
+  [FIELDS_NAMES.AUTHORS]: trimObjectValues,
+  [FIELDS_NAMES.PUBLISHER]: trimObjectValues,
+  [FIELDS_NAMES.WIDGET]: trimObjectValues,
+  [FIELDS_NAMES.MERCHANT]: trimObjectValues,
+  [FIELDS_NAMES.MANUFACTURER]: trimObjectValues,
+  [FIELDS_NAMES.BRAND]: trimObjectValues,
+  [FIELDS_NAMES.FEATURES]: trimObjectValues,
+  [FIELDS_NAMES.MENU_ITEM]: trimObjectValues,
+
+  default: (body) => body.trim(),
+};
+
+const formField = ({ operation, metadata }) => {
+  const data = {
+    author_permlink: operation.parent_permlink,
+    field: {
+      creator: metadata.wobj.creator,
+      author: operation.author,
+      permlink: operation.permlink,
+    },
+  };
+  for (const fieldItem in metadata.wobj.field) {
+    data.field[fieldItem] = metadata.wobj.field[fieldItem];
+  }
+
+  data.field.body = (fieldTrimmer[data.field.name] || fieldTrimmer.default)(data.field.body);
+
+  return data;
 };
 
 module.exports = { parse };
