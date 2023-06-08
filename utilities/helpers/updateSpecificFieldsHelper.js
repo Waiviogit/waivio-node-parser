@@ -107,6 +107,7 @@ const update = async ({
         await restaurantStatus(field, authorPermlink, '');
         await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
       }
+      await checkForListItemsCounters(authorPermlink);
       break;
     case FIELDS_NAMES.CATEGORY_ITEM:
       await addSearchField({
@@ -154,6 +155,23 @@ const update = async ({
       author_permlink: authorPermlink,
       fieldName: field.name,
     });
+  }
+};
+
+const checkForListItemsCounters = async (authorPermlink) => {
+  const { wobject } = await Wobj.findOne({
+    filter: {
+      fields: {
+        $elemMatch: {
+          name: FIELDS_NAMES.LIST_ITEM,
+          body: authorPermlink,
+        },
+      },
+    },
+    projection: { _id: 1 },
+  });
+  if (wobject) {
+    await listItemProcess.send({ authorPermlink, listItemLink: '' });
   }
 };
 
