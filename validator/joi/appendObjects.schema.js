@@ -65,6 +65,10 @@ exports.menuItemSchema = Joi.object().keys({
   style: Joi.string().required(),
   image: Joi.string(),
   linkToObject: Joi.string(),
+  objectType: Joi.string().when('linkToObject', {
+    is: Joi.exist(),
+    then: Joi.required(),
+  }),
   linkToWeb: Joi.string().uri(),
 }).or('linkToObject', 'linkToWeb')
   .options(options);
