@@ -61,7 +61,7 @@ exports.shopFilterSchema = Joi.object().keys({
   .options(options);
 
 exports.menuItemSchema = Joi.object().keys({
-  title: Joi.string().required(),
+  title: Joi.string(),
   style: Joi.string().required(),
   image: Joi.string(),
   linkToObject: Joi.string(),
