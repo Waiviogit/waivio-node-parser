@@ -9,8 +9,22 @@ const {
 } = require('constants/appData').notificationsApi;
 const { postsUtil } = require('utilities/steemApi');
 const { socketClient } = require('utilities/socketClient/socketClient');
+const { FIELDS_NAMES } = require('constants/wobjectsData');
 
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
+
+const NOTIFICATION_ID = {
+  OBJECT_UPDATES: 'objectUpdates',
+  OBJECT_UPDATES_REJECT: 'objectUpdatesReject',
+  GROUP_ID_UPDATES: 'groupIdUpdates',
+  GROUP_ID_UPDATES_REJECT: 'groupIdUpdatesReject',
+  RESTAURANT_STATUS: 'restaurantStatus',
+  COMMENT: 'comment',
+  CUSTOM_JSON: 'custom_json',
+  REBLOG: 'reblog',
+  FOLLOW: 'follow',
+  REJECT_UPDATE: 'rejectUpdate',
+};
 
 const sendNotification = async (operation) => {
   const reqData = {
@@ -39,9 +53,9 @@ const reblog = async ({
   account, author, permlink, title,
 }) => {
   const operation = {
-    id: 'custom_json',
+    id: NOTIFICATION_ID.CUSTOM_JSON,
     data: {
-      id: 'reblog',
+      id: NOTIFICATION_ID.REBLOG,
       json: {
         account, author, permlink, title,
       },
@@ -52,9 +66,9 @@ const reblog = async ({
 
 const follow = async ({ follower, following }) => {
   const operation = {
-    id: 'custom_json',
+    id: NOTIFICATION_ID.CUSTOM_JSON,
     data: {
-      id: 'follow',
+      id: NOTIFICATION_ID.FOLLOW,
       json: { follower, following },
     },
   };
@@ -79,16 +93,14 @@ const reply = async (operation, metadata) => {
       };
       replyFlag = true;
     } else {
-      const { post: hivePost } = await postsUtil.getPost(
-        operation.parent_author, operation.parent_permlink,
-      );
+      const { post: hivePost } = await postsUtil.getPost(operation.parent_author, operation.parent_permlink);
       if (hivePost && hivePost.depth >= 1) replyFlag = true;
     }
   }
   operation.parent_author = _.get(post, 'author', operation.parent_author);
   operation.reply = replyFlag;
   const op = {
-    id: 'comment',
+    id: NOTIFICATION_ID.COMMENT,
     data: operation,
   };
   await sendNotification(op);
@@ -97,7 +109,7 @@ const reply = async (operation, metadata) => {
 const post = async (data) => {
   data.author = _.get(data, 'guestInfo.userId', data.author);
   const operation = {
-    id: 'comment',
+    id: NOTIFICATION_ID.COMMENT,
     data,
   };
   await sendNotification(operation);
@@ -124,7 +136,7 @@ const restaurantStatus = async (data, permlink, status = undefined) => {
   data.newStatus = status || '';
   data.author_permlink = permlink;
   await sendNotification({
-    id: 'restaurantStatus',
+    id: NOTIFICATION_ID.RESTAURANT_STATUS,
     data,
   });
 };
@@ -141,7 +153,7 @@ const rejectUpdate = async (data) => {
   }
   data.object_name = getNameFromFields(wobject.fields);
   await sendNotification({
-    id: data.id,
+    id: NOTIFICATION_ID.REJECT_UPDATE,
     data,
   });
 };
@@ -155,6 +167,50 @@ const getNameFromFields = (fields) => {
   return _.get(result, 'body');
 };
 
+const fieldUpdateNotification = async ({
+  authorPermlink, field, reject,
+}) => {
+  const { wobject } = await Wobj.findOne({
+    filter: { author_permlink: authorPermlink },
+    projection: { authority: 1 },
+  });
+  if (!wobject) return;
+
+  const sendTo = [
+    ...(wobject?.authority?.ownership ?? []),
+    ...(wobject?.authority?.administrative ?? []),
+  ].filter((el) => el !== field?.creator);
+
+  if (!sendTo.length) return;
+  if (field.name === FIELDS_NAMES.GROUP_ID) {
+    await sendNotification({
+      id: reject
+        ? NOTIFICATION_ID.GROUP_ID_UPDATES_REJECT
+        : NOTIFICATION_ID.GROUP_ID_UPDATES,
+      data: sendTo,
+    });
+    return;
+  }
+
+  await sendNotification({
+    id: reject
+      ? NOTIFICATION_ID.OBJECT_UPDATES_REJECT
+      : NOTIFICATION_ID.OBJECT_UPDATES,
+    data: {
+      fieldName: field.name,
+      receivers: sendTo,
+    },
+  });
+};
+
 module.exports = {
-  reblog, follow, reply, custom, post, restaurantStatus, rejectUpdate, sendNotification,
+  reblog,
+  follow,
+  reply,
+  custom,
+  post,
+  restaurantStatus,
+  rejectUpdate,
+  sendNotification,
+  fieldUpdateNotification,
 };
