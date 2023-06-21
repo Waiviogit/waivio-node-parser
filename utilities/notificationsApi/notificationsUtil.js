@@ -172,7 +172,6 @@ const fieldUpdateNotification = async ({
 }) => {
   const { wobject } = await Wobj.findOne({
     filter: { author_permlink: authorPermlink },
-    projection: { authority: 1 },
   });
   if (!wobject) return;
 
@@ -182,12 +181,19 @@ const fieldUpdateNotification = async ({
   ].filter((el) => el !== field?.creator);
 
   if (!sendTo.length) return;
+
+  const objectName = getNameFromFields(wobject.fields);
+
   if (field.name === FIELDS_NAMES.GROUP_ID) {
     await sendNotification({
       id: reject
         ? NOTIFICATION_ID.GROUP_ID_UPDATES_REJECT
         : NOTIFICATION_ID.GROUP_ID_UPDATES,
-      data: sendTo,
+      data: {
+        receivers: sendTo,
+        objectName,
+        authorPermlink,
+      },
     });
     return;
   }
@@ -199,6 +205,8 @@ const fieldUpdateNotification = async ({
     data: {
       fieldName: field.name,
       receivers: sendTo,
+      objectName,
+      authorPermlink,
     },
   });
 };
