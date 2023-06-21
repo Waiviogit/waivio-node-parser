@@ -32,6 +32,7 @@ const appendObject = async (data, operation, metadata) => {
     await fieldUpdateNotification({
       authorPermlink: data.author_permlink,
       field: data.field,
+      initiator: data.field.creator,
     });
 
     await updateSpecificFieldsHelper.update({

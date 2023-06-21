@@ -42,6 +42,7 @@ const voteOnField = async (data) => {
         authorPermlink: data.author_permlink,
         field,
         reject,
+        initiator: data.voter,
       });
     }
   }

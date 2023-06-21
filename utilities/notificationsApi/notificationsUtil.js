@@ -168,7 +168,7 @@ const getNameFromFields = (fields) => {
 };
 
 const fieldUpdateNotification = async ({
-  authorPermlink, field, reject,
+  authorPermlink, field, reject, initiator,
 }) => {
   const { wobject } = await Wobj.findOne({
     filter: { author_permlink: authorPermlink },
@@ -193,6 +193,7 @@ const fieldUpdateNotification = async ({
         receivers: sendTo,
         objectName,
         authorPermlink,
+        initiator,
       },
     });
     return;
@@ -207,6 +208,7 @@ const fieldUpdateNotification = async ({
       receivers: sendTo,
       objectName,
       authorPermlink,
+      initiator,
     },
   });
 };
