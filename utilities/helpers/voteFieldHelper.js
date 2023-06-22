@@ -4,6 +4,7 @@ const appHelper = require('utilities/helpers/appHelper');
 const updateSpecificFieldsHelper = require('utilities/helpers/updateSpecificFieldsHelper');
 const userHelper = require('utilities/helpers/userHelper');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
+const { fieldUpdateNotification } = require('utilities/notificationsApi/notificationsUtil');
 /**
  * Handle votes on append objects(Fields).
  * DownVotes do not use in app(only "UnVote" if vote already exist)
@@ -35,6 +36,15 @@ const voteOnField = async (data) => {
   const { users = [] } = await appHelper.getBlackListUsers();
   if (data.percent > 0 && !users.includes(data.voter)) {
     await addVoteOnField(data);
+    const reject = data.percent % 2 !== 0;
+    if (reject) {
+      await fieldUpdateNotification({
+        authorPermlink: data.author_permlink,
+        field,
+        reject,
+        initiator: data.voter,
+      });
+    }
   }
   await handleSpecifiedField(
     data.author,

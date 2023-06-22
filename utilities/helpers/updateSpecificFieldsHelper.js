@@ -149,7 +149,6 @@ const update = async ({
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
     if (!_.get(voteData, 'weight') || voteData.weight > 0 || field.weight - voteData.weight < 0) return;
     await rejectUpdate({
-      id: 'rejectUpdate',
       creator: field.creator,
       voter,
       author_permlink: authorPermlink,
