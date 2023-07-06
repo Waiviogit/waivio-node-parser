@@ -44,6 +44,7 @@
     "changeSortCustomFormat": "NODE_PATH=. node ./utilities/tasks/changeSortCustomFormat/run.js",
     "recalcDepartments": "NODE_PATH=. node ./utilities/tasks/recalcDepartments/run.js",
     "addObjectTypeToMenuItem": "NODE_PATH=. node ./utilities/tasks/addObjectTypeToMenuItem/run.js",
+    "updateObjectPostCount": "NODE_PATH=. node ./utilities/tasks/updateObjectPostCount/run.js",
     "start": "node --max-old-space-size=800 ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
