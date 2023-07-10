@@ -56,8 +56,10 @@ const addUserFollow = async ({ follower, following, isUnfollow = false }) => {
       { name: following },
       { $inc: { followers_count: isUnfollow ? -1 : 1 } },
     );
-    await UserModel.updateOne({ name: follower },
-      { $inc: { users_following_count: isUnfollow ? -1 : 1 } });
+    await UserModel.updateOne(
+      { name: follower },
+      { $inc: { users_following_count: isUnfollow ? -1 : 1 } },
+    );
 
     if (!_.get(followingUpdResult, 'n')) return { result: false };
 
@@ -110,6 +112,16 @@ const increaseWobjectWeight = async (data) => {
       { $inc: { weight: data.weight } },
       { upsert: true, setDefaultsOnInsert: true },
     );
+    if (data.weight < 0) {
+      await UserWobjectsModel.updateOne({
+        user_name: data.name,
+        author_permlink: data.author_permlink,
+      }, {
+        $max: {
+          weight: 0,
+        },
+      });
+    }
     await increaseUserWobjectsWeight({ name: data.name, weight: data.weight });
     return { result: true };
   } catch (error) {
@@ -124,13 +136,23 @@ const increaseWobjectWeight = async (data) => {
  */
 const increaseUserWobjectsWeight = async (data) => {
   try {
-    await UserModel.updateOne({
+    const filter = {
       name: data.name,
-    }, {
+    };
+    await UserModel.updateOne(filter, {
       $inc: {
         wobjects_weight: data.weight,
       },
     });
+
+    if (data.weight < 0) {
+      await UserModel.updateOne(filter, {
+        $max: {
+          wobjects_weight: 0,
+        },
+      });
+    }
+
     return { result: true };
   } catch (error) {
     return { error };
