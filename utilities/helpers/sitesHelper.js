@@ -41,7 +41,9 @@ exports.createWebsite = async (operation) => {
   }
   if (checkForSocialSite(json.host)) {
     const { user } = await User.findOne(json.owner);
-    const profileImage = user?.profile_image;
+    const profileImage = user?.profile_image
+      || parseJson(user?.posting_json_metadata)?.profile?.profile_image;
+
     await App.updateOne(
       { host: json.host },
       {
