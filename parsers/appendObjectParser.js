@@ -3,6 +3,7 @@ const { appendObjectValidator } = require('validator');
 const { commentRefSetter } = require('utilities/commentRefService');
 const { updateSpecificFieldsHelper, jsonHelper } = require('utilities/helpers');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
+const { fieldUpdateNotification } = require('../utilities/notificationsApi/notificationsUtil');
 
 const parse = async (operation, metadata) => {
   const data = formField({ operation, metadata });
@@ -27,6 +28,12 @@ const appendObject = async (data, operation, metadata) => {
     );
     const { result, error } = await Wobj.addField(data);
     if (error) throw error;
+
+    await fieldUpdateNotification({
+      authorPermlink: data.author_permlink,
+      field: data.field,
+      initiator: data.field.creator,
+    });
 
     await updateSpecificFieldsHelper.update({
       author: data.field.author,

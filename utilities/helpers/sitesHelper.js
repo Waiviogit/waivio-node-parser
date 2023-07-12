@@ -4,7 +4,7 @@ const {
   SOCIAL_HOSTS,
 } = require('constants/sitesData');
 const {
-  App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post,
+  App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User,
 } = require('models');
 const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
@@ -40,9 +40,18 @@ exports.createWebsite = async (operation) => {
       .addToSiteModeratorsHiddenPosts({ host: json.host, moderator: mangerName });
   }
   if (checkForSocialSite(json.host)) {
+    const { user } = await User.findOne(json.owner);
+    const profileImage = user?.profile_image;
     await App.updateOne(
       { host: json.host },
-      { 'configuration.shopSettings': { type: 'user', value: json.owner } },
+      {
+        'configuration.shopSettings': { type: 'user', value: json.owner },
+        ...(profileImage && {
+          'configuration.desktopLogo': profileImage,
+          'configuration.mobileLogo': profileImage,
+          'configuration.defaultListImage': profileImage,
+        }),
+      },
     );
   }
 };

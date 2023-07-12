@@ -251,6 +251,10 @@ exports.parseCommentBodyWobjects = async ({
   const wobjects = _.differenceBy(result, _.get(post, 'wobjects', []), 'author_permlink');
   if (_.isEmpty(wobjects)) return false;
 
+  for (const authorPermlink of wobjects) {
+    await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: post._id });
+  }
+
   await Post.addWobjectsToPost({ author, permlink, wobjects });
   return true;
 };
