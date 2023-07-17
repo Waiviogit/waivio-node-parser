@@ -137,6 +137,7 @@ exports.reblogPostParser = async ({
       json_metadata: '',
       ..._.pick(post, ['language', 'wobjects', 'id', 'blocked_for_apps']),
     };
+    console.log(data, id, 'reblogPostParser');
     if (id) data._id = id;
     const { post: createdPost, error: createPostError } = await Post.create(data);
 
@@ -190,10 +191,12 @@ exports.hidePostParser = async (operation) => {
 
   switch (action) {
     case HIDE_ACTION.HIDE:
+      console.log(post?._id, 'hidePostParser');
       await hiddenPostModel.update({ userName, postId: post._id });
       await postModeration.checkDownVote({ voter: userName, author, permlink });
       break;
     case HIDE_ACTION.UNHIDE:
+      console.log(post?._id, 'hidePostParser');
       await hiddenPostModel.deleteOne({ userName, postId: post._id });
       await postModeration.checkDownVote({
         voter: userName, author, permlink, hide: false,

@@ -9,6 +9,7 @@ exports.addObjectType = async () => {
   }
   for (const post of posts) {
     if (_.isEmpty(_.get(post, 'wobjects'))) {
+      console.log(post?._id, 'addObjectType');
       await Post.updateOne({ _id: post._id }, { notProcessed: false });
     }
 
@@ -21,6 +22,7 @@ exports.addObjectType = async () => {
       const wobj = _.find(wobjects, (w) => w.author_permlink === el.author_permlink);
       el.object_type = _.get(wobj, 'object_type');
     });
+    console.log(post?._id, 'addObjectType');
     await Post.updateOne({ _id: post._id }, { notProcessed: false, wobjects: post.wobjects });
   }
   await this.addObjectType();

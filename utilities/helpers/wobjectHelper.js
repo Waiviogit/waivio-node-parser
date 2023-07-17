@@ -96,6 +96,8 @@ const addDataToFields = ({
   for (const field of fields) {
     let adminVote, administrativeVote, ownershipVote, ownerVote;
     _.map(field.active_votes, (vote) => {
+
+      console.log(vote?._id, 'wobjectHelper 1');
       vote.timestamp = vote._id.getTimestamp().valueOf();
       if (vote.voter === owner) {
         vote.owner = true;
@@ -111,6 +113,7 @@ const addDataToFields = ({
         vote.timestamp > _.get(ownershipVote, 'timestamp', 0) ? ownershipVote = vote : null;
       }
     });
+    console.log(field?._id, 'wobjectHelper 2');
     field.createdAt = field._id.getTimestamp().valueOf();
     /** If field includes admin votes fill in it */
     if (ownerVote || adminVote || administrativeVote || ownershipVote) {

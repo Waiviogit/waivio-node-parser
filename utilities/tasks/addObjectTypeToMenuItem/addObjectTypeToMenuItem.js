@@ -17,6 +17,8 @@ const addObjectTypeToMenuItem = async () => {
         ...body,
         objectType: menuObject.object_type,
       });
+
+      console.log(field?._id, 'addObjectTypeToMenuItem');
       await WObject.updateOne(
         {
           fields: {

@@ -212,6 +212,7 @@ const restoreOldPost = async ({ author, permlink }) => {
   const { language, languages } = await detectPostLanguageHelper(post);
   post.language = language;
   post.languages = languages;
+  console.log(post?._id, 'restoreOldPost');
   post._id = new ObjectId(moment.utc(post.created).unix());
   post.createdAt = moment.utc(post.created).format();
 
@@ -252,6 +253,7 @@ exports.parseCommentBodyWobjects = async ({
   if (_.isEmpty(wobjects)) return false;
 
   for (const authorPermlink of wobjects) {
+    console.log(post?._id, 'parseCommentBodyWobjects');
     await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: post._id });
   }
 

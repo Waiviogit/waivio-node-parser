@@ -24,6 +24,7 @@ exports.createWebsite = async (operation) => {
   const json = parseJson(operation.json);
   const { result: parent } = await App.findOne({ host: json.parentHost, canBeExtended: true });
   if (!parent) return false;
+  console.log(parent?._id, 'createWebsite');
   json.parent = parent._id;
   json.beneficiary = { account: json.owner };
   json.parentHost = parent.host;
@@ -65,6 +66,7 @@ exports.deleteWebsite = async (operation) => {
     host: json.host, owner: json.userName, inherited: true, status: { $in: CAN_DELETE_STATUSES },
   });
   if (!app) return false;
+  console.log(app?._id, 'deleteWebsite');
   await App.deleteOne({ _id: app._id });
 
   const managerNames = _.compact([_.get(app, 'owner'), ..._.get(app, 'moderators', []), ...CAN_MUTE_GLOBAL]);
@@ -97,6 +99,8 @@ exports.activationActions = async (operation, activate) => {
   const updateData = activate
     ? { status: STATUSES.ACTIVE, activatedAt: moment.utc().toDate(), deactivatedAt: null }
     : { status: STATUSES.INACTIVE, deactivatedAt: moment.utc().toDate(), activatedAt: null };
+
+  console.log(result?._id, 'activationActions');
   await App.updateOne({ _id: result._id }, updateData);
 };
 
@@ -214,6 +218,7 @@ exports.parseSitePayments = async ({ operation, type, blockNum }) => {
         let status = STATUSES.PENDING;
         app.activatedAt ? status = STATUSES.ACTIVE : null;
         app.deactivatedAt ? status = STATUSES.INACTIVE : null;
+        console.log(app?._id, 'parseSitePayments');
         await App.updateOne({ _id: app._id }, { status });
       }
   }
@@ -289,6 +294,7 @@ exports.updateSupportedObjects = async ({ host, app }) => {
     await sendSentryNotification();
     return Sentry.captureException(error);
   }
+  console.log(app?._id, 'updateSupportedObjects');
   await App.updateOne({ _id: app._id }, { $set: { supported_objects: _.map(result, 'author_permlink') } });
 };
 

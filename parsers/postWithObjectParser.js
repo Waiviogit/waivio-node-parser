@@ -104,6 +104,7 @@ const createOrUpdatePost = async ({
     ({ result: updPost, error } = await Post.update(data));
     if (error) return { error };
     for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
+      console.log(updPost?._id, 'createOrUpdatePost');
       await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });
     }
     const { notificationData } = await addWobjectNames(_.cloneDeep(data));
@@ -170,6 +171,7 @@ const createOrUpdatePost = async ({
     _.map(post.wobjects, 'author_permlink'),
   );
   for (const authorPermlink of newObjects) {
+    console.log(post?._id, 'createOrUpdatePost');
     await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: post._id });
   }
 
