@@ -254,6 +254,7 @@ exports.parseCommentBodyWobjects = async ({
 
   for (const authorPermlink of wobjects) {
     console.log(post?._id, 'parseCommentBodyWobjects');
+    if (!post?._id) continue;
     await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: post._id });
   }
 
