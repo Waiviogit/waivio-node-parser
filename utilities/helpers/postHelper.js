@@ -234,12 +234,15 @@ exports.parseCommentBodyWobjects = async ({
   ]);
   if (_.isEmpty(matches)) return false;
 
-  const { post } = await Post.findByBothAuthors({
+  let { post } = await Post.findByBothAuthors({
     author, permlink, select: { wobjects: 1, _id: 0 },
   });
   if (!post) {
     const created = await restoreOldPost({ author, permlink });
     if (!created) return false;
+    ({ post } = await Post.findByBothAuthors({
+      author, permlink, select: { wobjects: 1, _id: 0 },
+    }));
   }
 
   const { result } = await Wobj.find(
@@ -252,6 +255,7 @@ exports.parseCommentBodyWobjects = async ({
   if (_.isEmpty(wobjects)) return false;
 
   for (const authorPermlink of wobjects) {
+    if (!post?._id) continue;
     await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: post._id });
   }
 
