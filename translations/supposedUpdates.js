@@ -28,6 +28,12 @@ module.exports = {
     'uk-UA': 'Категорія',
     'zh-CN': '类别',
   },
+  Commissions: {
+    'en-US': 'Commissions',
+  },
+  Payments: {
+    'en-US': 'Payments',
+  },
   Platform: {
     'en-US': 'Platform',
     'ru-RU': 'Платформа',
