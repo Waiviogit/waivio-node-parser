@@ -3,6 +3,7 @@ const {
   WEIGHT_UNITS,
   DIMENSION_UNITS,
 } = require('../../constants/wobjectsData');
+const { VALID_AFFILIATE_GEO } = require('../../constants/affiliateData');
 
 const options = { allowUnknown: true, stripUnknown: true, convert: true };
 
@@ -72,3 +73,11 @@ exports.menuItemSchema = Joi.object().keys({
   linkToWeb: Joi.string().uri(),
 }).or('linkToObject', 'linkToWeb')
   .options(options);
+
+exports.validUrlSchema = Joi.string().uri();
+
+exports.affiliateProductIdTypesSchema = Joi.array().items(Joi.string().lowercase()).min(1);
+
+exports.affiliateCodeSchema = Joi.array().items(Joi.string()).min(2).max(2);
+
+exports.affiliateGeoSchema = Joi.array().items(Joi.string().valid(...VALID_AFFILIATE_GEO)).min(1);

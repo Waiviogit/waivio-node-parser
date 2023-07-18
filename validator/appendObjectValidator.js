@@ -30,6 +30,10 @@ const {
   featuresSchema,
   shopFilterSchema,
   menuItemSchema,
+  validUrlSchema,
+  affiliateProductIdTypesSchema,
+  affiliateGeoSchema,
+  affiliateCodeSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -229,7 +233,10 @@ const validateSpecifiedFields = async (data) => {
         throw new Error(`Can't append ${FIELDS_NAMES.AUTHORITY} ${data.field.body}, not valid!`);
       }
       const { field } = await Wobj.getField(
-        data.field.author, data.field.permlink, data.author_permlink, {
+        data.field.author,
+        data.field.permlink,
+        data.author_permlink,
+        {
           'fields.name': FIELDS_NAMES.AUTHORITY,
           'fields.creator': data.field.creator,
           'field.body': data.field.body,
@@ -246,10 +253,14 @@ const validateSpecifiedFields = async (data) => {
       const { wobject: companyObject } = await Wobj.getOne({
         author_permlink: data.author_permlink,
       });
-      const objectTypeNotCorresponding = !(_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
-          && fieldName === FIELDS_NAMES.COMPANY_ID)
-        && !(_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)
-          && (fieldName === FIELDS_NAMES.PRODUCT_ID || fieldName === FIELDS_NAMES.GROUP_ID));
+      const objectTypeNotCorresponding = !(
+        _.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
+          && fieldName === FIELDS_NAMES.COMPANY_ID
+      )
+        && !(
+          _.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)
+          && (fieldName === FIELDS_NAMES.PRODUCT_ID || fieldName === FIELDS_NAMES.GROUP_ID)
+        );
       if (objectTypeNotCorresponding) {
         throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
       }
@@ -299,7 +310,10 @@ const validateSpecifiedFields = async (data) => {
     case FIELDS_NAMES.MANUFACTURER:
     case FIELDS_NAMES.MERCHANT:
     case FIELDS_NAMES.BRAND:
-      const notValidMerchant = await nameOrPermlinkValidation(data.field.body, [OBJECT_TYPES.BUSINESS]);
+      const notValidMerchant = await nameOrPermlinkValidation(
+        data.field.body,
+        [OBJECT_TYPES.BUSINESS],
+      );
       if (notValidMerchant) throw new Error(`Can't append ${fieldName}`);
       break;
     case FIELDS_NAMES.FEATURES:
@@ -326,8 +340,42 @@ const validateSpecifiedFields = async (data) => {
       const notValidObj = await permlinkValidation(data.field.body);
       if (notValidObj) throw new Error(`Can't append ${fieldName}`);
       break;
+    case FIELDS_NAMES.AFFILIATE_BUTTON:
+      const { error: affButtonErr } = validUrlSchema.validate(data.field.body);
+      if (affButtonErr) throw new Error(`Can't append ${fieldName}`);
+      break;
+    case FIELDS_NAMES.AFFILIATE_PRODUCT_ID_TYPES:
+      const { value: affIdTypes, error: affIdErr } = affiliateProductIdTypesSchema
+        .validate(jsonHelper.parseJson(data.field.body));
+      if (affIdErr) throw new Error(`Can't append ${fieldName}`);
+      data.field.body = JSON.stringify(affIdTypes);
+      break;
+    case FIELDS_NAMES.AFFILIATE_GEO_AREA:
+      const { error: affGeoErr } = affiliateGeoSchema
+        .validate(jsonHelper.parseJson(data.field.body));
+      if (affGeoErr) throw new Error(`Can't append ${fieldName}`);
+      break;
+    case FIELDS_NAMES.AFFILIATE_URL_TEMPLATE:
+      if (!hasProductIdAndAffiliateCode(data.field.body)) {
+        throw new Error(`Can't append ${fieldName}`);
+      }
+      break;
+    case FIELDS_NAMES.AFFILIATE_CODE:
+      const { value: affCodeField, error: affCodeErr } = affiliateCodeSchema
+        .validate(jsonHelper.parseJson(data.field.body));
+      if (affCodeErr) {
+        throw new Error(`Can't append ${fieldName}`);
+      }
+      const [siteOrPersonalAff, affCode] = affCodeField;
+      data.field.body = JSON.stringify([removeProtocol(siteOrPersonalAff), affCode]);
+      break;
   }
 };
+
+const removeProtocol = (str) => str.replace(/^(https?:\/\/(www\.)?)?/i, '');
+
+const hasProductIdAndAffiliateCode = (str) => str.includes('$productId')
+  && str.includes('$affiliateCode');
 
 const menuItemValidation = async (body) => {
   const parsedBody = jsonHelper.parseJson(body, null);
