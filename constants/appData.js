@@ -30,21 +30,25 @@ const waivioApi = {
     HOST: 'https://www.waivio.com',
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
+    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
   },
   staging: {
     HOST: 'https://waiviodev.com',
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
+    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
   },
   development: {
     HOST: 'http://localhost:3000',
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
+    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
   },
   test: {
     HOST: 'http://localhost:3000',
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
+    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
   },
 };
 

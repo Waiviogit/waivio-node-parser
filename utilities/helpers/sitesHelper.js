@@ -1,9 +1,10 @@
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
   REFUND_TYPES, REFUND_STATUSES, PATH, CAN_DELETE_STATUSES, CAN_MUTE_GLOBAL,
+  SOCIAL_HOSTS,
 } = require('constants/sitesData');
 const {
-  App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post,
+  App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User,
 } = require('models');
 const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
@@ -15,6 +16,8 @@ const { usersUtil } = require('utilities/steemApi');
 const Sentry = require('@sentry/node');
 const moment = require('moment');
 const _ = require('lodash');
+
+const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
 
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
@@ -35,6 +38,23 @@ exports.createWebsite = async (operation) => {
     });
     await postModeration
       .addToSiteModeratorsHiddenPosts({ host: json.host, moderator: mangerName });
+  }
+  if (checkForSocialSite(json.host)) {
+    const { user } = await User.findOne(json.owner);
+    const profileImage = user?.profile_image
+      || parseJson(user?.posting_json_metadata)?.profile?.profile_image;
+
+    await App.updateOne(
+      { host: json.host },
+      {
+        'configuration.shopSettings': { type: 'user', value: json.owner },
+        ...(profileImage && {
+          'configuration.desktopLogo': profileImage,
+          'configuration.mobileLogo': profileImage,
+          'configuration.defaultListImage': profileImage,
+        }),
+      },
+    );
   }
 };
 

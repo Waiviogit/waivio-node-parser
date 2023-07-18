@@ -98,7 +98,8 @@ const createOrUpdatePost = async ({
     await setExpiredPostTTL('hivePost', `${data.author}/${data.permlink}`, 605000);
     await commentRefSetter.addPostRef(
       `${data.root_author}_${data.permlink}`,
-      data.wobjects, _.get(data, 'guestInfo.userId'),
+      data.wobjects,
+      _.get(data, 'guestInfo.userId'),
     );
     ({ result: updPost, error } = await Post.update(data));
     if (error) return { error };
@@ -133,27 +134,29 @@ const createOrUpdatePost = async ({
     ? mergePosts(post.body, hivePost.body)
     : hivePost.body;
   hivePost.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
-
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: hivePost.wobjects })) {
     return { validationError: true };
   }
 
-  hivePost.active_votes = _.reduce(hivePost.active_votes, (acc, item) => {
-    acc.push({
-      ..._
-        .chain(item)
-        .merge(_.pick(
-          _.find(post.active_votes, { voter: item.voter }),
-          ['rsharesWAIV'],
-        ))
-        .pick(VOTE_FIELDS)
-        .value(),
-      weight: Math.round(item.rshares * 1e-6),
-    });
-    return acc;
-  },
-  []);
+  hivePost.active_votes = _.reduce(
+    hivePost.active_votes,
+    (acc, item) => {
+      acc.push({
+        ..._
+          .chain(item)
+          .merge(_.pick(
+            _.find(post.active_votes, { voter: item.voter }),
+            ['rsharesWAIV'],
+          ))
+          .pick(VOTE_FIELDS)
+          .value(),
+        weight: Math.round(item.rshares * 1e-6),
+      });
+      return acc;
+    },
+    [],
+  );
 
   _.forEach(post.active_votes, (el) => {
     if (!_.includes(hiveVoters, el.voter)) hivePost.active_votes.push(el);
@@ -162,12 +165,20 @@ const createOrUpdatePost = async ({
   hivePost.language = language;
   hivePost.languages = languages;
   hivePost.author = data.author;
+  const newObjects = _.difference(
+    _.map(hivePost.wobjects, 'author_permlink'),
+    _.map(post.wobjects, 'author_permlink'),
+  );
+  for (const authorPermlink of newObjects) {
+    await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: post._id });
+  }
 
   ({ result: updPost, error } = await Post.update(hivePost));
   if (error) return { error };
   await commentRefSetter.addPostRef(
     `${data.root_author}_${data.permlink}`,
-    hivePost.wobjects, _.get(data, 'guestInfo.userId'),
+    hivePost.wobjects,
+    _.get(data, 'guestInfo.userId'),
   );
   await postHelper.addToRelated(hivePost.wobjects, metadata.image, `${data.author}_${data.permlink}`);
   return { updPost, action: 'updated' };
@@ -189,14 +200,12 @@ const addHiveEngineTTL = async ({ postTags, author, permlink }) => {
   }
 };
 
-const getHiveEngineTokensFromTags = (tags) => _.reduce(
-  HIVE_ENGINE_TOKEN_TAGS, (acc, el, key) => {
-    if (_.some(tags, (tag) => _.includes(el, tag))) {
-      acc.push(key);
-    }
-    return acc;
-  }, [],
-);
+const getHiveEngineTokensFromTags = (tags) => _.reduce(HIVE_ENGINE_TOKEN_TAGS, (acc, el, key) => {
+  if (_.some(tags, (tag) => _.includes(el, tag))) {
+    acc.push(key);
+  }
+  return acc;
+}, []);
 
 const mergePosts = (originalBody, body) => {
   try {

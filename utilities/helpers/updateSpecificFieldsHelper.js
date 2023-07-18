@@ -14,6 +14,7 @@ const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/n
 const siteHelper = require('utilities/helpers/sitesHelper');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const uuid = require('uuid');
+const { listItemProcess } = require('utilities/waivioApi');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -50,9 +51,7 @@ const update = async ({
       await processingParent(authorPermlink, app);
       break;
     case FIELDS_NAMES.TAG_CLOUD:
-      const { wobjects: wobjTagCloud } = await Wobj.getSomeFields(
-        FIELDS_NAMES.TAG_CLOUD, authorPermlink,
-      );
+      const { wobjects: wobjTagCloud } = await Wobj.getSomeFields(FIELDS_NAMES.TAG_CLOUD, authorPermlink);
       if (_.isArray(_.get(wobjTagCloud, '[0].fields')) && _.get(wobjTagCloud, '[0].fields[0]')) {
         await Wobj.update(
           { author_permlink: authorPermlink },
@@ -61,9 +60,7 @@ const update = async ({
       }
       break;
     case FIELDS_NAMES.RATING:
-      const { wobjects: wobjRating } = await Wobj.getSomeFields(
-        FIELDS_NAMES.RATING, authorPermlink,
-      );
+      const { wobjects: wobjRating } = await Wobj.getSomeFields(FIELDS_NAMES.RATING, authorPermlink);
       if (_.isArray(_.get(wobjRating, '[0].fields')) && _.get(wobjRating, '[0].fields[0]')) {
         await Wobj.update(
           { author_permlink: authorPermlink },
@@ -110,6 +107,7 @@ const update = async ({
         await restaurantStatus(field, authorPermlink, '');
         await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
       }
+      await checkForListItemsCounters(authorPermlink);
       break;
     case FIELDS_NAMES.CATEGORY_ITEM:
       await addSearchField({
@@ -141,18 +139,38 @@ const update = async ({
         authorPermlink, newWords: parseSearchData(field),
       });
       await updateMetaGroupId({ authorPermlink });
+      break;
+    case FIELDS_NAMES.LIST_ITEM:
+      await listItemProcess.send({ authorPermlink, listItemLink: field.body });
+      break;
   }
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
     if (!_.get(voteData, 'weight') || voteData.weight > 0 || field.weight - voteData.weight < 0) return;
     await rejectUpdate({
-      id: 'rejectUpdate',
       creator: field.creator,
       voter,
       author_permlink: authorPermlink,
       fieldName: field.name,
     });
+  }
+};
+
+const checkForListItemsCounters = async (authorPermlink) => {
+  const { wobject } = await Wobj.findOne({
+    filter: {
+      fields: {
+        $elemMatch: {
+          name: FIELDS_NAMES.LIST_ITEM,
+          body: authorPermlink,
+        },
+      },
+    },
+    projection: { _id: 1 },
+  });
+  if (wobject) {
+    await listItemProcess.send({ authorPermlink, listItemLink: '' });
   }
 };
 

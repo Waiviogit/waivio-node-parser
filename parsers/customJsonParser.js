@@ -5,6 +5,7 @@ const { ratingHelper, userHelper, sitesHelper } = require('utilities/helpers');
 const { customJsonOperations } = require('utilities/guestOperations');
 const { CUSTOM_JSON_OPS } = require('constants/parsersData');
 const hiveEngineCustom = require('utilities/customJsonHiveEngine/hiveEngineCustom');
+const { parseJson } = require('../utilities/helpers/jsonHelper');
 
 exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
   switch (operation.id) {
@@ -73,6 +74,12 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
       /** WEBSITES */
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:
       await sitesHelper.createWebsite(operation);
+
+      const { owner = '' } = parseJson(operation.json);
+      await sitesHelper.activationActions({
+        ...operation,
+        required_posting_auths: [owner],
+      }, true);
       break;
     case CUSTOM_JSON_OPS.DELETE_CUSTOM_WEBSITE:
       await sitesHelper.deleteWebsite(operation);

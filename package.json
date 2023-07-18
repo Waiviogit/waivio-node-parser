@@ -43,7 +43,9 @@
     "fillUserShopDeselect": "NODE_PATH=. node ./utilities/tasks/fillUserShopDeselect/run.js",
     "changeSortCustomFormat": "NODE_PATH=. node ./utilities/tasks/changeSortCustomFormat/run.js",
     "recalcDepartments": "NODE_PATH=. node ./utilities/tasks/recalcDepartments/run.js",
-    "start": "node --max-old-space-size=800 ./bin/service.js",
+    "addObjectTypeToMenuItem": "NODE_PATH=. node ./utilities/tasks/addObjectTypeToMenuItem/run.js",
+    "updateObjectPostCount": "NODE_PATH=. node ./utilities/tasks/updateObjectPostCount/run.js",
+    "start": "node --max-old-space-size=2000 ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
   "dependencies": {
