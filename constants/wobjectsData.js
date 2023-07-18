@@ -57,6 +57,11 @@ exports.FIELDS_NAMES = {
   RELATED: 'related',
   ADD_ON: 'addOn',
   SIMILAR: 'similar',
+  AFFILIATE_BUTTON: 'affiliateButton',
+  AFFILIATE_PRODUCT_ID_TYPES: 'affiliateProductIdTypes',
+  AFFILIATE_GEO_AREA: 'affiliateGeoArea',
+  AFFILIATE_URL_TEMPLATE: 'affiliateUrlTemplate',
+  AFFILIATE_CODE: 'affiliateCode',
 };
 
 exports.SEARCH_FIELDS = [
