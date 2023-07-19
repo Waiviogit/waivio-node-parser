@@ -36,7 +36,6 @@ const {
   affiliateCodeSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
-const Joi = require('@hapi/joi');
 
 const validate = async (data, operation) => {
   if (!await validateUserOnBlacklist(operation.author)
