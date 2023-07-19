@@ -346,13 +346,13 @@ const validateSpecifiedFields = async (data) => {
       break;
     case FIELDS_NAMES.AFFILIATE_PRODUCT_ID_TYPES:
       const { value: affIdTypes, error: affIdErr } = affiliateProductIdTypesSchema
-        .validate(jsonHelper.parseJson(data.field.body));
+        .validate(data.field.body);
       if (affIdErr) throw new Error(`Can't append ${fieldName}`);
-      data.field.body = JSON.stringify(affIdTypes);
+      data.field.body = affIdTypes;
       break;
     case FIELDS_NAMES.AFFILIATE_GEO_AREA:
       const { error: affGeoErr } = affiliateGeoSchema
-        .validate(jsonHelper.parseJson(data.field.body));
+        .validate(data.field.body);
       if (affGeoErr) throw new Error(`Can't append ${fieldName}`);
       break;
     case FIELDS_NAMES.AFFILIATE_URL_TEMPLATE:
