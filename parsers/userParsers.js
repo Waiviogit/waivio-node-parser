@@ -128,6 +128,7 @@ exports.reblogPostParser = async ({
     if (error || !post) return { error: error || `Post ${ERROR.NOT_FOUND}` };
     const data = {
       author: account, // person who make reblog
+      root_author: account, // person who make reblog
       permlink: `${_.get(post, 'author')}/${_.get(json, '[1].permlink')}`,
       reblog_to: {
         author: _.get(post, 'author'), // author of source post
