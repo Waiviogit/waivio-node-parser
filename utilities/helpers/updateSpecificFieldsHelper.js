@@ -85,9 +85,7 @@ const update = async ({
       }
       break;
     case FIELDS_NAMES.STATUS:
-      const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
-        FIELDS_NAMES.STATUS, authorPermlink,
-      );
+      const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(FIELDS_NAMES.STATUS, authorPermlink);
       const status = _.chain(fields)
         .filter((f) => {
           try {
@@ -141,7 +139,7 @@ const update = async ({
       await updateMetaGroupId({ authorPermlink });
       break;
     case FIELDS_NAMES.LIST_ITEM:
-      await listItemProcess.send({ authorPermlink, listItemLink: field.body });
+      listItemProcess.send({ authorPermlink, listItemLink: field.body });
       break;
   }
   if (voter && field.creator !== voter && field.weight < 0) {
