@@ -121,15 +121,43 @@ const removeVote = async (data) => {
 };
 
 // data include: author, permlink, author_permlink, voter, weight
-const addVote = async (data) => {
+const addVote = async ({
+  author, permlink, author_permlink, vote, existingVote, field,
+}) => {
   try {
-    const result = await WObjectModel.updateOne({
-      author_permlink: data.author_permlink,
-      'fields.author': data.author,
-      'fields.permlink': data.permlink,
-    },
-    { $push: { 'fields.$.active_votes': { ...data.vote } } });
-    return { result: result.nModified === 1 };
+    if (!existingVote) {
+      const result = await WObjectModel.updateOne(
+        {
+          author_permlink,
+          'fields.author': author,
+          'fields.permlink': permlink,
+        },
+        { $push: { 'fields.$.active_votes': vote } },
+      );
+      return { result: result.nModified === 1 };
+    }
+
+    const wobject = await WObjectModel.findOne(
+      {
+        authorPermlink,
+      },
+    );
+
+    for (const objField of wobject.fields) {
+      if (objField._id.toString() === field._id.toString()) {
+        for (const objVote of objField.active_votes) {
+          if (objVote._id.toString() === existingVote._id.toString()) {
+            Object.assign(objVote, vote);
+            break;
+          }
+        }
+        break;
+      }
+    }
+
+    await wobject.save();
+
+    return { result: true };
   } catch (error) {
     return { error };
   }
@@ -307,26 +335,28 @@ const findOne = async ({ filter, projection = {}, options = {} }) => {
 const findByGroupIds = async ({ groupIds, metaGroupId }) => {
   try {
     return {
-      result: await WObjectModel.find({
-        fields: {
-          $elemMatch: {
-            name: FIELDS_NAMES.GROUP_ID,
-            body: { $in: groupIds },
+      result: await WObjectModel.find(
+        {
+          fields: {
+            $elemMatch: {
+              name: FIELDS_NAMES.GROUP_ID,
+              body: { $in: groupIds },
+            },
           },
+          object_type: {
+            $in: [
+              OBJECT_TYPES.PRODUCT,
+              OBJECT_TYPES.BOOK,
+              OBJECT_TYPES.SERVICE,
+            ],
+          },
+          metaGroupId: { $ne: metaGroupId },
         },
-        object_type: {
-          $in: [
-            OBJECT_TYPES.PRODUCT,
-            OBJECT_TYPES.BOOK,
-            OBJECT_TYPES.SERVICE,
-          ],
+        {
+          fields: 1,
+          author_permlink: 1,
         },
-        metaGroupId: { $ne: metaGroupId },
-      },
-      {
-        fields: 1,
-        author_permlink: 1,
-      }).lean(),
+      ).lean(),
     };
   } catch (error) {
     return { error };

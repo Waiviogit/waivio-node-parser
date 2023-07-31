@@ -197,7 +197,7 @@ const manageAuthorities = async ({
         userName: field.creator,
       });
     }
-    await updateSitesObjects(field.creator);
+  //  await updateSitesObjects(field.creator);
   }
 };
 

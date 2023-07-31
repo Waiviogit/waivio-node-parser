@@ -35,7 +35,7 @@ const voteOnField = async (data) => {
   await unVoteOnAppend(data);
   const { users = [] } = await appHelper.getBlackListUsers();
   if (data.percent > 0 && !users.includes(data.voter)) {
-    await addVoteOnField(data);
+    await addVoteOnField({ ...data, field });
     const reject = data.percent % 2 !== 0;
     if (reject) {
       await fieldUpdateNotification({
@@ -68,7 +68,7 @@ const unVoteOnAppend = async (data) => {
       rshares_weight: -existingVote.rshares_weight || 0,
     });
   }
-  await Wobj.removeVote(data);
+  // await Wobj.removeVote(data);
 };
 
 // data includes:
