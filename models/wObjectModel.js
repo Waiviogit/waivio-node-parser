@@ -139,7 +139,7 @@ const addVote = async ({
 
     const wobject = await WObjectModel.findOne(
       {
-        authorPermlink,
+        author_permlink,
       },
     );
 
