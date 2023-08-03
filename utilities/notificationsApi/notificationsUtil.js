@@ -174,23 +174,29 @@ const fieldUpdateNotification = async ({
     filter: { author_permlink: authorPermlink },
   });
   if (!wobject) return;
-
-  const sendTo = [
-    ...(wobject?.authority?.ownership ?? []),
-    ...(wobject?.authority?.administrative ?? []),
-  ].filter((el) => el !== field?.creator);
-
-  if (!sendTo.length) return;
-
   const objectName = getNameFromFields(wobject.fields);
 
   if (field.name === FIELDS_NAMES.GROUP_ID) {
+    const { result } = await Wobj.find(
+      {
+        metaGroupId: wobject.metaGroupId,
+      },
+      {
+        authority: 1,
+      },
+    );
+
+    const receivers = _.uniq(_.flatten(result
+      .map((el) => [...el?.authority?.administrative ?? [], ...el?.authority?.ownership ?? []])))
+      .filter((el) => el !== field?.creator);
+    if (!receivers.length) return;
+
     await sendNotification({
       id: reject
         ? NOTIFICATION_ID.GROUP_ID_UPDATES_REJECT
         : NOTIFICATION_ID.GROUP_ID_UPDATES,
       data: {
-        receivers: sendTo,
+        receivers,
         objectName,
         authorPermlink,
         initiator,
@@ -198,6 +204,12 @@ const fieldUpdateNotification = async ({
     });
     return;
   }
+  const receivers = [
+    ...(wobject?.authority?.ownership ?? []),
+    ...(wobject?.authority?.administrative ?? []),
+  ].filter((el) => el !== field?.creator);
+
+  if (!receivers.length) return;
 
   await sendNotification({
     id: reject
@@ -205,7 +217,7 @@ const fieldUpdateNotification = async ({
       : NOTIFICATION_ID.OBJECT_UPDATES,
     data: {
       fieldName: field.name,
-      receivers: sendTo,
+      receivers,
       objectName,
       authorPermlink,
       initiator,
