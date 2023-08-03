@@ -176,10 +176,10 @@ const fieldUpdateNotification = async ({
   if (!wobject) return;
   const objectName = getNameFromFields(wobject.fields);
 
-  const sendTo = [
+  const sendTo = _.uniq([
     ...(wobject?.authority?.ownership ?? []),
     ...(wobject?.authority?.administrative ?? []),
-  ].filter((el) => el !== field?.creator);
+  ].filter((el) => el !== field?.creator));
 
   if (field.name === FIELDS_NAMES.GROUP_ID) {
     const { result } = await Wobj.find(
@@ -209,7 +209,8 @@ const fieldUpdateNotification = async ({
       });
     }
   }
-
+  console.log('UPDATE NOTIFICATION');
+  console.log(sendTo);
   if (!sendTo.length) return;
 
   await sendNotification({
