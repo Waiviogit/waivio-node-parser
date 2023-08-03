@@ -29,17 +29,17 @@ const appendObject = async (data, operation, metadata) => {
     const { result, error } = await Wobj.addField(data);
     if (error) throw error;
 
-    await fieldUpdateNotification({
-      authorPermlink: data.author_permlink,
-      field: data.field,
-      initiator: data.field.creator,
-    });
-
     await updateSpecificFieldsHelper.update({
       author: data.field.author,
       permlink: data.field.permlink,
       authorPermlink: data.author_permlink,
       metadata,
+    });
+
+    await fieldUpdateNotification({
+      authorPermlink: data.author_permlink,
+      field: data.field,
+      initiator: data.field.creator,
     });
     return { result };
   } catch (error) {

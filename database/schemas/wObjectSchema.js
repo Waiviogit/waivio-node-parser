@@ -40,6 +40,8 @@ const WObjectSchema = new Schema({
       type: [{
         voter: { type: String },
         weight: { type: Number },
+        percent: { type: Number },
+        rshares_weight: { type: Number },
       }],
       default: [],
     },
