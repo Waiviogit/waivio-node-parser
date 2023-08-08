@@ -35,7 +35,7 @@ const voteOnField = async (data) => {
   await unVoteOnAppend(data);
   const { users = [] } = await appHelper.getBlackListUsers();
   if (data.percent > 0 && !users.includes(data.voter)) {
-    await addVoteOnField({ ...data, field });
+    await addVoteOnField(data, field);
     const reject = data.percent % 2 !== 0;
     if (reject) {
       await fieldUpdateNotification({
@@ -74,7 +74,7 @@ const unVoteOnAppend = async (data) => {
 // data includes:
 // author, permlink, author_permlink, weight, creator,
 // existingVote:{voter, rshares_weight, weight, percent}
-const addVoteOnField = async (data) => {
+const addVoteOnField = async (data, field) => {
   // fix to const to show proper percent on front
   const percent = (data.percent % 2 === 0) ? data.percent : -data.percent;
 
@@ -86,6 +86,7 @@ const addVoteOnField = async (data) => {
 
   await Wobj.addVote({
     ...data,
+    field,
     vote: {
       voter: data.voter,
       percent,
