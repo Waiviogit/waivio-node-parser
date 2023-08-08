@@ -46,6 +46,7 @@
     "addObjectTypeToMenuItem": "NODE_PATH=. node ./utilities/tasks/addObjectTypeToMenuItem/run.js",
     "updateObjectPostCount": "NODE_PATH=. node ./utilities/tasks/updateObjectPostCount/run.js",
     "rejectDepartments": "NODE_PATH=. node ./utilities/tasks/rejectDepartments/run.js",
+    "rejectAuthorities": "NODE_PATH=. node ./utilities/tasks/rejectAuthorities/run.js",
     "start": "node --max-old-space-size=2000 ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha"
   },
