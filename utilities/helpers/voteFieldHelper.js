@@ -36,7 +36,8 @@ const voteOnField = async (data) => {
   const { users = [] } = await appHelper.getBlackListUsers();
   if (data.percent > 0 && !users.includes(data.voter)) {
     await addVoteOnField(data, field);
-    const reject = data.percent % 2 !== 0;
+    // inside addVoteOnField percent mutate
+    const reject = data.percent < 0;
     if (reject) {
       await fieldUpdateNotification({
         authorPermlink: data.author_permlink,
