@@ -70,7 +70,7 @@ const validateSameFields = async (data) => {
   const setUniqFields = ['name', 'body', 'locale'];
 
   if (data.field.name === FIELDS_NAMES.CATEGORY_ITEM) setUniqFields.push('id');
-  if (data.field.name === FIELDS_NAMES.AUTHORITY) setUniqFields.push('creator');
+  if ([FIELDS_NAMES.AFFILIATE_CODE, FIELDS_NAMES.AUTHORITY].includes(data.field.name)) setUniqFields.push('creator');
   if (data.field.name === FIELDS_NAMES.PHONE) setUniqFields.splice(1, 1, 'number');
 
   const foundedFields = _.map(wobject.fields, (field) => _.pick(field, setUniqFields));
