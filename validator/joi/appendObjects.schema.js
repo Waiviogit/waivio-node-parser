@@ -1,4 +1,4 @@
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const {
   WEIGHT_UNITS,
   DIMENSION_UNITS,
