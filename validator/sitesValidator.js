@@ -1,7 +1,7 @@
 const { SUPPORTED_CURRENCIES, APP_LANGUAGES } = require('constants/common');
 const { PAYMENT_TYPES } = require('constants/sitesData');
 const { MUTE_ACTION } = require('constants/parsersData');
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 
 const options = { allowUnknown: true, stripUnknown: true };
 
@@ -14,6 +14,7 @@ exports.settingsSchema = Joi.object().keys({
   }),
   currency: Joi.string().valid(...Object.values(SUPPORTED_CURRENCIES)).required(),
   language: Joi.string().valid(...APP_LANGUAGES).required(),
+  objectControl: Joi.boolean().default(false),
 }).options(options);
 
 exports.authoritySchema = Joi.object().keys({

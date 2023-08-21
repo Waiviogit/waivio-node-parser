@@ -139,6 +139,7 @@ const AppSchema = new Schema({
     default: 'en-US',
   },
   prefetches: { type: [String] },
+  objectControl: { type: Boolean, default: false },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {
