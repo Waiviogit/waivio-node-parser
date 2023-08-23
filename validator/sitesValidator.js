@@ -17,7 +17,7 @@ exports.settingsSchema = Joi.object().keys({
   objectControl: Joi.boolean().default(false),
 }).options(options);
 
-exports.adSenceSchema = Joi.object().keys({
+exports.adSenseSchema = Joi.object().keys({
   code: Joi.string().allow(''),
   host: Joi.string().required(),
   level: Joi.string().valid(...Object.values(APP_ADSENCE_LEVELS)).required(),

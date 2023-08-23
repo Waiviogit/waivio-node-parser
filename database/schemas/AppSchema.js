@@ -83,7 +83,7 @@ const Configuration = new Schema({
 
 }, { _id: false });
 
-const AdSence = new Schema({
+const AdSense = new Schema({
   code: { type: String },
   level: { type: String },
 }, { _id: false });
@@ -145,7 +145,7 @@ const AppSchema = new Schema({
   },
   prefetches: { type: [String] },
   objectControl: { type: Boolean, default: false },
-  adSence: { type: AdSence, default: () => ({}) },
+  adSense: { type: AdSense, default: () => ({}) },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {

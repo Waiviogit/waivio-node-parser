@@ -114,13 +114,13 @@ exports.saveAdSenseSettings = async (operation) => {
   const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
   if (!json || !author) return false;
-  const { error, value } = sitesValidator.adSenceSchema.validate(json);
+  const { error, value } = sitesValidator.adSenseSchema.validate(json);
   if (error) return captureException(error);
 
   await App.updateOne({
     host: value.host, owner: author, inherited: true,
   }, {
-    adSence: {
+    adSense: {
       level: value.level,
       code: value.code,
     },
