@@ -34,7 +34,7 @@ const voteOnField = async (data) => {
   await userHelper.checkAndCreateUser(field.creator);
   await unVoteOnAppend(data);
   const { users = [] } = await appHelper.getBlackListUsers();
-  if (data.percent > 0 && !users.includes(data.voter)) {
+  if (!users.includes(data.voter)) {
     await addVoteOnField(data, field);
     // inside addVoteOnField percent mutate
     const reject = data.percent < 0;
@@ -69,7 +69,7 @@ const unVoteOnAppend = async (data) => {
       rshares_weight: -existingVote.rshares_weight || 0,
     });
   }
-  // await Wobj.removeVote(data);
+  //await Wobj.removeVote(data);
 };
 
 // data includes:
