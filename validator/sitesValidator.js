@@ -1,4 +1,4 @@
-const { SUPPORTED_CURRENCIES, APP_LANGUAGES } = require('constants/common');
+const { SUPPORTED_CURRENCIES, APP_LANGUAGES, APP_ADSENCE_LEVELS } = require('constants/common');
 const { PAYMENT_TYPES } = require('constants/sitesData');
 const { MUTE_ACTION } = require('constants/parsersData');
 const Joi = require('joi');
@@ -15,6 +15,12 @@ exports.settingsSchema = Joi.object().keys({
   currency: Joi.string().valid(...Object.values(SUPPORTED_CURRENCIES)).required(),
   language: Joi.string().valid(...APP_LANGUAGES).required(),
   objectControl: Joi.boolean().default(false),
+}).options(options);
+
+exports.adSenceSchema = Joi.object().keys({
+  code: Joi.string().allow(''),
+  host: Joi.string().required(),
+  level: Joi.string().valid(...Object.values(APP_ADSENCE_LEVELS)).required(),
 }).options(options);
 
 exports.authoritySchema = Joi.object().keys({

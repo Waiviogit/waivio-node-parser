@@ -73,6 +73,12 @@ exports.LANGUAGES = [
 
 exports.APP_LANGUAGES = _.filter(this.LANGUAGES, (el) => el !== 'auto');
 
+exports.APP_ADSENCE_LEVELS = {
+  MINIMAL: 'minimal',
+  MODERATE: 'moderate',
+  INTENSIVE: 'intensive',
+};
+
 exports.MIN_REDIS_REFS_IDLE_TIME_IN_SEC = 2592000;
 
 exports.COMMENT_REF_TYPES = {
