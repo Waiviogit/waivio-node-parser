@@ -120,6 +120,9 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
     case CUSTOM_JSON_OPS.WEBSITE_REFERRAL_PAYMENTS:
       await sitesHelper.setWebsiteReferralAccount(operation);
       break;
+    case CUSTOM_JSON_OPS.WEBSITE_ADSENSE:
+      await sitesHelper.saveAdSenseSettings(operation);
+      break;
     /** Hive engine */
     case CUSTOM_JSON_OPS.WAIVIO_HIVE_ENGINE:
       await hiveEngineCustom.parse(operation, blockNum, transaction_id, timestamp);

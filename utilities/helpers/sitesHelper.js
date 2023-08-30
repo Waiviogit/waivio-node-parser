@@ -110,6 +110,23 @@ exports.saveWebsiteSettings = async (operation) => {
   await App.updateOne({ _id: value.appId, owner: author, inherited: true }, _.omit(value, ['appId']));
 };
 
+exports.saveAdSenseSettings = async (operation) => {
+  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const json = parseJson(operation.json);
+  if (!json || !author) return false;
+  const { error, value } = sitesValidator.adSenseSchema.validate(json);
+  if (error) return captureException(error);
+
+  await App.updateOne({
+    host: value.host, owner: author, inherited: true,
+  }, {
+    adSense: {
+      level: value.level,
+      code: value.code,
+    },
+  });
+};
+
 exports.refundRequest = async (operation, blockNum) => {
   const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
