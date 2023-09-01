@@ -12,7 +12,7 @@ const duplicateUpdates = async () => {
             duplicate.weightWAIV = vote.weightWAIV;
             field.active_votes = field.active_votes.filter((v) => v._id !== vote._id);
             await object.save();
-            console.log(`saved  ${object.author_permlink}`);
+            console.log(`saved ${field.name} ${object.author_permlink}`);
           }
         }
       }
