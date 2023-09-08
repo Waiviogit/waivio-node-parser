@@ -52,6 +52,33 @@ const waivioApi = {
   },
 };
 
+const nginxApi = {
+  production: {
+    HOST: 'https://www.waivio.com',
+    BASE_URL: '/nginx',
+    ADD_CONFIG: '/add-site',
+    REMOVE_CONFIG: '/remove-site',
+  },
+  staging: {
+    HOST: 'https://waiviodev.com',
+    BASE_URL: '/nginx',
+    ADD_CONFIG: '/add-site',
+    REMOVE_CONFIG: '/remove-site',
+  },
+  development: {
+    HOST: 'http://localhost:3000',
+    BASE_URL: '/nginx',
+    ADD_CONFIG: '/add-site',
+    REMOVE_CONFIG: '/remove-site',
+  },
+  test: {
+    HOST: 'http://localhost:3000',
+    BASE_URL: '/nginx',
+    ADD_CONFIG: '/add-site',
+    REMOVE_CONFIG: '/remove-site',
+  },
+};
+
 const notificationsApi = {
   production: {
     HOST: 'https://www.waivio.com',
@@ -132,6 +159,7 @@ module.exports = {
   objectImportService: objectImportService[process.env.NODE_ENV || 'development'],
   waivioApi: waivioApi[process.env.NODE_ENV || 'development'],
   notificationsApi: notificationsApi[process.env.NODE_ENV || 'development'],
+  nginxApi: nginxApi[process.env.NODE_ENV || 'development'],
   REFERRAL_TYPES,
   REFERRAL_STATUSES,
   BLOCK_REQ_MAX_TIME,
