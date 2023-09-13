@@ -15,6 +15,8 @@ exports.settingsSchema = Joi.object().keys({
   currency: Joi.string().valid(...Object.values(SUPPORTED_CURRENCIES)).required(),
   language: Joi.string().valid(...APP_LANGUAGES).required(),
   objectControl: Joi.boolean().default(false),
+  facebookAuthId: Joi.string().allow(''),
+  googleAuthId: Joi.string().allow(''),
 }).options(options);
 
 exports.adSenseSchema = Joi.object().keys({
