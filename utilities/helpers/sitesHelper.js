@@ -58,7 +58,9 @@ exports.createWebsite = async (operation) => {
     );
   }
 
-  if (json.advanced) nginxService.createNginxConfig({ host: json.host });
+  if (json.advanced && process.env.NODE_ENV === 'production') {
+    nginxService.createNginxConfig({ host: json.host });
+  }
 };
 
 exports.deleteWebsite = async (operation) => {
@@ -78,7 +80,9 @@ exports.deleteWebsite = async (operation) => {
     await postModeration
       .removeFromSiteModeratorsHiddenPosts({ host: app.host, moderator: mangerName });
   }
-  if (app.advanced) nginxService.removeNginxConfig({ host: app.host });
+  if (app.advanced && process.env.NODE_ENV === 'production') {
+    nginxService.removeNginxConfig({ host: app.host });
+  }
 };
 
 exports.activationActions = async (operation, activate) => {
