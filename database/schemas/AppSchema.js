@@ -145,7 +145,10 @@ const AppSchema = new Schema({
   },
   prefetches: { type: [String] },
   objectControl: { type: Boolean, default: false },
+  advanced: { type: Boolean, default: false },
   adSense: { type: AdSense, default: () => ({}) },
+  facebookAuthId: { type: String, default: '' },
+  googleAuthId: { type: String, default: '' },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {

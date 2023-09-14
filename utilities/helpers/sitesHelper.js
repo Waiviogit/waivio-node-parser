@@ -16,6 +16,7 @@ const { usersUtil } = require('utilities/steemApi');
 const Sentry = require('@sentry/node');
 const moment = require('moment');
 const _ = require('lodash');
+const { nginxService } = require('../nginxService');
 
 const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
 
@@ -39,7 +40,7 @@ exports.createWebsite = async (operation) => {
     await postModeration
       .addToSiteModeratorsHiddenPosts({ host: json.host, moderator: mangerName });
   }
-  if (checkForSocialSite(json.host)) {
+  if (checkForSocialSite(json.parentHost)) {
     const { user } = await User.findOne(json.owner);
     const profileImage = user?.profile_image
       || parseJson(user?.posting_json_metadata)?.profile?.profile_image;
@@ -55,6 +56,10 @@ exports.createWebsite = async (operation) => {
         }),
       },
     );
+  }
+
+  if (json.advanced && process.env.NODE_ENV === 'production') {
+    nginxService.createNginxConfig({ host: json.host });
   }
 };
 
@@ -74,6 +79,9 @@ exports.deleteWebsite = async (operation) => {
     });
     await postModeration
       .removeFromSiteModeratorsHiddenPosts({ host: app.host, moderator: mangerName });
+  }
+  if (app.advanced && process.env.NODE_ENV === 'production') {
+    nginxService.removeNginxConfig({ host: app.host });
   }
 };
 
