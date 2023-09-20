@@ -86,6 +86,7 @@ const Configuration = new Schema({
 const AdSense = new Schema({
   code: { type: String },
   level: { type: String },
+  txtFile: { type: String },
 }, { _id: false });
 
 const AppSchema = new Schema({
