@@ -62,7 +62,9 @@ const publishIfDatafinityObjectCreated = async (data, metadata) => {
   await publishToChannel({
     channel: 'datafinityObject',
     msg: JSON.stringify({
-      user: data.creator, author_permlink: data.author_permlink,
+      user: data.creator,
+      author_permlink: data.author_permlink,
+      ...(metadata.importId && { importId: metadata.importId }),
     }),
   });
 };
