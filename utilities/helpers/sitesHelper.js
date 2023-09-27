@@ -131,6 +131,7 @@ exports.saveAdSenseSettings = async (operation) => {
     adSense: {
       level: value.level,
       code: value.code,
+      txtFile: value.txtFile,
     },
   });
 };
