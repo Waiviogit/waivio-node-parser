@@ -62,6 +62,7 @@ exports.FIELDS_NAMES = {
   AFFILIATE_GEO_AREA: 'affiliateGeoArea',
   AFFILIATE_URL_TEMPLATE: 'affiliateUrlTemplate',
   AFFILIATE_CODE: 'affiliateCode',
+  WEB_PAGE: 'webPage',
 };
 
 exports.SEARCH_FIELDS = [
@@ -111,6 +112,7 @@ exports.OBJECT_TYPES = {
   WIDGET: 'widget',
   NEWS_FEED: 'newsfeed',
   SHOP: 'shop',
+  WEB_PAGE: 'webPage',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
