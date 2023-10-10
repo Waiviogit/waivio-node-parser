@@ -124,7 +124,7 @@ const createSiteMap = async ({ host }) => {
 const deleteSitemap = async ({ host }) => {
   const result = await socketClient.sendMessage({
     name: 'sitemap',
-    method: 'createSiteMap',
+    method: 'deleteSitemap',
     args: [{ host }],
   });
   if (result?.error) {
