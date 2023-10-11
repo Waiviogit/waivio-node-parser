@@ -61,7 +61,7 @@ const addUserFollow = async ({ follower, following, isUnfollow = false }) => {
       { $inc: { users_following_count: isUnfollow ? -1 : 1 } },
     );
 
-    if (!_.get(followingUpdResult, 'n')) return { result: false };
+    if (!_.get(followingUpdResult, 'modifiedCount')) return { result: false };
 
     return { result: true };
   } catch (error) {

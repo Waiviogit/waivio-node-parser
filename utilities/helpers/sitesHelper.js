@@ -17,6 +17,7 @@ const Sentry = require('@sentry/node');
 const moment = require('moment');
 const _ = require('lodash');
 const { nginxService } = require('../nginxService');
+const seoService = require('../socketClient/seoService');
 
 const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
 
@@ -61,6 +62,7 @@ exports.createWebsite = async (operation) => {
   if (json.advanced && process.env.NODE_ENV === 'production') {
     nginxService.createNginxConfig({ host: json.host });
   }
+  seoService.sitemap.createSiteMap({ host: json.host });
 };
 
 exports.deleteWebsite = async (operation) => {
@@ -83,6 +85,7 @@ exports.deleteWebsite = async (operation) => {
   if (app.advanced && process.env.NODE_ENV === 'production') {
     nginxService.removeNginxConfig({ host: app.host });
   }
+  seoService.sitemap.deleteSitemap({ host: app.host });
 };
 
 exports.activationActions = async (operation, activate) => {
@@ -208,6 +211,7 @@ exports.websiteAuthorities = async (operation, type, add) => {
       }
     }
   }
+  seoService.sitemap.createSiteMap({ host: json.host });
 };
 
 exports.parseSitePayments = async ({ operation, type, blockNum }) => {
