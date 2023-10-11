@@ -112,7 +112,7 @@ const socketClient = new SocketClient(CONNECTION_STRING_SEO, process.env.SEO_SER
 const createSiteMap = async ({ host }) => {
   const result = await socketClient.sendMessage({
     name: 'sitemap',
-    method: 'createSiteMap',
+    method: 'createSitemap',
     args: [{ host }],
   });
   if (result?.error) {
