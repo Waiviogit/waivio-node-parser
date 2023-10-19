@@ -25,6 +25,10 @@ const sismember = async ({
   key, member, client = expiredPostsClient,
 }) => client.sismemberAsync(key, member);
 
+const smembers = async ({
+  key, client = expiredPostsClient,
+}) => client.smembersAsync(key);
+
 module.exports = {
-  getHashAll, getLastBlockNum, getTagCategories, zrevrange, sismember,
+  getHashAll, getLastBlockNum, getTagCategories, zrevrange, sismember, smembers,
 };
