@@ -3,8 +3,9 @@ const userParsers = require('parsers/userParsers');
 const voteParsers = require('parsers/voteParser');
 const { ratingHelper, userHelper, sitesHelper } = require('utilities/helpers');
 const { customJsonOperations } = require('utilities/guestOperations');
-const { CUSTOM_JSON_OPS } = require('constants/parsersData');
+const { CUSTOM_JSON_OPS, REDIS_KEYS } = require('constants/parsersData');
 const hiveEngineCustom = require('utilities/customJsonHiveEngine/hiveEngineCustom');
+const redisSetter = require('utilities/redis/redisSetter');
 const { parseJson } = require('../utilities/helpers/jsonHelper');
 
 exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
@@ -80,6 +81,10 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
         ...operation,
         required_posting_auths: [owner],
       }, true);
+      await redisSetter.publishToChannel({
+        channel: REDIS_KEYS.TX_ID_MAIN,
+        msg: transaction_id,
+      });
       break;
     case CUSTOM_JSON_OPS.DELETE_CUSTOM_WEBSITE:
       await sitesHelper.deleteWebsite(operation);
