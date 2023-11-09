@@ -250,3 +250,63 @@ exports.guestHideContentParser = async (operation) => {
     }
   }
 };
+
+const userFieldMappings = {
+  update_proposal_votes: (el) => el[1]?.voter,
+  vote: (el) => el[1]?.voter,
+  vote2: (el) => el[1]?.voter,
+  delete_comment: (el) => el[1]?.author,
+  comment: (el) => el[1]?.author,
+  transfer: (el) => el[1]?.from,
+  recurrent_transfer: (el) => el[1]?.from,
+  transfer_to_vesting: (el) => el[1]?.from,
+  escrow_transfer: (el) => el[1]?.from,
+  escrow_dispute: (el) => el[1]?.from,
+  escrow_release: (el) => el[1]?.from,
+  escrow_approve: (el) => el[1]?.from,
+  transfer_to_savings: (el) => el[1]?.from,
+  transfer_from_savings: (el) => el[1]?.from,
+  cancel_transfer_from_savings: (el) => el[1]?.from,
+  custom: (el) => el[1].required_auths[0] || el[1].required_posting_auths[0],
+  custom_json: (el) => el[1].required_auths[0] || el[1].required_posting_auths[0],
+  withdraw_vesting: (el) => el[1]?.account,
+  claim_reward_balance: (el) => el[1]?.account,
+  account_update: (el) => el[1]?.account,
+  account_witness_vote: (el) => el[1]?.account,
+  account_witness_proxy: (el) => el[1]?.account,
+  decline_voting_rights: (el) => el[1]?.account,
+  claim_reward_balance2: (el) => el[1]?.account,
+  account_create: (el) => el[1]?.creator,
+  claim_account: (el) => el[1]?.creator,
+  create_claimed_account: (el) => el[1]?.creator,
+  account_create_with_delegation: (el) => el[1]?.creator,
+  create_proposal: (el) => el[1]?.creator,
+  remove_proposal: (el) => el[1]?.creator,
+  update_proposal: (el) => el[1]?.creator,
+  feed_publish: (el) => el[1]?.publisher,
+  delegate_vesting_shares: (el) => el[1]?.delegator,
+  set_withdraw_vesting_route: (el) => el[1]?.from_account,
+  limit_order_cancel: (el) => el[1]?.owner,
+  limit_order_create: (el) => el[1]?.owner,
+  convert: (el) => el[1]?.owner,
+  witness_set_properties: (el) => el[1]?.owner,
+  witness_update: (el) => el[1]?.owner,
+  limit_order_create2: (el) => el[1]?.owner,
+  fill_convert_request: (el) => el[1]?.owner,
+  default: () => '',
+};
+
+exports.updateLastActivity = async ({ transactions, timestamp }) => {
+  console.time('updateLastActivity');
+  const users = _
+    .chain(transactions)
+    .map((t) => t.operations)
+    .flatten()
+    .map((el) => (userFieldMappings[el[0]] || userFieldMappings.default)(el))
+    .compact()
+    .uniq()
+    .value();
+
+  await User.update({ name: { $in: users } }, { lastActivity: new Date(timestamp) });
+  console.timeEnd('updateLastActivity');
+};
