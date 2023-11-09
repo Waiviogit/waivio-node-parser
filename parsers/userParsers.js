@@ -258,6 +258,7 @@ const userFieldMappings = {
   delete_comment: (el) => el[1]?.author,
   comment: (el) => el[1]?.author,
   transfer: (el) => el[1]?.from,
+  recurrent_transfer: (el) => el[1]?.from,
   transfer_to_vesting: (el) => el[1]?.from,
   escrow_transfer: (el) => el[1]?.from,
   escrow_dispute: (el) => el[1]?.from,
