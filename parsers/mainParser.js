@@ -81,6 +81,8 @@ const parseSwitcher = async (transactions, timestamp) => {
       }
     }
   }
+
+  await userParsers.updateLastActivity({ transactions, timestamp });
 };
 
 module.exports = {

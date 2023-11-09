@@ -102,6 +102,7 @@ const UserSchema = new Schema({
   },
   referral: { type: [ReferralsSchema], default: [] },
   expertiseWAIV: { type: Number },
+  lastActivity: { type: Date, index: true },
 }, { timestamps: true });
 
 UserSchema.index({ wobjects_weight: -1 });

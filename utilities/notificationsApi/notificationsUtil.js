@@ -209,8 +209,7 @@ const fieldUpdateNotification = async ({
       });
     }
   }
-  console.log('UPDATE NOTIFICATION');
-  console.log(sendTo);
+
   if (!sendTo.length) return;
 
   await sendNotification({
