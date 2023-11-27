@@ -139,6 +139,26 @@ exports.saveAdSenseSettings = async (operation) => {
   });
 };
 
+exports.setCanonical = async (operation) => {
+  const owner = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const json = parseJson(operation.json);
+  if (!json || !owner) return false;
+  const { error, value } = sitesValidator.canonicalSchema.validate(json);
+  if (error) return captureException(error);
+
+  await App.updateOne({
+    host: value.host, owner, inherited: true,
+  }, {
+    useForCanonical: true,
+  });
+
+  await App.updateMany({
+    host: { $ne: value.host }, owner, inherited: true,
+  }, {
+    useForCanonical: false,
+  });
+};
+
 exports.refundRequest = async (operation, blockNum) => {
   const author = _.get(operation, REQUIRED_POSTING_AUTHS);
   const json = parseJson(operation.json);
