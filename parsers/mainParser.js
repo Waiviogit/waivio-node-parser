@@ -4,6 +4,8 @@ const {
 } = require('parsers');
 const { MAIN_OPS } = require('constants/parsersData');
 const _ = require('lodash');
+const redisSetter = require('utilities/redis/redisSetter');
+const { REDIS_KEYS } = require('constants/parsersData');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
@@ -44,6 +46,10 @@ const parseSwitcher = async (transactions, timestamp) => {
             case MAIN_OPS.ACCOUNT_UPDATE:
             case MAIN_OPS.ACCOUNT_UPDATE2:
               await userParsers.updateAccountParser(operation[1]);
+              await redisSetter.publishToChannel({
+                channel: REDIS_KEYS.TX_ID_MAIN,
+                msg: _.get(transaction, 'transaction_id'),
+              });
               break;
             case MAIN_OPS.CREATE_CLAIMED_ACCOUNT:
             case MAIN_OPS.ACCOUNT_CREATE:
