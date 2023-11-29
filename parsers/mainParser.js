@@ -2,10 +2,9 @@ const {
   customJsonParser, commentParser, voteParser, userParsers,
   witnessVoteParser, transferParser, withdrawParser, recoveryParser, claimRewardParser, delgationsParser,
 } = require('parsers');
-const { MAIN_OPS } = require('constants/parsersData');
+const { MAIN_OPS, REDIS_KEYS } = require('constants/parsersData');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
-const { REDIS_KEYS } = require('constants/parsersData');
 
 const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 
