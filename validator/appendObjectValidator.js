@@ -72,6 +72,7 @@ const validateSameFields = async (data) => {
   if ([FIELDS_NAMES.CATEGORY_ITEM, FIELDS_NAMES.GALLERY_ALBUM].includes(data.field.name)) setUniqFields.push('id');
   if ([FIELDS_NAMES.AFFILIATE_CODE, FIELDS_NAMES.AUTHORITY].includes(data.field.name)) setUniqFields.push('creator');
   if (data.field.name === FIELDS_NAMES.PHONE) setUniqFields.splice(1, 1, 'number');
+  if (data.field.name === FIELDS_NAMES.LIST_ITEM) setUniqFields.splice(2, 1);
 
   const foundedFields = _.map(wobject.fields, (field) => _.pick(field, setUniqFields));
   const result = foundedFields.find((field) => _.isEqual(field, _.pick(data.field, setUniqFields)));
