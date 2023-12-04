@@ -93,7 +93,7 @@ const incrementDepartmentTag = async ({ categoryName, tag, department }) => tagC
  * @param key {String}
  * @param client {}
  */
-exports.deleteKey = async ({ key, client = mainFeedsCacheClient }) => client.delAsync(key);
+const deleteKey = async ({ key, client = mainFeedsCacheClient }) => client.delAsync(key);
 
 module.exports = {
   setExpiredPostTTL,
@@ -111,4 +111,5 @@ module.exports = {
   publishToChannel,
   incrementTag,
   incrementDepartmentTag,
+  deleteKey,
 };
