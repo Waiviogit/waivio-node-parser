@@ -7,7 +7,7 @@ const { REDIS_KEY_TICKERS } = require('../../constants/common');
 const { getTokens } = require('../hiveEngine/tokensContract');
 
 const extractHashtags = (inputString) => {
-  const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+  const hashtagRegex = /#[a-zA-Z0-9_-]+/g;
   const hashtags = inputString.match(hashtagRegex);
 
   if (!hashtags) {
