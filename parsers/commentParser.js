@@ -2,7 +2,7 @@ const notificationsUtil = require('utilities/notificationsApi/notificationsUtil'
 const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 const { chosenPostHelper, campaignHelper } = require('utilities/helpers');
 const postWithObjectsParser = require('parsers/postWithObjectParser');
-const { REDIS_KEY_CHILDREN_UPDATE, REDIS_QUEUE_DELETE_COMMENT } = require('constants/common');
+const { REDIS_KEY_CHILDREN_UPDATE, REDIS_QUEUE_DELETE_COMMENT, THREADS_ACC } = require('constants/common');
 const guestCommentParser = require('parsers/guestCommentParser');
 const createObjectParser = require('parsers/createObjectParser');
 const appendObjectParser = require('parsers/appendObjectParser');
@@ -16,6 +16,9 @@ const postModel = require('models/PostModel');
 const moment = require('moment');
 const _ = require('lodash');
 const { REDIS_KEYS } = require('constants/parsersData');
+const {
+  parseThread, parseThreadReply,
+} = require('utilities/helpers/thredsHelper');
 
 const parse = async ({
   operation, options, transactionId,
@@ -76,6 +79,13 @@ const commentSwitcher = async ({ operation, metadata }) => {
         await appendObjectParser.parse(operation, metadata);
         break;
     }
+  }
+
+  // Threads logic
+  if (operation.parent_author === THREADS_ACC) {
+    await parseThread(operation);
+  } else {
+    await parseThreadReply(operation);
   }
 
   // look out comment for select chosen one post by specified app

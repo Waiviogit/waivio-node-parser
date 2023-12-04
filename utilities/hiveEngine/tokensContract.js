@@ -20,3 +20,13 @@ exports.getTokenBalances = async ({ query }) => engineQuery({
     query,
   },
 });
+
+exports.getTokens = async ({ query, offset = 0, limit = 1000 }) => engineQuery({
+  params: {
+    contract: 'tokens',
+    table: 'tokens',
+    query,
+    offset,
+    limit,
+  },
+});

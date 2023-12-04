@@ -46,5 +46,6 @@ module.exports = {
     Department: require('./schemas/DepartmentSchema'),
     GuestWallet: require('./schemas/GuestWalletSchema'),
     UserShopDeselect: require('./schemas/UserShopDeselectSchema'),
+    Threads: require('./schemas/ThreadsSchema'),
   },
 };
