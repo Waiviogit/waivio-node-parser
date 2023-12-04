@@ -1,5 +1,5 @@
 const {
-  postRefsClient, lastBlockClient, expiredPostsClient, tagCategoriesClient,
+  postRefsClient, lastBlockClient, expiredPostsClient, tagCategoriesClient, mainFeedsCacheClient,
 } = require('utilities/redis/redis');
 const { COMMENT_REF_TYPES } = require('constants/common');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
@@ -88,6 +88,12 @@ const publishToChannel = async ({ channel, msg, client = lastBlockClient }) => {
 
 const incrementTag = async ({ categoryName, tag, objectType }) => tagCategoriesClient.zincrbyAsync(`${FIELDS_NAMES.TAG_CATEGORY}:${objectType}:${categoryName}`, 1, tag);
 const incrementDepartmentTag = async ({ categoryName, tag, department }) => tagCategoriesClient.zincrbyAsync(`${FIELDS_NAMES.DEPARTMENTS}:${department}:${categoryName}`, 1, tag);
+
+/**
+ * @param key {String}
+ * @param client {}
+ */
+exports.deleteKey = async ({ key, client = mainFeedsCacheClient }) => client.delAsync(key);
 
 module.exports = {
   setExpiredPostTTL,

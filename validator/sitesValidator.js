@@ -25,6 +25,10 @@ exports.adSenseSchema = Joi.object().keys({
   level: Joi.string().valid(...Object.values(APP_ADSENCE_LEVELS)).required(),
 }).options(options);
 
+exports.canonicalSchema = Joi.object().keys({
+  host: Joi.string().required(),
+}).options(options);
+
 exports.authoritySchema = Joi.object().keys({
   host: Joi.string().required(),
   names: Joi.array().items(Joi.string()).min(1).required(),

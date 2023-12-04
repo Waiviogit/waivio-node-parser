@@ -16,8 +16,10 @@ const { usersUtil } = require('utilities/steemApi');
 const Sentry = require('@sentry/node');
 const moment = require('moment');
 const _ = require('lodash');
+const redisSetter = require('utilities/redis/redisSetter');
 const { nginxService } = require('../nginxService');
 const seoService = require('../socketClient/seoService');
+const { REDIS_KEYS } = require('../../constants/parsersData');
 
 const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
 
@@ -136,6 +138,28 @@ exports.saveAdSenseSettings = async (operation) => {
       code: value.code,
       txtFile: value.txtFile,
     },
+  });
+  const key = `${REDIS_KEYS.AD_SENSE}:${value.host}`;
+  await redisSetter.deleteKey({ key });
+};
+
+exports.setCanonical = async (operation) => {
+  const owner = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const json = parseJson(operation.json);
+  if (!json || !owner) return false;
+  const { error, value } = sitesValidator.canonicalSchema.validate(json);
+  if (error) return captureException(error);
+
+  await App.updateOne({
+    host: value.host, owner, inherited: true,
+  }, {
+    useForCanonical: true,
+  });
+
+  await App.updateMany({
+    host: { $ne: value.host }, owner, inherited: true,
+  }, {
+    useForCanonical: false,
   });
 };
 
