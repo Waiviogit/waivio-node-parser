@@ -73,6 +73,7 @@ exports.REDIS_KEYS = {
   CURRENT_PRICE_INFO: 'current_price_info',
   DYNAMIC_GLOBAL_PROPERTIES: 'dynamic_global_properties',
   TX_ID_MAIN: 'main_parser_tx_id',
+  AD_SENSE: 'ad_sense_cache',
 };
 
 exports.HIDE_ACTION = {
