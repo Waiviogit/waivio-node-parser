@@ -91,6 +91,7 @@ exports.COMMENT_REF_TYPES = {
 exports.REDIS_KEY_VOTE_UPDATES = 'votesUpdate';
 exports.REDIS_KEY_CHILDREN_UPDATE = 'commentsCounterUpdate';
 exports.REDIS_QUEUE_DELETE_COMMENT = 'delete_comment';
+exports.REDIS_KEY_TICKERS = 'tickers_threads';
 exports.GREY_LIST_KEY = 'vote_grey_list';
 
 exports.REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD = 'distributeHiveEngineReward';
@@ -99,5 +100,7 @@ exports.EXPIRE_DISTRIBUTE_HIVE_ENGINE_REWARD = 345600;
 exports.HIVE_ENGINE_TOKEN_TAGS = {
   WAIV: ['waivio', 'neoxian', 'palnet', 'waiv', 'food'],
 };
+
+exports.THREADS_ACC = 'leothreads';
 
 exports.VOTE_FIELDS = ['voter', 'percent', 'rshares', 'rsharesWAIV'];

@@ -22,4 +22,5 @@ module.exports = {
   Department: require('./DepartmentModel'),
   GuestWallet: require('./GuestWalletModel'),
   userShopDeselectModel: require('./userShopDeselectModel'),
+  ThreadModel: require('./ThreadModel'),
 };
