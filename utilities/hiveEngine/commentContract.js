@@ -1,4 +1,4 @@
-const engineQuery = require('utilities/hiveEngine/engineQuery');
+const { engineProxy } = require('utilities/hiveEngine/engineQuery');
 
 /**
  * fields
@@ -16,7 +16,7 @@ const engineQuery = require('utilities/hiveEngine/engineQuery');
  * active: whether the reward pool is active.
  */
 
-exports.getRewardPools = async ({ query }) => engineQuery({
+exports.getRewardPools = async ({ query }) => engineProxy({
   params: {
     contract: 'comments',
     table: 'rewardPools',
