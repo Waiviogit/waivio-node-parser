@@ -1,6 +1,6 @@
-const engineQuery = require('./engineQuery');
+const { engineProxy } = require('./engineQuery');
 
-exports.getTransactionInfo = async (txid) => engineQuery({
+exports.getTransactionInfo = async (txid) => engineProxy({
   method: 'getTransactionInfo',
   endpoint: '/blockchain',
   params: { txid },
