@@ -15,7 +15,7 @@ const extractHashtags = (inputString) => {
   }
 
   // Use map to remove the "#" symbol from each hashtag
-  return hashtags.map((hashtag) => hashtag.slice(1));
+  return _.map(hashtags, (hashtag) => hashtag.slice(1));
 };
 
 const extractMentions = (inputString) => {
@@ -24,7 +24,7 @@ const extractMentions = (inputString) => {
   if (!mentions) return [];
 
   // Use map to remove the "@" symbol from each mention
-  return mentions.map((hashtag) => hashtag.slice(1));
+  return _.map(mentions, (hashtag) => hashtag.slice(1));
 };
 
 const extractLinks = (inputString) => {
@@ -35,7 +35,7 @@ const extractLinks = (inputString) => {
 };
 
 const extractCryptoTickers = (inputString, cryptoArray) => {
-  const tickers = cryptoArray.map((crypto) => `\\$${crypto}`);
+  const tickers = _.map(cryptoArray, (crypto) => `\\$${crypto}`);
   const tickersRegex = new RegExp(`(${tickers.join('|')})`, 'g');
   const matches = inputString.match(tickersRegex);
 
@@ -44,7 +44,7 @@ const extractCryptoTickers = (inputString, cryptoArray) => {
   }
 
   // Remove the "$" symbol from each match and remove duplicates
-  const uniqueTickers = [...new Set(matches.map((match) => match.substring(1)))];
+  const uniqueTickers = [...new Set(_.map(matches, (match) => match.substring(1)))];
 
   return uniqueTickers;
 };
@@ -64,7 +64,7 @@ const getCryptoArray = async () => {
   while (true) {
     const tokens = await getTokens({ query: {}, limit, offset });
     if (!tokens?.length) break;
-    symbols.push(...tokens.map((t) => t.symbol));
+    symbols.push(..._.map(tokens, (t) => t?.symbol));
     offset += 1000;
   }
 
