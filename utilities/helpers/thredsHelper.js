@@ -57,13 +57,13 @@ const extractImages = (metadata) => {
 
 const getCryptoArray = async () => {
   const cached = await redisGetter.smembers({ key: REDIS_KEY_TICKERS });
-  if (cached.length) return cached;
+  if (cached?.length) return cached;
   const symbols = ['HIVE', 'HBD', 'BTC', 'ETH', 'LTC'];
   let offset = 0;
   const limit = 1000;
   while (true) {
     const tokens = await getTokens({ query: {}, limit, offset });
-    if (!tokens.length) break;
+    if (!tokens?.length) break;
     symbols.push(...tokens.map((t) => t.symbol));
     offset += 1000;
   }
