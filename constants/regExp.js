@@ -3,6 +3,7 @@ const WOBJECT_REF = '/object/([a-z0-9-]*)';
 exports.HOSTS_TO_PARSE_LINKS = [
   'waivio.com',
   'dining.gifts',
+  'social.gifts',
 ];
 
 exports.RE_HTTPS = new RegExp(/^https:\/\//);
