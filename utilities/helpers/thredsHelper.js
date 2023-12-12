@@ -23,7 +23,7 @@ const extractHashtags = (inputString) => {
 };
 
 const extractMentions = (inputString) => {
-  const mentionRegex = /@[\w.]+/g;
+  const mentionRegex = /@[\w.-]+/g;
   const mentions = inputString.match(mentionRegex);
   if (!mentions) return [];
 
