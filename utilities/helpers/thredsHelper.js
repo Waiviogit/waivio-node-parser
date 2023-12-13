@@ -6,20 +6,24 @@ const { parseJson } = require('./jsonHelper');
 const { REDIS_KEY_TICKERS } = require('../../constants/common');
 const { getTokens } = require('../hiveEngine/tokensContract');
 
+const getBodyLinksArray = (body, regularExpression) => _
+  .chain(body.match(new RegExp(regularExpression, 'gm')))
+  .reduce((acc, link) => [...acc, _.compact(link.match(regularExpression))[1]], [])
+  .compact()
+  .value();
+
 const extractHashtags = (inputString) => {
   const hashtagRegex = /#[a-zA-Z0-9_-]+/g;
   const hashtags = inputString.match(hashtagRegex);
 
-  if (!hashtags) {
-    return [];
-  }
+  const objectLinks = getBodyLinksArray(inputString, /\/object\/([a-z0-9-]*)/);
 
   // Use map to remove the "#" symbol from each hashtag
-  return _.map(hashtags, (hashtag) => hashtag.slice(1));
+  return _.uniq([..._.map(hashtags, (hashtag) => hashtag.slice(1)), ...objectLinks]);
 };
 
 const extractMentions = (inputString) => {
-  const mentionRegex = /@[\w.]+/g;
+  const mentionRegex = /@[\w.-]+/g;
   const mentions = inputString.match(mentionRegex);
   if (!mentions) return [];
 
@@ -62,7 +66,11 @@ const getCryptoArray = async () => {
   let offset = 0;
   const limit = 1000;
   while (true) {
-    const tokens = await getTokens({ query: {}, limit, offset });
+    const tokens = await getTokens({
+      query: {},
+      limit,
+      offset,
+    });
     if (!tokens?.length) break;
     symbols.push(..._.map(tokens, (t) => t?.symbol));
     offset += 1000;
@@ -92,7 +100,10 @@ const parseThread = async (comment) => {
   // todo add notification by mentions
 
   await ThreadModel.updateOne({
-    filter: { author: thread.author, permlink: thread.permlink },
+    filter: {
+      author: thread.author,
+      permlink: thread.permlink,
+    },
     update: thread,
     options: {
       upsert: true,
@@ -102,13 +113,22 @@ const parseThread = async (comment) => {
 
 const parseThreadReply = async (comment) => {
   const { result } = await ThreadModel.findOne({
-    filter: { author: comment.parent_author, permlink: comment.parent_permlink },
-    projection: { author: 1, permlink: 1 },
+    filter: {
+      author: comment.parent_author,
+      permlink: comment.parent_permlink,
+    },
+    projection: {
+      author: 1,
+      permlink: 1,
+    },
   });
   if (!result) return;
 
   await ThreadModel.updateOne({
-    filter: { author: comment.parent_author, permlink: comment.parent_permlink },
+    filter: {
+      author: comment.parent_author,
+      permlink: comment.parent_permlink,
+    },
     update: {
       $addToSet: { replies: `${comment.author}/${comment.permlink}` },
       $inc: { children: 1 },
@@ -117,6 +137,66 @@ const parseThreadReply = async (comment) => {
       upsert: true,
     },
   });
+};
+
+const updateThreadVoteCount = async (votes) => {
+  const uniqVotes = _.uniqWith(
+    votes,
+    (x, y) => x.author === y.author && x.permlink === y.permlink,
+  );
+
+  const incrRefs = _.chain(uniqVotes)
+    .filter((v) => v.weight > 0)
+    .map((v) => ({ author: v.author, permlink: v.permlink }))
+    .value();
+
+  const decrRefs = _.chain(uniqVotes)
+    .filter(votes, (v) => v.weight === 0)
+    .map((v) => ({ author: v.author, permlink: v.permlink }))
+    .value();
+
+  if (incrRefs) {
+    const { result: postIncr } = await ThreadModel.find({
+      filter: {
+        $or: [...incrRefs],
+      },
+      projection: {
+        _id: 1,
+      },
+    });
+    if (postIncr?.length) {
+      await ThreadModel.updateMany({
+        filter: {
+          _id: { $in: _.map(postIncr, '_id') },
+        },
+        update: {
+          $inc: { 'stats.total_votes': 1 },
+        },
+      });
+    }
+  }
+
+  if (decrRefs) {
+    const { result: postDecr } = await ThreadModel.find({
+      filter: {
+        $or: [...decrRefs],
+      },
+      projection: {
+        _id: 1,
+      },
+    });
+
+    if (postDecr?.length) {
+      await ThreadModel.updateMany({
+        filter: {
+          _id: { $in: _.map(postDecr, '_id') },
+        },
+        update: {
+          $inc: { 'stats.total_votes': -1 },
+        },
+      });
+    }
+  }
 };
 
 module.exports = {
@@ -128,4 +208,5 @@ module.exports = {
   getCryptoArray,
   parseThread,
   parseThreadReply,
+  updateThreadVoteCount,
 };

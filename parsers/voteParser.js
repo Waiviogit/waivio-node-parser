@@ -11,9 +11,13 @@ const { ERROR } = require('constants/common');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const redisSetter = require('utilities/redis/redisSetter');
+const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
+
+  await updateThreadVoteCount(votes);
+
   const { votesOps, hiveAccounts } = await votesFormat(votes);
   const { posts = [] } = await Post.getManyPosts(
     _.chain(votesOps)
