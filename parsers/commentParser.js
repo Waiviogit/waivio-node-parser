@@ -13,6 +13,7 @@ const postHelper = require('utilities/helpers/postHelper');
 const { chosenPostValidator, commentValidator } = require('validator');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const postModel = require('models/PostModel');
+const threadModel = require('models/ThreadModel');
 const moment = require('moment');
 const _ = require('lodash');
 const { REDIS_KEYS } = require('constants/parsersData');
@@ -113,6 +114,12 @@ const commentSwitcher = async ({ operation, metadata }) => {
 
 const deleteComment = async (operation) => {
   const { value, error } = commentValidator.deleteCommentSchema.validate(operation);
+
+  await threadModel.updateOne({
+    filter: { author: operation.author, permlink: operation.permlink },
+    update: { deleted: true },
+  });
+
   if (error) return false;
   const { result } = await postModel.findOneAndDelete(
     { root_author: value.author, permlink: value.permlink },
