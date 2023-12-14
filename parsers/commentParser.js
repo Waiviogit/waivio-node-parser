@@ -65,10 +65,6 @@ const commentSwitcher = async ({ operation, metadata }) => {
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
   }
-  const sendNotification = await campaignHelper
-    .parseReservationConversation(_.cloneDeep(operation), metadata);
-
-  if (sendNotification) await notificationsUtil.reply({ ...operation }, metadata);
 
   if (_.get(metadata, 'wobj.action')) {
     switch (metadata.wobj.action) {
@@ -108,6 +104,11 @@ const commentSwitcher = async ({ operation, metadata }) => {
     root_author: operation.parent_author,
     permlink: operation.parent_permlink,
   }, { $inc: { children: 1 } });
+
+  const sendNotification = await campaignHelper
+    .parseReservationConversation(_.cloneDeep(operation), metadata);
+
+  if (sendNotification) await notificationsUtil.reply({ ...operation }, metadata);
 };
 
 const deleteComment = async (operation) => {
