@@ -76,7 +76,7 @@ const PostSchema = new Schema({
   blocked_for_apps: { type: [String] },
   net_rshares_WAIV: { type: Number, default: 0 },
   total_payout_WAIV: { type: Number, default: 0 },
-}, { strict: false, timestamps: true });
+}, { strict: false, timestamps: true, validateBeforeSave: false });
 
 PostSchema.index({ author: 1, permlink: 1 }, { unique: true });
 PostSchema.index({ root_author: 1, permlink: 1 }, { unique: true });

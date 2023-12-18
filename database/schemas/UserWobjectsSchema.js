@@ -7,7 +7,7 @@ const UserWobjectsSchema = new Schema({
   author_permlink: { type: String, require: true },
   weight: { type: Number, default: 0 },
   expertiseWAIV: { type: Number },
-}, { timestamps: false });
+}, { timestamps: false, validateBeforeSave: false });
 
 UserWobjectsSchema.index({ user_name: 1 });
 UserWobjectsSchema.index({ author_permlink: 1 });
