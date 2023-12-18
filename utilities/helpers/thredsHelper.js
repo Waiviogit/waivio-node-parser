@@ -85,14 +85,13 @@ const getCryptoArray = async () => {
   await redisSetter.expire(REDIS_KEY_TICKERS, 60 * 60 * 24);
 };
 
-const parseThread = async (comment) => {
+const parseThread = async (comment, options) => {
   const thread = _.omit(comment, [
     'json_metadata',
     'title',
   ]);
-  thread.stats = {
-    total_votes: comment?.active_votes?.length || 0,
-  };
+
+  thread.percent_hbd = options?.percent_hbd ?? 10000;
 
   const cryptoArray = await getCryptoArray();
   thread.links = extractLinks(comment.body);
@@ -194,7 +193,7 @@ const updateThreadVoteCount = async (votes) => {
     const postValue = tRShares * rewards * parseFloat(priceInfo.price);
 
     post.net_rshares = Math.round(tRShares);
-    post.total_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
+    post.pending_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
   }
 
   await Promise.all(result.map(async (el) => el.save()));

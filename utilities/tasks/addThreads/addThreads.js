@@ -27,10 +27,9 @@ const createThread = async (comment, cryptoArray) => {
     'net_rshares',
     'active_votes',
     'total_payout_value',
+    'pending_payout_value',
+    'percent_hbd',
   ]);
-  thread.stats = {
-    total_votes: comment?.active_votes?.length || 0,
-  };
 
   thread.links = extractLinks(comment.body);
   thread.mentions = extractMentions(comment.body);
