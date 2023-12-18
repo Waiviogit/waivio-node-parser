@@ -140,63 +140,18 @@ const parseThreadReply = async (comment) => {
 };
 
 const updateThreadVoteCount = async (votes) => {
-  const uniqVotes = _.uniqWith(
-    votes,
-    (x, y) => x.author === y.author && x.permlink === y.permlink,
-  );
+  const uniqVotes = _.chain(votes)
+    .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
+    .map((v) => ({ author: v.author, permlink: v.permlink })).value();
 
-  const incrRefs = _.chain(uniqVotes)
-    .filter((v) => v.weight > 0)
-    .map((v) => ({ author: v.author, permlink: v.permlink }))
-    .value();
-
-  const decrRefs = _.chain(uniqVotes)
-    .filter(votes, (v) => v.weight === 0)
-    .map((v) => ({ author: v.author, permlink: v.permlink }))
-    .value();
-
-  if (incrRefs) {
-    const { result: postIncr } = await ThreadModel.find({
-      filter: {
-        $or: [...incrRefs],
-      },
-      projection: {
-        _id: 1,
-      },
-    });
-    if (postIncr?.length) {
-      await ThreadModel.updateMany({
-        filter: {
-          _id: { $in: _.map(postIncr, '_id') },
-        },
-        update: {
-          $inc: { 'stats.total_votes': 1 },
-        },
-      });
-    }
-  }
-
-  if (decrRefs) {
-    const { result: postDecr } = await ThreadModel.find({
-      filter: {
-        $or: [...decrRefs],
-      },
-      projection: {
-        _id: 1,
-      },
-    });
-
-    if (postDecr?.length) {
-      await ThreadModel.updateMany({
-        filter: {
-          _id: { $in: _.map(postDecr, '_id') },
-        },
-        update: {
-          $inc: { 'stats.total_votes': -1 },
-        },
-      });
-    }
-  }
+  const { result: postIncr } = await ThreadModel.find({
+    filter: {
+      $or: [...uniqVotes],
+    },
+    projection: {
+      _id: 1,
+    },
+  });
 };
 
 module.exports = {
