@@ -2,9 +2,14 @@ const redisSetter = require('utilities/redis/redisSetter');
 const redisGetter = require('utilities/redis/redisGetter');
 const { ThreadModel } = require('models');
 const _ = require('lodash');
+const { usersUtil } = require('utilities/steemApi');
+const moment = require('moment/moment');
 const { parseJson } = require('./jsonHelper');
 const { REDIS_KEY_TICKERS } = require('../../constants/common');
 const { getTokens } = require('../hiveEngine/tokensContract');
+const { getHashAll } = require('../redis/redisGetter');
+const { REDIS_KEYS } = require('../../constants/parsersData');
+const { lastBlockClient } = require('../redis/redis');
 
 const getBodyLinksArray = (body, regularExpression) => _
   .chain(body.match(new RegExp(regularExpression, 'gm')))
@@ -144,14 +149,55 @@ const updateThreadVoteCount = async (votes) => {
     .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
     .map((v) => ({ author: v.author, permlink: v.permlink })).value();
 
-  const { result: postIncr } = await ThreadModel.find({
-    filter: {
-      $or: [...uniqVotes],
-    },
-    projection: {
-      _id: 1,
-    },
+  const { result } = await ThreadModel.find({
+    filter: { $or: [...uniqVotes] },
   });
+  if (!result?.length) return;
+
+  const voteOps = _.filter(
+    votes,
+    (el) => _.find(result, (r) => r.author === el.author && r.permlink === el.permlink),
+  );
+  const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
+  const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
+
+  for (const vote of voteOps) {
+    const post = _.find(result, (p) => (p.author === vote.author || p.author === vote.guest_author)
+      && p.permlink === vote.permlink);
+    vote.rshares = +vote.rshares;
+
+    const voteInPost = _.find(post.active_votes, (v) => v.voter === vote.voter);
+
+    const voteInPostRshares = _.get(voteInPost, 'rshares');
+    voteInPost
+      ? Object.assign(
+        voteInPost,
+        usersUtil.handleVoteInPost({ vote, voteInPost, rshares: vote.rshares }),
+      )
+      : post.active_votes.push({
+        voter: vote.voter,
+        percent: vote.weight,
+        rshares: Math.round(vote.rshares),
+        weight: Math.round(vote.rshares * 1e-6),
+      });
+    const createdOverAWeek = moment().diff(moment(_.get(post, 'createdAt')), 'day') > 7;
+    if (!vote.rshares || createdOverAWeek) continue;
+    // net_rshares sum of all post active_votes rshares negative and positive
+    const tRShares = usersUtil.getPostNetRshares({
+      netRshares: parseFloat(_.get(post, 'net_rshares', 0)),
+      weight: vote.weight,
+      voteInPostRshares,
+      rshares: vote.rshares,
+    });
+
+    // *price - to calculate in HBD
+    const postValue = tRShares * rewards * parseFloat(priceInfo.price);
+
+    post.net_rshares = Math.round(tRShares);
+    post.total_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
+  }
+
+  await Promise.all(result.map(async (el) => el.save()));
 };
 
 module.exports = {

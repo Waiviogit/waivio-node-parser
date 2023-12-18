@@ -175,4 +175,6 @@ module.exports = {
   getMutedList,
   getUsers,
   getUser,
+  handleVoteInPost,
+  getPostNetRshares,
 };

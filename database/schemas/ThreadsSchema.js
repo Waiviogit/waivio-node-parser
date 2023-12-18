@@ -27,6 +27,17 @@ const ThreadSchema = new Schema({
   threadstorm: { type: Boolean, default: false },
   // end of original schema leo finance
   net_rshares: { type: Number },
+  total_payout_value: { type: String },
+  active_votes: {
+    type: [{
+      voter: { type: String },
+      weight: { type: Number },
+      percent: { type: Number },
+      rshares: { type: Number },
+      rsharesWAIV: { type: Number },
+    }],
+    default: [],
+  },
 
 }, { versionKey: false, timestamps: true });
 

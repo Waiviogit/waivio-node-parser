@@ -25,6 +25,8 @@ const createThread = async (comment, cryptoArray) => {
     'depth',
     'author_reputation',
     'net_rshares',
+    'active_votes',
+    'total_payout_value',
   ]);
   thread.stats = {
     total_votes: comment?.active_votes?.length || 0,

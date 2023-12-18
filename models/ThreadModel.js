@@ -26,7 +26,7 @@ exports.findOne = async ({ filter, projection, options }) => {
 
 exports.find = async ({ filter, projection, options }) => {
   try {
-    return { result: await Threads.find(filter, projection, options).lean() };
+    return { result: await Threads.find(filter, projection, options) };
   } catch (error) {
     return { error };
   }
