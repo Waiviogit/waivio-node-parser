@@ -35,7 +35,7 @@ const ThreadSchema = new Schema({
     default: [],
   },
   percent_hbd: { type: Number },
-}, { versionKey: false, timestamps: true });
+}, { versionKey: false, timestamps: true, validateBeforeSave: false });
 
 ThreadSchema.index({ author: 1, permlink: 1 }, { unique: true });
 ThreadSchema.index({ hashtags: 1, createdAt: -1 });
