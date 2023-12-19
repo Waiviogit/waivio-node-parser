@@ -41,7 +41,7 @@ const parse = async ({
     await postSwitcher({ operation, metadata, options });
   } else if (operation.parent_author && operation.parent_permlink) {
     // comment with parent_author is REPLY TO POST
-    await commentSwitcher(({ operation, metadata }));
+    await commentSwitcher(({ operation, metadata, options }));
   }
   await redisSetter.publishToChannel({
     channel: REDIS_KEYS.TX_ID_MAIN,
@@ -62,7 +62,7 @@ const postSwitcher = async ({
   }
 };
 
-const commentSwitcher = async ({ operation, metadata }) => {
+const commentSwitcher = async ({ operation, metadata, options }) => {
   if (_.get(metadata, 'comment.userId')) {
     await guestCommentParser.parse({ operation, metadata });
   }
@@ -80,7 +80,7 @@ const commentSwitcher = async ({ operation, metadata }) => {
 
   // Threads logic
   if (operation.parent_author === THREADS_ACC) {
-    await parseThread(operation);
+    await parseThread(operation, options);
   } else {
     await parseThreadReply(operation);
   }
