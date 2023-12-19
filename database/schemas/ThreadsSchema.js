@@ -35,6 +35,7 @@ const ThreadSchema = new Schema({
     default: [],
   },
   percent_hbd: { type: Number },
+  cashout_time: { type: String },
 }, { versionKey: false, timestamps: true, validateBeforeSave: false });
 
 ThreadSchema.index({ author: 1, permlink: 1 }, { unique: true });

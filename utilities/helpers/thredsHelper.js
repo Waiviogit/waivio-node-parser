@@ -99,6 +99,7 @@ const parseThread = async (comment, options) => {
   thread.hashtags = extractHashtags(comment.body);
   thread.images = extractImages(comment.json_metadata);
   thread.tickers = extractCryptoTickers(comment.json_metadata, cryptoArray);
+  thread.cashout_time = moment().add(7, 'days').toISOString();
 
   // todo add notification by hashtags check bell
   // todo add notification by mentions

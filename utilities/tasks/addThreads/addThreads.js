@@ -29,6 +29,7 @@ const createThread = async (comment, cryptoArray) => {
     'total_payout_value',
     'pending_payout_value',
     'percent_hbd',
+    'cashout_time',
   ]);
 
   thread.links = extractLinks(comment.body);
