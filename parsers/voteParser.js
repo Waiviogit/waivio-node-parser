@@ -18,7 +18,7 @@ const parse = async (votes) => {
 
   await updateThreadVoteCount(votes);
 
-  const { votesOps, hiveAccounts } = await votesFormat(votes);
+  const { votesOps } = await votesFormat(votes);
   const { posts = [] } = await Post.getManyPosts(
     _.chain(votesOps)
       .filter((v) => !!v.type)
@@ -26,7 +26,7 @@ const parse = async (votes) => {
       .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
       .value(),
   );
-  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts, hiveAccounts });
+  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
   await sendLikeNotification(votesOps);
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithVotes);

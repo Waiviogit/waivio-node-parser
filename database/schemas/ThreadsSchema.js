@@ -2,10 +2,6 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
-const StatsSchema = new Schema({
-  total_votes: { type: Number, default: 0 },
-}, { versionKey: false, _id: false });
-
 const ThreadSchema = new Schema({
   author: { type: String, required: true },
   permlink: { type: String, required: true },
@@ -16,7 +12,6 @@ const ThreadSchema = new Schema({
   replies: { type: [String], default: [] },
   children: { type: Number, default: 0 },
   depth: { type: Number, default: 1 },
-  stats: { type: StatsSchema },
   author_reputation: { type: Number },
   deleted: { type: Boolean, default: false },
   tickers: { type: [String] },
@@ -27,8 +22,21 @@ const ThreadSchema = new Schema({
   threadstorm: { type: Boolean, default: false },
   // end of original schema leo finance
   net_rshares: { type: Number },
-
-}, { versionKey: false, timestamps: true });
+  pending_payout_value: { type: String },
+  total_payout_value: { type: String },
+  active_votes: {
+    type: [{
+      voter: { type: String },
+      weight: { type: Number },
+      percent: { type: Number },
+      rshares: { type: Number },
+      rsharesWAIV: { type: Number },
+    }],
+    default: [],
+  },
+  percent_hbd: { type: Number },
+  cashout_time: { type: String },
+}, { versionKey: false, timestamps: true, validateBeforeSave: false });
 
 ThreadSchema.index({ author: 1, permlink: 1 }, { unique: true });
 ThreadSchema.index({ hashtags: 1, createdAt: -1 });
