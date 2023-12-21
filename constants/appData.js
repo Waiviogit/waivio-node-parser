@@ -116,7 +116,7 @@ const notificationsApi = {
 
 // valid urls of HIVE nodes for getting blocks with transactions.
 const COMMON_RPC_NODES = [
-  'https://api.hive.blog',
+  //'https://api.hive.blog',
   'https://anyx.io',
   'https://api.openhive.network',
   'https://hive-api.arcange.eu',

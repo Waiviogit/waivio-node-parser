@@ -34,7 +34,7 @@ exports.getRewardPools = async ({ query }) => engineProxy({
  * downvotingPower: downvoting power at last vote timestamp
  */
 
-exports.getVotingPower = async ({ query }) => engineQuery({
+exports.getVotingPower = async ({ query }) => engineProxy({
   params: {
     contract: 'comments',
     table: 'votingPower',
