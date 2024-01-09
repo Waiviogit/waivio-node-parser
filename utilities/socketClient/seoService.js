@@ -22,6 +22,26 @@ const createSiteMap = async ({ host }) => {
   }
 };
 
+const addSitemapPost = async ({ host, author, permlink }) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/sitemap/post`,
+      {
+        host,
+        author,
+        permlink,
+      },
+      {
+        timeout: 5000,
+      },
+    );
+
+    return response?.data ?? '';
+  } catch (error) {
+    return '';
+  }
+};
+
 const deleteSitemap = async ({ host }) => {
   try {
     const response = await axios.delete(
@@ -43,6 +63,7 @@ const deleteSitemap = async ({ host }) => {
 const sitemap = {
   createSiteMap,
   deleteSitemap,
+  addSitemapPost,
 };
 
 module.exports = {
