@@ -109,6 +109,9 @@ const createOrUpdatePost = async ({
     const { notificationData } = await addWobjectNames(_.cloneDeep(data));
     await notificationsUtils.post(notificationData);
     await postHelper.addToRelated(data.wobjects, metadata.image, `${data.author}_${data.permlink}`);
+    postHelper.addPostToSitemap({
+      host: metadata?.host, author: data.author, permlink: data.permlink,
+    });
     return { updPost, action: 'created' };
   }
 

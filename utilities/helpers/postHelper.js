@@ -5,6 +5,7 @@ const {
 } = require('models');
 const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
+const seoService = require('utilities/socketClient/seoService');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
 const { RE_HTTPS, RE_WOBJECT_REF, RE_HASHTAGS } = require('constants/regExp');
@@ -270,6 +271,12 @@ exports.hideCommentWobjectsFromPost = async ({ author, permlink, body = '' }) =>
   ]);
   if (_.isEmpty(authorPermlinks)) return false;
   return !!(await Post.removeWobjectsFromPost({ author, permlink, authorPermlinks })).result;
+};
+
+exports.addPostToSitemap = ({ host, author, permlink }) => {
+  if (!host) return;
+  if (/(waivio\.com|waiviodev\.com)/.test(host)) return;
+  seoService.sitemap.addSitemapPost({ host, author, permlink });
 };
 
 const getBodyLinksArray = (body, regularExpression) => _
