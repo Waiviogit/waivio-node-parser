@@ -9,6 +9,7 @@ exports.settingsSchema = Joi.object().keys({
   appId: Joi.string().required(),
   googleAnalyticsTag: Joi.string().allow(''),
   googleGSCTag: Joi.string().allow(''),
+  googleEventSnippet: Joi.string().allow(''),
   beneficiary: Joi.object().keys({
     account: Joi.string().required(),
     percent: Joi.number().min(1).max(10000).required(),
