@@ -41,7 +41,7 @@ const UserMetadataSchema = new Schema({
     votePercent: {
       type: Number, min: 1, max: 10000, default: 5000,
     }, // default percent of your upvotes
-    votingPower: { type: Boolean, default: false }, // dynamic toggle of vote power on each vote
+    votingPower: { type: Boolean, default: true }, // dynamic toggle of vote power on each vote
     userNotifications: { type: UserNotificationsSchema, default: () => ({}) },
     currency: {
       type: String,
