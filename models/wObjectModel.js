@@ -134,7 +134,7 @@ const addVote = async ({
         },
         { $push: { 'fields.$.active_votes': vote } },
       );
-      return { result: result.nModified === 1 };
+      return { result: result.modifiedCount === 1 };
     }
 
     const wobject = await WObjectModel.findOne(
