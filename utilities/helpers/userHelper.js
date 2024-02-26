@@ -9,9 +9,10 @@ const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
 const { REVIEW_DEBTS_TYPES } = require('constants/campaigns');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const { ERROR } = require('constants/common');
-const { REQUIRED_POSTING_AUTHS, REDIS_KEYS } = require('constants/parsersData');
+const { REDIS_KEYS } = require('constants/parsersData');
 const config = require('config');
 const redisSetter = require('utilities/redis/redisSetter');
+const { customJsonHelper } = require('./index');
 
 /**
  * Create user in DB if it not exist,
@@ -65,8 +66,10 @@ exports.checkAndCreateByArray = async (names) => {
     name:
       { $in: _.map(steemUsers, (user) => user.name) },
   }, { name: 1, stage_version: 1 });
-  const notExistingUsers = users.length ? _.filter(steemUsers, (steemUser) => !_.some(users,
-    (user) => _.includes(user.name, steemUser.name))) : steemUsers;
+  const notExistingUsers = users.length ? _.filter(steemUsers, (steemUser) => !_.some(
+    users,
+    (user) => _.includes(user.name, steemUser.name),
+  )) : steemUsers;
   const { users: savedUsers } = await userModel.createMany(_.map(notExistingUsers, (user) => _.pick(user, 'name')));
   if (savedUsers && savedUsers.length) users.push(...savedUsers);
   for (const user of users) {
@@ -81,7 +84,7 @@ exports.checkAndSetReferral = async (data) => {
   const json = jsonHelper.parseJson(data.json);
   if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
 
-  let author = _.get(data, REQUIRED_POSTING_AUTHS);
+  let author = customJsonHelper.getTransactionAccount(data);
   const agent = _.get(json, 'agent');
   if (!author || !agent) return { error: 'Not valid data' };
 
@@ -96,8 +99,10 @@ exports.checkAndSetReferral = async (data) => {
   /** Check for guest user */
   const guestName = _.get(json, 'guestName');
   if (guestName) {
-    const bot = _.find(service_bots,
-      (record) => record.name === author);
+    const bot = _.find(
+      service_bots,
+      (record) => record.name === author,
+    );
     if (!bot) return { error: 'Author of guest info must be one of our bots' };
     author = guestName;
   }
@@ -117,8 +122,10 @@ exports.checkAndSetReferral = async (data) => {
   switch (json.type) {
     case REFERRAL_TYPES.REWARDS:
     case REFERRAL_TYPES.REVIEWS:
-      const referralTypeData = _.find(referralsData,
-        (referral) => referral.type === json.type);
+      const referralTypeData = _.find(
+        referralsData,
+        (referral) => referral.type === json.type,
+      );
 
       const { result } = await paymentHistoriesModel.findOne(
         { userName: author, type: { $in: REVIEW_DEBTS_TYPES } },
@@ -150,8 +157,10 @@ const referralValidation = async (json, author, postingAuth) => {
   const isGuest = _.get(json, 'isGuest', false);
   if (isGuest) {
     const { result: { service_bots = [] } } = await appHelper.getAppData(config.appHost);
-    const bot = _.find(service_bots,
-      (record) => record.name === postingAuth);
+    const bot = _.find(
+      service_bots,
+      (record) => record.name === postingAuth,
+    );
     if (!bot) return { error: 'Author of guest info must be one of our bots' };
   }
 
@@ -166,7 +175,11 @@ exports.confirmReferralStatus = async (data, transactionId) => {
   if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
   const author = _.get(json, 'agent');
 
-  const { error } = await referralValidation(json, author, _.get(data, REQUIRED_POSTING_AUTHS));
+  const { error } = await referralValidation(
+    json,
+    author,
+    customJsonHelper.getTransactionAccount(data),
+  );
   if (error) return { error };
   await redisSetter.publishToChannel({
     channel: REDIS_KEYS.TX_ID_MAIN,
@@ -174,8 +187,10 @@ exports.confirmReferralStatus = async (data, transactionId) => {
   });
 
   /** Set user referral status */
-  return userModel.updateOne({ name: author },
-    { $set: { referralStatus: REFERRAL_STATUSES.ACTIVATED } });
+  return userModel.updateOne(
+    { name: author },
+    { $set: { referralStatus: REFERRAL_STATUSES.ACTIVATED } },
+  );
 };
 
 exports.rejectReferralStatus = async (data, transactionId) => {
@@ -183,7 +198,11 @@ exports.rejectReferralStatus = async (data, transactionId) => {
   if (_.isEmpty(json)) return { error: ERROR.INVALID_JSON };
   const author = _.get(json, 'agent');
 
-  const { error } = await referralValidation(json, author, _.get(data, REQUIRED_POSTING_AUTHS));
+  const { error } = await referralValidation(
+    json,
+    author,
+    customJsonHelper.getTransactionAccount(data),
+  );
   if (error) return { error };
 
   let { user } = await userModel.findOne(author);
@@ -192,8 +211,10 @@ exports.rejectReferralStatus = async (data, transactionId) => {
     return { error: 'User must have activated status' };
   }
   /** Set user referral status */
-  await userModel.updateOne({ name: author },
-    { $set: { referralStatus: REFERRAL_STATUSES.REJECTED } });
+  await userModel.updateOne(
+    { name: author },
+    { $set: { referralStatus: REFERRAL_STATUSES.REJECTED } },
+  );
 
   /** Remove all referrals from agent */
   await userModel.update(

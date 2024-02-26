@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
-const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
@@ -10,9 +9,10 @@ const { postsUtil } = require('utilities/steemApi');
 const userParsers = require('parsers/userParsers');
 const { Post, CommentModel } = require('models');
 const voteParser = require('parsers/voteParser');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 exports.followUser = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
@@ -22,7 +22,7 @@ exports.followUser = async (operation) => {
 };
 
 exports.reblogPost = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
@@ -32,7 +32,7 @@ exports.reblogPost = async (operation) => {
 };
 
 exports.followWobject = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
@@ -42,7 +42,7 @@ exports.followWobject = async (operation) => {
 };
 
 exports.guestVote = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 
@@ -56,7 +56,7 @@ exports.guestVote = async (operation) => {
 };
 
 exports.accountUpdate = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
     await userParsers.updateAccountParser(json);
@@ -64,7 +64,7 @@ exports.accountUpdate = async (operation) => {
 };
 
 exports.subscribeNotification = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (!json || _.isEmpty(json)) return;
 

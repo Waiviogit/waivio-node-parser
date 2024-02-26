@@ -1,17 +1,16 @@
-const { REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 const { hiveEngineValidator } = require('validator');
 const { EngineAccountHistory } = require('models');
 const moment = require('moment');
-const _ = require('lodash');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 exports.create = async (data, operation, blockNum, transactionId, timestamp) => {
   const { payload, action } = data;
-  const userName = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const account = customJsonHelper.getTransactionAccount(operation);
 
   const { error, value } = hiveEngineValidator
     .createDepositSchema
     .validate({
-      account: userName,
+      account,
       destination: payload.destination,
       pair: payload.pair,
       ex_rate: payload.ex_rate,

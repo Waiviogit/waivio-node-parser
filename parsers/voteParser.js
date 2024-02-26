@@ -5,13 +5,14 @@ const { voteFieldHelper, votePostHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
 const {
-  VOTE_TYPES, REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, REDIS_KEYS,
+  VOTE_TYPES, REDIS_KEYS,
 } = require('constants/parsersData');
 const { ERROR } = require('constants/common');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const redisSetter = require('utilities/redis/redisSetter');
 const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -199,8 +200,9 @@ const customJSONAppendVote = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
   // check author of operation and voter
-  if (_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, 'voter')) {
+  if (customJsonHelper.getTransactionAccount(operation) !== _.get(json, 'voter')) {
     console.error(ERROR.CUSTOM_JSON_APPEND_VOTE);
+    return;
   }
   const { error, value } = jsonVoteValidator.voteSchema.validate(json);
   if (error) return;

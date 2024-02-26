@@ -6,7 +6,7 @@ const {
 const {
   App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User,
 } = require('models');
-const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS, MUTE_ACTION } = require('constants/parsersData');
+const { MUTE_ACTION } = require('constants/parsersData');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const postModeration = require('utilities/moderation/postModeration');
 const { sitesValidator, objectBotsValidator } = require('validator');
@@ -17,6 +17,7 @@ const Sentry = require('@sentry/node');
 const moment = require('moment');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const { nginxService } = require('../nginxService');
 const seoService = require('../socketClient/seoService');
 const { REDIS_KEYS } = require('../../constants/parsersData');
@@ -24,7 +25,7 @@ const { REDIS_KEYS } = require('../../constants/parsersData');
 const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
 
 exports.createWebsite = async (operation) => {
-  if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
+  if (!await validateServiceBot(customJsonHelper.getTransactionAccount(operation))) return;
   const json = parseJson(operation.json);
   const { result: parent } = await App.findOne({ host: json.parentHost, canBeExtended: true });
   if (!parent) return false;
@@ -68,7 +69,7 @@ exports.createWebsite = async (operation) => {
 };
 
 exports.deleteWebsite = async (operation) => {
-  if (!await validateServiceBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) return;
+  if (!await validateServiceBot(customJsonHelper.getTransactionAccount(operation))) return;
   const json = parseJson(operation.json);
   const { result: app } = await App.findOne({
     host: json.host, owner: json.userName, inherited: true, status: { $in: CAN_DELETE_STATUSES },
@@ -91,13 +92,14 @@ exports.deleteWebsite = async (operation) => {
 };
 
 exports.activationActions = async (operation, activate) => {
-  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const owner = customJsonHelper.getTransactionAccount(operation);
+
   const json = parseJson(operation.json);
-  if (!json || !author) return false;
+  if (!json || !owner) return false;
 
   const condition = {
     host: json.host,
-    owner: author,
+    owner,
     inherited: true,
     status: activate ? { $in: [STATUSES.PENDING, STATUSES.INACTIVE] } : STATUSES.ACTIVE,
     // $or: [{ deactivatedAt: null }, { deactivatedAt: { $gt: moment.utc().subtract(6, 'month').toDate() } }],
@@ -114,24 +116,25 @@ exports.activationActions = async (operation, activate) => {
 };
 
 exports.saveWebsiteSettings = async (operation) => {
-  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const owner = customJsonHelper.getTransactionAccount(operation);
   const json = parseJson(operation.json);
-  if (!json || !author) return false;
+  if (!json || !owner) return false;
   const { error, value } = sitesValidator.settingsSchema.validate(json);
   if (error) return captureException(error);
 
-  await App.updateOne({ _id: value.appId, owner: author, inherited: true }, _.omit(value, ['appId']));
+  await App.updateOne({ _id: value.appId, owner, inherited: true }, _.omit(value, ['appId']));
 };
 
 exports.saveAdSenseSettings = async (operation) => {
-  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const owner = customJsonHelper.getTransactionAccount(operation);
+
   const json = parseJson(operation.json);
-  if (!json || !author) return false;
+  if (!json || !owner) return false;
   const { error, value } = sitesValidator.adSenseSchema.validate(json);
   if (error) return captureException(error);
 
   await App.updateOne({
-    host: value.host, owner: author, inherited: true,
+    host: value.host, owner, inherited: true,
   }, {
     adSense: {
       level: value.level,
@@ -144,7 +147,7 @@ exports.saveAdSenseSettings = async (operation) => {
 };
 
 exports.setCanonical = async (operation) => {
-  const owner = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const owner = customJsonHelper.getTransactionAccount(operation);
   const json = parseJson(operation.json);
   if (!json || !owner) return false;
   const { error, value } = sitesValidator.canonicalSchema.validate(json);
@@ -164,16 +167,17 @@ exports.setCanonical = async (operation) => {
 };
 
 exports.refundRequest = async (operation, blockNum) => {
-  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
-  const json = parseJson(operation.json);
-  if (!json || !author) return false;
+  const owner = customJsonHelper.getTransactionAccount(operation);
 
-  const { payable: accountBalance, error } = await getAccountBalance(author);
+  const json = parseJson(operation.json);
+  if (!json || !owner) return false;
+
+  const { payable: accountBalance, error } = await getAccountBalance(owner);
   if (error) return captureException(error);
   if (accountBalance <= 0) return false;
 
   const { result: refundRequest, error: refundError } = await websiteRefunds.findOne(
-    { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName: author },
+    { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName: owner },
   );
   if (refundError) return captureException(refundError);
   if (refundRequest) return false;
@@ -181,7 +185,7 @@ exports.refundRequest = async (operation, blockNum) => {
   const { error: createError, result } = await websiteRefunds.create({
     type: REFUND_TYPES.WEBSITE_REFUND,
     description: json.description,
-    userName: author,
+    userName: owner,
     blockNum,
   });
   if (createError) return captureException(createError);
@@ -189,7 +193,8 @@ exports.refundRequest = async (operation, blockNum) => {
 };
 
 exports.createInvoice = async (operation, blockNum) => {
-  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const author = customJsonHelper.getTransactionAccount(operation);
+
   const json = parseJson(operation.json);
   if (!json || !author || !await objectBotsValidator.validate(author, 'serviceBot')) return false;
 
@@ -202,9 +207,10 @@ exports.createInvoice = async (operation, blockNum) => {
 };
 
 exports.websiteAuthorities = async (operation, type, add) => {
-  const author = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const owner = customJsonHelper.getTransactionAccount(operation);
+
   const json = parseJson(operation.json);
-  if (!json || !author) return false;
+  if (!json || !owner) return false;
 
   const { error, value } = sitesValidator.authoritySchema.validate(json);
   if (error) {
@@ -212,7 +218,7 @@ exports.websiteAuthorities = async (operation, type, add) => {
     return false;
   }
 
-  const condition = { owner: author, inherited: true, host: value.host };
+  const condition = { owner, inherited: true, host: value.host };
   const updateData = add
     ? { $addToSet: { [type]: { $each: value.names } } }
     : { $pullAll: { [type]: value.names } };
@@ -403,7 +409,8 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
 };
 
 exports.setWebsiteReferralAccount = async (operation) => {
-  const owner = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const owner = customJsonHelper.getTransactionAccount(operation);
+
   const { host, account } = parseJson(operation.json);
   if (!host || !owner || !account) return false;
   const { result } = await App.findOne({ host, owner });

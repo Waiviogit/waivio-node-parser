@@ -16,4 +16,5 @@ module.exports = {
   userHelper: require('./userHelper'),
   appHelper: require('./appHelper'),
   hiveEngineHelper: require('./hiveEngineHelper'),
+  customJsonHelper: require('./customJsonHelper'),
 };
