@@ -156,8 +156,8 @@ const guestWebsiteAction = async (operation) => {
   }
 
   await this.parse({
-    id: value.operation.id,
+    id: value.data.id,
     required_posting_auths: [value.userName],
-    json: JSON.stringify(value.operation.json),
+    json: JSON.stringify(value.data.json),
   });
 };

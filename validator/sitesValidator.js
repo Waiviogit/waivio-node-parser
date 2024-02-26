@@ -53,7 +53,7 @@ exports.muteUser = Joi.object().keys({
 });
 
 exports.guestActionSchema = Joi.object().keys({
-  operation: Joi.object().keys({
+  data: Joi.object().keys({
     id: Joi.string().valid(...WEBSITE_GUEST_ACTIONS).required(),
     json: Joi.object().required(),
   }).required(),
