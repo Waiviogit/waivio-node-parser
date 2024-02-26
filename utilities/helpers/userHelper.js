@@ -12,7 +12,7 @@ const { ERROR } = require('constants/common');
 const { REDIS_KEYS } = require('constants/parsersData');
 const config = require('config');
 const redisSetter = require('utilities/redis/redisSetter');
-const { customJsonHelper } = require('./index');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 /**
  * Create user in DB if it not exist,
