@@ -29,6 +29,8 @@ const smembers = async ({
   key, client = expiredPostsClient,
 }) => client.smembersAsync(key);
 
+const getAsync = async ({ key, client = lastBlockClient }) => client.getAsync(key);
+
 module.exports = {
-  getHashAll, getLastBlockNum, getTagCategories, zrevrange, sismember, smembers,
+  getHashAll, getLastBlockNum, getTagCategories, zrevrange, sismember, smembers, getAsync,
 };
