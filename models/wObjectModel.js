@@ -1,11 +1,10 @@
 const WObjectModel = require('database').models.WObject;
 const ObjectTypes = require('database').models.ObjectType;
 const _ = require('lodash');
-const { WOBJECT_LATEST_POSTS_COUNT } = require('constants/wobjectsData');
 const {
-  FIELDS_NAMES,
+  WOBJECT_LATEST_POSTS_COUNT, FIELDS_NAMES,
   OBJECT_TYPES,
-} = require('../constants/wobjectsData');
+} = require('constants/wobjectsData');
 
 const create = async (data) => {
   const newWObject = new WObjectModel(data);

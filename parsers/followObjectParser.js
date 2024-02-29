@@ -2,14 +2,14 @@ const _ = require('lodash');
 const { ERROR } = require('constants/common');
 const { userHelper } = require('utilities/helpers');
 const { Wobj, wobjectSubscriptions } = require('models');
-const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
 const jsonHelper = require('utilities/helpers/jsonHelper');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 const parse = async (data) => {
   const json = jsonHelper.parseJson(data.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
   // check author of operation and user which will be updated
-  if (_.get(data, REQUIRED_POSTING_AUTHS) !== _.get(json, '[1].user') && _.get(data, REQUIRED_AUTHS) !== _.get(json, '[1].user')) {
+  if (customJsonHelper.getTransactionAccount(data) !== _.get(json, '[1].user')) {
     console.error(ERROR.FOLLOW_OBJECT_PARSER);
     return;
   }

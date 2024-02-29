@@ -1,6 +1,6 @@
 const { SUPPORTED_CURRENCIES, APP_LANGUAGES, APP_ADSENCE_LEVELS } = require('constants/common');
 const { PAYMENT_TYPES } = require('constants/sitesData');
-const { MUTE_ACTION } = require('constants/parsersData');
+const { MUTE_ACTION, WEBSITE_GUEST_ACTIONS } = require('constants/parsersData');
 const Joi = require('joi');
 
 const options = { allowUnknown: true, stripUnknown: true };
@@ -51,3 +51,11 @@ exports.muteUser = Joi.object().keys({
   action: Joi.string().valid(...Object.values(MUTE_ACTION)).required(),
   mutedForApps: Joi.array().items(Joi.string()).required(),
 });
+
+exports.guestActionSchema = Joi.object().keys({
+  data: Joi.object().keys({
+    id: Joi.string().valid(...WEBSITE_GUEST_ACTIONS).required(),
+    json: Joi.object().required(),
+  }).required(),
+  userName: Joi.string().required(),
+}).options(options);
