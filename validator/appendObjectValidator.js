@@ -34,6 +34,9 @@ const {
   affiliateProductIdTypesSchema,
   affiliateGeoSchema,
   affiliateCodeSchema,
+  mapTypesSchema,
+  mapViewSchema,
+  mapRectanglesSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -370,8 +373,48 @@ const validateSpecifiedFields = async (data) => {
       const [siteOrPersonalAff, affCode] = affCodeField;
       data.field.body = JSON.stringify([removeProtocol(siteOrPersonalAff), affCode]);
       break;
+    case FIELDS_NAMES.MAP_OBJECT_TAGS:
+    case FIELDS_NAMES.MAP_OBJECT_TYPES:
+      // uniq
+      const { value: mapTypes, error: mapTypesErr } = mapTypesSchema
+        .validate(_.uniq(jsonHelper.parseJson(data.field.body)));
+      if (mapTypesErr) {
+        throw new Error(`Can't append ${fieldName}`);
+      }
+      data.field.body = JSON.stringify(mapTypes);
+      break;
+    case FIELDS_NAMES.MAP_MOBILE_VIEW:
+    case FIELDS_NAMES.MAP_DESKTOP_VIEW:
+      const { error: mapViewErr } = mapViewSchema
+        .validate(jsonHelper.parseJson(data.field.body));
+      if (mapViewErr) {
+        throw new Error(`Can't append ${fieldName}`);
+      }
+      break;
+    case FIELDS_NAMES.MAP_RECTANGLES:
+      const processedRectangles = filterMapRectangles(jsonHelper.parseJson(data.field.body));
+
+      const { value: mapRectangles, error: mapRectanglesErr } = mapRectanglesSchema
+        .validate(processedRectangles);
+      if (mapRectanglesErr) {
+        throw new Error(`Can't append ${fieldName}`);
+      }
+      data.field.body = JSON.stringify(mapRectangles);
+      break;
   }
 };
+
+const isRectangleIncluded = (rect1, rect2) => {
+  const { topPoint: [x1, y1], bottomPoint: [x2, y2] } = rect1;
+  const { topPoint: [x3, y3], bottomPoint: [x4, y4] } = rect2;
+
+  return x3 >= x1 && x4 <= x2 && y3 >= y1 && y4 <= y2;
+};
+
+const filterMapRectangles = (rectangles) => rectangles
+  .filter(
+    (rect1, i) => !rectangles.some((rect2, j) => i !== j && isRectangleIncluded(rect2, rect1)),
+  );
 
 const removeProtocol = (str) => str.replace(/^(https?:\/\/(www\.)?)?/i, '');
 
