@@ -6,7 +6,10 @@ const { customJsonOperations } = require('utilities/guestOperations');
 const { CUSTOM_JSON_OPS, REDIS_KEYS } = require('constants/parsersData');
 const hiveEngineCustom = require('utilities/customJsonHiveEngine/hiveEngineCustom');
 const redisSetter = require('utilities/redis/redisSetter');
+const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const { parseJson } = require('../utilities/helpers/jsonHelper');
+const { sitesValidator } = require('../validator');
 
 exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
   switch (operation.id) {
@@ -131,9 +134,30 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
     case CUSTOM_JSON_OPS.WEBSITE_CANONICAL:
       await sitesHelper.setCanonical(operation);
       break;
+    case CUSTOM_JSON_OPS.WEBSITE_GUEST:
+      await guestWebsiteAction(operation);
+      break;
     /** Hive engine */
     case CUSTOM_JSON_OPS.WAIVIO_HIVE_ENGINE:
       await hiveEngineCustom.parse(operation, blockNum, transaction_id, timestamp);
       break;
   }
+};
+
+const guestWebsiteAction = async (operation) => {
+  if (!await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) return;
+
+  const payload = parseJson(operation.json);
+
+  const { error, value } = sitesValidator.guestActionSchema.validate(payload);
+  if (error) {
+    console.error(error.message);
+    return false;
+  }
+
+  await this.parse({
+    id: value.data.id,
+    required_posting_auths: [value.userName],
+    json: JSON.stringify(value.data.json),
+  });
 };

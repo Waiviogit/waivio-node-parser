@@ -167,6 +167,20 @@ const getMutedList = async (name) => {
   }
 };
 
+const getDelegations = async (account, cb = (el) => _.get(el, 'delegations', [])) => {
+  try {
+    const result = await hiveMindClient.call(
+      'database_api',
+      'find_vesting_delegations',
+      { account },
+    );
+    if (!result) return { error: { status: 404, message: 'Not Found' } };
+    return cb(result);
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   getDynamicGlobalProperties,
   getCurrentPriceInfo,
@@ -177,4 +191,5 @@ module.exports = {
   getUser,
   handleVoteInPost,
   getPostNetRshares,
+  getDelegations,
 };

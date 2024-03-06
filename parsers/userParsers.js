@@ -4,8 +4,8 @@ const {
   hiddenPostModel, hiddenCommentModel, mutedUserModel,
 } = require('models');
 const {
-  BELL_NOTIFICATIONS, HIDE_ACTION, REQUIRED_AUTHS,
-  REQUIRED_POSTING_AUTHS, CUSTOM_JSON_OPS, MUTE_ACTION,
+  BELL_NOTIFICATIONS, HIDE_ACTION,
+  CUSTOM_JSON_OPS, MUTE_ACTION,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
@@ -15,6 +15,7 @@ const jsonHelper = require('utilities/helpers/jsonHelper');
 const postUtil = require('utilities/helpers/postHelper');
 const { postsUtil } = require('utilities/steemApi');
 const { ERROR } = require('constants/common');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.owner && operation.active && operation.posting && operation.memo_key) {
@@ -73,10 +74,10 @@ exports.followUserParser = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
   // check author of operation and user which will be updated
-  if (_.get(json, '[0]') === 'reblog' && _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, '[1].account')) {
+  if (_.get(json, '[0]') === 'reblog' && customJsonHelper.getTransactionAccount(operation) !== _.get(json, '[1].account')) {
     console.error(ERROR.FOLLOW_USER_PARSER_REBLOG);
     return;
-  } if (_.get(json, '[0]') === 'follow' && _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, '[1].follower')) {
+  } if (_.get(json, '[0]') === 'follow' && customJsonHelper.getTransactionAccount(operation) !== _.get(json, '[1].follower')) {
     console.error(ERROR.FOLLOW_USER_PARSER_FOLLOW_DIFFERENT);
     return;
   }
@@ -86,7 +87,7 @@ exports.followUserParser = async (operation) => {
   }
 
   if (_.get(json, '[0]') === 'reblog') {
-    await this.reblogPostParser({ json, account: _.get(operation, REQUIRED_POSTING_AUTHS) });
+    await this.reblogPostParser({ json, account: customJsonHelper.getTransactionAccount(operation) });
   }
   if (_.get(json, '[0]') === 'follow' && _.get(json, '[1].follower') && _.get(json, '[1].following') && _.get(json, '[1].what')) {
     const { user } = await Subscriptions.findOne(json[1]);
@@ -161,7 +162,7 @@ exports.subscribeNotificationsParser = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
-  if (_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)) !== _.get(json, '[1].follower')) {
+  if (customJsonHelper.getTransactionAccount(operation) !== _.get(json, '[1].follower')) {
     return console.error(ERROR.SUBSCRIBE_NOTIFICATIONS);
   }
   const { follower, following, subscribe } = json[1];
@@ -185,7 +186,7 @@ exports.hidePostParser = async (operation) => {
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
   const { author, permlink, action } = json;
-  const userName = _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS));
+  const userName = customJsonHelper.getTransactionAccount(operation);
   const { post } = await Post.findOne({ author, permlink });
   if (!post || !userName) return console.error(ERROR.HIDE_POST);
 
@@ -211,7 +212,7 @@ exports.hideCommentParser = async (operation) => {
   const {
     author, permlink, action, guestName: hidingUser,
   } = json;
-  const userName = _.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS));
+  const userName = customJsonHelper.getTransactionAccount(operation);
   if (!userName) return console.error(ERROR.HIDE_POST);
 
   switch (action) {
@@ -236,7 +237,7 @@ exports.hideCommentParser = async (operation) => {
 };
 
 exports.guestHideContentParser = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 

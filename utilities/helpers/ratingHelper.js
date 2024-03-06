@@ -3,7 +3,7 @@ const { Wobj } = require('models');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const wobjectValidator = require('validator/wobjectValidator');
 const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
-const { REQUIRED_AUTHS, REQUIRED_POSTING_AUTHS } = require('constants/parsersData');
+const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 const parse = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
@@ -12,7 +12,7 @@ const parse = async (operation) => {
     console.error('Rating vote data is not valid!');
     return;
   }
-  const voter = _.get(operation, REQUIRED_POSTING_AUTHS);
+  const voter = customJsonHelper.getTransactionAccount(operation);
   const { author } = json;
   const { permlink } = json;
   const { author_permlink: authorPermlink } = json;
@@ -30,7 +30,7 @@ const parse = async (operation) => {
 };
 
 const parseGuest = async (operation) => {
-  if (await validateProxyBot(_.get(operation, REQUIRED_POSTING_AUTHS, _.get(operation, REQUIRED_AUTHS)))) {
+  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
     const json = jsonHelper.parseJson(operation.json);
     if (_.isEmpty(json)) return;
 

@@ -95,6 +95,8 @@ const incrementDepartmentTag = async ({ categoryName, tag, department }) => tagC
  */
 const deleteKey = async ({ key, client = mainFeedsCacheClient }) => client.delAsync(key);
 
+const set = ({ key, value, client = lastBlockClient }) => client.setAsync(key, value);
+
 module.exports = {
   setExpiredPostTTL,
   zremrangebyscore,
@@ -112,4 +114,5 @@ module.exports = {
   incrementTag,
   incrementDepartmentTag,
   deleteKey,
+  set,
 };

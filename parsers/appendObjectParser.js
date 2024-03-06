@@ -1,7 +1,8 @@
 const { Wobj } = require('models');
 const { appendObjectValidator } = require('validator');
 const { commentRefSetter } = require('utilities/commentRefService');
-const { updateSpecificFieldsHelper, jsonHelper } = require('utilities/helpers');
+const jsonHelper = require('utilities/helpers/jsonHelper');
+const updateSpecificFieldsHelper = require('utilities/helpers/updateSpecificFieldsHelper');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { fieldUpdateNotification } = require('../utilities/notificationsApi/notificationsUtil');
 
