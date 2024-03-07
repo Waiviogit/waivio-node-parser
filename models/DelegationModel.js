@@ -5,12 +5,10 @@ const createOne = async ({
   delegator, delegatee, vesting_shares = '', delegation_date,
 }) => {
   try {
-    const vestingSharesParsed = parseInt(
+    const vestingSharesParsed = parseFloat(
       vesting_shares
         .replace(/VESTS/, '')
-        .replace(/\./, '')
         .trim(),
-      10,
     );
 
     if (!vestingSharesParsed) {
