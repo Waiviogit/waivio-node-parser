@@ -8,6 +8,8 @@ const REDIS_LAST_ID = 'last_id_delegation_task';
 const REDIS_LAST_ID_COMPLETED = 'last_id_delegation_task_completed';
 const MAX_USERS = 100;
 
+const formatDecimal = (number) => (+(number / 1e6).toFixed(6));
+
 const addDelegations = async (name) => {
   const delegations = await userUtil.getDelegations(name);
   if (delegations?.error) {
@@ -19,7 +21,7 @@ const addDelegations = async (name) => {
   const bulkOps = delegations.map((delegation) => ({
     delegator: delegation.delegator,
     delegatee: delegation.delegatee,
-    vesting_shares: +delegation.vesting_shares.amount,
+    vesting_shares: formatDecimal(+delegation.vesting_shares.amount),
     delegation_date: delegation.min_delegation_time,
   }));
 
