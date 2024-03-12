@@ -68,6 +68,7 @@ exports.FIELDS_NAMES = {
   MAP_OBJECT_TAGS: 'mapObjectTags',
   MAP_MOBILE_VIEW: 'mapMobileView',
   MAP_DESKTOP_VIEW: 'mapDesktopView ',
+  WALLET_ADDRESS: 'walletAddress',
 };
 
 exports.SEARCH_FIELDS = [

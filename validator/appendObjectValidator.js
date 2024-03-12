@@ -37,6 +37,7 @@ const {
   mapTypesSchema,
   mapViewSchema,
   mapRectanglesSchema,
+  walletAddressSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
@@ -398,6 +399,13 @@ const validateSpecifiedFields = async (data) => {
         throw new Error(`Can't append ${fieldName}`);
       }
       data.field.body = JSON.stringify(filterMapRectangles(mapRectangles));
+      break;
+    case FIELDS_NAMES.WALLET_ADDRESS:
+      const { error: walletError } = walletAddressSchema
+        .validate(jsonHelper.parseJson(data.field.body));
+      if (walletError) {
+        throw new Error(`Can't append ${fieldName}`);
+      }
       break;
   }
 };
