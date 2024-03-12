@@ -63,6 +63,11 @@ exports.FIELDS_NAMES = {
   AFFILIATE_URL_TEMPLATE: 'affiliateUrlTemplate',
   AFFILIATE_CODE: 'affiliateCode',
   WEB_PAGE: 'webpage',
+  MAP_RECTANGLES: 'mapRectangles',
+  MAP_OBJECT_TYPES: 'mapObjectTypes',
+  MAP_OBJECT_TAGS: 'mapObjectTags',
+  MAP_MOBILE_VIEW: 'mapMobileView',
+  MAP_DESKTOP_VIEW: 'mapDesktopView ',
 };
 
 exports.SEARCH_FIELDS = [
@@ -113,6 +118,7 @@ exports.OBJECT_TYPES = {
   NEWS_FEED: 'newsfeed',
   SHOP: 'shop',
   WEB_PAGE: 'webpage',
+  MAP: 'map',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
