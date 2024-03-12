@@ -392,14 +392,15 @@ const validateSpecifiedFields = async (data) => {
       }
       break;
     case FIELDS_NAMES.MAP_RECTANGLES:
-      const processedRectangles = filterMapRectangles(jsonHelper.parseJson(data.field.body));
-
       const { value: mapRectangles, error: mapRectanglesErr } = mapRectanglesSchema
-        .validate(processedRectangles);
+        .validate(jsonHelper.parseJson(data.field.body));
+
+      const processedRectangles = filterMapRectangles(mapRectangles);
+
       if (mapRectanglesErr) {
         throw new Error(`Can't append ${fieldName}`);
       }
-      data.field.body = JSON.stringify(mapRectangles);
+      data.field.body = JSON.stringify(processedRectangles);
       break;
   }
 };
@@ -411,7 +412,7 @@ const isRectangleIncluded = (rect1, rect2) => {
   return x3 >= x1 && x4 <= x2 && y3 >= y1 && y4 <= y2;
 };
 
-const filterMapRectangles = (rectangles) => rectangles
+const filterMapRectangles = (rectangles = []) => rectangles
   .filter(
     (rect1, i) => !rectangles.some((rect2, j) => i !== j && isRectangleIncluded(rect2, rect1)),
   );
