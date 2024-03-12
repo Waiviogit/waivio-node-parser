@@ -394,13 +394,10 @@ const validateSpecifiedFields = async (data) => {
     case FIELDS_NAMES.MAP_RECTANGLES:
       const { value: mapRectangles, error: mapRectanglesErr } = mapRectanglesSchema
         .validate(jsonHelper.parseJson(data.field.body));
-
-      const processedRectangles = filterMapRectangles(mapRectangles);
-
       if (mapRectanglesErr) {
         throw new Error(`Can't append ${fieldName}`);
       }
-      data.field.body = JSON.stringify(processedRectangles);
+      data.field.body = JSON.stringify(filterMapRectangles(mapRectangles));
       break;
   }
 };
