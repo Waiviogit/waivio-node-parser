@@ -81,3 +81,40 @@ exports.affiliateProductIdTypesSchema = Joi.string().lowercase().required();
 exports.affiliateCodeSchema = Joi.array().items(Joi.string()).min(2).max(2);
 
 exports.affiliateGeoSchema = Joi.string().valid(...VALID_AFFILIATE_GEO).required();
+
+exports.mapTypesSchema = Joi.array().items(Joi.string()).min(1).required();
+
+exports.mapViewSchema = Joi.object().keys({
+  topPoint: Joi
+    .array()
+    .ordered(
+      Joi.number().min(-180).max(180),
+      Joi.number().min(-90).max(90),
+    ).required(),
+  bottomPoint: Joi
+    .array()
+    .ordered(
+      Joi.number().min(-180).max(180),
+      Joi.number().min(-90).max(90),
+    ).required(),
+  center: Joi.array().ordered(
+    Joi.number().min(-180).max(180),
+    Joi.number().min(-90).max(90),
+  ).required(),
+  zoom: Joi.number().min(1).max(18),
+}).required();
+
+exports.mapRectanglesSchema = Joi.array().items(Joi.object().keys({
+  topPoint: Joi
+    .array()
+    .ordered(
+      Joi.number().min(-180).max(180),
+      Joi.number().min(-90).max(90),
+    ).required(),
+  bottomPoint: Joi
+    .array()
+    .ordered(
+      Joi.number().min(-180).max(180),
+      Joi.number().min(-90).max(90),
+    ).required(),
+})).required();

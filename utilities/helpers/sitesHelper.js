@@ -398,12 +398,12 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
       console.error(error.message);
       continue;
     }
-    if (action === MUTE_ACTION.UPDATE_HOST_LIST) {
-      await processMutedCollection({
-        ...value,
-        mutedForApps: _.filter(value.mutedForApps, (el) => el !== host),
-      });
-    }
+
+    await processMutedCollection({
+      ...value,
+      mutedForApps: _.filter(value.mutedForApps, (el) => el !== host),
+    });
+
     await processMutedBySiteAdministration(value);
   }
 };
