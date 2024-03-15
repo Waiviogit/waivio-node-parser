@@ -399,10 +399,7 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
       continue;
     }
 
-    await processMutedCollection({
-      ...value,
-      mutedForApps: _.filter(value.mutedForApps, (el) => el !== host),
-    });
+    await processMutedCollection(value);
 
     await processMutedBySiteAdministration(value);
   }
