@@ -25,7 +25,7 @@ exports.updateHostList = async ({ mutedForApps, userName, mutedBy }) => {
   try {
     const result = await MutedUser.updateOne(
       { userName, mutedBy },
-      { mutedForApps },
+      { $pullAll: { mutedForApps } },
       { upsert: true },
     );
     return { result };
