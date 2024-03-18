@@ -89,12 +89,16 @@ const commentSwitcher = async ({ operation, metadata, options }) => {
   if (chosenPostValidator.checkBody(operation.body)) {
     await chosenPostHelper.updateAppChosenPost(operation);
   }
+
   // add wobjects if comment on first level has links in body
-  await postHelper.parseCommentBodyWobjects({
-    body: operation.body,
-    author: operation.parent_author,
-    permlink: operation.parent_permlink,
-  });
+  // not add on threads
+  if (operation.parent_author !== THREADS_ACC) {
+    await postHelper.parseCommentBodyWobjects({
+      body: operation.body,
+      author: operation.parent_author,
+      permlink: operation.parent_permlink,
+    });
+  }
 
   await redisSetter.sadd(
     `${REDIS_KEY_CHILDREN_UPDATE}:${moment.utc().startOf('hour').format()}`,
