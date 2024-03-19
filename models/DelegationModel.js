@@ -20,12 +20,19 @@ const createOne = async ({
       return { result };
     }
 
-    const result = await Delegation.create({
-      delegator,
-      delegatee,
-      vesting_shares: vestingSharesParsed,
-      delegation_date,
-    });
+    const result = await Delegation.updateOne(
+      {
+        delegator,
+        delegatee,
+      },
+      {
+        vesting_shares: vestingSharesParsed,
+        delegation_date,
+      },
+      {
+        upsert: true,
+      },
+    );
 
     return { result };
   } catch (error) {
