@@ -118,3 +118,9 @@ exports.mapRectanglesSchema = Joi.array().items(Joi.object().keys({
       Joi.number().min(-90).max(90),
     ).required(),
 })).required();
+
+exports.walletAddressSchema = Joi.object().keys({
+  title: Joi.string(),
+  symbol: Joi.string().required(),
+  address: Joi.string().required(),
+});
