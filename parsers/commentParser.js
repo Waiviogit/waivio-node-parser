@@ -92,7 +92,8 @@ const commentSwitcher = async ({ operation, metadata, options }) => {
 
   // add wobjects if comment on first level has links in body
   // not add on threads
-  if (operation.parent_author !== THREADS_ACC) {
+  // not parse append or create objects
+  if (operation.parent_author !== THREADS_ACC && !_.get(metadata, 'wobj.action')) {
     await postHelper.parseCommentBodyWobjects({
       body: operation.body,
       author: operation.parent_author,
