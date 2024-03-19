@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  Post, CommentModel, Wobj, relatedAlbum,
+  Post, CommentModel, Wobj, relatedAlbum, CommentRef,
 } = require('models');
 const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
@@ -13,6 +13,7 @@ const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 const { postWithWobjValidator } = require('../../validator');
 const detectPostLanguageHelper = require('./detectPostLanguageHelper');
 const { commentRefSetter } = require('../commentRefService');
+const { COMMENT_REF_TYPES } = require('../../constants/common');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -238,6 +239,11 @@ exports.parseCommentBodyWobjects = async ({
   let { post } = await Post.findByBothAuthors({
     author, permlink, select: { wobjects: 1, _id: 0 },
   });
+
+  const { commentRef } = await CommentRef.getRef(`${author}_${permlink}`);
+
+  if (commentRef?.type === COMMENT_REF_TYPES.wobjType) return;
+
   if (!post) {
     const created = await restoreOldPost({ author, permlink });
     if (!created) return false;
