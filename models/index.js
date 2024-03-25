@@ -24,4 +24,5 @@ module.exports = {
   userShopDeselectModel: require('./userShopDeselectModel'),
   ThreadModel: require('./ThreadModel'),
   DelegationModel: require('./DelegationModel'),
+  ServiceBotModel: require('./ServiceBotModel'),
 };
