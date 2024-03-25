@@ -24,18 +24,8 @@ const getBlackListUsers = async () => {
   return { users: app.black_list_users, referralsData: app.referralsData };
 };
 
-const getProxyBots = async (roles) => {
-  const { result: app } = await App.findOne({ host: config.appHost });
-  if (!app) return [];
-  const proxyBots = _.reduce(app.service_bots, (acc, item) => {
-    if (_.intersection(item.roles, roles).length) acc.push(item.name);
-    return acc;
-  }, []);
-  return proxyBots || [];
-};
-
 const getAppData = async (host) => App.findOne({ host });
 
 module.exports = {
-  checkAppBlacklistValidity, getBlackListUsers, getProxyBots, getAppData,
+  checkAppBlacklistValidity, getBlackListUsers, getAppData,
 };
