@@ -152,7 +152,6 @@ const referralValidation = async (json, author, postingAuth) => {
   const isGuest = _.get(json, 'isGuest', false);
   if (isGuest) {
     // todo check signature
-
   }
 
   if (author !== postingAuth && !isGuest) {

@@ -7,7 +7,6 @@ module.exports = {
   wobjectValidator: require('./wobjectValidator'),
   userValidator: require('./userValidator'),
   sitesValidator: require('./sitesValidator'),
-  objectBotsValidator: require('./validateObjectBots'),
   jsonVoteValidator: require('./jsonVoteValidator'),
   commentValidator: require('./commentValidator'),
   hiveEngineValidator: require('./hiveEngineValidator'),

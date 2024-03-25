@@ -29,12 +29,6 @@ const ReferralTimersSchema = new Schema({
   oldUserDuration: { type: Number, default: 5 },
 }, { _id: false });
 
-const botSchema = new Schema({
-  name: { type: String, required: true },
-  postingKey: { type: String, required: true },
-  roles: { type: [String], required: true },
-}, { _id: false });
-
 const AppCommissions = new Schema({
   campaigns_server_acc: { type: String, required: true },
   campaigns_percent: {
@@ -132,7 +126,6 @@ const AppSchema = new Schema({
     permlink: { type: String },
     title: { type: String },
   },
-  service_bots: { type: [botSchema], default: [], select: false },
   app_commissions: { type: AppCommissions },
   referralsData: { type: [ReferralTimersSchema], default: [] },
   tagsData: { type: TagsData },

@@ -9,7 +9,7 @@ const {
 const { MUTE_ACTION } = require('constants/parsersData');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const postModeration = require('utilities/moderation/postModeration');
-const { sitesValidator, objectBotsValidator } = require('validator');
+const { sitesValidator } = require('validator');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
 const { usersUtil } = require('utilities/steemApi');
 const Sentry = require('@sentry/node');

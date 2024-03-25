@@ -45,7 +45,7 @@ const findByModeration = async (userName) => {
 
 const findOne = async (condition) => {
   try {
-    return { result: await App.findOne(condition, '+service_bots').lean() };
+    return { result: await App.findOne(condition).lean() };
   } catch (error) {
     return { error };
   }
