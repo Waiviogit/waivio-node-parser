@@ -2,7 +2,7 @@ const _ = require('lodash');
 const moment = require('moment');
 const {
   expect, faker, dropDatabase, sitesHelper, App, sinon, AppModel, WebsitePayments, config,
-  WebsitesRefund, objectBotsValidator, Post, MutedUser,
+  WebsitesRefund, Post, MutedUser,
 } = require('test/testHelper');
 const {
   STATUSES, FEE, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES, REFUND_STATUSES, PATH,
@@ -405,7 +405,6 @@ describe('On sitesHelper', async () => {
     let operation, userName, amount, host;
     beforeEach(async () => {
       host = faker.internet.domainName();
-      sinon.stub(objectBotsValidator, 'validate').returns(Promise.resolve(true));
       userName = faker.random.string();
       await AppFactory.Create({ host, owner: userName });
       amount = _.random(1, 10);

@@ -1,29 +1,9 @@
 const {
   expect, faker, sinon, appHelper,
 } = require('test/testHelper');
-const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
+const {  getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
 
 describe('guestHelpers', async () => {
-  describe('on validateProxyBot', async () => {
-    let mockListBots;
-    beforeEach(async () => {
-      mockListBots = [faker.name.firstName(), faker.name.firstName()];
-      sinon.stub(appHelper, 'getProxyBots').returns(Promise.resolve(mockListBots));
-    });
-    afterEach(() => {
-      sinon.restore();
-    });
-    it('should return true if user in list proxy bots', async () => {
-      expect(await validateProxyBot(mockListBots[0])).to.be.true;
-    });
-    it('should return false if user not in list proxy bots', async () => {
-      expect(await validateProxyBot(faker.name.firstName())).to.be.false;
-    });
-    it('should return false if called without params', async () => {
-      expect(await validateProxyBot()).to.be.false;
-    });
-  });
-
   describe('on getFromMetadataGuestInfo', () => {
     let mockListBots;
     beforeEach(async () => {

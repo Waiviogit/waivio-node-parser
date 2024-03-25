@@ -8,7 +8,6 @@ const {
   CUSTOM_JSON_OPS, MUTE_ACTION,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
 const postModeration = require('utilities/moderation/postModeration');
 const sitesHelper = require('utilities/helpers/sitesHelper');
 const jsonHelper = require('utilities/helpers/jsonHelper');
@@ -237,18 +236,16 @@ exports.hideCommentParser = async (operation) => {
 };
 
 exports.guestHideContentParser = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
-    operation.required_posting_auths = [_.get(json, 'guestName')];
+  operation.required_posting_auths = [_.get(json, 'guestName')];
 
-    switch (operation.id) {
-      case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
-        return this.hidePostParser(operation);
-      case CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT:
-        return this.hideCommentParser(operation);
-    }
+  switch (operation.id) {
+    case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
+      return this.hidePostParser(operation);
+    case CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT:
+      return this.hideCommentParser(operation);
   }
 };
 

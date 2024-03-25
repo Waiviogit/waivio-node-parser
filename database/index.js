@@ -48,5 +48,6 @@ module.exports = {
     UserShopDeselect: require('./schemas/UserShopDeselectSchema'),
     Threads: require('./schemas/ThreadsSchema'),
     Delegation: require('./schemas/DelegationSchema'),
+    ServiceBot: require('./schemas/ServiceBotSchema'),
   },
 };
