@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { validateProxyBot, getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
+const { getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
@@ -9,68 +9,55 @@ const { postsUtil } = require('utilities/steemApi');
 const userParsers = require('parsers/userParsers');
 const { Post, CommentModel } = require('models');
 const voteParser = require('parsers/voteParser');
-const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 exports.followUser = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (!json || _.isEmpty(json)) return;
+  const json = jsonHelper.parseJson(operation.json);
+  if (!json || _.isEmpty(json)) return;
 
-    operation.required_posting_auths = [_.get(json, '[1].follower')];
-    await userParsers.followUserParser(operation);
-  }
+  operation.required_posting_auths = [_.get(json, '[1].follower')];
+  await userParsers.followUserParser(operation);
 };
 
 exports.reblogPost = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (!json || _.isEmpty(json)) return;
+  const json = jsonHelper.parseJson(operation.json);
+  if (!json || _.isEmpty(json)) return;
 
-    operation.required_posting_auths = [_.get(json, '[1].account')];
-    await userParsers.followUserParser(operation);
-  }
+  operation.required_posting_auths = [_.get(json, '[1].account')];
+  await userParsers.followUserParser(operation);
 };
 
 exports.followWobject = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (!json || _.isEmpty(json)) return;
+  const json = jsonHelper.parseJson(operation.json);
+  if (!json || _.isEmpty(json)) return;
 
-    operation.required_posting_auths = [_.get(json, '[1].user')];
-    await followObjectParser.parse(operation);
-  }
+  operation.required_posting_auths = [_.get(json, '[1].user')];
+  await followObjectParser.parse(operation);
 };
 
 exports.guestVote = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (!json || _.isEmpty(json)) return;
+  const json = jsonHelper.parseJson(operation.json);
+  if (!json || _.isEmpty(json)) return;
 
-    const { votesOps: [vote] } = await voteParser.votesFormat([json]);
-    if (vote.type === 'post_with_wobj' || !vote.type) {
-      await voteOnPost({ vote });
-    } else if (vote.type === 'append_wobj') {
-      await guestVoteOnField({ vote });
-    }
+  const { votesOps: [vote] } = await voteParser.votesFormat([json]);
+  if (vote.type === 'post_with_wobj' || !vote.type) {
+    await voteOnPost({ vote });
+  } else if (vote.type === 'append_wobj') {
+    await guestVoteOnField({ vote });
   }
 };
 
 exports.accountUpdate = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (!json || _.isEmpty(json)) return;
-    await userParsers.updateAccountParser(json);
-  }
+  const json = jsonHelper.parseJson(operation.json);
+  if (!json || _.isEmpty(json)) return;
+  await userParsers.updateAccountParser(json);
 };
 
 exports.subscribeNotification = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (!json || _.isEmpty(json)) return;
+  const json = jsonHelper.parseJson(operation.json);
+  if (!json || _.isEmpty(json)) return;
 
-    operation.required_posting_auths = [_.get(json, '[1].follower')];
-    await userParsers.subscribeNotificationsParser(operation);
-  }
+  operation.required_posting_auths = [_.get(json, '[1].follower')];
+  await userParsers.subscribeNotificationsParser(operation);
 };
 
 // /////////////// //

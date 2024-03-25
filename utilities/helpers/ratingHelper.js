@@ -2,7 +2,6 @@ const _ = require('lodash');
 const { Wobj } = require('models');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const wobjectValidator = require('validator/wobjectValidator');
-const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
 
 const parse = async (operation) => {
@@ -30,14 +29,12 @@ const parse = async (operation) => {
 };
 
 const parseGuest = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (_.isEmpty(json)) return;
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return;
 
-    operation.required_posting_auths = [_.get(json, 'guestName')];
+  operation.required_posting_auths = [_.get(json, 'guestName')];
 
-    await parse(operation);
-  }
+  await parse(operation);
 };
 
 module.exports = { parse, parseGuest };

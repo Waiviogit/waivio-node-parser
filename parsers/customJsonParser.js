@@ -6,8 +6,6 @@ const { customJsonOperations } = require('utilities/guestOperations');
 const { CUSTOM_JSON_OPS, REDIS_KEYS } = require('constants/parsersData');
 const hiveEngineCustom = require('utilities/customJsonHiveEngine/hiveEngineCustom');
 const redisSetter = require('utilities/redis/redisSetter');
-const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
-const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const { parseJson } = require('../utilities/helpers/jsonHelper');
 const { sitesValidator } = require('../validator');
 
@@ -145,8 +143,6 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
 };
 
 const guestWebsiteAction = async (operation) => {
-  if (!await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) return;
-
   const payload = parseJson(operation.json);
 
   const { error, value } = sitesValidator.guestActionSchema.validate(payload);
