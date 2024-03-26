@@ -5,7 +5,7 @@ const {
 } = require('models');
 const {
   BELL_NOTIFICATIONS, HIDE_ACTION,
-  CUSTOM_JSON_OPS, MUTE_ACTION,
+  CUSTOM_JSON_OPS, MUTE_ACTION, VERIFY_SIGNATURE_TYPE,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
 const postModeration = require('utilities/moderation/postModeration');
@@ -15,6 +15,7 @@ const postUtil = require('utilities/helpers/postHelper');
 const { postsUtil } = require('utilities/steemApi');
 const { ERROR } = require('constants/common');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const { verifySignature } = require('utilities/helpers/signatureHelper');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.owner && operation.active && operation.posting && operation.memo_key) {
@@ -236,6 +237,11 @@ exports.hideCommentParser = async (operation) => {
 };
 
 exports.guestHideContentParser = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 

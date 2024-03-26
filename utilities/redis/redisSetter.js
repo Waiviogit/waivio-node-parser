@@ -96,6 +96,19 @@ const incrementDepartmentTag = async ({ categoryName, tag, department }) => tagC
 const deleteKey = async ({ key, client = mainFeedsCacheClient }) => client.delAsync(key);
 
 const set = ({ key, value, client = lastBlockClient }) => client.setAsync(key, value);
+const setEx = ({
+  key,
+  value,
+  ttlSeconds,
+  client = lastBlockClient,
+}) => {
+  try {
+    client.setAsync(key, value);
+    client.expireAsync(key, ttlSeconds);
+  } catch (error) {
+
+  }
+};
 
 module.exports = {
   setExpiredPostTTL,
@@ -115,4 +128,5 @@ module.exports = {
   incrementDepartmentTag,
   deleteKey,
   set,
+  setEx,
 };

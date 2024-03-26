@@ -3,6 +3,8 @@ const { Wobj } = require('models');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const wobjectValidator = require('validator/wobjectValidator');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const { verifySignature } = require('utilities/helpers/signatureHelper');
+const { VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
 
 const parse = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
@@ -29,6 +31,11 @@ const parse = async (operation) => {
 };
 
 const parseGuest = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return;
 

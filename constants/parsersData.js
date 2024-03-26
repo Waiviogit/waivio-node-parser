@@ -111,3 +111,9 @@ exports.MEMO_ID = {
   GUEST_TRANSFER: 'waivio_guest_transfer',
   HIVE_ENGINE: 'ssc-mainnet-hive',
 };
+
+exports.VERIFY_SIGNATURE_TYPE = {
+  CUSTOM_JSON: 'customJson',
+  COMMENT: 'comment',
+  COMMENT_OBJECTS: 'commentObjects',
+};

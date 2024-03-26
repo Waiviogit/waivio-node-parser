@@ -16,10 +16,11 @@ const postModel = require('models/PostModel');
 const threadModel = require('models/ThreadModel');
 const moment = require('moment');
 const _ = require('lodash');
-const { REDIS_KEYS } = require('constants/parsersData');
+const { REDIS_KEYS, VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
 const {
   parseThread, parseThreadReply,
 } = require('utilities/helpers/thredsHelper');
+const { verifySignature, verifyObjectsAction } = require('utilities/helpers/signatureHelper');
 
 const parse = async ({
   operation, options, transactionId,
@@ -32,6 +33,14 @@ const parse = async ({
     }
   } catch (e) {
     console.error(e.message);
+  }
+
+  if (metadata?.comment?.userId) {
+    // guest comments and posts
+    const validSignature = await verifySignature({
+      operation, type: VERIFY_SIGNATURE_TYPE.COMMENT,
+    });
+    if (!validSignature) return;
   }
 
   if (!(await checkAppBlacklistValidity(metadata))) return;
@@ -53,6 +62,8 @@ const postSwitcher = async ({
   operation, metadata, post, fromTTL = false, options,
 }) => {
   if (_.get(metadata.wobj, 'action') === 'createObjectType') {
+    const validOp = await verifyObjectsAction({ operation, metadata });
+    if (!validOp) return;
     // case if user add wobjects when create post
     await objectTypeParser.parse(operation, metadata); // create new Object Type
   } else {
@@ -68,6 +79,9 @@ const commentSwitcher = async ({ operation, metadata, options }) => {
   }
 
   if (_.get(metadata, 'wobj.action')) {
+    const validOp = await verifyObjectsAction({ operation, metadata });
+    if (!validOp) return;
+    // add validation
     switch (metadata.wobj.action) {
       case 'createObject':
         await createObjectParser.parse(operation, metadata);
