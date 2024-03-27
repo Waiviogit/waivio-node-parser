@@ -13,8 +13,8 @@ const {
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
 const jsonHelper = require('utilities/helpers/jsonHelper');
-const uuid = require('uuid');
 const { listItemProcess } = require('utilities/waivioApi');
+const crypto = require('node:crypto');
 
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
@@ -222,7 +222,7 @@ const getObjectGroupIds = (wobject) => _.chain(wobject.fields)
 const updateMetaGroupId = async ({ authorPermlink }) => {
   const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
   if (!wobject) return;
-  const metaGroupId = wobject.metaGroupId ? wobject.metaGroupId : uuid.v4();
+  const metaGroupId = wobject.metaGroupId ? wobject.metaGroupId : crypto.randomUUID();
   const groupIds = getObjectGroupIds(wobject);
   await addToAllMetaGroup({ groupIds, metaGroupId });
 };

@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { uuid } = require('uuidv4');
+const crypto = require('node:crypto');
 const { ObjectType } = require('models');
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const {
@@ -42,7 +42,7 @@ const addSupposedUpdates = async (wobject, locale, metadata) => {
         creator: DEFAULT_UPDATES_CREATOR,
         locale,
       };
-      if (update.id_path) field[update.id_path] = uuid();
+      if (update.id_path) field[update.id_path] = crypto.randomUUID();
       importWobjData.fields.push(field);
     });
   });

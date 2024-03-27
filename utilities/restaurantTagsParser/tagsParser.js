@@ -3,7 +3,7 @@ const { OBJECT_TYPES, CREATE_TAGS_ON_UPDATE_TYPES } = require('constants/wobject
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const { Wobj, ObjectType, App } = require('models');
 const config = require('config');
-const uuid = require('uuid');
+const crypto = require('node:crypto');
 const _ = require('lodash');
 
 /*
@@ -28,8 +28,10 @@ const createTags = async ({ field, authorPermlink }) => {
     case OBJECT_TYPES.DRINK:
     case OBJECT_TYPES.DISH:
       for (const tag of tagCategories.values) {
-        const tagCategory = _.find(wobject.fields,
-          (obj) => obj.name === 'tagCategory' && obj.body === tag);
+        const tagCategory = _.find(
+          wobject.fields,
+          (obj) => obj.name === 'tagCategory' && obj.body === tag,
+        );
 
         appends = _.concat(appends, parseIngredients({
           string: field.body,
@@ -60,7 +62,7 @@ const createTag = ({
   const field = {
     name,
     body,
-    id: id || uuid.v1(),
+    id: id || crypto.randomUUID(),
     permlink: permlinkGenerator.getPermlink(authorPermlink, id ? 'category-item' : 'tag-category'),
     locale: 'en-US',
     creator: 'asd09',
@@ -74,14 +76,16 @@ const parseIngredients = ({
 }) => {
   const appends = [];
   let newId;
-  if (!id) newId = uuid.v1();
+  if (!id) newId = crypto.randomUUID();
 
   try {
     _.forEach(Object.keys(tagsSource), (key) => {
       const regexp = new RegExp(`\\b(${key.toLowerCase()})\\b`, 'g');
       if ((regexp.test(string.toString().toLowerCase()))
-          && !_.find(fields,
-            (field) => field.name === 'categoryItem' && field.body === tagsSource[key])) {
+          && !_.find(
+            fields,
+            (field) => field.name === 'categoryItem' && field.body === tagsSource[key],
+          )) {
         appends.push(createTag({
           name: 'categoryItem', body: tagsSource[key], id: id || newId, authorPermlink, tag,
         }));

@@ -126,10 +126,10 @@ const verifyObjectsAction = async ({ operation, metadata }) => {
   const validSignature = await verifySignature({
     operation, type: VERIFY_SIGNATURE_TYPE.COMMENT_OBJECTS,
   });
-  const creatorOp = metadata.wobj.creator === operation.author;
+  const creatorOp = metadata?.wobj?.creator === operation.author;
 
-  if (metadata.wobj.action === 'createObjectType') {
-    return validSignature && createObjectTypeList.includes(metadata.wobj.creator);
+  if (metadata?.wobj?.action === 'createObjectType') {
+    return validSignature && createObjectTypeList.includes(metadata?.wobj?.creator);
   }
 
   return validSignature || creatorOp;
