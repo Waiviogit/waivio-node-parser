@@ -1,3 +1,5 @@
+const config = require('config');
+
 exports.STATUSES = {
   ACTIVE: 'active',
   INACTIVE: 'inactive',
@@ -59,9 +61,7 @@ exports.PATH = {
   REFERRAL_ACCOUNT: 'app_commissions.referral_commission_acc',
 };
 
-exports.CAN_MUTE_GLOBAL = process.env.CAN_MUTE_GLOBAL
-  ? process.env.CAN_MUTE_GLOBAL.split(',')
-  : [];
+exports.CAN_MUTE_GLOBAL = config.canMuteGlobal;
 
 exports.SOCIAL_HOSTS = ['social.gifts', 'socialgifts.pp.ua'];
 

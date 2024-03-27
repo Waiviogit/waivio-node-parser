@@ -2,9 +2,7 @@ const _ = require('lodash');
 const { api } = require('api');
 const { restoreRedisHelper } = require('utilities/redis');
 const { parseSwitcher } = require('parsers/mainParser');
-
-const START_FROM_CURRENT = process.env.START_FROM_CURRENT === 'true';
-const RESTORE_REDIS = process.env.RESTORE_REDIS === 'true';
+const config = require('config');
 
 const parseAllBlockChain = async (req, res) => {
   try {
@@ -22,20 +20,20 @@ const parseAllBlockChain = async (req, res) => {
 
 const runStream = async () => {
   try {
-    console.log(`RESTORE_REDIS: ${RESTORE_REDIS}`);
-    if (RESTORE_REDIS) {
+    console.log(`RESTORE_REDIS: ${config.restoreRedis}`);
+    if (config.restoreRedis) {
       const result = await restoreRedisHelper.restore();
 
       if (result) {
         console.log(`Restored ${result.fieldsCount} fields in ${result.wobjectsCount} wobjects and ${result.postsCount} posts with wobjects.`);
       }
     }
-    console.log(`START_FROM_CURRENT: ${START_FROM_CURRENT}`);
+    console.log(`START_FROM_CURRENT: ${config.startFromCurrent}`);
 
     const transactionStatus = await api.getBlockNumberStream({
       // # param to start parse data from latest block in blockchain
       // # if set to "false" - parsing started from last_block_num(key in redis)
-      startFromCurrent: START_FROM_CURRENT,
+      startFromCurrent: config.startFromCurrent,
       transactionsParserCallback: parseSwitcher,
     });
 

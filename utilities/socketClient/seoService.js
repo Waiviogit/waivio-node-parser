@@ -1,13 +1,10 @@
 const axios = require('axios');
-
-const BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://www.waivio.com/seo-service'
-  : 'https://waiviodev.com/seo-service';
+const config = require('config');
 
 const createSiteMap = async ({ host }) => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/sitemap`,
+      `${config.seoServiceBaseUrl}/sitemap`,
       {
         host,
       },
@@ -25,7 +22,7 @@ const createSiteMap = async ({ host }) => {
 const addSitemapPost = async ({ host, author, permlink }) => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/sitemap/post`,
+      `${config.seoServiceBaseUrl}/sitemap/post`,
       {
         host,
         author,
@@ -45,7 +42,7 @@ const addSitemapPost = async ({ host, author, permlink }) => {
 const deleteSitemap = async ({ host }) => {
   try {
     const response = await axios.delete(
-      `${BASE_URL}/sitemap`,
+      `${config.seoServiceBaseUrl}/sitemap`,
       {
         data: {
           host,

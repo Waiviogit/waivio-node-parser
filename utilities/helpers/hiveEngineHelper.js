@@ -4,10 +4,11 @@ const { getTransactionInfo } = require('utilities/hiveEngine/blockchain');
 const { parseJson } = require('utilities/helpers/jsonHelper');
 const { GuestWallet } = require('models');
 const { transfer } = require('utilities/steemApi/broadcast');
+const config = require('config');
 
 exports.parseEngineTransfer = async ({ operation, memo }) => {
   if (operation.from !== 'honey-swap') return;
-  if (operation.to !== process.env.GUEST_HOT_ACC) return;
+  if (operation.to !== config.guestHotAccount) return;
   const id = _.get(memo, 'json.contractPayload.id');
   if (!id) return;
   const transaction = await getTransactionInfo(id);
@@ -35,14 +36,14 @@ exports.parseEngineTransfer = async ({ operation, memo }) => {
     to: address,
     from: account,
   });
-  if (process.env.NODE_ENV !== 'production') return;
+  if (config.environment !== 'production') return;
 
   const amount = parseFloat(operation.amount);
 
   await transfer({
-    from: process.env.GUEST_HOT_ACC,
+    from: config.guestHotAccount,
     to: address,
-    activeKey: process.env.GUEST_HOT_KEY,
+    activeKey: config.guestHotKey,
     memo: operation.memo,
     amount,
   });

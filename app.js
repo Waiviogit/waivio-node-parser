@@ -3,14 +3,15 @@ const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const { runStream } = require('processor/processor');
+const config = require('config');
 require('utilities/jobs');
 const { startRedisListener } = require('utilities/helpers/redisHelper');
 
 const app = express();
 
 Sentry.init({
-  environment: process.env.NODE_ENV,
-  dsn: process.env.SENTRY_DNS,
+  environment: config.environment,
+  dsn: config.sentryDsn,
   integrations: [
     // enable Express.js middleware tracing
     new Tracing.Integrations.Express({ app }),

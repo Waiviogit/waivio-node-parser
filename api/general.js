@@ -2,14 +2,12 @@ const {
   redisGetter,
   redisSetter,
 } = require('utilities/redis');
-const blocksUtil = require('utilities/steemApi/blocksUtil');
+const config = require('config');
 const { HIVED_NODES } = require('constants/appData');
 const { Client } = require('@hiveio/dhive');
 const _ = require('lodash');
 const axios = require('axios');
-const { socketHiveClient } = require('../utilities/socketClient/hiveSocket');
 
-const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
 let CURRENT_NODE = HIVED_NODES[0];
 
 /**
@@ -103,7 +101,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     To prevent situation when vote parser went further than the main parser,
     check the current block less than last handled on main parser
      */
-  if (PARSE_ONLY_VOTES) {
+  if (config.parseOnlyVotes) {
     const lastBlockNumMainParse = await redisGetter.getLastBlockNum('last_block_num');
     if (blockNum >= lastBlockNumMainParse - 3) return false;
   }
@@ -131,10 +129,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
 
 const getBlock = async (blockNum, hiveUrl) => {
   try {
-    // comment while our node up to 26
-    // const resp = await socketHiveClient.getBlock(blockNum);
-    // if (!_.get(resp, 'error')) return { block: resp };
-    if (PARSE_ONLY_VOTES) {
+    if (config.parseOnlyVotes) {
       const block = await getBlockREST(blockNum, hiveUrl);
       return { block };
     }
@@ -150,8 +145,6 @@ const getBlock = async (blockNum, hiveUrl) => {
 
 const getBlockREST = async (blockNum, hiveUrl) => {
   try {
-    // const resp = await socketHiveClient.getOpsInBlock(blockNum);
-    // if (!_.get(resp, 'error')) return { result: resp };
     const instance = axios.create();
     const result = await instance.post(
       hiveUrl,

@@ -5,10 +5,10 @@ const redisHelper = require('utilities/redis/redisHelper');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
-const postRefsClient = redis.createClient(process.env.REDISCLOUD_URL);
-const lastBlockClient = redis.createClient(process.env.REDISCLOUD_URL);
-const expiredPostsClient = redis.createClient(process.env.REDISCLOUD_URL);
-const mainFeedsCacheClient = redis.createClient(process.env.REDISCLOUD_URL);
+const postRefsClient = redis.createClient(config.redisCloudUrl);
+const lastBlockClient = redis.createClient(config.redisCloudUrl);
+const expiredPostsClient = redis.createClient(config.redisCloudUrl);
+const mainFeedsCacheClient = redis.createClient(config.redisCloudUrl);
 
 postRefsClient.select(config.redis.wobjectsRefs);
 lastBlockClient.select(config.redis.lastBlock);

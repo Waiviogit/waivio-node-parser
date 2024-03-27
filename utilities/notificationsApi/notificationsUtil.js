@@ -4,13 +4,14 @@ const { redisGetter } = require('utilities/redis');
 const {
   Post, Wobj, UserWobjects, CommentModel,
 } = require('models');
-const {
-  HOST, BASE_URL, SET_NOTIFICATION, WS_SET_NOTIFICATION,
-} = require('constants/appData').notificationsApi;
 const { postsUtil } = require('utilities/steemApi');
 const { socketClient } = require('utilities/socketClient/socketClient');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
+const config = require('config');
 
+const {
+  HOST, BASE_URL, SET_NOTIFICATION, WS_SET_NOTIFICATION,
+} = config.notificationsApi;
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
 
 const NOTIFICATION_ID = {
@@ -41,9 +42,8 @@ const sendSocketNotification = (operation) => {
 };
 
 const request = async (reqData) => {
-  const { API_KEY } = process.env;
   try {
-    await axios.post(URL, reqData, { headers: { API_KEY } });
+    await axios.post(URL, reqData, { headers: { API_KEY: config.apiKey } });
   } catch (error) {
     console.log(error.message);
   }

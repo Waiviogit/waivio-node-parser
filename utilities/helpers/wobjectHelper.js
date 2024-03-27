@@ -6,7 +6,7 @@ const {
   MIN_PERCENT_TO_SHOW_UPDATE, VOTE_STATUSES, INDEPENDENT_FIELDS,
   ADMIN_ROLES, categorySwitcher, FIELDS_NAMES, ARRAY_FIELDS,
 } = require('constants/wobjectsData');
-const supposedUpdatesTranslate = require('translations/supposedUpdates');
+const supposedUpdatesTranslate = require('constants/translations/supposedUpdates');
 
 const DEFAULT_UPDATES_CREATOR = 'monterey';
 
