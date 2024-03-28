@@ -7,6 +7,7 @@ const { VERIFY_SIGNATURE_TYPE, CUSTOM_JSON_OPS } = require('constants/parsersDat
 const { usersUtil } = require('utilities/steemApi');
 const redisSetter = require('utilities/redis/redisSetter');
 const redisGetter = require('utilities/redis/redisGetter');
+const config = require('config');
 
 const guestAccountById = {
   [CUSTOM_JSON_OPS.WEBSITE_GUEST]: (payload) => payload.userName,
@@ -93,34 +94,33 @@ const getSignerPubKey = async (name) => {
 };
 
 const verifySignature = async ({ operation, type }) => {
-  // const blockNum = await redisGetter.getLastBlockNum();
-  // if (blockNum < 83978839) return true;
+  try {
+    // const blockNum = await redisGetter.getLastBlockNum();
+    // if (blockNum < 83978839) return true;
+    const {
+      message,
+      signature,
+      signer,
+    } = (getSignatureAndSigner[type] || getSignatureAndSigner.default)(operation);
 
-  const {
-    message,
-    signature,
-    signer,
-  } = (getSignatureAndSigner[type] || getSignatureAndSigner.default)(operation);
+    if (!message || !signature || !signer) return false;
 
-  if (!message || !signature || !signer) return false;
+    const hashedMessage = crypto.createHash('sha256').update(message).digest();
 
-  const hashedMessage = crypto.createHash('sha256').update(message).digest();
+    const signatureObj = Signature.fromString(signature);
 
-  const signatureObj = Signature.fromString(signature);
+    const pubKeyObj = signatureObj.recover(hashedMessage);
+    const pubKey = pubKeyObj.toString();
 
-  const pubKeyObj = signatureObj.recover(hashedMessage);
-  const pubKey = pubKeyObj.toString();
+    const signerPubKey = await getSignerPubKey(signer);
+    if (!signerPubKey) return false;
 
-  const signerPubKey = await getSignerPubKey(signer);
-  if (!signerPubKey) return false;
-
-  return pubKey === signerPubKey;
+    return pubKey === signerPubKey;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
 };
-// todo move to config
-const createObjectTypeList = [
-  'flowmaster',
-  'wiv01',
-];
 
 const verifyObjectsAction = async ({ operation, metadata }) => {
   const validSignature = await verifySignature({
@@ -129,7 +129,7 @@ const verifyObjectsAction = async ({ operation, metadata }) => {
   const creatorOp = metadata?.wobj?.creator === operation.author;
 
   if (metadata?.wobj?.action === 'createObjectType') {
-    return validSignature && createObjectTypeList.includes(metadata?.wobj?.creator);
+    return validSignature && config.createObjectTypeList.includes(metadata?.wobj?.creator);
   }
 
   return validSignature || creatorOp;

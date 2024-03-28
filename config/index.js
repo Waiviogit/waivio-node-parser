@@ -149,6 +149,10 @@ const commonConfig = {
   notificationsApi: notificationsApi[process.env.NODE_ENV || 'development'],
   nginxApi: nginxApi[process.env.NODE_ENV || 'development'],
   telegramApi,
+  createObjectTypeList: [
+    'flowmaster',
+    'wiv01',
+  ],
 };
 
 module.exports = Object.freeze({
