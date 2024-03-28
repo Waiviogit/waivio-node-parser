@@ -3,8 +3,7 @@ const {
 } = require('utilities/redis/redis');
 const { COMMENT_REF_TYPES } = require('constants/common');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
-
-const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
+const config = require('config');
 
 /**
  * Set ref to post to redis
@@ -55,7 +54,7 @@ const addObjectType = async (path, name) => {
 
 const setLastBlockNum = async (blockNum, redisKey) => {
   if (blockNum) {
-    let key = PARSE_ONLY_VOTES ? 'last_vote_block_num' : 'last_block_num';
+    let key = config.parseOnlyVotes ? 'last_vote_block_num' : 'last_block_num';
     if (redisKey) key = redisKey;
     await lastBlockClient.setAsync(key, blockNum);
     lastBlockClient.publish(key, blockNum);
@@ -96,6 +95,19 @@ const incrementDepartmentTag = async ({ categoryName, tag, department }) => tagC
 const deleteKey = async ({ key, client = mainFeedsCacheClient }) => client.delAsync(key);
 
 const set = ({ key, value, client = lastBlockClient }) => client.setAsync(key, value);
+const setEx = ({
+  key,
+  value,
+  ttlSeconds,
+  client = lastBlockClient,
+}) => {
+  try {
+    client.setAsync(key, value);
+    client.expireAsync(key, ttlSeconds);
+  } catch (error) {
+
+  }
+};
 
 module.exports = {
   setExpiredPostTTL,
@@ -115,4 +127,5 @@ module.exports = {
   incrementDepartmentTag,
   deleteKey,
   set,
+  setEx,
 };

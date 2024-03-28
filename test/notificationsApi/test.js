@@ -5,9 +5,10 @@ const {
 } = require('test/testHelper');
 const { PostFactory } = require('test/factories');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { HOST, BASE_URL, SET_NOTIFICATION } = require('constants/appData').notificationsApi;
+const config = require('config');
 const mocks = require('./mocks');
 
+const { HOST, BASE_URL, SET_NOTIFICATION } = config.notificationsApi;
 const URL = HOST + BASE_URL + SET_NOTIFICATION;
 
 describe('On notificationsApi', async () => {
@@ -25,7 +26,7 @@ describe('On notificationsApi', async () => {
     let data, postData;
     beforeEach(async () => {
       postData = await PostFactory.Create({ onlyData: true });
-      data =  _.pick(postData, ['author', 'permlink', 'parent_author', 'parent_permlink', 'title', 'json_metadata', 'body']);
+      data = _.pick(postData, ['author', 'permlink', 'parent_author', 'parent_permlink', 'title', 'json_metadata', 'body']);
     });
     it('should send request to notificationsApi with correct params', async () => {
       await notificationsUtil.post(data, postData);

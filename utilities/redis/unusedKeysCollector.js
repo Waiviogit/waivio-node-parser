@@ -10,7 +10,7 @@ const { MIN_REDIS_REFS_IDLE_TIME_IN_SEC } = require('constants/common');
  */
 exports.deleteUnusedCommentRefs = () => {
   const unusedRefsScanner = new RedisKeyScanner({
-    host: process.env.REDISCLOUD_URL || 'localhost',
+    host: config.redisCloudUrl || 'localhost',
     port: 6379,
     db: config.redis.wobjectsRefs || 1,
     pattern: '*_*',

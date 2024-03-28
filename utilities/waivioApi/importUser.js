@@ -1,6 +1,7 @@
 const axios = require('axios');
-const { HOST, BASE_URL, IMPORT_STEEM_USER_ROUTE } = require('constants/appData').waivioApi;
+const config = require('config');
 
+const { HOST, BASE_URL, IMPORT_STEEM_USER_ROUTE } = config.waivioApi;
 const URL = HOST + BASE_URL + IMPORT_STEEM_USER_ROUTE;
 
 /**

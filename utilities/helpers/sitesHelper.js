@@ -17,6 +17,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const config = require('config');
 const { nginxService } = require('../nginxService');
 const seoService = require('../socketClient/seoService');
 const { REDIS_KEYS } = require('../../constants/parsersData');
@@ -69,7 +70,7 @@ exports.createWebsite = async (operation) => {
     );
   }
 
-  if (json.advanced && process.env.NODE_ENV === 'production') {
+  if (json.advanced && config.environment === 'production') {
     nginxService.createNginxConfig({ host: json.host });
   }
   seoService.sitemap.createSiteMap({ host: json.host });
@@ -92,7 +93,7 @@ exports.deleteWebsite = async (operation) => {
     await postModeration
       .removeFromSiteModeratorsHiddenPosts({ host: app.host, moderator: mangerName });
   }
-  if (app.advanced && process.env.NODE_ENV === 'production') {
+  if (app.advanced && config.environment === 'production') {
     nginxService.removeNginxConfig({ host: app.host });
   }
   seoService.sitemap.deleteSitemap({ host: app.host });

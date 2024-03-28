@@ -1,6 +1,6 @@
 const { createTags } = require('utilities/restaurantTagsParser/tagsParser');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
-const sleep = require('util').promisify(setTimeout);
+const sleep = require('node:util').promisify(setTimeout);
 const { Wobj } = require('models');
 const _ = require('lodash');
 

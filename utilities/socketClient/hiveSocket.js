@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const EventEmitterHIVE = require('events').EventEmitter;
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const _ = require('lodash');
+const config = require('config');
 
 const emitter = new EventEmitterHIVE();
 
@@ -51,7 +52,7 @@ class SocketClient {
   }
 
   async sendMessage(message = {}) {
-    if (process.env.NODE_ENV !== 'production') return { error: new Error(HIVE_SOCKET_ERR.DISABLED) };
+    if (config.environment !== 'production') return { error: new Error(HIVE_SOCKET_ERR.DISABLED) };
     if (this.timeoutCount >= REQUESTS_TO_DISABLE) {
       this.timeoutCount++;
       if (this.timeoutCount > REQUESTS_TO_RENEW) {

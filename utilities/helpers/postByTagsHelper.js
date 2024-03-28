@@ -2,8 +2,7 @@ const _ = require('lodash');
 const { Wobj } = require('models');
 const { OBJECT_TYPES } = require('constants/wobjectsData');
 const { importTags } = require('utilities/objectImportServiceApi');
-
-const DYNAMIC_HASHTAGS = () => process.env.DYNAMIC_HASHTAGS === 'true';
+const config = require('config');
 
 const wobjectsByTags = async (tags) => {
   const wobjects = [];
@@ -34,7 +33,7 @@ const wobjectsByTags = async (tags) => {
       }
     }
   }
-  if (tagsImport.length && DYNAMIC_HASHTAGS()) {
+  if (tagsImport.length && config.dynamicHashtags) {
     await importTags.send(tagsImport);
   }
   return wobjects;
@@ -46,10 +45,12 @@ const getWobjectsFromMetadata = async ({ metadata } = {}) => {
   if (_.isEmpty(wobjects)) {
     wobjects = await wobjectsByTags(_.get(metadata, 'tags'));
   } else {
-    _.forEach(_.get(metadata, 'tags', []),
+    _.forEach(
+      _.get(metadata, 'tags', []),
       (tag) => {
         if (!_.includes(_.map(wobjects, 'author_permlink'), tag)) wobjects.push({ author_permlink: tag, percent: 0 });
-      });
+      },
+    );
   }
   return wobjects;
 };

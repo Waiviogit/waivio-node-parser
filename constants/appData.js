@@ -1,122 +1,6 @@
-const getAppData = () => ({
-  appName: process.env.APP_NAME || 'waiviodev',
-});
-
-const objectImportService = {
-  production: {
-    IMPORT_OBJECTS_SERVICE_HOST_URL: 'https://www.waivio.com/import-objects-service',
-    IMPORT_TAGS_ROUTE: '/import-tags',
-    IMPORT_UPDATES_ROUTE: '/import-wobjects',
-  },
-  staging: {
-    IMPORT_OBJECTS_SERVICE_HOST_URL: 'https://waiviodev.com/import-objects-service',
-    IMPORT_TAGS_ROUTE: '/import-tags',
-    IMPORT_UPDATES_ROUTE: '/import-wobjects',
-  },
-  development: {
-    IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://localhost:8085/import-objects-service',
-    IMPORT_TAGS_ROUTE: '/import-tags',
-    IMPORT_UPDATES_ROUTE: '/import-wobjects',
-  },
-  test: {
-    IMPORT_OBJECTS_SERVICE_HOST_URL: 'http://localhost:8085/import-objects-service',
-    IMPORT_TAGS_ROUTE: '/import-tags',
-    IMPORT_UPDATES_ROUTE: '/import-wobjects',
-  },
-};
-
-const waivioApi = {
-  production: {
-    HOST: 'https://www.waivio.com',
-    BASE_URL: '/api',
-    IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
-    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
-  },
-  staging: {
-    HOST: 'https://waiviodev.com',
-    BASE_URL: '/api',
-    IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
-    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
-  },
-  development: {
-    HOST: 'http://localhost:3000',
-    BASE_URL: '/api',
-    IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
-    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
-  },
-  test: {
-    HOST: 'http://localhost:3000',
-    BASE_URL: '/api',
-    IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
-    RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
-  },
-};
-
-const nginxApi = {
-  production: {
-    HOST: 'https://www.waivio.com',
-    BASE_URL: '/nginx',
-    ADD_CONFIG: '/add-site',
-    REMOVE_CONFIG: '/remove-site',
-  },
-  staging: {
-    HOST: 'https://waiviodev.com',
-    BASE_URL: '/nginx',
-    ADD_CONFIG: '/add-site',
-    REMOVE_CONFIG: '/remove-site',
-  },
-  development: {
-    HOST: 'http://localhost:3000',
-    BASE_URL: '/nginx',
-    ADD_CONFIG: '/add-site',
-    REMOVE_CONFIG: '/remove-site',
-  },
-  test: {
-    HOST: 'http://localhost:3000',
-    BASE_URL: '/nginx',
-    ADD_CONFIG: '/add-site',
-    REMOVE_CONFIG: '/remove-site',
-  },
-};
-
-const notificationsApi = {
-  production: {
-    HOST: 'https://www.waivio.com',
-    WS: 'wss://www.waivio.com',
-    BASE_URL: '/notifications-api',
-    SET_NOTIFICATION: '/set',
-    STATUS: ['relisted', 'nsfw', 'unavailable'],
-    WS_SET_NOTIFICATION: 'setNotification',
-  },
-  staging: {
-    HOST: 'https://waiviodev.com',
-    WS: 'wss://waiviodev.com',
-    BASE_URL: '/notifications-api',
-    SET_NOTIFICATION: '/set',
-    STATUS: ['relisted', 'nsfw', 'unavailable'],
-    WS_SET_NOTIFICATION: 'setNotification',
-  },
-  development: {
-    HOST: 'http://localhost:4000',
-    WS: 'ws://localhost:4000',
-    BASE_URL: '/notifications-api',
-    SET_NOTIFICATION: '/set',
-    STATUS: ['relisted', 'nsfw', 'unavailable'],
-    WS_SET_NOTIFICATION: 'setNotification',
-  },
-  test: {
-    HOST: 'http://localhost:4000',
-    WS: 'ws://localhost:4000',
-    BASE_URL: '/notifications-api',
-    SET_NOTIFICATION: '/set',
-    STATUS: ['relisted', 'nsfw', 'unavailable'],
-    WS_SET_NOTIFICATION: 'setNotification',
-  },
-};
-
 // valid urls of HIVE nodes for getting blocks with transactions.
 const COMMON_RPC_NODES = [
-  //'https://api.hive.blog',
+  // 'https://api.hive.blog',
   'https://anyx.io',
   'https://api.openhive.network',
   'https://hive-api.arcange.eu',
@@ -144,25 +28,9 @@ const REFERRAL_STATUSES = {
   REJECTED: 'rejected',
 };
 
-const telegramApi = {
-  HOST: 'https://waiviodev.com',
-  BASE_URL: '/telegram-api',
-  SENTRY_ERROR: '/sentry',
-
-};
-
-const BLOCK_REQ_MAX_TIME = 1000;
-
 module.exports = {
-  telegramApi,
-  getAppData,
-  objectImportService: objectImportService[process.env.NODE_ENV || 'development'],
-  waivioApi: waivioApi[process.env.NODE_ENV || 'development'],
-  notificationsApi: notificationsApi[process.env.NODE_ENV || 'development'],
-  nginxApi: nginxApi[process.env.NODE_ENV || 'development'],
   REFERRAL_TYPES,
   REFERRAL_STATUSES,
-  BLOCK_REQ_MAX_TIME,
   HIVED_NODES,
   HIVE_MIND_NODES,
 };

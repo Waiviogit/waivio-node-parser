@@ -9,8 +9,15 @@ const { postsUtil } = require('utilities/steemApi');
 const userParsers = require('parsers/userParsers');
 const { Post, CommentModel } = require('models');
 const voteParser = require('parsers/voteParser');
+const { verifySignature } = require('utilities/helpers/signatureHelper');
+const { VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
 
 exports.followUser = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (!json || _.isEmpty(json)) return;
 
@@ -19,6 +26,11 @@ exports.followUser = async (operation) => {
 };
 
 exports.reblogPost = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (!json || _.isEmpty(json)) return;
 
@@ -27,6 +39,11 @@ exports.reblogPost = async (operation) => {
 };
 
 exports.followWobject = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (!json || _.isEmpty(json)) return;
 
@@ -35,6 +52,11 @@ exports.followWobject = async (operation) => {
 };
 
 exports.guestVote = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (!json || _.isEmpty(json)) return;
 
@@ -47,12 +69,22 @@ exports.guestVote = async (operation) => {
 };
 
 exports.accountUpdate = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (!json || _.isEmpty(json)) return;
   await userParsers.updateAccountParser(json);
 };
 
 exports.subscribeNotification = async (operation) => {
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
+
   const json = jsonHelper.parseJson(operation.json);
   if (!json || _.isEmpty(json)) return;
 

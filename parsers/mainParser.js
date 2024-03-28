@@ -5,11 +5,10 @@ const {
 const { MAIN_OPS, REDIS_KEYS } = require('constants/parsersData');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
-
-const PARSE_ONLY_VOTES = process.env.PARSE_ONLY_VOTES === 'true';
+const config = require('config');
 
 const parseSwitcher = async (transactions, timestamp) => {
-  if (PARSE_ONLY_VOTES) {
+  if (config.parseOnlyVotes) {
     const ops = transactions.filter((t) => t.op.type === 'effective_comment_vote_operation').map((t) => ({ ...t.op.value, transaction_id: t.trx_id }));
     const votes = transactions.filter((t) => t.op.type === 'vote_operation').map((t) => {
       const effectiveVote = ops.find((v) => v?.transaction_id === t?.trx_id);
@@ -27,7 +26,7 @@ const parseSwitcher = async (transactions, timestamp) => {
   for (const transaction of transactions) {
     if (transaction && transaction.operations && transaction.operations[0]) {
       for (const operation of transaction.operations) {
-        if (!PARSE_ONLY_VOTES) {
+        if (!config.parseOnlyVotes) {
           switch (operation[0]) {
             case MAIN_OPS.COMMENT:
               await commentParser.parse({

@@ -1,7 +1,9 @@
 const axios = require('axios');
+const config = require('config');
+
 const {
   HOST, BASE_URL, ADD_CONFIG, REMOVE_CONFIG,
-} = require('constants/appData').nginxApi;
+} = config.nginxApi;
 
 /**
  * @param host {String}
@@ -10,7 +12,7 @@ const {
 exports.createNginxConfig = async ({ host }) => {
   try {
     const url = `${HOST}${BASE_URL}${ADD_CONFIG}`;
-    const { data: response } = await axios.post(url, { host }, { headers: { 'nginx-key': process.env.NGINX_KEY } });
+    const { data: response } = await axios.post(url, { host }, { headers: { 'nginx-key': config.nginxKey } });
     if (response && response.ok) {
       return { response };
     }
@@ -27,7 +29,7 @@ exports.createNginxConfig = async ({ host }) => {
 exports.removeNginxConfig = async ({ host }) => {
   try {
     const url = `${HOST}${BASE_URL}${REMOVE_CONFIG}`;
-    const { data: response } = await axios.post(url, { host }, { headers: { 'nginx-key': process.env.NGINX_KEY } });
+    const { data: response } = await axios.post(url, { host }, { headers: { 'nginx-key': config.nginxKey } });
     if (response && response.ok) {
       return { response };
     }

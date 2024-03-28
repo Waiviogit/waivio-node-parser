@@ -33,6 +33,7 @@ const onError = (error) => {
 const app = require('../app');
 const debug = require('debug')('waivio-node-parser:server');
 const http = require('http');
+const config = require('config');
 const { closeMongoConnections } = require('../database');
 
 /**
@@ -59,7 +60,7 @@ const normalizePort = (val) => {
  * Get port from environment and store in Express.
  */
 
-let port = normalizePort(process.env.PORT || '3003');
+let port = normalizePort(config.port);
 
 app.set('port', port);
 

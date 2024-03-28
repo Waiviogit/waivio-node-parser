@@ -188,7 +188,7 @@ const createOrUpdatePost = async ({
 };
 
 const addHiveEngineTTL = async ({ postTags, author, permlink }) => {
-  if (process.env.NODE_ENV !== 'production') return;
+  if (config.environment !== 'production') return;
   if (_.isEmpty(postTags)) return;
   const isInGreyList = !!await redisGetter.sismember({
     key: GREY_LIST_KEY,
