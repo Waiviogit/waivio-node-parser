@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { IMPORT_OBJECTS_SERVICE_HOST_URL, IMPORT_TAGS_ROUTE } = require('constants/appData').objectImportService;
+const { IMPORT_OBJECTS_SERVICE_HOST_URL, IMPORT_TAGS_ROUTE } = require('config').objectImportService;
 
 const URL = IMPORT_OBJECTS_SERVICE_HOST_URL + IMPORT_TAGS_ROUTE;
 
