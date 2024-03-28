@@ -37,7 +37,7 @@ const getFromCustomJson = (operation) => {
     : _.omit(payload, 'signature');
 
   const message = JSON.stringify({
-    account, id: operation.id, json: jsonWithoutSignature,
+    account, id: operation.id, json: JSON.stringify(jsonWithoutSignature),
   });
 
   const guestAccount = (guestAccountById[operation.id] || guestAccountById.default)(payload);
