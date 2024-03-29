@@ -41,13 +41,21 @@ exports.getRef = async (commentPath) => {
   }
 };
 
-// const isExist = async (commentPath) => {
-//   try {
-//     const count = await CommentRef.find({ comment_path: commentPath }).count();
-//     return !!count;
-//   } catch (error) {
-//     return false;
-//   }
-// };
+exports.find = async ({ filter, projection, options }) => {
+  try {
+    const result = await CommentRef.find(filter, projection, options).lean();
+    return { result };
+  } catch (error) {
+    return { error };
+  }
+};
+
+exports.getManyRefs = async (refs) => {
+  const { result = [] } = await this.find({
+    filter: { comment_path: { $in: refs } },
+  });
+
+  return result;
+};
 
 exports.create = create;

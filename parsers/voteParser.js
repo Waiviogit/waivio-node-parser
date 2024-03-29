@@ -136,20 +136,6 @@ const votePostWithObjects = async (data) => {
   data.post = data.posts.find((p) => (p.author === data.author || p.author === data.guest_author) && p.permlink === data.permlink);
   if (!data.post) return;
 
-  let metadata;
-  try {
-    if (_.get(data, 'post.json_metadata') !== '') {
-      metadata = JSON.parse(data.post.json_metadata); // parse json_metadata from string to JSON
-    }
-  } catch (e) {
-    console.error(e.message);
-  }
-  if (!metadata) return;
-  if (!_.get(metadata, 'wobj.wobjects', []).length) {
-    metadata.wobj = { wobjects: data.wobjects };
-  }
-  data.metadata = metadata;
-
   await votePostHelper.voteOnPost(data);
 };
 
@@ -157,26 +143,21 @@ const votesFormat = async (votesOps) => {
   votesOps = _
     .chain(votesOps)
     .orderBy(['weight'], ['desc'])
-    .uniqWith((first, second) => first.author === second.author && first.permlink === second.permlink && first.voter === second.voter)
+    .uniqWith((first, second) => first.author === second.author
+      && first.permlink === second.permlink && first.voter === second.voter)
     .value();
-  for (const voteOp of votesOps) {
-    const response = await commentRefGetter.getCommentRef(`${voteOp.author}_${voteOp.permlink}`);
 
-    if (_.get(response, 'type')) {
-      voteOp.type = response.type;
-      voteOp.root_wobj = response.root_wobj;
-      voteOp.name = response.name;
-      voteOp.guest_author = response.guest_author;
-      let wobjects;
-      if (response) {
-        try {
-          wobjects = JSON.parse(response.wobjects);
-        } catch (e) {
-          wobjects = [];
-        }
-      }
-      voteOp.wobjects = wobjects;
-    }
+  const refs = await commentRefGetter
+    .getCommentRefs(votesOps.map((el) => `${el.author}_${el.permlink}`));
+
+  for (const voteOp of votesOps) {
+    const ref = refs.find((el) => el.comment_path === `${voteOp.author}_${voteOp.permlink}`);
+    if (!ref?.type) continue;
+
+    voteOp.type = ref.type;
+    voteOp.root_wobj = ref.root_wobj;
+    voteOp.name = ref.name;
+    voteOp.guest_author = ref.guest_author;
   }
 
   return { votesOps };

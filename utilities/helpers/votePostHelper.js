@@ -44,8 +44,8 @@ const unvoteOnPost = async (data) => {
 };
 
 const downVoteOnPost = async (data, weight) => {
-  if (_.isArray(_.get(data, 'metadata.wobj.wobjects'))) {
-    for (const wObject of _.get(data, 'metadata.wobj.wobjects', [])) {
+  if (_.isArray(_.get(data, 'post.wobjects'))) {
+    for (const wObject of _.get(data, 'post.wobjects', [])) {
       // calculate vote weight for each wobject in post
       const voteWeight = Number(weight * (wObject.percent / 100).toFixed(3));
       await User.increaseWobjectWeight({
@@ -61,13 +61,12 @@ const downVoteOnPost = async (data, weight) => {
     author: data.post.author,
     guestAuthor: data.guest_author,
     permlink: data.post.permlink,
-    wobjects: _.get(data, 'metadata.wobj.wobjects'),
   });
 };
 
 const upVoteOnPost = async (data, weight) => {
-  if (_.isArray(_.get(data, 'metadata.wobj.wobjects'))) {
-    for (const wObject of _.get(data, 'metadata.wobj.wobjects', [])) {
+  if (_.isArray(_.get(data, 'post.wobjects'))) {
+    for (const wObject of _.get(data, 'post.wobjects', [])) {
       // calculate vote weight for each wobject in post
       const voteWeight = Number((weight * (wObject.percent / 100)).toFixed(3));
 
