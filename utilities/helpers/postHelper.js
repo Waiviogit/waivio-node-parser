@@ -14,6 +14,7 @@ const { postWithWobjValidator } = require('../../validator');
 const detectPostLanguageHelper = require('./detectPostLanguageHelper');
 const { commentRefSetter } = require('../commentRefService');
 const { COMMENT_REF_TYPES } = require('../../constants/common');
+const { roundDown } = require('./calcHelper');
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -237,7 +238,7 @@ exports.parseCommentBodyWobjects = async ({
   if (_.isEmpty(matches)) return false;
 
   let { post } = await Post.findByBothAuthors({
-    author, permlink, select: { wobjects: 1, _id: 0 },
+    author, permlink, select: { wobjects: 1 },
   });
 
   const { commentRef } = await CommentRef.getRef(`${author}_${permlink}`);
@@ -248,7 +249,7 @@ exports.parseCommentBodyWobjects = async ({
     const created = await restoreOldPost({ author, permlink });
     if (!created) return false;
     ({ post } = await Post.findByBothAuthors({
-      author, permlink, select: { wobjects: 1, _id: 0 },
+      author, permlink, select: { wobjects: 1 },
     }));
   }
 
@@ -258,15 +259,28 @@ exports.parseCommentBodyWobjects = async ({
   );
   if (_.isEmpty(result)) return false;
 
-  const wobjects = _.differenceBy(result, _.get(post, 'wobjects', []), 'author_permlink');
-  if (_.isEmpty(wobjects)) return false;
+  const newObjects = _.differenceBy(result, _.get(post, 'wobjects', []), 'author_permlink');
 
-  for (const authorPermlink of wobjects) {
+  if (_.isEmpty(newObjects)) return false;
+
+  for (const newObj of newObjects) {
     if (!post?._id) continue;
-    await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: post._id });
+    await Wobj.pushNewPost({ author_permlink: newObj.author_permlink, post_id: post._id });
   }
 
-  await Post.addWobjectsToPost({ author, permlink, wobjects });
+  const wobjects = _.get(post, 'wobjects', []);
+  const totalObjects = _.uniqBy([...newObjects, ...wobjects], 'author_permlink');
+  const withZeroValues = wobjects.filter((w) => w.percent === 0);
+  const positivePercentLength = totalObjects.length - withZeroValues.length;
+
+  const newPercent = roundDown(100 / positivePercentLength, 2);
+
+  const objectsToUpdate = totalObjects.map((el) => ({
+    ...el,
+    percent: el.percent === 0 ? el.percent : newPercent,
+  }));
+
+  await Post.setWobjectsToPost({ author, permlink, wobjects: objectsToUpdate });
   return true;
 };
 

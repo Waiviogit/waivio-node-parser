@@ -2,6 +2,34 @@ const _ = require('lodash');
 const { CommentRef } = require('models');
 const { redisGetter, redisSetter } = require('utilities/redis');
 const { COMMENT_REF_TYPES } = require('constants/common');
+const { Promise } = require('mongoose');
+
+const cacheRefList = {
+  [COMMENT_REF_TYPES.postWithWobjects]: redisSetter.addPostWithWobj,
+  [COMMENT_REF_TYPES.createWobj]: redisSetter.addWobjRef,
+  [COMMENT_REF_TYPES.appendWobj]: redisSetter.addAppendWobj,
+  [COMMENT_REF_TYPES.wobjType]: redisSetter.addObjectType,
+};
+
+const cacheRefListParams = {
+  [COMMENT_REF_TYPES.postWithWobjects]: (commentPath, mongoResult) => [
+    commentPath,
+    _.get(mongoResult, 'wobjects'),
+    _.get(mongoResult, 'guest_author', null),
+  ],
+  [COMMENT_REF_TYPES.createWobj]: (commentPath, mongoResult) => [
+    commentPath,
+    _.get(mongoResult, 'root_wobj'),
+  ],
+  [COMMENT_REF_TYPES.appendWobj]: (commentPath, mongoResult) => [
+    commentPath,
+    _.get(mongoResult, 'root_wobj'),
+  ],
+  [COMMENT_REF_TYPES.wobjType]: (commentPath, mongoResult) => [
+    commentPath,
+    _.get(mongoResult, 'name'),
+  ],
+};
 
 /**
  * Method to get comment reference value(wobject, append, post, object_type).
@@ -19,24 +47,42 @@ exports.getCommentRef = async (commentPath) => {
   const mongoResult = await CommentRef.getRef(commentPath);
   if (_.get(mongoResult, 'error')) {
     console.error(mongoResult.error);
-  } else if (_.get(mongoResult, 'commentRef.type')) {
-    switch (mongoResult.commentRef.type) {
-      case COMMENT_REF_TYPES.postWithWobjects:
-        await redisSetter.addPostWithWobj(commentPath, _.get(mongoResult, 'commentRef.wobjects'), _.get(mongoResult, 'commentRef.guest_author', null));
-        break;
+  }
+  if (_.get(mongoResult, 'commentRef.type')) {
+    const { type } = mongoResult.commentRef;
 
-      case COMMENT_REF_TYPES.createWobj:
-        await redisSetter.addWobjRef(commentPath, _.get(mongoResult, 'commentRef.root_wobj'));
-        break;
+    const params = cacheRefListParams[type](commentPath, mongoResult.commentRef);
+    await cacheRefList[type](...params);
 
-      case COMMENT_REF_TYPES.appendWobj:
-        await redisSetter.addAppendWobj(commentPath, _.get(mongoResult, 'commentRef.root_wobj'));
-        break;
-
-      case COMMENT_REF_TYPES.wobjType:
-        await redisSetter.addObjectType(commentPath, _.get(mongoResult, 'commentRef.name'));
-        break;
-    }
     return mongoResult.commentRef;
   }
+};
+
+/**
+ * @returns {Promise<Array>}
+ */
+exports.getCommentRefs = async (refs = []) => {
+  const values = refs.map(async (el) => {
+    const result = await redisGetter.getHashAll(el);
+    return { comment_path: el, ...result };
+  });
+
+  const redisResult = await Promise.all(values);
+
+  const missingTypePaths = redisResult.reduce((acc, el) => {
+    if (!el.type) acc.push(el.comment_path);
+    return acc;
+  }, []);
+  if (!missingTypePaths.length) return redisResult;
+
+  const mongoResult = await CommentRef.getManyRefs(missingTypePaths);
+
+  const updateRedisCache = mongoResult.map((el) => {
+    const params = cacheRefListParams[el.type](el.comment_path, el);
+    return cacheRefList[el.type](...params);
+  });
+
+  await Promise.all(updateRedisCache);
+
+  return [...redisResult, ...mongoResult];
 };

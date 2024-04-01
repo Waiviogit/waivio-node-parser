@@ -25,16 +25,18 @@ const findOne = async (data) => {
 
 const update = async (data) => {
   try {
-    const result = await PostModel.findOneAndUpdate({
-      author: data.author,
-      permlink: data.permlink,
-    },
-    data,
-    {
-      upsert: true,
-      new: true,
-      setDefaultsOnInsert: true,
-    });
+    const result = await PostModel.findOneAndUpdate(
+      {
+        author: data.author,
+        permlink: data.permlink,
+      },
+      data,
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      },
+    );
 
     return { result };
   } catch (error) {
@@ -90,14 +92,14 @@ const getManyPosts = async (postsRefs) => {
   }
 };
 
-const addWobjectsToPost = async (data) => {
+const setWobjectsToPost = async (data) => {
   try {
     const result = await PostModel.updateOne(
       {
         root_author: data.author,
         permlink: data.permlink,
       },
-      { $addToSet: { wobjects: { $each: data.wobjects } } },
+      { $set: { wobjects: data.wobjects } },
     );
 
     return { result };
@@ -144,7 +146,7 @@ const find = async ({ filter, projection, options }) => {
 
 module.exports = {
   removeWobjectsFromPost,
-  addWobjectsToPost,
+  setWobjectsToPost,
   findByBothAuthors,
   findOneAndDelete,
   getPostsRefs,

@@ -17,9 +17,7 @@ const threadModel = require('models/ThreadModel');
 const moment = require('moment');
 const _ = require('lodash');
 const { REDIS_KEYS, VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
-const {
-  parseThread, parseThreadReply,
-} = require('utilities/helpers/thredsHelper');
+const { parseThread, parseThreadReply } = require('utilities/helpers/thredsHelper');
 const { verifySignature, verifyObjectsAction } = require('utilities/helpers/signatureHelper');
 
 const parse = async ({
