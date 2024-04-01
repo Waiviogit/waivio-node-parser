@@ -1,23 +1,25 @@
 const { WObject } = require('database').models;
 const { FIELDS_NAMES, OBJECT_TYPES } = require('constants/wobjectsData');
-const uuid = require('uuid');
+const crypto = require('node:crypto');
 const _ = require('lodash');
 
 const findNotProcessedObject = async () => {
   try {
     return {
-      result: await WObject.findOne({
-        fields: {
-          $elemMatch: {
-            name: FIELDS_NAMES.GROUP_ID,
+      result: await WObject.findOne(
+        {
+          fields: {
+            $elemMatch: {
+              name: FIELDS_NAMES.GROUP_ID,
+            },
           },
+          object_type: { $in: [OBJECT_TYPES.PRODUCT, OBJECT_TYPES.BOOK] },
+          metaGroupId: { $exists: false },
         },
-        object_type: { $in: [OBJECT_TYPES.PRODUCT, OBJECT_TYPES.BOOK] },
-        metaGroupId: { $exists: false },
-      },
-      {
-        fields: 1,
-      }).lean(),
+        {
+          fields: 1,
+        },
+      ).lean(),
     };
   } catch (error) {
     return { error };
@@ -27,25 +29,27 @@ const findNotProcessedObject = async () => {
 const findByGroupIds = async (groupIds) => {
   try {
     return {
-      result: await WObject.find({
-        fields: {
-          $elemMatch: {
-            name: FIELDS_NAMES.GROUP_ID,
-            body: { $in: groupIds },
+      result: await WObject.find(
+        {
+          fields: {
+            $elemMatch: {
+              name: FIELDS_NAMES.GROUP_ID,
+              body: { $in: groupIds },
+            },
           },
+          object_type: {
+            $in: [
+              OBJECT_TYPES.PRODUCT,
+              OBJECT_TYPES.BOOK,
+              OBJECT_TYPES.SERVICE,
+            ],
+          },
+          metaGroupId: { $exists: false },
         },
-        object_type: {
-          $in: [
-            OBJECT_TYPES.PRODUCT,
-            OBJECT_TYPES.BOOK,
-            OBJECT_TYPES.SERVICE,
-          ],
+        {
+          fields: 1,
         },
-        metaGroupId: { $exists: false },
-      },
-      {
-        fields: 1,
-      }).lean(),
+      ).lean(),
     };
   } catch (error) {
     return { error };
@@ -55,12 +59,14 @@ const findByGroupIds = async (groupIds) => {
 const updateMetaGroupId = async ({ metaGroupId, _id }) => {
   try {
     return {
-      result: await WObject.updateOne({
-        _id,
-      },
-      {
-        metaGroupId,
-      }),
+      result: await WObject.updateOne(
+        {
+          _id,
+        },
+        {
+          metaGroupId,
+        },
+      ),
     };
   } catch (error) {
     return { error };
@@ -86,22 +92,24 @@ const addToAllMetaGroup = async ({ groupIds, metaGroupId }) => {
 
 const addMetaGroupIdToAllProductsAndBooks = async () => {
   try {
-    const objects = await WObject.find({
-      metaGroupId: { $exists: false },
-      object_type: {
-        $in: [
-          OBJECT_TYPES.PRODUCT,
-          OBJECT_TYPES.BOOK,
-          OBJECT_TYPES.SERVICE,
-        ],
+    const objects = await WObject.find(
+      {
+        metaGroupId: { $exists: false },
+        object_type: {
+          $in: [
+            OBJECT_TYPES.PRODUCT,
+            OBJECT_TYPES.BOOK,
+            OBJECT_TYPES.SERVICE,
+          ],
+        },
       },
-    },
-    {
-      _id: 1,
-    }).lean();
+      {
+        _id: 1,
+      },
+    ).lean();
 
     for (const object of objects) {
-      const metaGroupId = uuid.v4();
+      const metaGroupId = crypto.randomUUID();
       await updateMetaGroupId({ metaGroupId, _id: object._id });
     }
   } catch (error) {
@@ -114,7 +122,7 @@ const addMetaGroupId = async () => {
     const { result: wobject, error } = await findNotProcessedObject();
     if (error) break;
     if (!wobject) break;
-    const metaGroupId = uuid.v4();
+    const metaGroupId = crypto.randomUUID();
     await updateMetaGroupId({ metaGroupId, _id: wobject._id });
 
     const groupIds = getObjectGroupIds(wobject);

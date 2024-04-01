@@ -1,10 +1,11 @@
 const { redis } = require('utilities/redis');
 const { commentParser } = require('parsers');
 const postHelper = require('utilities/helpers/postHelper');
+const config = require('config');
 
 const expiredDataListener = async (chan, msg) => {
   const data = msg.split(':');
-  if (process.env.PARSE_ONLY_VOTES === 'true' || !data[1]) return;
+  if (config.parseOnlyVotes || !data[1]) return;
   const [author, permlink] = data[1].split('/');
   switch (data[0]) {
     case 'expire-hivePost':

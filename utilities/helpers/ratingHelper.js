@@ -2,8 +2,9 @@ const _ = require('lodash');
 const { Wobj } = require('models');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const wobjectValidator = require('validator/wobjectValidator');
-const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const { verifySignature } = require('utilities/helpers/signatureHelper');
+const { VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
 
 const parse = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
@@ -30,14 +31,17 @@ const parse = async (operation) => {
 };
 
 const parseGuest = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (_.isEmpty(json)) return;
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
 
-    operation.required_posting_auths = [_.get(json, 'guestName')];
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return;
 
-    await parse(operation);
-  }
+  operation.required_posting_auths = [_.get(json, 'guestName')];
+
+  await parse(operation);
 };
 
 module.exports = { parse, parseGuest };

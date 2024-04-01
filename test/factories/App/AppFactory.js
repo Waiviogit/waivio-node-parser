@@ -37,7 +37,6 @@ const Create = async ({
     },
     referralsData: referralsData || [],
     black_list_users: blackListUsers || [],
-    service_bots: bots || [],
     app_commissions: {
       campaigns_server_acc: campaignAcc || faker.name.firstName(),
       campaigns_percent: _.isNumber(campaignCommission) ? campaignCommission : 0.3,

@@ -1,14 +1,12 @@
 const WebSocket = require('ws');
-const {
-  BASE_URL, WS,
-} = require('constants/appData').notificationsApi;
+const config = require('config');
 
-const { API_KEY = '' } = process.env;
+const { BASE_URL, WS } = config.notificationsApi;
 
 class SocketClient {
   constructor(url) {
     this.url = url;
-    this.ws = new WebSocket(this.url, [], { headers: { API_KEY } });
+    this.ws = new WebSocket(this.url, [], { headers: { API_KEY: config.apiKey } });
 
     this.ws.on('open', () => {
       console.info('socket connection open');
@@ -21,7 +19,7 @@ class SocketClient {
 
   sendMessage(message) {
     if (this.ws.readyState !== 1) {
-      this.ws = new WebSocket(this.url, [], { headers: { API_KEY } });
+      this.ws = new WebSocket(this.url, [], { headers: { API_KEY: config.apiKey } });
       this.ws.on('error', () => {
         this.ws.close();
       });

@@ -4,25 +4,33 @@ const {
   SOCIAL_HOSTS,
 } = require('constants/sitesData');
 const {
-  App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User,
+  App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User, ServiceBotModel,
 } = require('models');
 const { MUTE_ACTION } = require('constants/parsersData');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const postModeration = require('utilities/moderation/postModeration');
-const { sitesValidator, objectBotsValidator } = require('validator');
+const { sitesValidator } = require('validator');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
-const appHelper = require('utilities/helpers/appHelper');
 const { usersUtil } = require('utilities/steemApi');
 const Sentry = require('@sentry/node');
 const moment = require('moment');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const config = require('config');
 const { nginxService } = require('../nginxService');
 const seoService = require('../socketClient/seoService');
 const { REDIS_KEYS } = require('../../constants/parsersData');
 
 const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
+
+const validateServiceBot = async (name) => {
+  const result = await ServiceBotModel.findOneByNameAndRole({
+    name,
+    role: 'serviceBot',
+  });
+  return Boolean(result);
+};
 
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(customJsonHelper.getTransactionAccount(operation))) return;
@@ -62,7 +70,7 @@ exports.createWebsite = async (operation) => {
     );
   }
 
-  if (json.advanced && process.env.NODE_ENV === 'production') {
+  if (json.advanced && config.environment === 'production') {
     nginxService.createNginxConfig({ host: json.host });
   }
   seoService.sitemap.createSiteMap({ host: json.host });
@@ -85,7 +93,7 @@ exports.deleteWebsite = async (operation) => {
     await postModeration
       .removeFromSiteModeratorsHiddenPosts({ host: app.host, moderator: mangerName });
   }
-  if (app.advanced && process.env.NODE_ENV === 'production') {
+  if (app.advanced && config.environment === 'production') {
     nginxService.removeNginxConfig({ host: app.host });
   }
   seoService.sitemap.deleteSitemap({ host: app.host });
@@ -196,7 +204,8 @@ exports.createInvoice = async (operation, blockNum) => {
   const author = customJsonHelper.getTransactionAccount(operation);
 
   const json = parseJson(operation.json);
-  if (!json || !author || !await objectBotsValidator.validate(author, 'serviceBot')) return false;
+
+  if (!json || !author || !await validateServiceBot(author)) return false;
 
   const { error, value } = sitesValidator.createInvoice.validate(json);
   if (error) return false;
@@ -462,11 +471,6 @@ const processMutedBySiteAdministration = async ({
       );
       break;
   }
-};
-
-const validateServiceBot = async (username) => {
-  const WAIVIO_SERVICE_BOTS = await appHelper.getProxyBots(['serviceBot']);
-  return WAIVIO_SERVICE_BOTS.includes(username);
 };
 
 const parseJson = (json) => {

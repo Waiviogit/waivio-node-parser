@@ -1,12 +1,12 @@
 const _ = require('lodash');
-const { uuid } = require('uuidv4');
+const crypto = require('node:crypto');
 const { ObjectType } = require('models');
 const { importUpdates } = require('utilities/objectImportServiceApi');
 const {
   MIN_PERCENT_TO_SHOW_UPDATE, VOTE_STATUSES, INDEPENDENT_FIELDS,
   ADMIN_ROLES, categorySwitcher, FIELDS_NAMES, ARRAY_FIELDS,
 } = require('constants/wobjectsData');
-const supposedUpdatesTranslate = require('translations/supposedUpdates');
+const supposedUpdatesTranslate = require('constants/translations/supposedUpdates');
 
 const DEFAULT_UPDATES_CREATOR = 'monterey';
 
@@ -42,7 +42,7 @@ const addSupposedUpdates = async (wobject, locale, metadata) => {
         creator: DEFAULT_UPDATES_CREATOR,
         locale,
       };
-      if (update.id_path) field[update.id_path] = uuid();
+      if (update.id_path) field[update.id_path] = crypto.randomUUID();
       importWobjData.fields.push(field);
     });
   });

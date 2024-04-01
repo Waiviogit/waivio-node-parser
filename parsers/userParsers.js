@@ -5,10 +5,9 @@ const {
 } = require('models');
 const {
   BELL_NOTIFICATIONS, HIDE_ACTION,
-  CUSTOM_JSON_OPS, MUTE_ACTION,
+  CUSTOM_JSON_OPS, MUTE_ACTION, VERIFY_SIGNATURE_TYPE,
 } = require('constants/parsersData');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
 const postModeration = require('utilities/moderation/postModeration');
 const sitesHelper = require('utilities/helpers/sitesHelper');
 const jsonHelper = require('utilities/helpers/jsonHelper');
@@ -16,6 +15,7 @@ const postUtil = require('utilities/helpers/postHelper');
 const { postsUtil } = require('utilities/steemApi');
 const { ERROR } = require('constants/common');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const { verifySignature } = require('utilities/helpers/signatureHelper');
 
 exports.updateAccountParser = async (operation) => {
   if (operation.account && operation.owner && operation.active && operation.posting && operation.memo_key) {
@@ -237,18 +237,21 @@ exports.hideCommentParser = async (operation) => {
 };
 
 exports.guestHideContentParser = async (operation) => {
-  if (await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) {
-    const json = jsonHelper.parseJson(operation.json);
-    if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
 
-    operation.required_posting_auths = [_.get(json, 'guestName')];
+  const json = jsonHelper.parseJson(operation.json);
+  if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
 
-    switch (operation.id) {
-      case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
-        return this.hidePostParser(operation);
-      case CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT:
-        return this.hideCommentParser(operation);
-    }
+  operation.required_posting_auths = [_.get(json, 'guestName')];
+
+  switch (operation.id) {
+    case CUSTOM_JSON_OPS.GUEST_HIDE_POST:
+      return this.hidePostParser(operation);
+    case CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT:
+      return this.hideCommentParser(operation);
   }
 };
 

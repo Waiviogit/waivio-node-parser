@@ -1,6 +1,7 @@
 const axios = require('axios');
-const { HOST, BASE_URL, RECOUNT_LIST_ITEMS } = require('constants/appData').waivioApi;
+const config = require('config');
 
+const { HOST, BASE_URL, RECOUNT_LIST_ITEMS } = config.waivioApi;
 const URL = `${HOST}${BASE_URL}${RECOUNT_LIST_ITEMS}`;
 
 /**
@@ -15,7 +16,7 @@ exports.send = async ({ authorPermlink, listItemLink }) => {
       URL,
       { authorPermlink, listItemLink },
       {
-        headers: { 'api-key': process.env.SERVICE_API_KEY },
+        headers: { 'api-key': config.serviceApiKey },
       },
     );
     if (response && response.ok) {

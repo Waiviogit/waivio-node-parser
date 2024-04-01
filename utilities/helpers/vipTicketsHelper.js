@@ -1,11 +1,12 @@
 const { Q_NAME, PRICE_FOR_TICKET, POSSIBLE_DISCREPANCY } = require('constants/vipTicketsData');
 const redisQueue = require('utilities/redis/rsmq/redisQueue');
 const _ = require('lodash');
+const config = require('config');
 
 exports.processTicketPurchase = async ({
   from, to, amount, blockNum,
 }) => {
-  if (!_.includes(['test', 'production'], process.env.NODE_ENV)) return false;
+  if (!_.includes(['test', 'production'], config.environment)) return false;
   if (amount.includes('HBD')) return false;
   if (!getTicketsAmount(parseFloat(amount))) return false;
   const message = JSON.stringify({

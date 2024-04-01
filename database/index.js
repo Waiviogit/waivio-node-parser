@@ -1,11 +1,7 @@
 const mongoose = require('mongoose');
 const config = require('config');
 
-const URI = process.env.MONGO_URI_WAIVIO
-  ? process.env.MONGO_URI_WAIVIO
-  : `mongodb://${config.db.host}:${config.db.port}/${config.db.database}`;
-
-mongoose.connect(URI)
+mongoose.connect(config.mongoConnectionString)
   .then(() => console.log('connection successful!'))
   .catch((error) => console.error(error));
 
@@ -48,5 +44,6 @@ module.exports = {
     UserShopDeselect: require('./schemas/UserShopDeselectSchema'),
     Threads: require('./schemas/ThreadsSchema'),
     Delegation: require('./schemas/DelegationSchema'),
+    ServiceBot: require('./schemas/ServiceBotSchema'),
   },
 };

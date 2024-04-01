@@ -91,7 +91,6 @@ exports.checkAndSetReferral = async (data) => {
   const {
     result: {
       black_list_users = [],
-      service_bots = [],
       referralsData = [],
     },
   } = await appHelper.getAppData(config.appHost);
@@ -99,11 +98,7 @@ exports.checkAndSetReferral = async (data) => {
   /** Check for guest user */
   const guestName = _.get(json, 'guestName');
   if (guestName) {
-    const bot = _.find(
-      service_bots,
-      (record) => record.name === author,
-    );
-    if (!bot) return { error: 'Author of guest info must be one of our bots' };
+    // todo check signature
     author = guestName;
   }
   /** If agent in black list, dont allow referral */
@@ -156,12 +151,7 @@ exports.checkAndSetReferral = async (data) => {
 const referralValidation = async (json, author, postingAuth) => {
   const isGuest = _.get(json, 'isGuest', false);
   if (isGuest) {
-    const { result: { service_bots = [] } } = await appHelper.getAppData(config.appHost);
-    const bot = _.find(
-      service_bots,
-      (record) => record.name === postingAuth,
-    );
-    if (!bot) return { error: 'Author of guest info must be one of our bots' };
+    // todo check signature
   }
 
   if (author !== postingAuth && !isGuest) {

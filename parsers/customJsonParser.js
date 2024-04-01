@@ -3,13 +3,12 @@ const userParsers = require('parsers/userParsers');
 const voteParsers = require('parsers/voteParser');
 const { ratingHelper, userHelper, sitesHelper } = require('utilities/helpers');
 const { customJsonOperations } = require('utilities/guestOperations');
-const { CUSTOM_JSON_OPS, REDIS_KEYS } = require('constants/parsersData');
+const { CUSTOM_JSON_OPS, REDIS_KEYS, VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
 const hiveEngineCustom = require('utilities/customJsonHiveEngine/hiveEngineCustom');
 const redisSetter = require('utilities/redis/redisSetter');
-const { validateProxyBot } = require('utilities/guestOperations/guestHelpers');
-const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const { parseJson } = require('../utilities/helpers/jsonHelper');
 const { sitesValidator } = require('../validator');
+const { verifySignature } = require('../utilities/helpers/signatureHelper');
 
 exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
   switch (operation.id) {
@@ -75,6 +74,9 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
     case CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT:
       await userParsers.guestHideContentParser(operation);
       break;
+    case CUSTOM_JSON_OPS.WEBSITE_GUEST:
+      await guestWebsiteAction(operation);
+      break;
       /** WEBSITES */
     case CUSTOM_JSON_OPS.CREATE_CUSTOM_WEBSITE:
       await sitesHelper.createWebsite(operation);
@@ -134,9 +136,6 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
     case CUSTOM_JSON_OPS.WEBSITE_CANONICAL:
       await sitesHelper.setCanonical(operation);
       break;
-    case CUSTOM_JSON_OPS.WEBSITE_GUEST:
-      await guestWebsiteAction(operation);
-      break;
     /** Hive engine */
     case CUSTOM_JSON_OPS.WAIVIO_HIVE_ENGINE:
       await hiveEngineCustom.parse(operation, blockNum, transaction_id, timestamp);
@@ -145,7 +144,10 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
 };
 
 const guestWebsiteAction = async (operation) => {
-  if (!await validateProxyBot(customJsonHelper.getTransactionAccount(operation))) return;
+  const validSignature = await verifySignature({
+    operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
+  });
+  if (!validSignature) return;
 
   const payload = parseJson(operation.json);
 
