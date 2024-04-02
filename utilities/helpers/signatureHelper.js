@@ -9,6 +9,8 @@ const redisSetter = require('utilities/redis/redisSetter');
 const redisGetter = require('utilities/redis/redisGetter');
 const config = require('config');
 
+const BLOCK_TRANSITION_TO_SIGNATURE = 84146832;
+
 const guestAccountById = {
   [CUSTOM_JSON_OPS.WEBSITE_GUEST]: (payload) => payload.userName,
   [CUSTOM_JSON_OPS.GUEST_HIDE_COMMENT]: (payload) => payload.guestName,
@@ -95,8 +97,8 @@ const getSignerPubKey = async (name) => {
 
 const verifySignature = async ({ operation, type }) => {
   try {
-    // const blockNum = await redisGetter.getLastBlockNum();
-    // if (blockNum < 83978839) return true;
+    const blockNum = await redisGetter.getLastBlockNum();
+    if (blockNum < BLOCK_TRANSITION_TO_SIGNATURE) return true;
     const {
       message,
       signature,
