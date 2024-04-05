@@ -91,6 +91,7 @@ exports.REDIS_KEYS = {
   DYNAMIC_GLOBAL_PROPERTIES: 'dynamic_global_properties',
   TX_ID_MAIN: 'main_parser_tx_id',
   AD_SENSE: 'ad_sense_cache',
+  HOSTS_TO_PARSE_OBJECTS: 'hosts_to_parse_objects',
 };
 
 exports.HIDE_ACTION = {
