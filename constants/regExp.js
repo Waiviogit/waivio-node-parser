@@ -1,13 +1,18 @@
 const WOBJECT_REF = '/object/([a-z0-9-]*)';
 
-exports.HOSTS_TO_PARSE_LINKS = [
+const HOSTS_TO_PARSE_LINKS = [
   'waivio.com',
   'dining.gifts',
   'social.gifts',
 ];
 
-exports.RE_HTTPS = new RegExp(/^https:\/\//);
+const RE_HTTPS = new RegExp(/^https:\/\//);
 
-exports.RE_WOBJECT_REF = new RegExp(`${this.HOSTS_TO_PARSE_LINKS.map((el) => `${el}${WOBJECT_REF}`).join('|')}`);
+const RE_HASHTAGS = new RegExp(/(?<=[^\[]|^)#(\w[a-z-]+\w)(?!;)/);
 
-exports.RE_HASHTAGS = new RegExp(/(?<=[^\[]|^)#(\w[a-z-]+\w)(?!;)/);
+module.exports = {
+  WOBJECT_REF,
+  HOSTS_TO_PARSE_LINKS,
+  RE_HTTPS,
+  RE_HASHTAGS,
+};
