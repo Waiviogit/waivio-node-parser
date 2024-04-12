@@ -1,20 +1,52 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  Post, CommentModel, Wobj, relatedAlbum, CommentRef,
+  Post, CommentModel, Wobj, relatedAlbum, CommentRef, App,
 } = require('models');
 const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
 const seoService = require('utilities/socketClient/seoService');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
-const { RE_HTTPS, RE_WOBJECT_REF, RE_HASHTAGS } = require('constants/regExp');
+const {
+  RE_HTTPS, RE_HASHTAGS, HOSTS_TO_PARSE_LINKS, WOBJECT_REF,
+} = require('constants/regExp');
 const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
+const redisSetter = require('utilities/redis/redisSetter');
+const redisGetter = require('utilities/redis/redisGetter');
+const jsonHelper = require('utilities/helpers/jsonHelper');
+const { REDIS_KEYS } = require('constants/parsersData');
 const { postWithWobjValidator } = require('../../validator');
 const detectPostLanguageHelper = require('./detectPostLanguageHelper');
 const { commentRefSetter } = require('../commentRefService');
 const { COMMENT_REF_TYPES } = require('../../constants/common');
 const { roundDown } = require('./calcHelper');
+
+const getHostsToParseObjects = async () => {
+  const cache = await redisGetter.getAsync({ key: REDIS_KEYS.HOSTS_TO_PARSE_OBJECTS });
+  if (cache) return jsonHelper.parseJson(cache, []);
+  const { result = [] } = await App.find({ advanced: true }, { host: 1 });
+  const dataToSet = [...HOSTS_TO_PARSE_LINKS, ...result.map((el) => el.host)];
+  await redisSetter.set({
+    key: REDIS_KEYS.HOSTS_TO_PARSE_OBJECTS,
+    value: JSON.stringify(dataToSet),
+  });
+  return dataToSet;
+};
+
+exports.setHostsToParseObjects = async () => {
+  const { result = [] } = await App.find({ advanced: true }, { host: 1 });
+  const dataToSet = [...HOSTS_TO_PARSE_LINKS, ...result.map((el) => el.host)];
+  await redisSetter.set({
+    key: REDIS_KEYS.HOSTS_TO_PARSE_OBJECTS,
+    value: JSON.stringify(dataToSet),
+  });
+};
+
+const getRegExToParseObjects = async () => {
+  const hosts = await getHostsToParseObjects();
+  return RegExp(`${hosts.map((el) => `${el}${WOBJECT_REF}`).join('|')}`);
+};
 
 exports.objectIdFromDateString = (dateStr) => {
   const timestamp = moment.utc(dateStr).format('x');
@@ -107,9 +139,11 @@ exports.guestCommentFromTTL = async (author, permlink) => {
  * in second part we check weather post has wobjects or just tags and make calculations
  */
 exports.parseBodyWobjects = async (metadata, postBody = '') => {
+  const hostObjectsRegex = await getRegExToParseObjects();
+
   const bodyLinks = _.uniq([
     ...getBodyLinksArray(postBody, RE_HASHTAGS),
-    ...getBodyLinksArray(postBody, RE_WOBJECT_REF),
+    ...getBodyLinksArray(postBody, hostObjectsRegex),
   ]);
   if (!_.isEmpty(bodyLinks)) {
     const metadataWobjects = _.concat(
@@ -231,9 +265,11 @@ const restoreOldPost = async ({ author, permlink }) => {
 exports.parseCommentBodyWobjects = async ({
   body = '', author, permlink,
 }) => {
+  const hostObjectsRegex = await getRegExToParseObjects();
+
   const matches = _.uniq([
     ...getBodyLinksArray(body, RE_HASHTAGS),
-    ...getBodyLinksArray(body, RE_WOBJECT_REF),
+    ...getBodyLinksArray(body, hostObjectsRegex),
   ]);
   if (_.isEmpty(matches)) return false;
 
@@ -285,9 +321,11 @@ exports.parseCommentBodyWobjects = async ({
 };
 
 exports.hideCommentWobjectsFromPost = async ({ author, permlink, body = '' }) => {
+  const hostObjectsRegex = await getRegExToParseObjects();
+
   const authorPermlinks = _.uniq([
     ...getBodyLinksArray(body, RE_HASHTAGS),
-    ...getBodyLinksArray(body, RE_WOBJECT_REF),
+    ...getBodyLinksArray(body, hostObjectsRegex),
   ]);
   if (_.isEmpty(authorPermlinks)) return false;
   return !!(await Post.removeWobjectsFromPost({ author, permlink, authorPermlinks })).result;

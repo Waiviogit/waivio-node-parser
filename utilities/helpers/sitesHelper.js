@@ -8,6 +8,7 @@ const {
 } = require('models');
 const { MUTE_ACTION } = require('constants/parsersData');
 const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
+const postHelper = require('utilities/helpers/postHelper');
 const postModeration = require('utilities/moderation/postModeration');
 const { sitesValidator } = require('validator');
 const { FIELDS_NAMES } = require('constants/wobjectsData');
@@ -72,6 +73,7 @@ exports.createWebsite = async (operation) => {
 
   if (json.advanced && config.environment === 'production') {
     nginxService.createNginxConfig({ host: json.host });
+    postHelper.setHostsToParseObjects();
   }
   seoService.sitemap.createSiteMap({ host: json.host });
 };
@@ -95,6 +97,7 @@ exports.deleteWebsite = async (operation) => {
   }
   if (app.advanced && config.environment === 'production') {
     nginxService.removeNginxConfig({ host: app.host });
+    postHelper.setHostsToParseObjects();
   }
   seoService.sitemap.deleteSitemap({ host: app.host });
 };
