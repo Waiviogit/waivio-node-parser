@@ -84,5 +84,5 @@ exports.getCommentRefs = async (refs = []) => {
 
   await Promise.all(updateRedisCache);
 
-  return [...redisResult, ...mongoResult];
+  return [...redisResult.filter((el) => !!el.type), ...mongoResult];
 };
