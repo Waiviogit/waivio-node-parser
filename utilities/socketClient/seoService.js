@@ -57,10 +57,29 @@ const deleteSitemap = async ({ host }) => {
   }
 };
 
+const deleteCachedPages = async ({ host }) => {
+  try {
+    const response = await axios.delete(
+      `${config.seoServiceBaseUrl}/cache-page`,
+      {
+        data: {
+          host,
+        },
+        timeout: 5000,
+      },
+    );
+
+    return response?.data ?? '';
+  } catch (error) {
+    return '';
+  }
+};
+
 const sitemap = {
   createSiteMap,
   deleteSitemap,
   addSitemapPost,
+  deleteCachedPages,
 };
 
 module.exports = {
