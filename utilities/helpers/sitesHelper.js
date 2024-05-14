@@ -133,6 +133,13 @@ exports.saveWebsiteSettings = async (operation) => {
   const { error, value } = sitesValidator.settingsSchema.validate(json);
   if (error) return captureException(error);
 
+  const { result } = await App.findOne({ _id: value.appId, owner, inherited: true });
+  if (!result) return;
+
+  const keysToClearCache = ['googleGSCTag', 'googleEventSnippet', 'googleAdsConfig', 'googleAnalyticsTag'];
+  const clearCache = !keysToClearCache.every((el) => result[el] === value[el]);
+  if (clearCache) seoService.deleteCachedPages({ host: result.host });
+
   await App.updateOne({ _id: value.appId, owner, inherited: true }, _.omit(value, ['appId']));
 };
 
