@@ -65,7 +65,7 @@ const deleteCachedPages = async ({ host }) => {
         data: {
           host,
         },
-        timeout: 5000,
+        timeout: 60000,
       },
     );
 
