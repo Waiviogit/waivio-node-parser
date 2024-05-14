@@ -138,7 +138,7 @@ exports.saveWebsiteSettings = async (operation) => {
 
   const keysToClearCache = ['googleGSCTag', 'googleEventSnippet', 'googleAdsConfig', 'googleAnalyticsTag'];
   const clearCache = !keysToClearCache.every((el) => result[el] === value[el]);
-  if (clearCache) seoService.deleteCachedPages({ host: result.host });
+  if (clearCache) seoService.pages.deleteCachedPages({ host: result.host });
 
   await App.updateOne({ _id: value.appId, owner, inherited: true }, _.omit(value, ['appId']));
 };

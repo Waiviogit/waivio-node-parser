@@ -79,9 +79,13 @@ const sitemap = {
   createSiteMap,
   deleteSitemap,
   addSitemapPost,
+};
+
+const pages = {
   deleteCachedPages,
 };
 
 module.exports = {
   sitemap,
+  pages,
 };
