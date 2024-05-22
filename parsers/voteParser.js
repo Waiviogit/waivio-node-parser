@@ -59,7 +59,7 @@ const parseVoteByType = async (voteOp, posts) => {
       guest_author: voteOp.guest_author,
       posts,
     });
-  } else if (voteOp.type === VOTE_TYPES.APPEND_WOBJ && voteOp.weight > 0) {
+  } else if (voteOp.type === VOTE_TYPES.APPEND_WOBJ && voteOp.weight >= 0) {
     await voteAppendObject({
       author: voteOp.author, // author and permlink - identity of field
       permlink: voteOp.permlink,
