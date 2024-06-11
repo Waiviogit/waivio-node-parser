@@ -68,10 +68,41 @@ const validateFields = (data) => {
   });
 };
 
+const createReversedJSONStringArray = (input) => {
+  const jsonObject = jsonHelper.parseJson(input, null);
+  if (!jsonObject) return [input];
+  const reversedJsonObject = {};
+
+  const keys = Object.keys(jsonObject).reverse();
+  for (const key of keys) {
+    reversedJsonObject[key] = jsonObject[key];
+  }
+
+  return [input, JSON.stringify(reversedJsonObject)];
+};
+
+const validateSameFieldsProductId = ({ fieldData, foundedFields }) => {
+  let same;
+  for (const body of createReversedJSONStringArray(fieldData.body)) {
+    const newField = { ...fieldData, body };
+    same = foundedFields.find((field) => _.isEqual(_.pick(field, ['name', 'body', 'locale']), _.pick(newField, ['name', 'body', 'locale'])));
+    if (same) {
+      throw new Error('Can\'t append object, the same field already exists');
+    }
+  }
+};
+
 // validate that field with the same name and body don't exist already
 const validateSameFields = async (data) => {
   const { wobject } = await Wobj.getOne({ author_permlink: data.author_permlink });
   const setUniqFields = ['name', 'body', 'locale'];
+
+  if ([FIELDS_NAMES.PRODUCT_ID, FIELDS_NAMES.COMPANY_ID].includes(data.field.name)) {
+    return validateSameFieldsProductId({
+      fieldData: data.field,
+      foundedFields: wobject.fields,
+    });
+  }
 
   if ([FIELDS_NAMES.CATEGORY_ITEM, FIELDS_NAMES.GALLERY_ALBUM].includes(data.field.name)) setUniqFields.push('id');
   if ([FIELDS_NAMES.AFFILIATE_CODE, FIELDS_NAMES.AUTHORITY].includes(data.field.name)) setUniqFields.push('creator');
