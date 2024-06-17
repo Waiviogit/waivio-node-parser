@@ -41,6 +41,8 @@ const {
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 
+const cantAppendMessage = 'Can\'t append object, the same field already exists';
+
 const validate = async (data, operation) => {
   if (!await validateUserOnBlacklist(operation.author)
     || !await validateUserOnBlacklist(_.get(data, 'field.creator'))) {
@@ -86,10 +88,14 @@ const validateSameFieldsProductId = ({ fieldData, foundedFields }) => {
   for (const body of createReversedJSONStringArray(fieldData.body)) {
     const newField = { ...fieldData, body };
     same = foundedFields.find((field) => _.isEqual(_.pick(field, ['name', 'body', 'locale']), _.pick(newField, ['name', 'body', 'locale'])));
-    if (same) {
-      throw new Error('Can\'t append object, the same field already exists');
-    }
+    if (same) throw new Error(cantAppendMessage);
   }
+};
+const validateSameFieldsUrl = ({ wobject }) => {
+  if (wobject.object_type !== OBJECT_TYPES.LINK) throw new Error(cantAppendMessage);
+  const result = wobject.fields?.find((field) => field.name === FIELDS_NAMES.URL);
+
+  if (result) throw new Error(cantAppendMessage);
 };
 
 // validate that field with the same name and body don't exist already
@@ -104,6 +110,8 @@ const validateSameFields = async (data) => {
     });
   }
 
+  if (FIELDS_NAMES.URL === data.field.name) return validateSameFieldsUrl({ wobject });
+
   if ([FIELDS_NAMES.CATEGORY_ITEM, FIELDS_NAMES.GALLERY_ALBUM].includes(data.field.name)) setUniqFields.push('id');
   if ([FIELDS_NAMES.AFFILIATE_CODE, FIELDS_NAMES.AUTHORITY].includes(data.field.name)) setUniqFields.push('creator');
   if (data.field.name === FIELDS_NAMES.PHONE) setUniqFields.splice(1, 1, 'number');
@@ -111,9 +119,8 @@ const validateSameFields = async (data) => {
 
   const foundedFields = _.map(wobject.fields, (field) => _.pick(field, setUniqFields));
   const result = foundedFields.find((field) => _.isEqual(field, _.pick(data.field, setUniqFields)));
-  if (result) {
-    throw new Error('Can\'t append object, the same field already exists');
-  }
+
+  if (result) throw new Error(cantAppendMessage);
 };
 
 // validate that parent comment is "createObject" comment

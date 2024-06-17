@@ -70,6 +70,7 @@ exports.FIELDS_NAMES = {
   MAP_DESKTOP_VIEW: 'mapDesktopView ',
   WALLET_ADDRESS: 'walletAddress',
   DELEGATION: 'delegation',
+  URL: 'url',
 };
 
 exports.SEARCH_FIELDS = [
@@ -121,6 +122,7 @@ exports.OBJECT_TYPES = {
   SHOP: 'shop',
   WEB_PAGE: 'webpage',
   MAP: 'map',
+  LINK: 'link',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
