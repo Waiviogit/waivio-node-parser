@@ -130,10 +130,6 @@ const verifyObjectsAction = async ({ operation, metadata }) => {
   });
   const creatorOp = metadata?.wobj?.creator === operation.author;
 
-  if (metadata?.wobj?.action === 'createObjectType') {
-    return validSignature && config.createObjectTypeList.includes(metadata?.wobj?.creator);
-  }
-
   return validSignature || creatorOp;
 };
 
