@@ -135,9 +135,9 @@ const getBlock = async (blockNum, hiveUrl) => {
     }
 
     const hive = new Client(hiveUrl);
-    const block = await hive.database.call('get_block', [blockNum]);
+    const response = await hive.call('block_api', 'get_block', { block_num: blockNum });
 
-    return { block };
+    return { block: response?.block };
   } catch (error) {
     return { error };
   }
