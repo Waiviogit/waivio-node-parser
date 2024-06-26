@@ -97,10 +97,7 @@ exports.mapViewSchema = Joi.object().keys({
       Joi.number().min(-180).max(180),
       Joi.number().min(-90).max(90),
     ).required(),
-  center: Joi.array().ordered(
-    Joi.number().min(-180).max(180),
-    Joi.number().min(-90).max(90),
-  ).required(),
+  center: Joi.array().min(2).max(2).required(),
   zoom: Joi.number().min(1).max(18),
 }).required();
 
