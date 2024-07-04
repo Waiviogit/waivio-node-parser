@@ -133,6 +133,40 @@ exports.guestCommentFromTTL = async (author, permlink) => {
   console.log(`Guest comment created: ${author}/${permlink}, guest name: ${guestInfo.userId}`);
 };
 
+const isFileLink = (url) => {
+  try {
+    const parsedUrl = new URL(url);
+    const { pathname } = parsedUrl;
+    const fileRegex = /[^\/]+\.[a-zA-Z0-9]+$/;
+
+    return fileRegex.test(pathname);
+  } catch (e) {
+    // If the URL is invalid, return false
+    return false;
+  }
+};
+
+const extractLinks = (text) => {
+  const urlPattern = /https?:\/\/[^\s/$.?#].[^\s)"]*/gm;
+  const links = text.match(urlPattern);
+  return links || [];
+};
+
+exports.getLinksFromPost = (body) => {
+  const links = extractLinks(body);
+  const validLinks = [];
+
+  for (const link of links) {
+    if (!isFileLink(link)) validLinks.push(link);
+  }
+
+  return validLinks;
+};
+
+exports.getMentionsFromPost = (body = '') => _.uniq(
+  _.compact(body.match(/@[a-zA-Z0-9._-]+/gm)),
+);
+
 /**
  * in first part of method we search for links on waivio objects, and check if they in metadata,
  * if not add them to wobj.wobjects and recount wobject percent
