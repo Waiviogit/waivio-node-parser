@@ -164,7 +164,9 @@ exports.getLinksFromPost = (body) => {
 };
 
 exports.getMentionsFromPost = (body = '') => _.uniq(
-  _.compact(body.match(/@[a-zA-Z0-9._-]+/gm)),
+  _.compact(
+    body.match(/@[a-zA-Z0-9._-]+/gm),
+  ).map((mention) => mention.slice(1)), // Remove the first '@' symbol from each mention
 );
 
 /**
