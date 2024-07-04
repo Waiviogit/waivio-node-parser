@@ -152,7 +152,7 @@ const extractLinks = (text) => {
   return links || [];
 };
 
-exports.getLinksFromPost = (body) => {
+exports.getLinksFromPost = (body, metadata) => {
   const links = extractLinks(body);
   const validLinks = [];
 
@@ -160,7 +160,7 @@ exports.getLinksFromPost = (body) => {
     if (!isFileLink(link)) validLinks.push(link);
   }
 
-  return validLinks;
+  return _.uniq([...validLinks, ...(metadata?.links ?? [])]);
 };
 
 exports.getMentionsFromPost = (body = '') => _.uniq(

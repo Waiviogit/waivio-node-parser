@@ -93,7 +93,7 @@ const createOrUpdatePost = async ({
     data.created = moment().format('YYYY-MM-DDTHH:mm:ss');
     data.cashout_time = moment().add(7, 'days').toISOString();
     data.url = `/${data.parent_permlink}/@${data.root_author}/${data.permlink}`;
-    data.links = postHelper.getLinksFromPost(data.body);
+    data.links = postHelper.getLinksFromPost(data.body, metadata);
     data.mentions = postHelper.getMentionsFromPost(data.body);
 
     await User.updateOnNewPost(data.author, Date.now());
@@ -139,7 +139,7 @@ const createOrUpdatePost = async ({
     ? mergePosts(post.body, hivePost.body)
     : hivePost.body;
   hivePost.wobjects = await postHelper.parseBodyWobjects(metadata, hivePost.body);
-  hivePost.links = postHelper.getLinksFromPost(hivePost.body);
+  hivePost.links = postHelper.getLinksFromPost(hivePost.body, metadata);
   hivePost.mentions = postHelper.getMentionsFromPost(hivePost.body);
   // validate post data
   if (!postWithWobjValidator.validate({ wobjects: hivePost.wobjects })) {
