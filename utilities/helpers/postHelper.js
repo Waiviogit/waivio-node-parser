@@ -159,8 +159,9 @@ exports.getLinksFromPost = (body, metadata) => {
   for (const link of links) {
     if (!isFileLink(link)) validLinks.push(link);
   }
+  const metadataLinks = Array.isArray(metadata?.links) ? metadata.links : [];
 
-  return _.uniq([...validLinks, ...(metadata?.links ?? [])]);
+  return _.uniq([...validLinks, ...metadataLinks]);
 };
 
 exports.getMentionsFromPost = (body = '') => _.uniq(
