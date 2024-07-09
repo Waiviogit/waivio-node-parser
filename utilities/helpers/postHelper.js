@@ -152,6 +152,11 @@ const extractLinks = (text) => {
   return links || [];
 };
 
+const isValidHttpLink = (link = '') => {
+  const httpRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
+  return httpRegex.test(link);
+};
+
 exports.getLinksFromPost = (body, metadata) => {
   const links = extractLinks(body);
   const validLinks = [];
@@ -161,14 +166,41 @@ exports.getLinksFromPost = (body, metadata) => {
   }
   const metadataLinks = Array.isArray(metadata?.links) ? metadata.links : [];
 
-  return _.uniq([...validLinks, ...metadataLinks]);
+  return _.uniq([...validLinks, ...metadataLinks]).filter(isValidHttpLink);
 };
 
-exports.getMentionsFromPost = (body = '') => _.uniq(
-  _.compact(
-    body.match(/@[a-zA-Z0-9._-]+/gm),
-  ).map((mention) => mention.slice(1)), // Remove the first '@' symbol from each mention
-);
+exports.getMentionsFromPost = (body = '') => {
+  // Regular expression to match URLs
+  const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gm;
+  const emailRegex = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/gm;
+
+  // Remove URLs from the body
+  const bodyWithoutUrls = body
+    .replace(urlRegex, '')
+    .replace(emailRegex, '');
+
+  // Extract mentions from the remaining text
+  const mentions = bodyWithoutUrls.match(/@[a-z0-9._-]+/gm);
+
+  return _.uniq(
+    _.compact(
+      _.map(mentions, (mention) => {
+        mention = mention.slice(1); // Remove the first '@' symbol from each mention
+        const parts = mention.split('.');
+        let processedMention;
+        if (parts.length > 1 && parts[1].length >= 3) {
+          processedMention = mention;
+        } else {
+          processedMention = parts[0];
+        }
+        // Remove any trailing dot
+        processedMention = processedMention.replace(/\.$/, '');
+        // Ensure minimum length of 3 characters
+        return processedMention.length >= 3 ? processedMention : null;
+      }),
+    ),
+  );
+};
 
 /**
  * in first part of method we search for links on waivio objects, and check if they in metadata,
