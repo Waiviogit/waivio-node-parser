@@ -10,10 +10,6 @@ const addMentionsToPost = async () => {
     if (!posts?.length) break;
 
     for (const post of posts) {
-
-      if(post.author === 'beetoons' && post.permlink === 'timeline-split-humans-are-splitting-into-different-dimensions-the-alchemist-gbz9so0xyq') {
-        console.log();
-      }
       const metadata = jsonHelper.parseJson(post.json_metadata, null);
 
       const links = postHelper.getLinksFromPost(post.body, metadata);
