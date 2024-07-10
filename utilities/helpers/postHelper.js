@@ -133,6 +133,75 @@ exports.guestCommentFromTTL = async (author, permlink) => {
   console.log(`Guest comment created: ${author}/${permlink}, guest name: ${guestInfo.userId}`);
 };
 
+const isFileLink = (url) => {
+  try {
+    const parsedUrl = new URL(url);
+    const { pathname } = parsedUrl;
+    const fileRegex = /[^\/]+\.[a-zA-Z0-9]+$/;
+
+    return fileRegex.test(pathname);
+  } catch (e) {
+    // If the URL is invalid, return false
+    return false;
+  }
+};
+
+const extractLinks = (text) => {
+  const urlPattern = /https?:\/\/[^\s/$.?#].[^\s)"]*/gm;
+  const links = text.match(urlPattern);
+  return links || [];
+};
+
+const isValidHttpLink = (link = '') => {
+  const httpRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
+  return httpRegex.test(link);
+};
+
+exports.getLinksFromPost = (body, metadata) => {
+  const links = extractLinks(body);
+  const validLinks = [];
+
+  for (const link of links) {
+    if (!isFileLink(link)) validLinks.push(link);
+  }
+  const metadataLinks = Array.isArray(metadata?.links) ? metadata.links : [];
+
+  return _.uniq([...validLinks, ...metadataLinks]).filter(isValidHttpLink);
+};
+
+exports.getMentionsFromPost = (body = '') => {
+  // Regular expression to match URLs
+  const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gm;
+  const emailRegex = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/gm;
+
+  // Remove URLs from the body
+  const bodyWithoutUrls = body
+    .replace(urlRegex, '')
+    .replace(emailRegex, '');
+
+  // Extract mentions from the remaining text
+  const mentions = bodyWithoutUrls.match(/@[a-z0-9._-]+/gm);
+
+  return _.uniq(
+    _.compact(
+      _.map(mentions, (mention) => {
+        mention = mention.slice(1); // Remove the first '@' symbol from each mention
+        const parts = mention.split('.');
+        let processedMention;
+        if (parts.length > 1 && parts[1].length >= 3) {
+          processedMention = mention;
+        } else {
+          processedMention = parts[0];
+        }
+        // Remove any trailing dot
+        processedMention = processedMention.replace(/\.$/, '');
+        // Ensure minimum length of 3 characters
+        return processedMention.length >= 3 ? processedMention : null;
+      }),
+    ),
+  );
+};
+
 /**
  * in first part of method we search for links on waivio objects, and check if they in metadata,
  * if not add them to wobj.wobjects and recount wobject percent
