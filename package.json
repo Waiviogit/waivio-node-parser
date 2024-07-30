@@ -12,7 +12,8 @@
   "scripts": {
     "start": "node --max-old-space-size=2000 ./bin/service.js",
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha",
-    "addMentionsToPost": "node ./utilities/tasks/addMentionsToPost/run.js"
+    "addMentionsToPost": "node ./utilities/tasks/addMentionsToPost/run.js",
+    "fixCategoryItem": "node ./utilities/tasks/fixCategoryItem/run.js"
   },
   "dependencies": {
     "@hiveio/dhive": "^1.2.8",
