@@ -9,7 +9,7 @@ const seoService = require('utilities/socketClient/seoService');
 const guestHelpers = require('utilities/guestOperations/guestHelpers');
 const postByTagsHelper = require('utilities/helpers/postByTagsHelper');
 const {
-  RE_HTTPS, RE_HASHTAGS, HOSTS_TO_PARSE_LINKS, WOBJECT_REF,
+  RE_HTTPS, RE_HASHTAGS, HOSTS_TO_PARSE_LINKS, WOBJECT_REF, RE_LINKS,
 } = require('constants/regExp');
 const { OBJECT_TYPES_WITH_ALBUM } = require('constants/wobjectsData');
 const redisSetter = require('utilities/redis/redisSetter');
@@ -27,9 +27,10 @@ const getHostsToParseObjects = async () => {
   if (cache) return jsonHelper.parseJson(cache, []);
   const { result = [] } = await App.find({ advanced: true }, { host: 1 });
   const dataToSet = [...HOSTS_TO_PARSE_LINKS, ...result.map((el) => el.host)];
-  await redisSetter.set({
+  await redisSetter.setEx({
     key: REDIS_KEYS.HOSTS_TO_PARSE_OBJECTS,
     value: JSON.stringify(dataToSet),
+    ttlSeconds: 60 * 60 * 24,
   });
   return dataToSet;
 };
@@ -211,7 +212,7 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
   const hostObjectsRegex = await getRegExToParseObjects();
 
   const bodyLinks = _.uniq([
-    ...getBodyLinksArray(postBody, RE_HASHTAGS),
+    ...getBodyLinksArray(postBody.replace(RE_LINKS, ''), RE_HASHTAGS),
     ...getBodyLinksArray(postBody, hostObjectsRegex),
   ]);
   if (!_.isEmpty(bodyLinks)) {
