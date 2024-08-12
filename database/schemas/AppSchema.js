@@ -6,6 +6,12 @@ const _ = require('lodash');
 
 const { Schema } = mongoose;
 
+const AppHeader = new Schema({
+  name: { type: String },
+  message: { type: String },
+  startup: { type: String },
+}, { _id: false });
+
 const ShopSettingsSchema = new Schema({
   type: { type: String, enum: Object.values(SHOP_SETTINGS_TYPE) },
   value: { type: String },
@@ -74,7 +80,9 @@ const Configuration = new Schema({
   availableCities: { type: [CitySchema], default: [] },
   shopSettings: { type: ShopSettingsSchema },
   colors: { type: Colors, default: () => ({}) },
-
+  header: { type: AppHeader },
+  defaultHashtag: { type: String },
+  tabsFilter: { type: [String] },
 }, { _id: false });
 
 const AdSense = new Schema({
