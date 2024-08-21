@@ -455,7 +455,7 @@ const setMapToChildren = async (authorPermlink, map) => {
 
 const parseBodyArray = (body) => {
   const parsedBody = jsonHelper.parseJson(body, null);
-  if (!parsedBody) return;
+  if (!parsedBody?.length) return;
 
   return parsedBody.map((el) => createEdgeNGrams(el
     .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
