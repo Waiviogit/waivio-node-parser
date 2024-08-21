@@ -35,6 +35,7 @@ const update = async ({
     case FIELDS_NAMES.BRAND:
     case FIELDS_NAMES.MANUFACTURER:
     case FIELDS_NAMES.MERCHANT:
+    case FIELDS_NAMES.RECIPE_INGREDIENTS:
       await addSearchField({
         authorPermlink, newWords: parseSearchData(field),
       });
@@ -452,6 +453,15 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
+const parseBodyArray = (body) => {
+  const parsedBody = jsonHelper.parseJson(body, null);
+  if (!parsedBody) return;
+
+  return parsedBody.map((el) => createEdgeNGrams(el
+    .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
+    .replace(/  +/g, ' ').trim()));
+};
+
 const parseSearchData = (field) => {
   const fieldName = _.get(field, 'name');
   const fieldBody = _.get(field, 'body', '');
@@ -499,6 +509,10 @@ const parseSearchData = (field) => {
         propertyName: 'name',
       });
       if (nameProperty) searchFields.push(nameProperty);
+      break;
+    case FIELDS_NAMES.RECIPE_INGREDIENTS:
+      const arrayElements = parseBodyArray(fieldBody);
+      if (arrayElements) searchFields.push(...arrayElements);
       break;
   }
 
