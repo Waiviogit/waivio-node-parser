@@ -75,6 +75,7 @@ exports.FIELDS_NAMES = {
   BUDGET: 'budget',
   COOKING_TIME: 'cookingTime',
   COST: 'cost',
+  RECIPE_INGREDIENTS: 'recipeIngredients',
 };
 
 exports.SEARCH_FIELDS = [
@@ -94,6 +95,7 @@ exports.SEARCH_FIELDS = [
   this.FIELDS_NAMES.BRAND,
   this.FIELDS_NAMES.MANUFACTURER,
   this.FIELDS_NAMES.MERCHANT,
+  this.FIELDS_NAMES.RECIPE_INGREDIENTS,
 ];
 
 exports.AUTHORITY_FIELD_ENUM = {
