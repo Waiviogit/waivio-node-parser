@@ -129,6 +129,7 @@ exports.OBJECT_TYPES = {
   WEB_PAGE: 'webpage',
   MAP: 'map',
   LINK: 'link',
+  RECIPE: 'recipe',
 };
 
 exports.CREATE_TAGS_ON_UPDATE_TYPES = [
@@ -221,6 +222,7 @@ exports.OBJECT_TYPES_FOR_PRODUCT = [
   this.OBJECT_TYPES.SERVICE,
   this.OBJECT_TYPES.BOOK,
   this.OBJECT_TYPES.PERSON,
+  this.OBJECT_TYPES.RECIPE,
 ];
 
 exports.WEIGHT_UNITS = [
