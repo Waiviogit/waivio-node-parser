@@ -78,7 +78,7 @@ exports.validUrlSchema = Joi.string().uri();
 
 exports.affiliateProductIdTypesSchema = Joi.string().lowercase().required();
 
-exports.affiliateCodeSchema = Joi.array().items(Joi.string()).min(2).max(2);
+exports.affiliateCodeSchema = Joi.array().items(Joi.string()).min(2);
 
 exports.affiliateGeoSchema = Joi.string().valid(...VALID_AFFILIATE_GEO).required();
 
