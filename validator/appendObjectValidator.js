@@ -409,8 +409,14 @@ const validateSpecifiedFields = async (data) => {
       if (affCodeErr) {
         throw new Error(`Can't append ${fieldName}`);
       }
-      const [siteOrPersonalAff, affCode] = affCodeField;
-      data.field.body = JSON.stringify([removeProtocol(siteOrPersonalAff), affCode]);
+      const [siteOrPersonalAff] = affCodeField;
+
+      const codes = affCodeField.slice(1);
+      if (codes.length > 1) {
+        const validChance = affiliateCodesChanceValid(codes);
+        if (!validChance) throw new Error(`Can't append ${fieldName}`);
+      }
+      data.field.body = JSON.stringify([removeProtocol(siteOrPersonalAff), ...codes]);
       break;
     case FIELDS_NAMES.MAP_OBJECT_TAGS:
     case FIELDS_NAMES.MAP_OBJECT_TYPES:
@@ -446,6 +452,22 @@ const validateSpecifiedFields = async (data) => {
       }
       break;
   }
+};
+
+const affiliateCodesChanceValid = (codes) => {
+  if (!Array.isArray(codes)
+    || codes.length === 0) return false; // Handle non-array or empty array input
+
+  const chances = codes.map((value) => {
+    const parts = value.split('::');
+    if (parts.length !== 2) return NaN;
+    return Number(parts[1]);
+  });
+
+  const sum = chances.reduce((acc, el) => acc + el, 0);
+
+  return sum === 100
+    && chances.every((el) => el > 0 && !Number.isNaN(el)); // Ensure all are valid numbers > 0
 };
 
 const isRectangleIncluded = (rect1, rect2) => {
