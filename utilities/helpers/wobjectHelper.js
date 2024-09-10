@@ -8,8 +8,6 @@ const {
 } = require('constants/wobjectsData');
 const supposedUpdatesTranslate = require('constants/translations/supposedUpdates');
 
-const DEFAULT_UPDATES_CREATOR = 'monterey';
-
 /**
  * Unique script to fill objects with supposed updates for specified ObjectType.
  * Get list of supposed updates and send its to ImportService for create
@@ -39,7 +37,7 @@ const addSupposedUpdates = async (wobject, locale, metadata) => {
         name: update.name,
         body,
         permlink: `${wobject.author_permlink}-${update.name.toLowerCase()}-${randomString(5)}`,
-        creator: DEFAULT_UPDATES_CREATOR,
+        creator: wobject.creator,
         locale,
       };
       if (update.id_path) field[update.id_path] = crypto.randomUUID();
