@@ -16,6 +16,190 @@ const jsonHelper = require('utilities/helpers/jsonHelper');
 const { listItemProcess } = require('utilities/waivioApi');
 const crypto = require('node:crypto');
 
+const specialUpdater1 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await addSearchField({
+    authorPermlink, newWords: parseSearchData(field),
+  });
+};
+
+const specialUpdater2 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await addSearchField({
+    authorPermlink, newWords: parseSearchData(field),
+  });
+  await tagsParser.createTags({ authorPermlink, field, app });
+};
+
+const specialUpdater3 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await processingParent(authorPermlink, app);
+};
+
+const specialUpdater4 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  const { wobjects: wobjTagCloud } = await Wobj.getSomeFields(
+    FIELDS_NAMES.TAG_CLOUD,
+    authorPermlink,
+  );
+  const condition1 = _.isArray(_.get(wobjTagCloud, '[0].fields'));
+  const condition2 = _.get(wobjTagCloud, '[0].fields[0]');
+
+  if (condition1 && condition2) {
+    await Wobj.update(
+      { author_permlink: authorPermlink },
+      { tagClouds: wobjTagCloud[0].fields.slice(0, TAG_CLOUDS_UPDATE_COUNT) },
+    );
+  }
+};
+
+const specialUpdater5 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  const { wobjects: wobjRating } = await Wobj.getSomeFields(FIELDS_NAMES.RATING, authorPermlink);
+  if (_.isArray(_.get(wobjRating, '[0].fields')) && _.get(wobjRating, '[0].fields[0]')) {
+    await Wobj.update(
+      { author_permlink: authorPermlink },
+      { ratings: wobjRating[0].fields.slice(0, RATINGS_UPDATE_COUNT) },
+    );
+  }
+};
+
+const specialUpdater6 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
+  const { map } = await processWobjects({
+    wobjects: [wobject], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
+  });
+  if (map) {
+    const parsedMap = parseMap(map);
+    if (validateMap(parsedMap)) {
+      await Wobj.update(
+        { author_permlink: authorPermlink },
+        { map: { type: 'Point', coordinates: [parsedMap.longitude, parsedMap.latitude] } },
+      );
+      await setMapToChildren(authorPermlink, parsedMap);
+    }
+  }
+};
+
+const specialUpdater7 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(
+    FIELDS_NAMES.STATUS,
+    authorPermlink,
+  );
+
+  const status = _.chain(fields)
+    .filter((f) => {
+      try {
+        const parsed = JSON.parse(f);
+        return !!parsed.title;
+      } catch (e) {
+        return false;
+      }
+    })
+    .first()
+    .value();
+
+  if (status) {
+    field.voter = voter || _.get(field, 'creator', null);
+    await restaurantStatus(field, authorPermlink, JSON.parse(status).title);
+    await Wobj.update({ author_permlink: authorPermlink }, { status: JSON.parse(status) });
+  } else {
+    field.voter = voter;
+    await restaurantStatus(field, authorPermlink, '');
+    await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
+  }
+  await checkForListItemsCounters(authorPermlink);
+};
+
+const specialUpdater8 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await addSearchField({
+    authorPermlink, newWords: parseSearchData(field),
+  });
+  await updateTagCategories({ authorPermlink, field });
+};
+
+const specialUpdater9 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await manageAuthorities({
+    voter, field, percent, authorPermlink,
+  });
+};
+
+const specialUpdater10 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await addSearchField({
+    authorPermlink, newWords: parseSearchData(field),
+  });
+  await updateChildrenSingle({ field, authorPermlink });
+};
+
+const specialUpdater11 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await manageDepartments({
+    field,
+    authorPermlink,
+    app,
+    percent,
+  });
+};
+
+const specialUpdater12 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  await addSearchField({
+    authorPermlink, newWords: parseSearchData(field),
+  });
+  await updateMetaGroupId({ authorPermlink });
+};
+
+const specialUpdater13 = async ({
+  field, authorPermlink, app, voter, percent,
+}) => {
+  listItemProcess.send({ authorPermlink, listItemLink: field.body });
+};
+
+const updaterByFieldName = {
+  [FIELDS_NAMES.EMAIL]: specialUpdater1,
+  [FIELDS_NAMES.PHONE]: specialUpdater1,
+  [FIELDS_NAMES.ADDRESS]: specialUpdater1,
+  [FIELDS_NAMES.COMPANY_ID]: specialUpdater1,
+  [FIELDS_NAMES.PRODUCT_ID]: specialUpdater1,
+  [FIELDS_NAMES.BRAND]: specialUpdater1,
+  [FIELDS_NAMES.MANUFACTURER]: specialUpdater1,
+  [FIELDS_NAMES.MERCHANT]: specialUpdater1,
+  [FIELDS_NAMES.RECIPE_INGREDIENTS]: specialUpdater1,
+  [FIELDS_NAMES.NAME]: specialUpdater2,
+  [FIELDS_NAMES.DESCRIPTION]: specialUpdater2,
+  [FIELDS_NAMES.TITLE]: specialUpdater2,
+  [FIELDS_NAMES.PARENT]: specialUpdater3,
+  [FIELDS_NAMES.TAG_CLOUD]: specialUpdater4,
+  [FIELDS_NAMES.RATING]: specialUpdater5,
+  [FIELDS_NAMES.MAP]: specialUpdater6,
+  [FIELDS_NAMES.STATUS]: specialUpdater7,
+  [FIELDS_NAMES.CATEGORY_ITEM]: specialUpdater8,
+  [FIELDS_NAMES.AUTHORITY]: specialUpdater9,
+  [FIELDS_NAMES.AUTHORS]: specialUpdater10,
+  [FIELDS_NAMES.PUBLISHER]: specialUpdater10,
+  [FIELDS_NAMES.DEPARTMENTS]: specialUpdater11,
+  [FIELDS_NAMES.GROUP_ID]: specialUpdater12,
+  [FIELDS_NAMES.LIST_ITEM]: specialUpdater13,
+  default: () => {},
+};
+
 // "author" and "permlink" it's identity of FIELD which type of need to update
 // "author_permlink" it's identity of WOBJECT
 const update = async ({
@@ -26,123 +210,12 @@ const update = async ({
 
   if (error || !field) return;
 
-  switch (field.name) {
-    case FIELDS_NAMES.EMAIL:
-    case FIELDS_NAMES.PHONE:
-    case FIELDS_NAMES.ADDRESS:
-    case FIELDS_NAMES.COMPANY_ID:
-    case FIELDS_NAMES.PRODUCT_ID:
-    case FIELDS_NAMES.BRAND:
-    case FIELDS_NAMES.MANUFACTURER:
-    case FIELDS_NAMES.MERCHANT:
-    case FIELDS_NAMES.RECIPE_INGREDIENTS:
-      await addSearchField({
-        authorPermlink, newWords: parseSearchData(field),
-      });
-      break;
-    case FIELDS_NAMES.NAME:
-    case FIELDS_NAMES.DESCRIPTION:
-    case FIELDS_NAMES.TITLE:
-      await addSearchField({
-        authorPermlink, newWords: parseSearchData(field),
-      });
-      await tagsParser.createTags({ authorPermlink, field });
-      break;
-    case FIELDS_NAMES.PARENT:
-      await processingParent(authorPermlink, app);
-      break;
-    case FIELDS_NAMES.TAG_CLOUD:
-      const { wobjects: wobjTagCloud } = await Wobj.getSomeFields(FIELDS_NAMES.TAG_CLOUD, authorPermlink);
-      if (_.isArray(_.get(wobjTagCloud, '[0].fields')) && _.get(wobjTagCloud, '[0].fields[0]')) {
-        await Wobj.update(
-          { author_permlink: authorPermlink },
-          { tagClouds: wobjTagCloud[0].fields.slice(0, TAG_CLOUDS_UPDATE_COUNT) },
-        );
-      }
-      break;
-    case FIELDS_NAMES.RATING:
-      const { wobjects: wobjRating } = await Wobj.getSomeFields(FIELDS_NAMES.RATING, authorPermlink);
-      if (_.isArray(_.get(wobjRating, '[0].fields')) && _.get(wobjRating, '[0].fields[0]')) {
-        await Wobj.update(
-          { author_permlink: authorPermlink },
-          { ratings: wobjRating[0].fields.slice(0, RATINGS_UPDATE_COUNT) },
-        );
-      }
-      break;
-    case FIELDS_NAMES.MAP:
-      const { wobject } = await Wobj.getOne({ author_permlink: authorPermlink });
-      const { map } = await processWobjects({
-        wobjects: [wobject], app, fields: [FIELDS_NAMES.MAP], returnArray: false,
-      });
-      if (map) {
-        const parsedMap = parseMap(map);
-        if (validateMap(parsedMap)) {
-          await Wobj.update(
-            { author_permlink: authorPermlink },
-            { map: { type: 'Point', coordinates: [parsedMap.longitude, parsedMap.latitude] } },
-          );
-          await setMapToChildren(authorPermlink, parsedMap);
-        }
-      }
-      break;
-    case FIELDS_NAMES.STATUS:
-      const { wobjects: [{ fields } = {}] } = await Wobj.getSomeFields(FIELDS_NAMES.STATUS, authorPermlink);
-      const status = _.chain(fields)
-        .filter((f) => {
-          try {
-            const parsed = JSON.parse(f);
-            return !!parsed.title;
-          } catch (e) {
-            return false;
-          }
-        }).first()
-        .value();
-      if (status) {
-        field.voter = voter || _.get(field, 'creator', null);
-        await restaurantStatus(field, authorPermlink, JSON.parse(status).title);
-        await Wobj.update({ author_permlink: authorPermlink }, { status: JSON.parse(status) });
-      } else {
-        field.voter = voter;
-        await restaurantStatus(field, authorPermlink, '');
-        await Wobj.update({ author_permlink: authorPermlink }, { $unset: { status: '' } });
-      }
-      await checkForListItemsCounters(authorPermlink);
-      break;
-    case FIELDS_NAMES.CATEGORY_ITEM:
-      await addSearchField({
-        authorPermlink, newWords: parseSearchData(field),
-      });
-      await updateTagCategories({ authorPermlink, field });
-      break;
-    case FIELDS_NAMES.AUTHORITY:
-      await manageAuthorities({
-        voter, field, percent, authorPermlink,
-      });
-      return;
-    case FIELDS_NAMES.AUTHORS:
-    case FIELDS_NAMES.PUBLISHER:
-      await addSearchField({
-        authorPermlink, newWords: parseSearchData(field),
-      });
-      return updateChildrenSingle({ field, authorPermlink });
-    case FIELDS_NAMES.DEPARTMENTS:
-      await manageDepartments({
-        field,
-        authorPermlink,
-        app,
-        percent,
-      });
-      break;
-    case FIELDS_NAMES.GROUP_ID:
-      await addSearchField({
-        authorPermlink, newWords: parseSearchData(field),
-      });
-      await updateMetaGroupId({ authorPermlink });
-      break;
-    case FIELDS_NAMES.LIST_ITEM:
-      listItemProcess.send({ authorPermlink, listItemLink: field.body });
-      break;
-  }
+  const updateHandler = updaterByFieldName[field.name] || updaterByFieldName.default;
+
+  await updateHandler({
+    field, authorPermlink, app, voter, percent,
+  });
+
   if (voter && field.creator !== voter && field.weight < 0) {
     if (!_.find(field.active_votes, (vote) => vote.voter === field.creator)) return;
     const voteData = _.find(field.active_votes, (vote) => vote.voter === voter);
@@ -453,80 +526,25 @@ const setMapToChildren = async (authorPermlink, map) => {
   }
 };
 
-const parseBodyArray = (body) => {
-  const parsedBody = jsonHelper.parseJson(body, null);
-  if (!parsedBody?.length) return;
+// --------------------------Add search n-grams---------------------------------
+const createEdgeNGrams = (str) => {
+  const minGram = 3;
+  if (str && str.length <= minGram) return str;
 
-  return parsedBody.map((el) => createEdgeNGrams(el
-    .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
-    .replace(/  +/g, ' ').trim()));
-};
+  const arrayOfStrings = [];
 
-const parseSearchData = (field) => {
-  const fieldName = _.get(field, 'name');
-  const fieldBody = _.get(field, 'body', '');
-  if (!_.includes(SEARCH_FIELDS, fieldName)) return;
-
-  const searchFields = [];
-  switch (fieldName) {
-    case FIELDS_NAMES.NAME:
-      searchFields.push(parseName(fieldBody));
-      break;
-    case FIELDS_NAMES.EMAIL:
-    case FIELDS_NAMES.CATEGORY_ITEM:
-    case FIELDS_NAMES.GROUP_ID:
-      searchFields.push(createEdgeNGrams(fieldBody.trim()));
-      break;
-    case FIELDS_NAMES.TITLE:
-    case FIELDS_NAMES.DESCRIPTION:
-      searchFields.push(fieldBody
-        .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
-        .replace(/  +/g, ' ').trim());
-      break;
-    case FIELDS_NAMES.PHONE:
-      searchFields.push(createEdgeNGrams(_.get(field, 'number', '')
-        .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]+/g, '').split(' ').join('')
-        .trim()));
-      break;
-    case FIELDS_NAMES.ADDRESS:
-      const { addresses, err } = parseAddress(fieldBody);
-      if (err) return { err };
-      searchFields.push(...addresses);
-      break;
-    case FIELDS_NAMES.COMPANY_ID:
-    case FIELDS_NAMES.PRODUCT_ID:
-      const { id, error } = parseId(fieldBody);
-      if (error) return { err: error };
-      searchFields.push(id);
-      break;
-    case FIELDS_NAMES.AUTHORS:
-    case FIELDS_NAMES.PUBLISHER:
-    case FIELDS_NAMES.BRAND:
-    case FIELDS_NAMES.MANUFACTURER:
-    case FIELDS_NAMES.MERCHANT:
-      const nameProperty = parseBodyProperty({
-        body: fieldBody,
-        propertyName: 'name',
-      });
-      if (nameProperty) searchFields.push(nameProperty);
-      break;
-    case FIELDS_NAMES.RECIPE_INGREDIENTS:
-      const arrayElements = parseBodyArray(fieldBody);
-      if (arrayElements) searchFields.push(...arrayElements);
-      break;
+  for (let i = minGram; i <= str.length; ++i) {
+    arrayOfStrings.push(str.substr(0, i));
   }
 
-  return searchFields;
+  return arrayOfStrings.join(' ');
 };
 
-const addSearchField = async ({ authorPermlink, newWords }) => {
-  if (_.isEmpty(newWords)) return { result: false };
-  const { result, error } = await Wobj.addSearchFields({
-    authorPermlink, newWords,
-  });
-  if (error) return { error };
-  return { result };
-};
+const parseName = (rawName = '') => createEdgeNGrams(rawName.trim()
+  .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
+  .replace(/  +/g, ' '));
+
+const searchFromBody = ({ fieldBody, field }) => [parseName(fieldBody)];
 
 const parseAddress = (addressFromDB) => {
   let rawAddress;
@@ -544,23 +562,10 @@ const parseAddress = (addressFromDB) => {
     .replace(/[,\s]{2,}/, ',');
   const addressesInNgrams = [];
   for (const el of addressWithoutSpaces.split(',')) {
-    addressesInNgrams.push(createEdgeNGrams(el, FIELDS_NAMES.ADDRESS));
+    addressesInNgrams.push(parseName(el));
   }
 
   return { addresses: addressesInNgrams };
-};
-
-const parseName = (rawName) => createEdgeNGrams(rawName.trim().replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '').replace(/  +/g, ' '));
-
-const parseId = (idFromDb) => {
-  let rawId;
-  try {
-    rawId = JSON.parse(idFromDb);
-
-    return { id: createEdgeNGrams(_.get(rawId, 'companyId') || _.get(rawId, 'productId')) };
-  } catch (error) {
-    return { error };
-  }
 };
 
 const parseBodyProperty = ({ body, propertyName }) => {
@@ -568,20 +573,79 @@ const parseBodyProperty = ({ body, propertyName }) => {
   if (!parsedBody) return;
   const property = _.get(parsedBody, propertyName);
   if (!property) return;
-  return createEdgeNGrams(property);
+  return parseName(property);
+};
+const searchPhone = ({ fieldBody, field }) => [createEdgeNGrams(_.get(field, 'number', '')
+  .replace(/[.%?+*|{}[\]()<>“”^'"\\\-_=!&$:]+/g, '').split(' ').join('')
+  .trim())];
+
+const searchFromAddress = ({ fieldBody, field }) => {
+  const { addresses, err } = parseAddress(fieldBody);
+  if (err) return [];
+  return addresses;
 };
 
-const createEdgeNGrams = (str) => {
-  const minGram = 3;
-  if (str && str.length <= minGram) return str;
+const searchFromId = ({ fieldBody, field }) => {
+  const parsedBody = jsonHelper.parseJson(fieldBody, null);
+  if (!parsedBody) return [];
+  const searchData = _.get(parsedBody, 'companyId') || _.get(parsedBody, 'productId');
+  if (!searchData) return [];
 
-  const arrayOfStrings = [];
+  return [parseName(searchData)];
+};
 
-  for (let i = minGram; i <= str.length; ++i) {
-    arrayOfStrings.push(str.substr(0, i));
-  }
+const searchBodyProperty = ({ fieldBody, field }) => {
+  const nameProperty = parseBodyProperty({
+    body: fieldBody,
+    propertyName: 'name',
+  });
+  if (nameProperty) return [nameProperty];
+  return [];
+};
 
-  return arrayOfStrings.join(' ');
+const parseBodyArray = ({ fieldBody, field }) => {
+  const parsedBody = jsonHelper.parseJson(fieldBody, null);
+  if (!parsedBody?.length) return [];
+
+  return parsedBody.map((el) => parseName(el));
+};
+
+const searchDataByField = {
+  [FIELDS_NAMES.NAME]: searchFromBody,
+  [FIELDS_NAMES.EMAIL]: searchFromBody,
+  [FIELDS_NAMES.CATEGORY_ITEM]: searchFromBody,
+  [FIELDS_NAMES.GROUP_ID]: searchFromBody,
+  [FIELDS_NAMES.TITLE]: searchFromBody,
+  [FIELDS_NAMES.DESCRIPTION]: searchFromBody,
+  [FIELDS_NAMES.PHONE]: searchPhone,
+  [FIELDS_NAMES.ADDRESS]: searchFromAddress,
+  [FIELDS_NAMES.COMPANY_ID]: searchFromId,
+  [FIELDS_NAMES.PRODUCT_ID]: searchFromId,
+  [FIELDS_NAMES.AUTHORS]: searchBodyProperty,
+  [FIELDS_NAMES.PUBLISHER]: searchBodyProperty,
+  [FIELDS_NAMES.BRAND]: searchBodyProperty,
+  [FIELDS_NAMES.MANUFACTURER]: searchBodyProperty,
+  [FIELDS_NAMES.MERCHANT]: searchBodyProperty,
+  [FIELDS_NAMES.RECIPE_INGREDIENTS]: parseBodyArray,
+};
+
+const parseSearchData = (field) => {
+  const fieldName = field?.name ?? '';
+  const fieldBody = field?.body ?? '';
+  if (!_.includes(SEARCH_FIELDS, fieldName)) return;
+
+  const handler = searchDataByField[fieldName] || searchFromBody;
+
+  return handler({ field, fieldBody });
+};
+
+const addSearchField = async ({ authorPermlink, newWords }) => {
+  if (_.isEmpty(newWords)) return { result: false };
+  const { result, error } = await Wobj.addSearchFields({
+    authorPermlink, newWords,
+  });
+  if (error) return { error };
+  return { result };
 };
 
 module.exports = {
@@ -592,7 +656,6 @@ module.exports = {
   addSearchField,
   parseAddress,
   parseName,
-  parseId,
   createEdgeNGrams,
   removeFromDepartments,
 };
