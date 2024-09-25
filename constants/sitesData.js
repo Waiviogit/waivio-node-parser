@@ -71,3 +71,4 @@ exports.SHOP_SETTINGS_TYPE = {
 };
 
 exports.DEFAULT_BENEFICIARY = 'waivio';
+exports.DEFAULT_REFERRAL = 'waivio.referrals';
