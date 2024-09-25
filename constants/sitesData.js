@@ -69,3 +69,5 @@ exports.SHOP_SETTINGS_TYPE = {
   USER: 'user',
   OBJECT: 'object',
 };
+
+exports.DEFAULT_BENEFICIARY = 'waivio';
