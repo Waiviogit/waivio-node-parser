@@ -1,7 +1,7 @@
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
   REFUND_TYPES, REFUND_STATUSES, PATH, CAN_DELETE_STATUSES, CAN_MUTE_GLOBAL,
-  SOCIAL_HOSTS, DEFAULT_BENEFICIARY,
+  SOCIAL_HOSTS, DEFAULT_BENEFICIARY, DEFAULT_REFERRAL,
 } = require('constants/sitesData');
 const {
   App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User, ServiceBotModel,
@@ -429,6 +429,11 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
   }
 };
 
+const getDefaultReferral = (account = '') => {
+  if (account.includes('_')) return DEFAULT_REFERRAL;
+  return account;
+};
+
 exports.setWebsiteReferralAccount = async (operation) => {
   const owner = customJsonHelper.getTransactionAccount(operation);
 
@@ -436,7 +441,7 @@ exports.setWebsiteReferralAccount = async (operation) => {
   if (!host || !owner || !account) return false;
   const { result } = await App.findOne({ host, owner });
   if (!result) return false;
-  await App.updateOne({ host, owner }, { [PATH.REFERRAL_ACCOUNT]: account });
+  await App.updateOne({ host, owner }, { [PATH.REFERRAL_ACCOUNT]: getDefaultReferral(account) });
   return true;
 };
 
