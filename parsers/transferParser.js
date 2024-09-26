@@ -43,7 +43,6 @@ const parseJson = (json) => {
   try {
     return JSON.parse(json);
   } catch (error) {
-    console.error(error.message);
     return null;
   }
 };

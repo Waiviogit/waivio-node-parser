@@ -1,7 +1,7 @@
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
   REFUND_TYPES, REFUND_STATUSES, PATH, CAN_DELETE_STATUSES, CAN_MUTE_GLOBAL,
-  SOCIAL_HOSTS,
+  SOCIAL_HOSTS, DEFAULT_BENEFICIARY, DEFAULT_REFERRAL,
 } = require('constants/sitesData');
 const {
   App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User, ServiceBotModel,
@@ -33,13 +33,18 @@ const validateServiceBot = async (name) => {
   return Boolean(result);
 };
 
+const getDefaultAcc = (account = '') => {
+  if (account.includes('_')) return DEFAULT_BENEFICIARY;
+  return account;
+};
+
 exports.createWebsite = async (operation) => {
   if (!await validateServiceBot(customJsonHelper.getTransactionAccount(operation))) return;
   const json = parseJson(operation.json);
   const { result: parent } = await App.findOne({ host: json.parentHost, canBeExtended: true });
   if (!parent) return false;
   json.parent = parent._id;
-  json.beneficiary = { account: json.owner };
+  json.beneficiary = { account: getDefaultAcc(json.owner) };
   json.parentHost = parent.host;
   const { result } = await App.findOne({ owner: json.owner, status: STATUSES.SUSPENDED });
   if (result) json.status = STATUSES.SUSPENDED;
@@ -424,6 +429,11 @@ exports.changeManagersMuteList = async ({ mangerName, host, action }) => {
   }
 };
 
+const getDefaultReferral = (account = '') => {
+  if (account.includes('_')) return DEFAULT_REFERRAL;
+  return account;
+};
+
 exports.setWebsiteReferralAccount = async (operation) => {
   const owner = customJsonHelper.getTransactionAccount(operation);
 
@@ -431,7 +441,7 @@ exports.setWebsiteReferralAccount = async (operation) => {
   if (!host || !owner || !account) return false;
   const { result } = await App.findOne({ host, owner });
   if (!result) return false;
-  await App.updateOne({ host, owner }, { [PATH.REFERRAL_ACCOUNT]: account });
+  await App.updateOne({ host, owner }, { [PATH.REFERRAL_ACCOUNT]: getDefaultReferral(account) });
   return true;
 };
 

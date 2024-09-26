@@ -23,15 +23,7 @@ const { verifySignature, verifyObjectsAction } = require('utilities/helpers/sign
 const parse = async ({
   operation, options, transactionId,
 }) => {
-  let metadata;
-
-  try {
-    if (operation.json_metadata !== '') {
-      metadata = JSON.parse(operation.json_metadata); // parse json_metadata from string to JSON
-    }
-  } catch (e) {
-    console.error(e.message);
-  }
+  const metadata = jsonHelper.parseJson(operation.json_metadata, null);
 
   if (metadata?.comment?.userId) {
     // guest comments and posts
@@ -46,10 +38,13 @@ const parse = async ({
   if (operation.parent_author === '' && metadata) {
     // comment without parent_author is POST
     await postSwitcher({ operation, metadata, options });
-  } else if (operation.parent_author && operation.parent_permlink) {
+  }
+
+  if (operation.parent_author && operation.parent_permlink) {
     // comment with parent_author is REPLY TO POST
     await commentSwitcher(({ operation, metadata, options }));
   }
+
   await redisSetter.publishToChannel({
     channel: REDIS_KEYS.TX_ID_MAIN,
     msg: transactionId,
