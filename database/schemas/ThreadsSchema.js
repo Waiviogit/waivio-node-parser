@@ -36,6 +36,7 @@ const ThreadSchema = new Schema({
   },
   percent_hbd: { type: Number },
   cashout_time: { type: String },
+  bulkMessage: { type: Boolean, default: false },
 }, { versionKey: false, timestamps: true, validateBeforeSave: false });
 
 ThreadSchema.index({ author: 1, permlink: 1 }, { unique: true });

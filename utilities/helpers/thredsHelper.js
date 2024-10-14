@@ -85,34 +85,33 @@ const getCryptoArray = async () => {
   await redisSetter.expire(REDIS_KEY_TICKERS, 60 * 60 * 24);
 };
 
+const detectBulkMessage = (metadata) => !!parseJson(metadata, null)?.bulkMessage;
+
 const parseThread = async (comment, options) => {
-  const thread = _.omit(comment, [
-    'json_metadata',
-    'title',
-  ]);
-
-  thread.percent_hbd = options?.percent_hbd ?? 10000;
-
   const cryptoArray = await getCryptoArray();
-  thread.links = extractLinks(comment.body);
-  thread.mentions = extractMentions(comment.body);
-  thread.hashtags = extractHashtags(comment.body);
-  thread.images = extractImages(comment.json_metadata);
-  thread.tickers = extractCryptoTickers(comment.json_metadata, cryptoArray);
-  thread.cashout_time = moment().add(7, 'days').toISOString();
+  const {
+    body, json_metadata, author, permlink,
+  } = comment;
+
+  const updateData = {
+    ..._.omit(comment, ['json_metadata', 'title']),
+    percent_hbd: options?.percent_hbd ?? 10000,
+    links: extractLinks(body),
+    mentions: extractMentions(body),
+    hashtags: extractHashtags(body),
+    images: extractImages(json_metadata),
+    tickers: extractCryptoTickers(json_metadata, cryptoArray),
+    cashout_time: moment().add(7, 'days').toISOString(),
+    bulkMessage: detectBulkMessage(json_metadata),
+  };
 
   // todo add notification by hashtags check bell
   // todo add notification by mentions
 
   await ThreadModel.updateOne({
-    filter: {
-      author: thread.author,
-      permlink: thread.permlink,
-    },
-    update: thread,
-    options: {
-      upsert: true,
-    },
+    filter: { author, permlink },
+    update: updateData,
+    options: { upsert: true },
   });
 };
 
