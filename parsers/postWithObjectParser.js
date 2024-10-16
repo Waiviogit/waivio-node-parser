@@ -191,6 +191,12 @@ const createOrUpdatePost = async ({
   return { updPost, action: 'updated' };
 };
 
+const isYoungerThanSixMonths = async ({ name }) => {
+  const user = await User.findOneCreatedByName({ name });
+  if (!user) return false;
+  return moment(user.createdAt).isAfter(moment().subtract(6, 'months'));
+};
+
 const addHiveEngineTTL = async ({ postTags, author, permlink }) => {
   if (config.environment !== 'production') return;
   if (_.isEmpty(postTags)) return;
@@ -199,6 +205,8 @@ const addHiveEngineTTL = async ({ postTags, author, permlink }) => {
     member: author,
   });
   if (isInGreyList) return;
+  const validByCreationDate = await isYoungerThanSixMonths({ name: author });
+  if (!validByCreationDate) return;
   const tokens = getHiveEngineTokensFromTags(postTags);
   for (const token of tokens) {
     const key = `${REDIS_KEY_DISTRIBUTE_HIVE_ENGINE_REWARD}:${token}:${moment.utc().startOf('day').format()}`;
