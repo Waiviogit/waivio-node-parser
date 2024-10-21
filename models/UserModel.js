@@ -234,6 +234,14 @@ const createMany = async (data) => {
   }
 };
 
+const findOneCreatedByName = async ({ name }) => {
+  try {
+    return UserModel.findOne({ name }, { name: 1, createdAt: 1 }).lean();
+  } catch (error) {
+    return null;
+  }
+};
+
 module.exports = {
   create,
   addObjectFollow,
@@ -249,4 +257,5 @@ module.exports = {
   findOne,
   find,
   createMany,
+  findOneCreatedByName,
 };
