@@ -540,9 +540,13 @@ const createEdgeNGrams = (str) => {
   return arrayOfStrings.join(' ');
 };
 
-const parseName = (rawName = '') => createEdgeNGrams(rawName?.trim()
-  .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
-  .replace(/  +/g, ' '));
+const parseName = (rawName = '') => {
+  if (!rawName) return;
+
+  return createEdgeNGrams(rawName.trim()
+    .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
+    .replace(/  +/g, ' '));
+};
 
 const searchFromBody = ({ fieldBody, field }) => [parseName(fieldBody)];
 
@@ -640,7 +644,7 @@ const parseSearchData = (field) => {
 };
 
 const addSearchField = async ({ authorPermlink, newWords }) => {
-  if (_.isEmpty(newWords)) return { result: false };
+  if (_.isEmpty(_.compact(newWords))) return { result: false };
   const { result, error } = await Wobj.addSearchFields({
     authorPermlink, newWords,
   });
