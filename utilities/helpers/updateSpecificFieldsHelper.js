@@ -540,7 +540,7 @@ const createEdgeNGrams = (str) => {
   return arrayOfStrings.join(' ');
 };
 
-const parseName = (rawName = '') => createEdgeNGrams(rawName.trim()
+const parseName = (rawName = '') => createEdgeNGrams(rawName?.trim()
   .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
   .replace(/  +/g, ' '));
 
