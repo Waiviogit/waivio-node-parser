@@ -542,6 +542,7 @@ const createEdgeNGrams = (str) => {
 
 const parseName = (rawName = '') => {
   if (!rawName) return;
+  if (typeof rawName !== 'string') return;
 
   return createEdgeNGrams(rawName.trim()
     .replace(/[.,%?+*|{}[\]()<>“”^'"\\\-_=!&$:]/g, '')
