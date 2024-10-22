@@ -596,7 +596,7 @@ const searchFromId = ({ fieldBody, field }) => {
   const searchData = _.get(parsedBody, 'companyId') || _.get(parsedBody, 'productId');
   if (!searchData) return [];
 
-  return [parseName(searchData)];
+  return [parseName(String(searchData))];
 };
 
 const searchBodyProperty = ({ fieldBody, field }) => {
