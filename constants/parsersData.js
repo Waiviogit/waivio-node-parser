@@ -92,6 +92,8 @@ exports.REDIS_KEYS = {
   TX_ID_MAIN: 'main_parser_tx_id',
   AD_SENSE: 'ad_sense_cache',
   HOSTS_TO_PARSE_OBJECTS: 'hosts_to_parse_objects',
+  START_OBJECT_PROMOTION: 'start_object_promotion',
+  END_OBJECT_PROMOTION: 'end_object_promotion',
 };
 
 exports.HIDE_ACTION = {

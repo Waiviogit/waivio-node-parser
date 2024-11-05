@@ -76,6 +76,7 @@ exports.FIELDS_NAMES = {
   COOKING_TIME: 'cookingTime',
   COST: 'cost',
   RECIPE_INGREDIENTS: 'recipeIngredients',
+  PROMOTION: 'promotion',
 };
 
 exports.SEARCH_FIELDS = [
