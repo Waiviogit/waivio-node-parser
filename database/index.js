@@ -20,6 +20,7 @@ module.exports = {
   models: {
     WObject: require('./schemas/wObjectSchema'),
     User: require('./schemas/UserSchema'),
+    UserExpertise: require('./schemas/UserExpertiseSchema'),
     Post: require('./schemas/PostSchema'),
     ObjectType: require('./schemas/ObjectTypeSchema'),
     UserWobjects: require('./schemas/UserWobjectsSchema'),

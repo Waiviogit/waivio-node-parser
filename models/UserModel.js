@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment');
 const UserModel = require('database').models.User;
-const UserWobjectsModel = require('database').models.UserWobjects;
+const UserExpertiseModel = require('database').models.UserExpertise;
 
 const create = async (data) => {
   const newUser = new UserModel(data);
@@ -104,16 +104,20 @@ const checkAndCreate = async (name) => {
 const increaseWobjectWeight = async (data) => {
   try {
     // add weight in wobject to user
-    await UserWobjectsModel.updateOne(
+    await UserExpertiseModel.updateOne(
       {
         user_name: data.name,
         author_permlink: data.author_permlink,
       },
-      { $inc: { weight: data.weight } },
+      {
+        $inc: {
+          weight: data.weight,
+        },
+      },
       { upsert: true, setDefaultsOnInsert: true },
     );
     if (data.weight < 0) {
-      await UserWobjectsModel.updateOne({
+      await UserExpertiseModel.updateOne({
         user_name: data.name,
         author_permlink: data.author_permlink,
       }, {
@@ -162,7 +166,7 @@ const increaseUserWobjectsWeight = async (data) => {
 // object shares - user weight in specified wobject
 const checkForObjectShares = async (data) => {
   try {
-    const userWobject = await UserWobjectsModel.findOne({
+    const userWobject = await UserExpertiseModel.findOne({
       user_name: data.name,
       author_permlink: data.author_permlink,
     }).lean();

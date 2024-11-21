@@ -1,7 +1,7 @@
 const { getCurrentPriceInfo } = require('../steemApi/usersUtil');
 
 // check current calc +
-// check actual rc: to parse in weight should multiply 0.000001 or * 1e-6
+// check actual rc: to parse in weight should multiply 0.000001 or * 1e-6 +
 // check against waiv
 
 const getUSDFromWeightHelper = async (weight) => {
@@ -25,11 +25,6 @@ const getWeightFromUSD = async (usdAmount) => {
   return weight;
 };
 
-// pending_payout_value: '218 HBD'
+// pending_payout_value: '218 HBD' / 2
 // total_payout_value : '121.074 HBD'
 
-// (async () => {
-//   const yo = await getWeightFromUSD(121.074);
-//   const yo2 = await getUSDFromWeightHelper(yo);
-//   console.log();
-// })();
