@@ -11,15 +11,19 @@ const voteOnPost = async (data) => {
   const currentVote = data.post.active_votes.find((vote) => vote.voter === data.voter);
   if (!currentVote) return;
 
+  // todo magic number
   const weight = Math.round(currentVote.rshares * 1e-6);
 
-  if (await userValidator.validateUserOnBlacklist([data.voter, data.post.author, data.guest_author])) {
-    await unvoteOnPost(data);
-    if (data.percent < 0) {
-      await downVoteOnPost(data, weight); // case for down-vote
-    } else if (data.percent > 0) {
-      await upVoteOnPost(data, weight); // case for up-vote
-    }
+  const validUser = await userValidator
+    .validateUserOnBlacklist([data.voter, data.post.author, data.guest_author]);
+
+  if (!validUser) return;
+
+  await unvoteOnPost(data);
+  if (data.percent < 0) {
+    await downVoteOnPost(data, weight); // case for down-vote
+  } else if (data.percent > 0) {
+    await upVoteOnPost(data, weight); // case for up-vote
   }
 };
 
@@ -32,14 +36,14 @@ const unvoteOnPost = async (data) => {
   if (!post || error) return {};
 
   const existingVote = post.active_votes.find((vote) => vote.voter === data.voter);
-  if (existingVote) {
-    // if un-vote after down-vote, need increase only author weight in wobjects
-    if (existingVote.weight < 0) {
-      await downVoteOnPost(data, -existingVote.weight);
-    } else if (existingVote.weight > 0) {
-      // if un-vote after up-vote, need decrease author, voter and wobject weights
-      await upVoteOnPost(data, -existingVote.weight);
-    }
+  if (!existingVote) return;
+
+  // if un-vote after down-vote, need increase only author weight in wobjects
+  if (existingVote.weight < 0) {
+    await downVoteOnPost(data, -existingVote.weight);
+  } else if (existingVote.weight > 0) {
+    // if un-vote after up-vote, need decrease author, voter and wobject weights
+    await upVoteOnPost(data, -existingVote.weight);
   }
 };
 
@@ -69,16 +73,18 @@ const upVoteOnPost = async (data, weight) => {
     for (const wObject of _.get(data, 'post.wobjects', [])) {
       // calculate vote weight for each wobject in post
       const voteWeight = Number((weight * (wObject.percent / 100)).toFixed(3));
-
+      // todo new_weight
       await Wobj.increaseWobjectWeight({
         author_permlink: wObject.author_permlink, // increase wobject weight
         weight: voteWeight,
       });
+      // todo new_weight *0.5
       await User.increaseWobjectWeight({
         name: _.get(data, 'guest_author', data.post.author),
         author_permlink: wObject.author_permlink, // increase author weight in wobject
         weight: Number((voteWeight * 0.75).toFixed(3)),
       });
+      // todo remove voter experise
       await User.increaseWobjectWeight({
         name: data.voter,
         author_permlink: wObject.author_permlink,
