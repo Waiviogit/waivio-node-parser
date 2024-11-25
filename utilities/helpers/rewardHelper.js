@@ -1,30 +1,27 @@
-const { getCurrentPriceInfo } = require('../steemApi/usersUtil');
+const { getCurrentPriceInfo } = require('utilities/steemApi/usersUtil');
+const { cacheWrapper } = require('utilities/helpers/cacheHelper');
 
-// check current calc +
-// check actual rc: to parse in weight should multiply 0.000001 or * 1e-6 +
-// check against waiv
+const getCachedPriceInfo = cacheWrapper(getCurrentPriceInfo);
+const CACHE_PRICE_KEY = 'cached_price_info';
+const CACHE_PRICE_TTL = 60 * 5;
+const cacheParams = { key: CACHE_PRICE_KEY, ttl: CACHE_PRICE_TTL };
 
-const getUSDFromWeightHelper = async (weight) => {
-  const { currentPrice: rate, rewardFund } = await getCurrentPriceInfo();
+const getUSDFromRshares = async (weight) => {
+  const { currentPrice: rate, rewardFund } = await getCachedPriceInfo()(cacheParams);
   const { recent_claims: recentClaims, reward_balance: rewardBalance } = rewardFund;
-
-  return (weight / recentClaims) * rewardBalance.replace(' HIVE', '') * rate * 1000000;
+  return (weight / recentClaims) * rewardBalance.replace(' HIVE', '') * rate;
 };
 
-const getWeightFromUSD = async (usdAmount) => {
-  // Retrieve the necessary data
-  const { currentPrice: rate, rewardFund } = await getCurrentPriceInfo();
+const getRsharesFromUSD = async (usdAmount) => {
+  const { currentPrice: rate, rewardFund } = await getCachedPriceInfo()(cacheParams);
   const { recent_claims: recentClaims, reward_balance: rewardBalance } = rewardFund;
-
-  // Remove ' HIVE' from rewardBalance and convert to a number
   const rewardBalanceNumber = parseFloat(rewardBalance.replace(' HIVE', ''));
-
-  // Calculate the weight
-  const weight = (usdAmount / (rewardBalanceNumber * rate * 1000000)) * recentClaims;
-
-  return weight;
+  return (usdAmount / (rewardBalanceNumber * rate)) * recentClaims;
 };
 
 // pending_payout_value: '218 HBD' / 2
 // total_payout_value : '121.074 HBD'
 
+module.exports = {
+  getUSDFromRshares,
+};

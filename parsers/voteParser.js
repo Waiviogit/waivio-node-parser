@@ -13,6 +13,7 @@ const jsonHelper = require('utilities/helpers/jsonHelper');
 const redisSetter = require('utilities/redis/redisSetter');
 const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const { getUSDFromRshares } = require('../utilities/helpers/rewardHelper');
 
 const parse = async (votes) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -126,9 +127,10 @@ const voteAppendObject = async (data) => {
     }
     data.rshares = _.get(vote, 'rshares', 1);
   }
-
   data.rshares_weight = Math.round(Number(data.rshares) * 1e-6);
-  await voteFieldHelper.voteOnField(data);
+
+  const expertiseUSD = await getUSDFromRshares(data.rshares);
+  await voteFieldHelper.voteOnField({ ...data, expertiseUSD });
 };
 
 // data include: posts, metadata, voter, percent, author, permlink, guest_author
@@ -166,13 +168,11 @@ const votesFormat = async (votesOps) => {
 // Use this method when get vote from block but node still not perform this vote on database_api
 const tryReserveVote = async (author, permlink, voter, times = 10) => {
   for (let i = 0; i < times; i++) {
-    {
-      const { votes = [], err } = await postsUtil.getVotes(author, permlink);
-      if (err) return { error: err };
-      const vote = votes.find((v) => v.voter === voter);
-      if (vote) return { vote };
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
+    const { votes = [], err } = await postsUtil.getVotes(author, permlink);
+    if (err) return { error: err };
+    const vote = votes.find((v) => v.voter === voter);
+    if (vote) return { vote };
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
   return { error: { message: `[tryReserveVote]Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
 };

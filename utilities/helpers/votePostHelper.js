@@ -5,14 +5,14 @@ const userValidator = require('validator/userValidator');
 const { Wobj, User, Post } = require('models');
 const moment = require('moment');
 const _ = require('lodash');
+const { getUSDFromRshares } = require('./rewardHelper');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment
   const currentVote = data.post.active_votes.find((vote) => vote.voter === data.voter);
   if (!currentVote) return;
 
-  // todo magic number
-  const weight = Math.round(currentVote.rshares * 1e-6);
+  const weight = await getUSDFromRshares(currentVote.rshares);
 
   const validUser = await userValidator
     .validateUserOnBlacklist([data.voter, data.post.author, data.guest_author]);
@@ -73,22 +73,16 @@ const upVoteOnPost = async (data, weight) => {
     for (const wObject of _.get(data, 'post.wobjects', [])) {
       // calculate vote weight for each wobject in post
       const voteWeight = Number((weight * (wObject.percent / 100)).toFixed(3));
-      // todo new_weight
+
       await Wobj.increaseWobjectWeight({
         author_permlink: wObject.author_permlink, // increase wobject weight
         weight: voteWeight,
       });
-      // todo new_weight *0.5
+
       await User.increaseWobjectWeight({
         name: _.get(data, 'guest_author', data.post.author),
         author_permlink: wObject.author_permlink, // increase author weight in wobject
-        weight: Number((voteWeight * 0.75).toFixed(3)),
-      });
-      // todo remove voter experise
-      await User.increaseWobjectWeight({
-        name: data.voter,
-        author_permlink: wObject.author_permlink,
-        weight: Number((voteWeight * 0.25).toFixed(3)),
+        weight: Number((voteWeight * 0.5).toFixed(3)),
       });
     }
   }

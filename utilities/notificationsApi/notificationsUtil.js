@@ -2,7 +2,7 @@ const _ = require('lodash');
 const axios = require('axios');
 const { redisGetter } = require('utilities/redis');
 const {
-  Post, Wobj, UserWobjects, CommentModel,
+  Post, Wobj, CommentModel, UserExpertiseModel,
 } = require('models');
 const { postsUtil } = require('utilities/steemApi');
 const { socketClient } = require('utilities/socketClient/socketClient');
@@ -128,7 +128,8 @@ const restaurantStatus = async (data, permlink, status = undefined) => {
   const wobjStatus = _.get(wobject, 'status.title');
   if ((wobjStatus === status) || (!wobjStatus && !status)) return;
 
-  const { result } = await UserWobjects.find({ author_permlink: permlink, weight: { $gt: 0 } });
+  const { result } = await UserExpertiseModel
+    .find({ author_permlink: permlink, expertiseUSD: { $gt: 0 } });
   if (!result || !result.length) return;
   data.object_name = getNameFromFields(wobject.fields);
   data.experts = _.map(result, (expert) => expert.user_name);

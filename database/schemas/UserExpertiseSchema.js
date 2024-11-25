@@ -2,13 +2,14 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
-const UserExpertiseSchema = new Schema({
-  user_name: { type: String, require: true },
-  author_permlink: { type: String, require: true },
-  weight: { type: Number, default: 0 },
-  expertiseWAIV: { type: Number, default: 0 },
-  expertiseHIVE: { type: Number, default: 0 },
-}, { timestamps: false });
+const UserExpertiseSchema = new Schema(
+  {
+    user_name: { type: String, required: true },
+    author_permlink: { type: String, required: true },
+    weight: { type: Number, default: 0 },
+  },
+  { timestamps: false },
+);
 
 UserExpertiseSchema.index({ user_name: 1 });
 UserExpertiseSchema.index({ author_permlink: 1, user_name: 1 }, { unique: true });

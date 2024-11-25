@@ -117,14 +117,15 @@ const increaseWobjectWeight = async (data) => {
       { upsert: true, setDefaultsOnInsert: true },
     );
     if (data.weight < 0) {
-      await UserExpertiseModel.updateOne({
-        user_name: data.name,
-        author_permlink: data.author_permlink,
-      }, {
-        $max: {
-          weight: 0,
+      await UserExpertiseModel.updateOne(
+        {
+          user_name: data.name,
+          author_permlink: data.author_permlink,
         },
-      });
+        {
+          $max: { weight: 0 },
+        },
+      );
     }
     await increaseUserWobjectsWeight({ name: data.name, weight: data.weight });
     return { result: true };
@@ -145,14 +146,15 @@ const increaseUserWobjectsWeight = async (data) => {
     };
     await UserModel.updateOne(filter, {
       $inc: {
-        wobjects_weight: data.weight,
+
+        weight: data.weight,
       },
     });
 
     if (data.weight < 0) {
       await UserModel.updateOne(filter, {
         $max: {
-          wobjects_weight: 0,
+          weight: 0,
         },
       });
     }
