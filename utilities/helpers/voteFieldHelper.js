@@ -80,7 +80,7 @@ const addVoteOnField = async (data, field) => {
   const percent = (data.percent % 2 === 0) ? data.percent : -data.percent;
 
   data.percent = calculateVotePercent(data.percent);
-  data.weight = (data.weight + data.expertiseUSD * 0.25) * (data.percent / 100);
+  data.weight = (data.weight + data.expertiseUSD * 0.5) * (data.percent / 100);
   await upDownVoteOnAppend({
     ...data,
   });
