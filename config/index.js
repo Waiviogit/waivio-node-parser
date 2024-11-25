@@ -3,7 +3,7 @@ const config = require('config/config.json')[process.env.NODE_ENV || 'developmen
 const envConfig = {
   mongoConnectionString: process.env.MONGO_URI_WAIVIO || `mongodb://${config.db.host}:${config.db.port}/${config.db.database}`,
   environment: process.env.NODE_ENV || 'development',
-  port: process.env.PORT || 3003,
+  port: process.env.PORT || '3003',
   sentryDsn: process.env.SENTRY_DNS,
   apiKey: process.env.API_KEY,
   nginxKey: process.env.NGINX_KEY,

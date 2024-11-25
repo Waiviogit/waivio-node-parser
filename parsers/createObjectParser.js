@@ -51,11 +51,6 @@ const createObject = async (data, operation) => {
 
     await commentRefSetter.addWobjRef(`${data.author}_${data.author_permlink}`, data.author_permlink);
     await userHelper.checkAndCreateUser(data.creator);
-    await User.increaseWobjectWeight({
-      name: data.creator,
-      author_permlink: data.author_permlink,
-      weight: 1,
-    });
 
     return { wobject: wObject.toObject() };
   } catch (error) {

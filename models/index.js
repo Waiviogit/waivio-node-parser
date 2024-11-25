@@ -7,6 +7,7 @@ module.exports = {
   CommentRef: require('./CommentRef'),
   CommentModel: require('./CommentModel'),
   UserWobjects: require('./UserWobjectsModel'),
+  UserExpertiseModel: require('./UserExpertiseModel'),
   Subscriptions: require('./SubscriptionModel'),
   Campaign: require('./CampaignModel'),
   CampaignV2: require('./CampaignV2Model'),

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const WObjectModel = require('database').models.WObject;
 const ObjectTypes = require('database').models.ObjectType;
 const _ = require('lodash');
@@ -136,11 +137,7 @@ const addVote = async ({
       return { result: result.modifiedCount === 1 };
     }
 
-    const wobject = await WObjectModel.findOne(
-      {
-        author_permlink,
-      },
-    );
+    const wobject = await WObjectModel.findOne({ author_permlink });
 
     for (const objField of wobject.fields) {
       if (objField._id.toString() === field._id.toString()) {
