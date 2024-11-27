@@ -122,7 +122,7 @@ const loadBlock = async (blockNum, transactionsParserCallback) => {
     return true;
   }
 
-  await transactionsParserCallback(block.transactions, block.timestamp);
+  await transactionsParserCallback(block.transactions, block.timestamp, blockNum);
 
   return true;
 };

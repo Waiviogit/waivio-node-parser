@@ -15,7 +15,7 @@ const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const { getUSDFromRshares } = require('../utilities/helpers/rewardHelper');
 
-const parse = async (votes) => {
+const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
 
   await updateThreadVoteCount(votes);
@@ -31,7 +31,7 @@ const parse = async (votes) => {
   const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
   await sendLikeNotification(votesOps);
   await Promise.all(votesOps.map(async (voteOp) => {
-    await parseVoteByType(voteOp, postsWithVotes);
+    await parseVoteByType(voteOp, postsWithVotes, blockNum);
   }));
   await Promise.all(posts.map(async (post) => {
     await votePostHelper.updateVotesOnPost({ post });
@@ -49,7 +49,7 @@ const sendLikeNotification = async (votes) => {
   await notificationsUtil.custom({ id: 'like', likes });
 };
 
-const parseVoteByType = async (voteOp, posts) => {
+const parseVoteByType = async (voteOp, posts, blockNum) => {
   if (voteOp.type === VOTE_TYPES.POST_WITH_WOBJ) {
     await votePostWithObjects({
       author: voteOp.author, // author and permlink - identity of field
@@ -70,6 +70,7 @@ const parseVoteByType = async (voteOp, posts) => {
       rshares: voteOp.rshares,
       json: !!voteOp.json,
       weight: voteOp.weight,
+      blockNum,
       // posts,
     });
     await redisSetter.publishToChannel({
