@@ -84,7 +84,8 @@ const validateOnAppend = async ({ field, objectPermlink }) => {
   });
   if (error) return false;
   const validRange = validTimeRange({
-    fields: _.filter(wobject.fields, (el) => el.name === FIELDS_NAMES.PROMOTION),
+    fields: _.filter(wobject.fields, (el) => el.name === FIELDS_NAMES.PROMOTION
+      && el.body === field.body),
     startDate: value.startDate,
     endDate: value.endDate,
   });
