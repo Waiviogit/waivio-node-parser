@@ -146,15 +146,14 @@ const increaseUserWobjectsWeight = async (data) => {
     };
     await UserModel.updateOne(filter, {
       $inc: {
-
-        weight: data.weight,
+        wobjects_weight: data.weight,
       },
     });
 
     if (data.weight < 0) {
       await UserModel.updateOne(filter, {
         $max: {
-          weight: 0,
+          wobjects_weight: 0,
         },
       });
     }

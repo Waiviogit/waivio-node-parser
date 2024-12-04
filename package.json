@@ -14,7 +14,8 @@
     "test": "NODE_ENV=test NODE_PATH=. nyc --reporter=html mocha",
     "addMentionsToPost": "node ./utilities/tasks/addMentionsToPost/run.js",
     "fixCategoryItem": "node ./utilities/tasks/fixCategoryItem/run.js",
-    "authorExpertise": "node ./utilities/tasks/authorExpertise/run.js"
+    "authorExpertise": "node ./utilities/tasks/authorExpertise/run.js",
+    "fieldExpertise": "node ./utilities/tasks/authorExpertise/runRewriteFields.js"
   },
   "dependencies": {
     "@hiveio/dhive": "^1.2.8",
