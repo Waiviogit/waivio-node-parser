@@ -40,6 +40,7 @@ const {
   walletAddressSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
+const objectPromotion = require('../utilities/objectUpdates/objectPromotion');
 
 const cantAppendMessage = 'Can\'t append object, the same field already exists';
 
@@ -114,6 +115,7 @@ const validateSameFields = async (data) => {
 
   if ([FIELDS_NAMES.CATEGORY_ITEM, FIELDS_NAMES.GALLERY_ALBUM].includes(data.field.name)) setUniqFields.push('id');
   if ([FIELDS_NAMES.AFFILIATE_CODE, FIELDS_NAMES.AUTHORITY].includes(data.field.name)) setUniqFields.push('creator');
+  if (data.field.name === FIELDS_NAMES.PROMOTION) setUniqFields.push('startDate', 'endDate');
   if (data.field.name === FIELDS_NAMES.PHONE) setUniqFields.splice(1, 1, 'number');
   if (data.field.name === FIELDS_NAMES.LIST_ITEM) setUniqFields.splice(2, 1);
 
@@ -450,6 +452,14 @@ const validateSpecifiedFields = async (data) => {
       if (walletError) {
         throw new Error(`Can't append ${fieldName}`);
       }
+      break;
+
+    case FIELDS_NAMES.PROMOTION: {
+      const valid = await objectPromotion.validateOnAppend({
+        field: data.field, objectPermlink: data.author_permlink,
+      });
+      if (!valid) throw new Error(`Can't append ${fieldName}`);
+    }
       break;
   }
 };
