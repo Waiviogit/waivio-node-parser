@@ -41,11 +41,13 @@ const rewriteFields = async () => {
         const newWeight = (oldWeight + usdExpertise * 0.5) * (vote.percent / 100);
         vote.weight = newWeight;
 
-        await User.increaseWobjectWeight({
-          name: vote.voter,
-          author_permlink: wobject.author_permlink,
-          weight: usdExpertise * 0.5,
-        });
+        if (usdExpertise !== 0) {
+          await User.increaseWobjectWeight({
+            name: vote.voter,
+            author_permlink: wobject.author_permlink,
+            weight: Number((usdExpertise * 0.5).toFixed(8)),
+          });
+        }
       }
 
       field.weight = _.reduce(field.active_votes, (acc, el) => {

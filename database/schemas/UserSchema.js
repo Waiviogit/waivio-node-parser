@@ -102,6 +102,7 @@ const UserSchema = new Schema({
   },
   referral: { type: [ReferralsSchema], default: [] },
   lastActivity: { type: Date, index: true },
+  processed: { type: Boolean },
 }, { timestamps: true });
 
 UserSchema.index({ wobjects_weight: -1 });

@@ -1,16 +1,71 @@
 /* eslint-disable camelcase */
-const {
-  User, UserExpertise, WObject, Post,
-} = require('database').models;
+const { User, Post } = require('database').models;
 const mongoose = require('mongoose');
 const { Wobj, User: UserModel } = require('models');
-const postUtil = require('utilities/steemApi/postsUtil');
 const moment = require('moment');
+const _ = require('lodash');
 const config = require('../../../config');
 
-const parseHbdString = (input) => {
-  const numericPart = parseFloat(input.split(' ')[0]);
-  return Number.isNaN(numericPart) ? 0 : numericPart;
+const POSTS_COUNT = 12000000;
+let postProcessed = 0;
+
+const startTime = Date.now();
+
+const estimateTimeLeft = () => {
+  const now = Date.now();
+  const elapsedTime = (now - startTime) / 1000;
+
+  if (elapsedTime <= 0 || postProcessed === 0) {
+    return 'Calculating...';
+  }
+
+  const averageRate = postProcessed / elapsedTime;
+  const postsLeft = POSTS_COUNT - postProcessed;
+  const timeLeft = postsLeft / averageRate;
+
+  // Format time left into hours, minutes, and seconds
+  const hours = Math.floor(timeLeft / 3600);
+  const minutes = Math.floor((timeLeft % 3600) / 60);
+  const seconds = Math.floor(timeLeft % 60);
+
+  return `${hours}h ${minutes}m ${seconds}s`;
+};
+
+const parsePayoutAmount = (amount) => parseFloat(String(amount).replace(/\s[A-Z]*$/, '')) || 0;
+
+const isPostCashout = (post) => Date.parse(_.get(post, 'cashout_time')) < Date.now();
+const calculatePayout = (post, rates) => {
+  if (!post) return {};
+  const payoutDetails = {};
+  const waivPayout = isPostCashout(post)
+    ? _.get(post, 'total_rewards_WAIV', 0) * rates
+    : _.get(post, 'total_payout_WAIV', 0) * rates;
+
+  const max_payout = parsePayoutAmount(post.max_accepted_payout);
+  const pending_payout = parsePayoutAmount(post.pending_payout_value);
+  const total_author_payout = parsePayoutAmount(post.total_payout_value);
+  const total_curator_payout = parsePayoutAmount(post.curator_payout_value);
+  let payout = pending_payout + total_author_payout + total_curator_payout + waivPayout;
+  const hivePayout = total_author_payout + total_curator_payout + pending_payout;
+  const hbdPercent = post.percent_hbd ? 0.25 : 0;
+
+  if (payout < 0) payout = 0.0;
+  if (payout > max_payout) payout = max_payout;
+
+  payoutDetails.payoutLimitHit = payout >= max_payout;
+  payoutDetails.totalPayout = payout;
+  payoutDetails.potentialPayout = pending_payout + waivPayout;
+  payoutDetails.HBDPayout = hivePayout * hbdPercent;
+  payoutDetails.WAIVPayout = waivPayout;
+  payoutDetails.HIVEPayout = hivePayout - payoutDetails.HBDPayout;
+
+  return payoutDetails;
+};
+
+const isDateGreaterThan25Hardfork = (dateString) => {
+  const inputDate = moment(dateString);
+  const comparisonDate = moment('2021-06-30');
+  return inputDate.isAfter(comparisonDate);
 };
 
 const processUserExpertise = async (user, engineCollection) => {
@@ -29,18 +84,20 @@ const processUserExpertise = async (user, engineCollection) => {
       permlink: 1,
       wobjects: 1,
       total_payout_WAIV: 1,
+      total_rewards_WAIV: 1,
       pending_payout_value: 1,
+      curator_payout_value: 1,
       total_payout_value: 1,
       last_payout: 1,
+      max_accepted_payout: 1,
+      cashout_time: 1,
     },
   ).lean();
 
   for await (const dbPost of posts) {
-    let authorPayoutHBD = 0;
-    let waivUsd = 0;
-    const { post } = await postUtil.getPost(dbPost.root_author || name, dbPost.permlink);
-    if (dbPost.total_payout_WAIV) {
-      const dateString = post?.last_payout || dbPost.last_payout;
+    let rates = 0;
+    if (dbPost.total_payout_WAIV || dbPost.total_rewards_WAIV) {
+      const dateString = dbPost.last_payout;
       const from = moment(dateString).subtract(1, 'd').format('YYYY-MM-DD');
       const to = moment(dateString).format('YYYY-MM-DD');
       let doc;
@@ -59,24 +116,22 @@ const processUserExpertise = async (user, engineCollection) => {
         doc = documents[0];
       }
 
-      if (doc) {
-        waivUsd = (dbPost.total_payout_WAIV * doc?.rates?.USD ?? 0) * 0.5;
-      }
+      if (doc) rates = doc?.rates?.USD || 0;
     }
-    if (post) {
-      authorPayoutHBD = parseHbdString(post.total_payout_value)
-        || (parseHbdString(post.pending_payout_value) * 0.5);
-    } else {
-      authorPayoutHBD = parseHbdString(dbPost.total_payout_value)
-        || (parseHbdString(dbPost.pending_payout_value) * 0.5);
-    }
-    const weightUsd = authorPayoutHBD + waivUsd;
+
+    const payoutDetails = calculatePayout(dbPost, rates);
+
+    const weightUsd = isDateGreaterThan25Hardfork(dbPost.last_payout)
+      ? payoutDetails.totalPayout * 0.5
+      : payoutDetails.totalPayout * 0.75;
 
     for (const wobject of dbPost?.wobjects ?? []) {
-      const wobjectWeight = Number((weightUsd * (wobject.percent / 100)).toFixed(3));
+      const wobjectWeight = Number((weightUsd * (wobject.percent / 100)).toFixed(8));
+
+      if (wobjectWeight === 0) continue;
       await Wobj.increaseWobjectWeight({
         author_permlink: wobject.author_permlink,
-        weight: wobjectWeight * 2, // todo ask X2
+        weight: Number((wobjectWeight * 2).toFixed(8)),
       });
 
       await UserModel.increaseWobjectWeight({
@@ -85,8 +140,8 @@ const processUserExpertise = async (user, engineCollection) => {
         weight: wobjectWeight,
       });
     }
+    postProcessed++;
   }
-
   await User.updateOne({ name: user.name }, { processed: true });
 };
 
@@ -102,12 +157,12 @@ const rewriteExpertise = async () => {
     const users = await User.find({ processed: false }, { name: 1 }, { limit: 100 }).lean();
     for (const user of users) {
       await processUserExpertise(user, engineCollection);
+      console.log(user.name, 'processed');
+      console.log('estimateTimeLeft: ', estimateTimeLeft());
     }
     if (!users.length) break;
   }
   await connection.close();
 };
-
-
 
 module.exports = rewriteExpertise;
