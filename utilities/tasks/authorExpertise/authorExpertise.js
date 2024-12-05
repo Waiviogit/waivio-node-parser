@@ -95,6 +95,9 @@ const processUserExpertise = async (user, engineCollection) => {
   ).lean();
 
   for await (const dbPost of posts) {
+    const postTimestamp = dbPost._id.getTimestamp();
+    if (moment(postTimestamp).isAfter(moment(startTime))) continue;
+
     let rates = 0;
     if (dbPost.total_payout_WAIV || dbPost.total_rewards_WAIV) {
       const dateString = dbPost.last_payout;
