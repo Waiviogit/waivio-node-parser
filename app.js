@@ -5,7 +5,6 @@ const { sendSentryNotification } = require('utilities/helpers/sentryHelper');
 const { runStream } = require('processor/processor');
 const config = require('config');
 require('utilities/jobs');
-require('utilities/helpers/rewardHelper');
 const { startRedisListener } = require('utilities/helpers/redisHelper');
 
 const app = express();

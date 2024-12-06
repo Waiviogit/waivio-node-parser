@@ -84,7 +84,7 @@ const addVoteOnField = async (data, field) => {
   await upDownVoteOnAppend({
     ...data,
   });
-  ///
+
   await Wobj.addVote({
     ...data,
     field,

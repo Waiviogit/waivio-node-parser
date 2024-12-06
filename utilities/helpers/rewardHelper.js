@@ -19,9 +19,6 @@ const getRsharesFromUSD = async (usdAmount) => {
   return (usdAmount / (rewardBalanceNumber * rate)) * recentClaims;
 };
 
-// pending_payout_value: '218 HBD' / 2
-// total_payout_value : '121.074 HBD'
-
 module.exports = {
   getUSDFromRshares,
 };
