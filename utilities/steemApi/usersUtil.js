@@ -69,6 +69,8 @@ const getProcessedVotes = async (votes) => {
 
 const calculateVotePower = async ({ votesOps, posts }) => {
   const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
+  const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
+  const price = parseFloat(priceInfo.price);
 
   const votesProcessedOnApi = await getProcessedVotes(votesOps);
 
@@ -98,13 +100,19 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     voteInPost
       ? Object.assign(
         voteInPost,
-        handleVoteInPost({ vote, voteInPost, rshares: rShares }),
+        handleVoteInPost({
+          vote,
+          voteInPost,
+          rshares: rShares,
+          price,
+          rewards,
+        }),
       )
       : post.active_votes.push({
         voter: vote.voter,
         percent: vote.weight,
         rshares: Math.round(rShares),
-        weight: Math.round(rShares * 1e-6),
+        weight: rShares * rewards * price,
       });
     // such vote will not affect total payout
     if (!rShares && !voteInPost) continue;
@@ -116,9 +124,8 @@ const calculateVotePower = async ({ votesOps, posts }) => {
       rshares: rShares,
     });
 
-    const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
     // *price - to calculate in HBD
-    const postValue = tRShares * rewards * parseFloat(priceInfo.price);
+    const postValue = tRShares * rewards * price;
 
     post.net_rshares = Math.round(tRShares);
     post.pending_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
@@ -138,7 +145,9 @@ const getPostNetRshares = ({
   return netRshares + rshares;
 };
 
-const handleVoteInPost = ({ vote, voteInPost, rshares }) => {
+const handleVoteInPost = ({
+  vote, voteInPost, rshares, price, rewards,
+}) => {
   if (vote.weight === 0) {
     return {
       ...voteInPost,
@@ -150,7 +159,7 @@ const handleVoteInPost = ({ vote, voteInPost, rshares }) => {
   return {
     ...voteInPost,
     rshares: Math.round(rshares),
-    weight: Math.round(rshares * 1e-6),
+    weight: rshares * rewards * price,
     percent: vote.weight,
   };
 };

@@ -21,44 +21,42 @@ const parse = async (votes, blockNum) => {
   await updateThreadVoteCount(votes);
 
   const { votesOps } = await votesFormat(votes);
-  const { posts = [] } = await Post.getManyPosts(
-    _.chain(votesOps)
-      .filter((v) => !!v.type)
-      .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
-      .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
-      .value(),
-  );
-  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
-  await sendLikeNotification(votesOps);
+  const posts = await Post.getPostsByVotes(votesOps);
+  const postsWithNewVotes = await usersUtil.calculateVotePower({ votesOps, posts });
+
   await Promise.all(votesOps.map(async (voteOp) => {
-    await parseVoteByType(voteOp, postsWithVotes, blockNum);
+    await parseVoteByType(voteOp, postsWithNewVotes, blockNum);
   }));
   await Promise.all(posts.map(async (post) => {
     await votePostHelper.updateVotesOnPost({ post });
   }));
+  await sendLikeNotification(votesOps);
   console.log(`Parsed votes: ${votesOps.length}`);
 };
 
 const sendLikeNotification = async (votes) => {
-  const likes = _.chain(votes)
-    .filter((v) => v.type === VOTE_TYPES.POST_WITH_WOBJ && v.weight > 0 && v.rshares >= 0)
-    .forEach((v) => {
-      v.weight = Math.round(v.rshares * 1e-6);
-    })
-    .value();
+  const likes = _.filter(
+    votes,
+    (v) => v.type === VOTE_TYPES.POST_WITH_WOBJ && v.rshares >= 0,
+  );
+
   await notificationsUtil.custom({ id: 'like', likes });
 };
 
 const parseVoteByType = async (voteOp, posts, blockNum) => {
   if (voteOp.type === VOTE_TYPES.POST_WITH_WOBJ) {
-    await votePostWithObjects({
+    const post = posts.find((p) => (p.author === voteOp.author || p.author === voteOp.guest_author)
+      && p.permlink === voteOp.permlink);
+    if (!post) return;
+
+    await votePostHelper.voteOnPost({
       author: voteOp.author, // author and permlink - identity of field
       permlink: voteOp.permlink,
       voter: voteOp.voter,
       percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
       wobjects: voteOp.wobjects,
       guest_author: voteOp.guest_author,
-      posts,
+      post,
     });
   } else if (voteOp.type === VOTE_TYPES.APPEND_WOBJ && voteOp.weight >= 0) {
     await voteAppendObject({
@@ -71,7 +69,6 @@ const parseVoteByType = async (voteOp, posts, blockNum) => {
       json: !!voteOp.json,
       weight: voteOp.weight,
       blockNum,
-      // posts,
     });
     await redisSetter.publishToChannel({
       channel: REDIS_KEYS.TX_ID_MAIN,
@@ -132,14 +129,6 @@ const voteAppendObject = async (data) => {
 
   const expertiseUSD = await getUSDFromRshares(data.rshares);
   await voteFieldHelper.voteOnField({ ...data, expertiseUSD });
-};
-
-// data include: posts, metadata, voter, percent, author, permlink, guest_author
-const votePostWithObjects = async (data) => {
-  data.post = data.posts.find((p) => (p.author === data.author || p.author === data.guest_author) && p.permlink === data.permlink);
-  if (!data.post) return;
-
-  await votePostHelper.voteOnPost(data);
 };
 
 const votesFormat = async (votesOps) => {
