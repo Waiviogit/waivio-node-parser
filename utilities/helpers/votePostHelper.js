@@ -61,16 +61,17 @@ const upVoteOnPost = async (data, weight) => {
       // calculate vote weight for each wobject in post
       const voteWeight = Number((weight * (wObject.percent / 100)).toFixed(8));
       if (voteWeight === 0) continue;
+      const expertiseUsd = Number((voteWeight * 0.5).toFixed(8));
 
       await Wobj.increaseWobjectWeight({
         author_permlink: wObject.author_permlink, // increase wobject weight
-        weight: voteWeight,
+        weight: expertiseUsd,
       });
 
       await User.increaseWobjectWeight({
         name: _.get(data, 'guest_author', data.post.author),
         author_permlink: wObject.author_permlink, // increase author weight in wobject
-        weight: Number((voteWeight * 0.5).toFixed(8)),
+        weight: expertiseUsd,
       });
     }
   }

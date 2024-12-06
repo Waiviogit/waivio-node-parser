@@ -132,9 +132,10 @@ const processUserExpertise = async (user, engineCollection) => {
       const wobjectWeight = Number((weightUsd * (wobject.percent / 100)).toFixed(8));
 
       if (wobjectWeight === 0) continue;
+
       await Wobj.increaseWobjectWeight({
         author_permlink: wobject.author_permlink,
-        weight: Number((wobjectWeight * 2).toFixed(8)),
+        weight: wobjectWeight,
       });
 
       await UserModel.increaseWobjectWeight({
