@@ -137,27 +137,18 @@ const addVote = async ({
       return { result: result.modifiedCount === 1 };
     }
 
-    const wobject = await WObjectModel.findOne({ author_permlink });
+    const wobject = await WObjectModel.findOne(
+      {
+        author_permlink,
+      },
+    );
 
     for (const objField of wobject.fields) {
       if (objField._id.toString() === field._id.toString()) {
         for (const objVote of objField.active_votes) {
           if (objVote._id.toString() === existingVote._id.toString()) {
-            if (!objVote?.block) {
-              Object.assign(objVote, vote);
-              break;
-            }
-            if (objVote?.block > existingVote.block) {
-              break;
-            }
-            if (objVote?.block < existingVote.block) {
-              objVote.weight = existingVote.weight;
-              break;
-            }
-            if (objVote?.block === existingVote.block) {
-              objVote.weight += existingVote.weight;
-              break;
-            }
+            Object.assign(objVote, vote);
+            break;
           }
         }
         break;
