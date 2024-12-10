@@ -1,14 +1,12 @@
-const { Wobj, User } = require('models');
+const { Wobj } = require('models');
 const { createObjectValidator } = require('validator');
 const { commentRefSetter, commentRefGetter } = require('utilities/commentRefService');
 const { wobjectHelper, userHelper } = require('utilities/helpers');
-const { OBJECT_TYPES_FOR_GROUP_ID, OBJECT_TYPES } = require('constants/wobjectsData');
+const { OBJECT_TYPES_FOR_GROUP_ID } = require('constants/wobjectsData');
 const _ = require('lodash');
 const crypto = require('node:crypto');
 const { createEdgeNGrams } = require('../utilities/helpers/updateSpecificFieldsHelper');
 const { publishToChannel } = require('../utilities/redis/redisSetter');
-
-const WEIGHT_FOR_NEW_LISTS = 3758754650946;
 
 const parse = async (operation, metadata) => {
   const data = {
@@ -39,11 +37,6 @@ const createObject = async (data, operation) => {
     data.object_type = objectTypeRef.name;
     if (_.includes(OBJECT_TYPES_FOR_GROUP_ID, data.object_type)) {
       data.metaGroupId = crypto.randomUUID();
-    }
-
-    /// lists create with bigger weight to up search results
-    if (_.includes([OBJECT_TYPES.LIST], data.object_type)) {
-      data.weight = WEIGHT_FOR_NEW_LISTS;
     }
 
     const { wObject, error } = await Wobj.create(data);
