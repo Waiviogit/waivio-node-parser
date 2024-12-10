@@ -159,7 +159,7 @@ const rewriteExpertise = async () => {
     const users = await User.find({ processed: false }, { name: 1 }, { limit: 100 }).lean();
     for (const user of users) {
       await processUserExpertise(user, engineCollection);
-      console.log(user.name, 'processed');
+      console.log(user.name, `processed  total posts :${postProcessed}`);
       console.log('estimateTimeLeft: ', estimateTimeLeft());
     }
     if (!users.length) break;
