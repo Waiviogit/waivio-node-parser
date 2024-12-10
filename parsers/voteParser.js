@@ -17,19 +17,26 @@ const { getUSDFromRshares } = require('../utilities/helpers/rewardHelper');
 
 const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
+  console.log('start parsing votes');
 
   await updateThreadVoteCount(votes);
+  console.log('updateThreadVoteCount');
 
   const { votesOps } = await votesFormat(votes);
+  console.log('votesFormat');
   const posts = await Post.getPostsByVotes(votesOps);
+  console.log('getPostsByVotes');
   const postsWithNewVotes = await usersUtil.calculateVotePower({ votesOps, posts });
+  console.log('calculateVotePower');
 
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithNewVotes, blockNum);
   }));
+  console.log('parseVoteByType');
   await Promise.all(posts.map(async (post) => {
     await votePostHelper.updateVotesOnPost({ post });
   }));
+  console.log('updateVotesOnPost');
   await sendLikeNotification(votesOps);
   console.log(`Parsed votes: ${votesOps.length}`);
 };
