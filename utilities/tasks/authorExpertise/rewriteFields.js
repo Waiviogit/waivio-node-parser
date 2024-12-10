@@ -39,7 +39,7 @@ const rewriteFields = async () => {
 
         const oldWeight = (overallWeight / (vote.percent / 100)) - (vote.rshares_weight * 0.25);
         const newWeight = (oldWeight + usdExpertise * 0.5) * (vote.percent / 100);
-        vote.weight = newWeight;
+        vote.weight = Number.isNaN(newWeight) ? 0 : newWeight;
 
         if (usdExpertise !== 0 && field.creator !== 'monterey') {
           await User.increaseWobjectWeight({
