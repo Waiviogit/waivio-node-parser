@@ -71,8 +71,6 @@ const isDateGreaterThan25Hardfork = (dateString) => {
 const processUserExpertise = async (user, engineCollection) => {
   const { name } = user;
 
-  await User.updateOne({ name }, { wobjects_weight: 0 });
-
   const posts = Post.find(
     {
       author: name,
