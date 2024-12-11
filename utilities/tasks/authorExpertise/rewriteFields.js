@@ -22,7 +22,7 @@ const rewriteFields = async () => {
   const { quotePrice } = pools[0];
   const price = parseFloat(quotePrice) * parseFloat(hiveCurrency.price);
 
-  const wobjects = WObject.find({ author_permlink: '72d1ph-shop' });
+  const wobjects = WObject.find({ processed: false });
   for await (const wobject of wobjects) {
     for (const field of wobject.fields) {
       if ([0, 1, -1].includes(field.weight)) continue;
