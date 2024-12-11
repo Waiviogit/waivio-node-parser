@@ -13,6 +13,7 @@ const {
 const { restaurantStatus, rejectUpdate } = require('utilities/notificationsApi/notificationsUtil');
 const siteHelper = require('utilities/helpers/sitesHelper');
 const jsonHelper = require('utilities/helpers/jsonHelper');
+const objectPromotion = require('utilities/objectUpdates/objectPromotion');
 const { listItemProcess } = require('utilities/waivioApi');
 const crypto = require('node:crypto');
 
@@ -197,6 +198,7 @@ const updaterByFieldName = {
   [FIELDS_NAMES.DEPARTMENTS]: specialUpdater11,
   [FIELDS_NAMES.GROUP_ID]: specialUpdater12,
   [FIELDS_NAMES.LIST_ITEM]: specialUpdater13,
+  [FIELDS_NAMES.PROMOTION]: objectPromotion.specialUpdateOnPromotion,
   default: () => {},
 };
 

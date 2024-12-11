@@ -66,6 +66,7 @@ const WObjectSchema = new Schema(
     expertiseWAIV: { type: Number, index: true },
     departments: { type: [String], index: true },
     metaGroupId: { type: String, index: true },
+    promotedOnSites: { type: [String] },
     processed: { type: Boolean, index: true },
   },
   {
