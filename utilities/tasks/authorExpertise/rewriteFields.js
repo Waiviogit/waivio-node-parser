@@ -22,7 +22,7 @@ const rewriteFields = async () => {
   const { quotePrice } = pools[0];
   const price = parseFloat(quotePrice) * parseFloat(hiveCurrency.price);
 
-  const wobjects = WObject.find({ processed: false });
+  const wobjects = WObject.find({ author_permlink: '72d1ph-shop' });
   for await (const wobject of wobjects) {
     for (const field of wobject.fields) {
       if ([0, 1, -1].includes(field.weight)) continue;
@@ -37,8 +37,8 @@ const rewriteFields = async () => {
           usdExpertise += (waivWeight * price * rewards);
         }
 
-        const oldWeight = (overallWeight / (vote.percent / 100)) - (vote.rshares_weight * 0.25);
-        const newWeight = (oldWeight + usdExpertise * 0.5) * (vote.percent / 100);
+        const oldWeight = (overallWeight / (vote.percent / 10000)) - (vote.rshares_weight * 0.25);
+        const newWeight = (oldWeight + usdExpertise * 0.5) * (vote.percent / 10000);
         vote.weight = Number.isNaN(newWeight) ? 0 : newWeight;
 
         if (usdExpertise !== 0 && field.creator !== 'monterey') {
