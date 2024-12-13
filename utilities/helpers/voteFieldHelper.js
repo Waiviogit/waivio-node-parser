@@ -93,6 +93,7 @@ const addVoteOnField = async (data, field) => {
       percent,
       rshares_weight: data.rshares_weight,
       weight: data.weight,
+      block: data.blockNum,
     },
   });
 };

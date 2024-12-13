@@ -147,8 +147,25 @@ const addVote = async ({
       if (objField._id.toString() === field._id.toString()) {
         for (const objVote of objField.active_votes) {
           if (objVote._id.toString() === existingVote._id.toString()) {
-            Object.assign(objVote, vote);
-            break;
+            if (!objVote?.block) {
+              Object.assign(objVote, vote);
+              break;
+            }
+            if (objVote?.block > vote.block) {
+              break;
+            }
+            if (objVote?.block < vote.block) {
+              objVote.weight = vote.weight;
+              objVote.percent = vote.percent;
+              objVote.rshares_weight = vote.rshares_weight;
+              break;
+            }
+            if (objVote?.block === vote.block) {
+              objVote.weight += vote.weight;
+              objVote.percent = vote.percent;
+              objVote.rshares_weight = vote.rshares_weight;
+              break;
+            }
           }
         }
         break;
