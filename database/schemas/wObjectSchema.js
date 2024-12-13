@@ -30,6 +30,7 @@ const WObjectSchema = new Schema(
       name: { type: String, index: true },
       body: { type: String },
       weight: { type: Number, default: 1 },
+      weightWAIV: { type: Number },
       locale: { type: String, default: 'en-US' },
       tagCategory: { type: String },
       creator: { type: String },
