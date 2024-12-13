@@ -41,13 +41,13 @@ const rewriteFields = async () => {
         const newWeight = (oldWeight + usdExpertise * 0.5) * (vote.percent / 10000);
         vote.weight = Number.isNaN(newWeight) ? 0 : newWeight;
 
-        if (usdExpertise !== 0 && field.creator !== 'monterey') {
-          await User.increaseWobjectWeight({
-            name: field.creator,
-            author_permlink: wobject.author_permlink,
-            weight: Number((usdExpertise * 0.5).toFixed(8)),
-          });
-        }
+        // if (usdExpertise !== 0 && field.creator !== 'monterey') {
+        //   await User.increaseWobjectWeight({
+        //     name: field.creator,
+        //     author_permlink: wobject.author_permlink,
+        //     weight: Number((usdExpertise * 0.5).toFixed(8)),
+        //   });
+        // }
       }
 
       field.weight = _.reduce(field.active_votes, (acc, el) => {
