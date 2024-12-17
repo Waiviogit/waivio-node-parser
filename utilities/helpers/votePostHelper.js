@@ -5,6 +5,7 @@ const userValidator = require('validator/userValidator');
 const { Wobj, User, Post } = require('models');
 const _ = require('lodash');
 const moment = require('moment');
+const { getUSDFromRshares } = require('./rewardHelper');
 
 const voteOnPost = async (data) => {
   // calculated value, for using in wobject environment
@@ -16,11 +17,13 @@ const voteOnPost = async (data) => {
 
   if (!validUser) return;
 
+  const weight = await getUSDFromRshares(currentVote.rshares);
+
   await unvoteOnPost(data);
   if (data.percent < 0) {
     await downVoteOnPost(data); // case for down-vote
   } else if (data.percent > 0) {
-    await upVoteOnPost(data, currentVote.weight); // case for up-vote
+    await upVoteOnPost(data, weight); // case for up-vote
   }
 };
 
