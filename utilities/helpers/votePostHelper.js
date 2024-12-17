@@ -35,7 +35,7 @@ const unvoteOnPost = async (data) => {
   });
   if (!post || error) return {};
   // todo remove
-  if (moment(post.createdAt).isBefore('2024-12-19T00:00')) return;
+  if (moment(post.createdAt).isBefore('2024-12-20T00:00')) return;
 
   const existingVote = post.active_votes.find((vote) => vote.voter === data.voter);
   if (!existingVote) return;
