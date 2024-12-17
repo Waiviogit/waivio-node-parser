@@ -90,6 +90,7 @@ const calculateVotePower = async ({ votesOps, posts }) => {
     vote.rshares = rShares;
     const processed = _.find(votesProcessedOnApi, (el) => _.isEqual(vote, el));
     if (processed) {
+      vote.weight = rShares * rewards * price;
       await redisSetter.zrem({
         key: REDIS_KEYS.PROCESSED_LIKES,
         member: `${vote.voter}:${vote.author}:${vote.permlink}`,
