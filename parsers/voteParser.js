@@ -13,30 +13,25 @@ const jsonHelper = require('utilities/helpers/jsonHelper');
 const redisSetter = require('utilities/redis/redisSetter');
 const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const moment = require('moment/moment');
 const { getUSDFromRshares } = require('../utilities/helpers/rewardHelper');
 
 const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
-  console.log('start parsing votes');
-
   await updateThreadVoteCount(votes);
-  console.log('updateThreadVoteCount');
-
   const { votesOps } = await votesFormat(votes);
-  console.log('votesFormat');
+
   const posts = await Post.getPostsByVotes(votesOps);
-  console.log('getPostsByVotes');
   const postsWithNewVotes = await usersUtil.calculateVotePower({ votesOps, posts });
-  console.log('calculateVotePower');
 
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithNewVotes, blockNum);
   }));
-  console.log('parseVoteByType');
+
   await Promise.all(posts.map(async (post) => {
     await votePostHelper.updateVotesOnPost({ post });
   }));
-  console.log('updateVotesOnPost');
+
   await sendLikeNotification(votesOps);
   console.log(`Parsed votes: ${votesOps.length}`);
 };
@@ -55,6 +50,9 @@ const parseVoteByType = async (voteOp, posts, blockNum) => {
     const post = posts.find((p) => (p.author === voteOp.author || p.author === voteOp.guest_author)
       && p.permlink === voteOp.permlink);
     if (!post) return;
+    const createdOverAWeek = moment()
+      .diff(moment(_.get(post, 'createdAt')), 'day') > 7;
+    if (createdOverAWeek) return;
 
     await votePostHelper.voteOnPost({
       author: voteOp.author, // author and permlink - identity of field
