@@ -34,6 +34,8 @@ const unvoteOnPost = async (data) => {
     permlink: data.post.permlink,
   });
   if (!post || error) return {};
+  // todo remove
+  if (moment().isBefore('2024-12-19T00:00')) return;
 
   const existingVote = post.active_votes.find((vote) => vote.voter === data.voter);
   if (!existingVote) return;
