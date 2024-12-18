@@ -21,7 +21,6 @@ const rewriteFields = async () => {
   const { quotePrice } = pools[0];
   const price = parseFloat(quotePrice) * parseFloat(hiveCurrency.price);
 
-  // const wobjects = WObject.find({ processed: false });
   const wobjects = WObject.find({ processed: false });
   for await (const wobject of wobjects) {
     for (const field of wobject.fields) {

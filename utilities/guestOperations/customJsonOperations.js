@@ -161,6 +161,7 @@ const guestVoteOnField = async ({ vote }) => {
     percent: vote.weight,
     weight: 1,
     rshares_weight: 0,
+    expertiseUSD: 0,
   });
 };
 
