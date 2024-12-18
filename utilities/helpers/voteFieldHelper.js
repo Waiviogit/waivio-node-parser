@@ -80,7 +80,7 @@ const addVoteOnField = async (data, field) => {
   const percent = (data.percent % 2 === 0) ? data.percent : -data.percent;
 
   data.percent = calculateVotePercent(data.percent);
-  data.weight = Number((data.weight + data.expertiseUSD * 0.5) * (data.percent / 100).toFixed(8));
+  data.weight = Number((data.weight + data.rshares_weight * 0.5) * (data.percent / 100).toFixed(8));
   await upDownVoteOnAppend({
     ...data,
   });
@@ -114,16 +114,16 @@ const addVoteOnField = async (data, field) => {
  */
 const upDownVoteOnAppend = async ({
   author, permlink, author_permlink: authorPermlink, weight,
-  creator, expertiseUSD,
+  creator, expertiseUSD, percent,
 }) => {
   // increase weight of field author
 
-  const creatorWeight = Number((expertiseUSD * 0.5).toFixed(8));
+  const creatorWeight = Number((expertiseUSD * 0.5 * (percent / 100)).toFixed(8));
   if (creatorWeight !== 0) {
     await User.increaseWobjectWeight({
       name: creator,
       author_permlink: authorPermlink,
-      weight: Number((expertiseUSD * 0.5).toFixed(8)),
+      weight: creatorWeight,
     });
   }
 

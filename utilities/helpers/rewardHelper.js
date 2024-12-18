@@ -19,6 +19,17 @@ const getRsharesFromUSD = async (usdAmount) => {
   return (usdAmount / (rewardBalanceNumber * rate)) * recentClaims;
 };
 
+const getWeightForFieldUpdate = async (weight) => {
+  // ignore users with zero or negative weight in wobject
+  if (!weight || weight <= 0) return 1;
+  // now we have weight in usd and need to adjust it to old votes
+  const rshares = await getRsharesFromUSD(weight);
+
+  return Math.round(Number(rshares) * 1e-6);
+};
+
 module.exports = {
   getUSDFromRshares,
+  getRsharesFromUSD,
+  getWeightForFieldUpdate,
 };

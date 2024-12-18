@@ -1,7 +1,7 @@
 const {
   WObject,
 } = require('database').models;
-const _ = require('lodash');
+const { User } = require('models');
 const { getUSDFromRshares } = require('utilities/helpers/rewardHelper');
 const { redisGetter, redis } = require('utilities/redis');
 const { engineProxy } = require('utilities/hiveEngine/engineQuery');
@@ -29,7 +29,6 @@ const rewriteFields = async () => {
         if ([0, 1, -1].includes(vote.weight)) continue;
         const waivWeight = vote.weightWAIV || 0;
         const hiveWeight = vote.rshares_weight;
-        const overallWeight = vote.weight;
         let waivUsd = 0;
 
         let usdExpertise = await getUSDFromRshares(hiveWeight * 1000000); // + Waiv
@@ -37,21 +36,14 @@ const rewriteFields = async () => {
           waivUsd = (waivWeight * price * rewards);
           usdExpertise += waivUsd;
         }
-
-        const oldWeight = (overallWeight / (vote.percent / 10000)) - (vote.rshares_weight * 0.25);
-        const newWeight = (oldWeight + usdExpertise * 0.5) * (vote.percent / 10000);
-        vote.weight = Number.isNaN(newWeight) ? 0 : Number(newWeight.toFixed(8));
-        if (waivWeight) vote.weightWAIV = 0;
-      }
-
-      const fieldWeight = _.reduce(field.active_votes, (acc, el) => {
-        acc += el.weight;
-        return acc;
-      }, 0);
-
-      field.weight = Number(fieldWeight.toFixed(8));
-      if (field.weightWAIV) {
-        field.weightWAIV = 0;
+        const creatorWeight = Number((usdExpertise * 0.5 * (vote.percent / 10000)).toFixed(8));
+        if (creatorWeight !== 0 && field.creator !== 'monterey') {
+          await User.increaseWobjectWeight({
+            name: field.creator,
+            author_permlink: wobject.author_permlink,
+            weight: creatorWeight,
+          });
+        }
       }
     }
     wobject.processed = true;

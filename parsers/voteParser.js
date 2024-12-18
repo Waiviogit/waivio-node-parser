@@ -14,7 +14,10 @@ const redisSetter = require('utilities/redis/redisSetter');
 const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const moment = require('moment/moment');
-const { getUSDFromRshares } = require('../utilities/helpers/rewardHelper');
+const {
+  getUSDFromRshares,
+  getWeightForFieldUpdate,
+} = require('../utilities/helpers/rewardHelper');
 
 const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -115,14 +118,14 @@ const voteAppendObject = async (data) => {
     // calc rshares after week
     data.rshares = await calcAppendRshares({ vote: data });
   }
-  let { weight, error } = await User.checkForObjectShares({
+  const { weight } = await User.checkForObjectShares({
     name: data.voter,
     author_permlink: data.author_permlink,
   });
-  // ignore users with zero or negative weight in wobject
-  if (!weight || weight <= 0 || error) weight = 1;
+
   // voters weight in wobject
-  data.weight = weight;
+  data.weight = getWeightForFieldUpdate(weight);
+
   if (!data.rshares) {
     const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
     if (voteError || !vote) {
