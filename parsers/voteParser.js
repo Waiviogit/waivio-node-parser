@@ -124,7 +124,7 @@ const voteAppendObject = async (data) => {
   });
 
   // voters weight in wobject
-  data.weight = getWeightForFieldUpdate(weight);
+  data.weight = await getWeightForFieldUpdate(weight);
 
   if (!data.rshares) {
     const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
