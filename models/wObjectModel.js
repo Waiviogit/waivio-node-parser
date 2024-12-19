@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const WObjectModel = require('database').models.WObject;
 const ObjectTypes = require('database').models.ObjectType;
 const _ = require('lodash');

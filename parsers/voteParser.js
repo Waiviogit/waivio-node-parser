@@ -13,51 +13,58 @@ const jsonHelper = require('utilities/helpers/jsonHelper');
 const redisSetter = require('utilities/redis/redisSetter');
 const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const moment = require('moment/moment');
+const {
+  getUSDFromRshares,
+  getWeightForFieldUpdate,
+} = require('../utilities/helpers/rewardHelper');
 
-const parse = async (votes) => {
+const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
-
   await updateThreadVoteCount(votes);
-
   const { votesOps } = await votesFormat(votes);
-  const { posts = [] } = await Post.getManyPosts(
-    _.chain(votesOps)
-      .filter((v) => !!v.type)
-      .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
-      .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
-      .value(),
-  );
-  const postsWithVotes = await usersUtil.calculateVotePower({ votesOps, posts });
-  await sendLikeNotification(votesOps);
+
+  const posts = await Post.getPostsByVotes(votesOps);
+  const postsWithNewVotes = await usersUtil.calculateVotePower({ votesOps, posts });
+
   await Promise.all(votesOps.map(async (voteOp) => {
-    await parseVoteByType(voteOp, postsWithVotes);
+    await parseVoteByType(voteOp, postsWithNewVotes, blockNum);
   }));
+
   await Promise.all(posts.map(async (post) => {
     await votePostHelper.updateVotesOnPost({ post });
   }));
+
+  await sendLikeNotification(votesOps);
   console.log(`Parsed votes: ${votesOps.length}`);
 };
 
 const sendLikeNotification = async (votes) => {
-  const likes = _.chain(votes)
-    .filter((v) => v.type === VOTE_TYPES.POST_WITH_WOBJ && v.weight > 0 && v.rshares >= 0)
-    .forEach((v) => {
-      v.weight = Math.round(v.rshares * 1e-6);
-    })
-    .value();
+  const likes = _.filter(
+    votes,
+    (v) => v.type === VOTE_TYPES.POST_WITH_WOBJ && v.rshares >= 0,
+  );
+
   await notificationsUtil.custom({ id: 'like', likes });
 };
 
-const parseVoteByType = async (voteOp, posts) => {
+const parseVoteByType = async (voteOp, posts, blockNum) => {
   if (voteOp.type === VOTE_TYPES.POST_WITH_WOBJ) {
-    await votePostWithObjects({
+    const post = posts.find((p) => (p.author === voteOp.author || p.author === voteOp.guest_author)
+      && p.permlink === voteOp.permlink);
+    if (!post) return;
+    const createdOverAWeek = moment()
+      .diff(moment(_.get(post, 'createdAt')), 'day') > 7;
+    if (createdOverAWeek) return;
+
+    await votePostHelper.voteOnPost({
       author: voteOp.author, // author and permlink - identity of field
       permlink: voteOp.permlink,
       voter: voteOp.voter,
       percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
       wobjects: voteOp.wobjects,
       guest_author: voteOp.guest_author,
-      posts,
+      post,
     });
   } else if (voteOp.type === VOTE_TYPES.APPEND_WOBJ && voteOp.weight >= 0) {
     await voteAppendObject({
@@ -69,7 +76,7 @@ const parseVoteByType = async (voteOp, posts) => {
       rshares: voteOp.rshares,
       json: !!voteOp.json,
       weight: voteOp.weight,
-      // posts,
+      blockNum,
     });
     await redisSetter.publishToChannel({
       channel: REDIS_KEYS.TX_ID_MAIN,
@@ -111,14 +118,14 @@ const voteAppendObject = async (data) => {
     // calc rshares after week
     data.rshares = await calcAppendRshares({ vote: data });
   }
-  let { weight, error } = await User.checkForObjectShares({
+  const { weight } = await User.checkForObjectShares({
     name: data.voter,
     author_permlink: data.author_permlink,
   });
-  // ignore users with zero or negative weight in wobject
-  if (!weight || weight <= 0 || error) weight = 1;
+
   // voters weight in wobject
-  data.weight = weight;
+  data.weight = await getWeightForFieldUpdate(weight);
+
   if (!data.rshares) {
     const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
     if (voteError || !vote) {
@@ -126,17 +133,10 @@ const voteAppendObject = async (data) => {
     }
     data.rshares = _.get(vote, 'rshares', 1);
   }
-
   data.rshares_weight = Math.round(Number(data.rshares) * 1e-6);
-  await voteFieldHelper.voteOnField(data);
-};
 
-// data include: posts, metadata, voter, percent, author, permlink, guest_author
-const votePostWithObjects = async (data) => {
-  data.post = data.posts.find((p) => (p.author === data.author || p.author === data.guest_author) && p.permlink === data.permlink);
-  if (!data.post) return;
-
-  await votePostHelper.voteOnPost(data);
+  const expertiseUSD = await getUSDFromRshares(data.rshares);
+  await voteFieldHelper.voteOnField({ ...data, expertiseUSD });
 };
 
 const votesFormat = async (votesOps) => {
@@ -166,13 +166,11 @@ const votesFormat = async (votesOps) => {
 // Use this method when get vote from block but node still not perform this vote on database_api
 const tryReserveVote = async (author, permlink, voter, times = 10) => {
   for (let i = 0; i < times; i++) {
-    {
-      const { votes = [], err } = await postsUtil.getVotes(author, permlink);
-      if (err) return { error: err };
-      const vote = votes.find((v) => v.voter === voter);
-      if (vote) return { vote };
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
+    const { votes = [], err } = await postsUtil.getVotes(author, permlink);
+    if (err) return { error: err };
+    const vote = votes.find((v) => v.voter === voter);
+    if (vote) return { vote };
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
   return { error: { message: `[tryReserveVote]Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
 };

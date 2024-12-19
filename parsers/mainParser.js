@@ -7,7 +7,7 @@ const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
 const config = require('config');
 
-const parseSwitcher = async (transactions, timestamp) => {
+const parseSwitcher = async (transactions, timestamp, blockNum) => {
   if (config.parseOnlyVotes) {
     const ops = transactions.filter((t) => t.op.type === 'effective_comment_vote_operation').map((t) => ({ ...t.op.value, transaction_id: t.trx_id }));
     const votes = transactions.filter((t) => t.op.type === 'vote_operation').map((t) => {
@@ -18,7 +18,7 @@ const parseSwitcher = async (transactions, timestamp) => {
         rshares: +(effectiveVote?.rshares ?? 1),
       };
     });
-    await voteParser.parse(votes);
+    await voteParser.parse(votes, blockNum);
 
     return;
   }

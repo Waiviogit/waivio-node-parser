@@ -30,6 +30,7 @@ const WObjectSchema = new Schema(
       name: { type: String, index: true },
       body: { type: String },
       weight: { type: Number, default: 1 },
+      weightWAIV: { type: Number },
       locale: { type: String, default: 'en-US' },
       tagCategory: { type: String },
       creator: { type: String },
@@ -43,6 +44,7 @@ const WObjectSchema = new Schema(
           weight: { type: Number },
           percent: { type: Number },
           rshares_weight: { type: Number },
+          block: { type: Number },
           weightWAIV: { type: Number },
         }],
         default: [],
@@ -67,6 +69,7 @@ const WObjectSchema = new Schema(
     departments: { type: [String], index: true },
     metaGroupId: { type: String, index: true },
     promotedOnSites: { type: [String] },
+    processed: { type: Boolean, index: true },
   },
   {
     strict: false,

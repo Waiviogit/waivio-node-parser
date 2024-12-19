@@ -159,6 +159,7 @@ const updateThreadVoteCount = async (votes) => {
   );
   const priceInfo = await getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, lastBlockClient);
   const rewards = parseFloat(priceInfo.reward_balance) / parseFloat(priceInfo.recent_claims);
+  const price = parseFloat(priceInfo.price);
 
   for (const vote of voteOps) {
     const post = _.find(result, (p) => (p.author === vote.author || p.author === vote.guest_author)
@@ -171,7 +172,13 @@ const updateThreadVoteCount = async (votes) => {
     voteInPost
       ? Object.assign(
         voteInPost,
-        usersUtil.handleVoteInPost({ vote, voteInPost, rshares: vote.rshares }),
+        usersUtil.handleVoteInPost({
+          vote,
+          voteInPost,
+          rshares: vote.rshares,
+          rewards,
+          price,
+        }),
       )
       : post.active_votes.push({
         voter: vote.voter,
@@ -190,7 +197,7 @@ const updateThreadVoteCount = async (votes) => {
     });
 
     // *price - to calculate in HBD
-    const postValue = tRShares * rewards * parseFloat(priceInfo.price);
+    const postValue = tRShares * rewards * price;
 
     post.net_rshares = Math.round(tRShares);
     post.pending_payout_value = postValue < 0 ? '0.000 HBD' : `${postValue.toFixed(3)} HBD`;
