@@ -69,7 +69,7 @@ const unVoteOnAppend = async (data) => {
       rshares_weight: -existingVote.rshares_weight || 0,
     });
   }
-  //await Wobj.removeVote(data);
+  // await Wobj.removeVote(data);
 };
 
 // data includes:
@@ -80,7 +80,7 @@ const addVoteOnField = async (data, field) => {
   const percent = (data.percent % 2 === 0) ? data.percent : -data.percent;
 
   data.percent = calculateVotePercent(data.percent);
-  data.weight = (data.weight + data.rshares_weight * 0.25) * (data.percent / 100);
+  data.weight = Number((data.weight + data.rshares_weight * 0.5) * (data.percent / 100).toFixed(8));
   await upDownVoteOnAppend({
     ...data,
   });
@@ -109,28 +109,23 @@ const addVoteOnField = async (data, field) => {
  * @param percent {Number} Voter Percent of current Vote
  * @param creator {String} Person who create field
  * (not to be confused with bot who write down comment to blockchain)
- * @param voter {String} Person who vote for field(Approve or Reject)
  * @returns {Promise<void>}
  */
 const upDownVoteOnAppend = async ({
   author, permlink, author_permlink: authorPermlink, weight,
-  creator, voter, rshares_weight: rsharesWeight, percent,
+  creator, expertiseUSD, percent,
 }) => {
-  if (percent > 0) {
-  // increase weight of voter only on UpVotes
+  // increase weight of field author
 
+  const creatorWeight = Number((expertiseUSD * 0.5 * (percent / 100)).toFixed(8));
+  if (creatorWeight !== 0) {
     await User.increaseWobjectWeight({
-      name: voter,
+      name: creator,
       author_permlink: authorPermlink,
-      weight: rsharesWeight * 0.25 * (percent / 100),
+      weight: creatorWeight,
     });
   }
-  // increase weight of field author
-  await User.increaseWobjectWeight({
-    name: creator,
-    author_permlink: authorPermlink,
-    weight: rsharesWeight * 0.75 * (percent / 100),
-  });
+
   // increase weight of field
   await Wobj.increaseFieldWeight({
     author, permlink, author_permlink: authorPermlink, weight,

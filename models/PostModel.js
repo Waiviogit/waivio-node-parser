@@ -92,6 +92,19 @@ const getManyPosts = async (postsRefs) => {
   }
 };
 
+const getPostsByVotes = async (votesOps) => {
+  const query = _.chain(votesOps)
+    .filter((v) => !!v.type)
+    .uniqWith((x, y) => x.author === y.author && x.permlink === y.permlink)
+    .map((v) => ({ author: v.guest_author || v.author, permlink: v.permlink }))
+    .value();
+  if (_.isEmpty(query)) return [];
+
+  const { posts = [] } = await getManyPosts(query);
+
+  return posts;
+};
+
 const setWobjectsToPost = async (data) => {
   try {
     const result = await PostModel.updateOne(
@@ -146,6 +159,7 @@ const find = async ({ filter, projection, options }) => {
 
 module.exports = {
   removeWobjectsFromPost,
+  getPostsByVotes,
   setWobjectsToPost,
   findByBothAuthors,
   findOneAndDelete,
