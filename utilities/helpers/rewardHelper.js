@@ -1,22 +1,22 @@
-const { getCurrentPriceInfo } = require('utilities/steemApi/usersUtil');
-const { cacheWrapper } = require('utilities/helpers/cacheHelper');
-
-const getCachedPriceInfo = cacheWrapper(getCurrentPriceInfo);
-const CACHE_PRICE_KEY = 'cached_price_info';
-const CACHE_PRICE_TTL = 60 * 5;
-const cacheParams = { key: CACHE_PRICE_KEY, ttl: CACHE_PRICE_TTL };
+const { redisGetter, redis } = require('utilities/redis');
+const { REDIS_KEYS } = require('constants/parsersData');
 
 const getUSDFromRshares = async (weight) => {
-  const { currentPrice: rate, rewardFund } = await getCachedPriceInfo()(cacheParams);
-  const { recent_claims: recentClaims, reward_balance: rewardBalance } = rewardFund;
-  return (weight / recentClaims) * rewardBalance.replace(' HIVE', '') * rate;
+  const priceInfo = await redisGetter
+    .getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, redis.lastBlockClient);
+
+  const rewardBalanceNumber = parseFloat(priceInfo.reward_balance.replace(' HIVE', ''));
+  return (weight / parseFloat(priceInfo.recent_claims)) * rewardBalanceNumber
+    * parseFloat(priceInfo.price);
 };
 
 const getRsharesFromUSD = async (usdAmount) => {
-  const { currentPrice: rate, rewardFund } = await getCachedPriceInfo()(cacheParams);
-  const { recent_claims: recentClaims, reward_balance: rewardBalance } = rewardFund;
-  const rewardBalanceNumber = parseFloat(rewardBalance.replace(' HIVE', ''));
-  return (usdAmount / (rewardBalanceNumber * rate)) * recentClaims;
+  const priceInfo = await redisGetter
+    .getHashAll(REDIS_KEYS.CURRENT_PRICE_INFO, redis.lastBlockClient);
+
+  const rewardBalanceNumber = parseFloat(priceInfo.reward_balance.replace(' HIVE', ''));
+  return (usdAmount / (rewardBalanceNumber * parseFloat(priceInfo.price)))
+    * parseFloat(priceInfo.recent_claims);
 };
 
 const getWeightForFieldUpdate = async (weight) => {

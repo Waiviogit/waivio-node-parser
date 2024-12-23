@@ -6,6 +6,7 @@ const { REDIS_KEYS } = require('constants/parsersData');
 exports.update = async () => {
   const { rewardFund, currentPrice: price, error } = await getCurrentPriceInfo();
   if (error) return;
+  if (!rewardFund.reward_balance || !rewardFund.recent_claims || !price) return;
   const data = _.flatten(Object.entries(rewardFund));
   data.push('price', price);
   await hmsetAsync(REDIS_KEYS.CURRENT_PRICE_INFO, data);
