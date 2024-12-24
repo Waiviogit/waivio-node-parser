@@ -83,6 +83,7 @@ const increaseFieldWeight = async (data) => {
 
 const increaseWobjectWeight = async (data) => {
   try {
+    if (data.weight < 0) return;
     const wobj = await WObjectModel.findOne({ author_permlink: data.author_permlink });
 
     if (wobj) {

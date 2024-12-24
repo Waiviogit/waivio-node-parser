@@ -67,6 +67,8 @@ const upVoteOnPost = async (data, weight) => {
       const voteWeight = Number((weight * (wObject.percent / 100)).toFixed(8));
       if (voteWeight === 0) continue;
       const expertiseUsd = Number((voteWeight * 0.5).toFixed(8));
+      // todo check
+      if (expertiseUsd < 0) return;
 
       await Wobj.increaseWobjectWeight({
         author_permlink: wObject.author_permlink, // increase wobject weight

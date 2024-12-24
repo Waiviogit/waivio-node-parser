@@ -103,6 +103,7 @@ const checkAndCreate = async (name) => {
  */
 const increaseWobjectWeight = async (data) => {
   try {
+    if (data.weight < 0) return;
     // add weight in wobject to user
     await UserExpertiseModel.updateOne(
       {
