@@ -1,9 +1,9 @@
 // valid urls of HIVE nodes for getting blocks with transactions.
 const COMMON_RPC_NODES = [
-  // 'https://api.hive.blog',
-  'https://anyx.io',
-  'https://api.openhive.network',
+  'https://api.deathwing.me',
+  'https://api.hive.blog',
   'https://hive-api.arcange.eu',
+  'https://api.openhive.network',
 ];
 
 const HIVED_NODES = [
