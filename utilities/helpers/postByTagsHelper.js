@@ -29,6 +29,12 @@ const wobjectsByTags = async (tags) => {
           object_type: OBJECT_TYPES.HASHTAG,
         });
       } else {
+        wobjects.push({
+          author_permlink: tag,
+          percent: _.floor(100 / tags.length, 3),
+          tagged: tag,
+          object_type: OBJECT_TYPES.HASHTAG,
+        });
         tagsImport.push(tag);
       }
     }
