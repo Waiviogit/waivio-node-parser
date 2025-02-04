@@ -20,6 +20,9 @@ const envConfig = {
   canMuteGlobal: process.env.CAN_MUTE_GLOBAL
     ? process.env.CAN_MUTE_GLOBAL.split(',')
     : [],
+  masterAccounts: process.env.MASTER_ACCOUNTS
+    ? process.env.MASTER_ACCOUNTS.split(',')
+    : ['waivio', 'waivio.affiliate'],
 };
 
 const telegramApi = {

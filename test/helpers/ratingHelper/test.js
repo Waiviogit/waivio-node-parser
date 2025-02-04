@@ -61,6 +61,142 @@ describe('ratingHelper', async () => {
         expect(WobjModel.updateField).to.be.calledTwice;
       });
     });
+    describe('on master account rating when another rating vote exist', async () => {
+      let mockOp,
+        wobject,
+        field,
+        voter,
+        updField;
+      const rate = 10;
+      beforeEach(async () => {
+        // waivio is master account by default
+        voter = (await UserFactory.Create({ name: 'waivio' })).user;
+        const append = await AppendObject.Create({
+          name: 'rating',
+          body: faker.random.string(10),
+          additionalFields:
+            {
+              rating_votes:
+                [{ voter: faker.random.string(15), rate: 8 }],
+              average_rating_weight: 8,
+            },
+        });
+        wobject = append.wobject;
+        field = append.appendObject;
+        mockOp = {
+          json: JSON.stringify({
+            author: field.author,
+            permlink: field.permlink,
+            author_permlink: wobject.author_permlink,
+            rate,
+          }),
+          required_posting_auths: [voter.name],
+        };
+        sinon.spy(WobjModel, 'getField');
+        sinon.spy(WobjModel, 'updateField');
+        await ratingHelper.parse(mockOp);
+        updField = (await WObject.findOne(wobject._id).lean()).fields[0];
+      });
+      afterEach(() => {
+        WobjModel.getField.restore();
+        WobjModel.updateField.restore();
+      });
+      it('should average_rating_weight to be eq rate', () => {
+        expect(updField.average_rating_weight).to.be.eq(rate);
+      });
+    });
+
+    describe('on rating when master vote exist and its regular vote', async () => {
+      let mockOp,
+        wobject,
+        field,
+        voter,
+        updField;
+      const rate = 10;
+      beforeEach(async () => {
+        // waivio is master account by default
+        voter = (await UserFactory.Create()).user;
+        const append = await AppendObject.Create({
+          name: 'rating',
+          body: faker.random.string(10),
+          additionalFields:
+            {
+              rating_votes:
+                [{ voter: 'waivio', rate }],
+              average_rating_weight: rate,
+            },
+        });
+        wobject = append.wobject;
+        field = append.appendObject;
+        mockOp = {
+          json: JSON.stringify({
+            author: field.author,
+            permlink: field.permlink,
+            author_permlink: wobject.author_permlink,
+            rate: 1,
+          }),
+          required_posting_auths: [voter.name],
+        };
+        sinon.spy(WobjModel, 'getField');
+        sinon.spy(WobjModel, 'updateField');
+        await ratingHelper.parse(mockOp);
+        updField = (await WObject.findOne(wobject._id).lean()).fields[0];
+      });
+      afterEach(() => {
+        WobjModel.getField.restore();
+        WobjModel.updateField.restore();
+      });
+      it('should average_rating_weight to be eq rate', () => {
+        expect(updField.average_rating_weight).to.be.eq(rate);
+      });
+    });
+
+    describe('on rating when master vote exist and its master vote', async () => {
+      let mockOp,
+        wobject,
+        field,
+        voter,
+        updField;
+      const rate = 10;
+      const newRate = 1;
+      beforeEach(async () => {
+        // waivio is master account by default
+        voter = (await UserFactory.Create({name: 'waivio'})).user;
+        const append = await AppendObject.Create({
+          name: 'rating',
+          body: faker.random.string(10),
+          additionalFields:
+            {
+              rating_votes:
+                [{ voter: 'waivio', rate }],
+              average_rating_weight: rate,
+            },
+        });
+        wobject = append.wobject;
+        field = append.appendObject;
+        mockOp = {
+          json: JSON.stringify({
+            author: field.author,
+            permlink: field.permlink,
+            author_permlink: wobject.author_permlink,
+            rate: newRate,
+          }),
+          required_posting_auths: [voter.name],
+        };
+        sinon.spy(WobjModel, 'getField');
+        sinon.spy(WobjModel, 'updateField');
+        await ratingHelper.parse(mockOp);
+        updField = (await WObject.findOne(wobject._id).lean()).fields[0];
+      });
+      afterEach(() => {
+        WobjModel.getField.restore();
+        WobjModel.updateField.restore();
+      });
+      it('should average_rating_weight to be eq newRate', () => {
+        expect(updField.average_rating_weight).to.be.eq(newRate);
+      });
+    });
+
     describe('on adding second vote to rating field', async () => {
       let mockOp,
         wobject,
