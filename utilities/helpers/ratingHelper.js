@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { Wobj } = require('models');
+const config = require('config');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const wobjectValidator = require('validator/wobjectValidator');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
@@ -27,7 +28,17 @@ const parse = async (operation) => {
   _.remove(ratingVotes, (v) => v.voter === voter);
   ratingVotes.push({ voter, rate });
   await Wobj.updateField(author, permlink, authorPermlink, 'rating_votes', ratingVotes);
-  await Wobj.updateField(author, permlink, authorPermlink, 'average_rating_weight', _.meanBy(ratingVotes, 'rate'));
+
+  // find admin vote if exist and not master account voter don't update average_rating_weight
+  // if current vote is admin vote average_rating_weight to === rate
+  const isMasterAccount = config.masterAccounts.includes(voter);
+  const existMasterVote = ratingVotes
+    .some(({ voter: voteVoter }) => config.masterAccounts.includes(voteVoter));
+  const dontUpdateAverage = !isMasterAccount && existMasterVote;
+  if (dontUpdateAverage) return;
+  const averageRating = isMasterAccount ? rate : _.meanBy(ratingVotes, 'rate');
+
+  await Wobj.updateField(author, permlink, authorPermlink, 'average_rating_weight', averageRating);
 };
 
 const parseGuest = async (operation) => {
