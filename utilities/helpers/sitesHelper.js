@@ -1,7 +1,7 @@
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
   REFUND_TYPES, REFUND_STATUSES, PATH, CAN_DELETE_STATUSES, CAN_MUTE_GLOBAL,
-  SOCIAL_HOSTS, DEFAULT_BENEFICIARY, DEFAULT_REFERRAL,
+  SOCIAL_HOSTS, DEFAULT_BENEFICIARY, DEFAULT_REFERRAL, BILLING_TYPE,
 } = require('constants/sitesData');
 const {
   App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User, ServiceBotModel,
@@ -18,6 +18,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const redisSetter = require('utilities/redis/redisSetter');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const { paypalSubscriptionCheck } = require('utilities/waivioApi');
 const config = require('config');
 const { nginxService } = require('../nginxService');
 const seoService = require('../socketClient/seoService');
@@ -227,7 +228,11 @@ exports.createInvoice = async (operation, blockNum) => {
 
   value.blockNum = blockNum;
   await websitePayments.create(value);
-  await checkForSuspended(value.userName);
+
+  const { userName, host } = value;
+
+  await checkForSuspended(userName);
+  await checkPayPalSubscription({ host });
 };
 
 exports.websiteAuthorities = async (operation, type, add) => {
@@ -510,11 +515,22 @@ const checkForSuspended = async (userName) => {
   const { payable } = await getAccountBalance(userName);
 
   if (app || payable < 0) {
-    await App.updateMany({ owner: userName, inherited: true }, { status: STATUSES.SUSPENDED });
+    await App.updateMany({
+      owner: userName, inherited: true, billingType: BILLING_TYPE.CRYPTO,
+    }, { status: STATUSES.SUSPENDED });
     await websiteRefunds.deleteOne(
       { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName },
     );
   }
+};
+
+const checkPayPalSubscription = async ({ host }) => {
+  const { result: app } = await App.findOne(
+    { host, billingType: BILLING_TYPE.PAYPAL_SUBSCRIPTION },
+  );
+  if (!app) return;
+
+  paypalSubscriptionCheck.send({ host });
 };
 
 const getAccountBalance = async (account) => {
