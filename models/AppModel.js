@@ -51,6 +51,14 @@ const findOne = async (condition) => {
   }
 };
 
+const countDocuments = async (condition) => {
+  try {
+    return { result: await App.countDocuments(condition) };
+  } catch (error) {
+    return { error };
+  }
+};
+
 const find = async (condition, select) => {
   try {
     return { result: await App.find(condition, select).lean() };
@@ -94,5 +102,5 @@ const updateMany = async (condition, updateData) => {
 };
 
 module.exports = {
-  getOne, updateChosenPost, updateMany, findByModeration, findOne, updateOne, create, deleteOne, find,
+  getOne, updateChosenPost, updateMany, findByModeration, findOne, updateOne, create, deleteOne, find, countDocuments,
 };

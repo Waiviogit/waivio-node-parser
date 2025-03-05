@@ -73,3 +73,5 @@ exports.SHOP_SETTINGS_TYPE = {
 
 exports.DEFAULT_BENEFICIARY = 'waivio';
 exports.DEFAULT_REFERRAL = 'waivio.referrals';
+
+exports.MAX_DEBT_PER_SITE = 20;
