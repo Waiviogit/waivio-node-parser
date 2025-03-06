@@ -26,6 +26,7 @@ exports.FEE = {
 
 exports.PAYMENT_TYPES = {
   TRANSFER: 'transfer',
+  CREDIT: 'credit', // special type admin can give credits to site
   WRITE_OFF: 'writeOff',
   REFUND: 'refund',
 };
