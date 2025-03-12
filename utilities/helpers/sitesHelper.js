@@ -507,6 +507,7 @@ const parseJson = (json) => {
 };
 
 const checkDebtToDelete = async ({ userName, payable }) => {
+  if (payable > 0) return;
   const { result: count } = App.countDocuments({
     owner: userName,
     inherited: true,
