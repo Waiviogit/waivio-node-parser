@@ -229,6 +229,11 @@ exports.createInvoice = async (operation, blockNum) => {
   const { error, value } = sitesValidator.createInvoice.validate(json);
   if (error) return false;
 
+  const { result: app } = await App.findOne(
+    { owner: value.userName, inherited: true, host: value.host },
+  );
+  if (!app) return;
+
   value.blockNum = blockNum;
   await websitePayments.create(value);
   await checkForSuspended(value.userName);
