@@ -154,6 +154,7 @@ const AppSchema = new Schema({
   objectControl: { type: Boolean, default: false },
   advanced: { type: Boolean, default: false },
   useForCanonical: { type: Boolean, default: false },
+  disableOwnerAuthority: { type: Boolean, default: false },
   mapImportTag: { type: String },
   adSense: { type: AdSense, default: () => ({}) },
   billingType: { type: String, default: BILLING_TYPE.CRYPTO },

@@ -26,6 +26,7 @@ exports.FEE = {
 
 exports.PAYMENT_TYPES = {
   TRANSFER: 'transfer',
+  CREDIT: 'credit', // special type admin can give credits to site
   WRITE_OFF: 'writeOff',
   REFUND: 'refund',
 };
@@ -72,6 +73,8 @@ exports.SHOP_SETTINGS_TYPE = {
 
 exports.DEFAULT_BENEFICIARY = 'waivio';
 exports.DEFAULT_REFERRAL = 'waivio.referrals';
+
+exports.MAX_DEBT_PER_SITE = 20;
 
 exports.BILLING_TYPE = {
   CRYPTO: 'crypto',

@@ -1,7 +1,7 @@
 const {
   STATUSES, FEE, PARSE_MATCHING, TRANSFER_ID, REFUND_ID, PAYMENT_TYPES,
   REFUND_TYPES, REFUND_STATUSES, PATH, CAN_DELETE_STATUSES, CAN_MUTE_GLOBAL,
-  SOCIAL_HOSTS, DEFAULT_BENEFICIARY, DEFAULT_REFERRAL, BILLING_TYPE,
+  SOCIAL_HOSTS, DEFAULT_BENEFICIARY, DEFAULT_REFERRAL, MAX_DEBT_PER_SITE, BILLING_TYPE,
 } = require('constants/sitesData');
 const {
   App, websitePayments, websiteRefunds, Wobj, mutedUserModel, Post, User, ServiceBotModel,
@@ -84,11 +84,9 @@ exports.createWebsite = async (operation) => {
   seoService.sitemap.createSiteMap({ host: json.host });
 };
 
-exports.deleteWebsite = async (operation) => {
-  if (!await validateServiceBot(customJsonHelper.getTransactionAccount(operation))) return;
-  const json = parseJson(operation.json);
+const deleteSiteOp = async ({ host, userName }) => {
   const { result: app } = await App.findOne({
-    host: json.host, owner: json.userName, inherited: true, status: { $in: CAN_DELETE_STATUSES },
+    host, owner: userName, inherited: true, status: { $in: CAN_DELETE_STATUSES },
   });
   if (!app) return false;
   await App.deleteOne({ _id: app._id });
@@ -106,6 +104,12 @@ exports.deleteWebsite = async (operation) => {
     postHelper.setHostsToParseObjects();
   }
   seoService.sitemap.deleteSitemap({ host: app.host });
+};
+
+exports.deleteWebsite = async (operation) => {
+  if (!await validateServiceBot(customJsonHelper.getTransactionAccount(operation))) return;
+  const json = parseJson(operation.json);
+  await deleteSiteOp(json);
 };
 
 exports.activationActions = async (operation, activate) => {
@@ -225,6 +229,11 @@ exports.createInvoice = async (operation, blockNum) => {
 
   const { error, value } = sitesValidator.createInvoice.validate(json);
   if (error) return false;
+
+  const { result: app } = await App.findOne(
+    { owner: value.userName, inherited: true, host: value.host },
+  );
+  if (!app) return;
 
   value.blockNum = blockNum;
   await websitePayments.create(value);
@@ -507,6 +516,21 @@ const parseJson = (json) => {
   }
 };
 
+const checkDebtToDelete = async ({ userName, payable }) => {
+  if (payable > 0) return;
+  const { result: count } = await App.countDocuments({
+    owner: userName,
+    inherited: true,
+  });
+  const debtForEachSite = Math.abs(payable / count);
+  if (debtForEachSite > MAX_DEBT_PER_SITE) {
+    const { result: apps } = await App.find({ owner: userName, inherited: true }, { host: 1 });
+    for (const debtApp of apps) {
+      await deleteSiteOp({ host: debtApp.host, userName });
+    }
+  }
+};
+
 const checkForSuspended = async (userName) => {
   const { result: app } = await App.findOne(
     { owner: userName, inherited: true, status: STATUSES.SUSPENDED },
@@ -521,6 +545,7 @@ const checkForSuspended = async (userName) => {
     await websiteRefunds.deleteOne(
       { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName },
     );
+    await checkDebtToDelete({ userName, payable });
   }
 };
 
@@ -543,6 +568,7 @@ const getAccountBalance = async (account) => {
   _.map(payments, (payment) => {
     switch (payment.type) {
       case PAYMENT_TYPES.TRANSFER:
+      case PAYMENT_TYPES.CREDIT:
         payment.balance = payable + payment.amount;
         payable = payment.balance;
         break;
