@@ -1,5 +1,7 @@
 const { SUPPORTED_CURRENCIES, APP_LANGUAGES } = require('constants/common');
-const { STATUSES, SUPPORTED_COLORS, SHOP_SETTINGS_TYPE } = require('constants/sitesData');
+const {
+  STATUSES, SUPPORTED_COLORS, SHOP_SETTINGS_TYPE, BILLING_TYPE,
+} = require('constants/sitesData');
 const { REFERRAL_TYPES } = require('constants/appData');
 const mongoose = require('mongoose');
 const _ = require('lodash');
@@ -155,6 +157,7 @@ const AppSchema = new Schema({
   disableOwnerAuthority: { type: Boolean, default: false },
   mapImportTag: { type: String },
   adSense: { type: AdSense, default: () => ({}) },
+  billingType: { type: String, default: BILLING_TYPE.CRYPTO },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {

@@ -75,3 +75,8 @@ exports.DEFAULT_BENEFICIARY = 'waivio';
 exports.DEFAULT_REFERRAL = 'waivio.referrals';
 
 exports.MAX_DEBT_PER_SITE = 20;
+
+exports.BILLING_TYPE = {
+  CRYPTO: 'crypto',
+  PAYPAL_SUBSCRIPTION: 'paypal_subscription',
+};
