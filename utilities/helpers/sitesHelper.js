@@ -220,6 +220,15 @@ exports.refundRequest = async (operation, blockNum) => {
   return !!result;
 };
 
+const checkPayPalSubscription = async ({ host }) => {
+  const { result: app } = await App.findOne(
+    { host, billingType: BILLING_TYPE.PAYPAL_SUBSCRIPTION },
+  );
+  if (!app) return;
+
+  paypalSubscriptionCheck.send({ host });
+};
+
 exports.createInvoice = async (operation, blockNum) => {
   const author = customJsonHelper.getTransactionAccount(operation);
 
@@ -547,15 +556,6 @@ const checkForSuspended = async (userName) => {
     );
     await checkDebtToDelete({ userName, payable });
   }
-};
-
-const checkPayPalSubscription = async ({ host }) => {
-  const { result: app } = await App.findOne(
-    { host, billingType: BILLING_TYPE.PAYPAL_SUBSCRIPTION },
-  );
-  if (!app) return;
-
-  paypalSubscriptionCheck.send({ host });
 };
 
 const getAccountBalance = async (account) => {
