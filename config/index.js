@@ -72,24 +72,28 @@ const waivioApi = {
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
     RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
+    CHECK_PAYPAL_SUBSCRIPTION: '/sites/paypal/subscription/check',
   },
   staging: {
     HOST: 'https://waiviodev.com',
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
     RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
+    CHECK_PAYPAL_SUBSCRIPTION: '/sites/paypal/subscription/check',
   },
   development: {
     HOST: 'http://localhost:3000',
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
     RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
+    CHECK_PAYPAL_SUBSCRIPTION: '/sites/paypal/subscription/check',
   },
   test: {
     HOST: 'http://localhost:3000',
     BASE_URL: '/api',
     IMPORT_STEEM_USER_ROUTE: '/import_steem_user',
     RECOUNT_LIST_ITEMS: '/wobjects/list-item-process',
+    CHECK_PAYPAL_SUBSCRIPTION: '/sites/paypal/subscription/check',
   },
 };
 
