@@ -12,6 +12,9 @@ const { verifySignature } = require('../utilities/helpers/signatureHelper');
 
 exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
   switch (operation.id) {
+    case CUSTOM_JSON_OPS.RC:
+      await userHelper.userRcDelegations(operation);
+      break;
     case CUSTOM_JSON_OPS.FOLLOW_WOBJECT:
       await followObjectParser.parse(operation);
       break;

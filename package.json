@@ -17,7 +17,8 @@
     "authorExpertise": "node ./utilities/tasks/authorExpertise/run.js",
     "fieldExpertise": "node ./utilities/tasks/authorExpertise/runRewriteFields.js",
     "rewriteObjectsWeight": "node ./utilities/tasks/authorExpertise/runRewriteObjects.js",
-    "rewriteUsersWeight": "node ./utilities/tasks/authorExpertise/runRewriteUsersWeight.js"
+    "rewriteUsersWeight": "node ./utilities/tasks/authorExpertise/runRewriteUsersWeight.js",
+    "setRcDelegations": "node ./utilities/tasks/setRcDelegations/run.js"
   },
   "dependencies": {
     "@hiveio/dhive": "^1.2.8",

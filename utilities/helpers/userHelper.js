@@ -3,6 +3,7 @@ const moment = require('moment');
 const { importUser } = require('utilities/waivioApi');
 const userModel = require('models/UserModel');
 const paymentHistoriesModel = require('models/PaymentHistoriesModel');
+const userRcDelegationsModel = require('models/UserRcDelegationsModel');
 const { usersUtil } = require('utilities/steemApi');
 const appHelper = require('utilities/helpers/appHelper');
 const { REFERRAL_TYPES, REFERRAL_STATUSES } = require('constants/appData');
@@ -13,6 +14,7 @@ const { REDIS_KEYS } = require('constants/parsersData');
 const config = require('config');
 const redisSetter = require('utilities/redis/redisSetter');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
+const { CUSTOM_JSON_OPS } = require('../../constants/parsersData');
 
 /**
  * Create user in DB if it not exist,
@@ -215,4 +217,23 @@ exports.rejectReferralStatus = async (data, transactionId) => {
     channel: REDIS_KEYS.TX_ID_MAIN,
     msg: transactionId,
   });
+};
+
+exports.userRcDelegations = async (operation) => {
+  const { json } = operation;
+
+  const parsedJson = jsonHelper.parseJson(json, []);
+  if (!parsedJson?.length) return;
+  const op = parsedJson[0];
+  if (op !== CUSTOM_JSON_OPS.DELEGATE_RC) return;
+
+  const { from: delegator, delegatees, max_rc: rc } = parsedJson[1];
+  if (rc === 0) {
+    await userRcDelegationsModel.removeDelegations({ delegator, delegatees });
+    return;
+  }
+
+  for (const delegatee of delegatees) {
+    await userRcDelegationsModel.updateRc({ delegator, delegatee, rc });
+  }
 };
