@@ -57,6 +57,7 @@ const setRcDelegations = async () => {
 
     const { result, error } = await getDelegatedRc(user.name);
     if (error) {
+      console.log(`[ERROR]: ${user.name}, ${error.message}`);
       continue;
     }
 
@@ -69,6 +70,7 @@ const setRcDelegations = async () => {
         rc: delegation.delegated_rc,
       });
     }
+    await setUserProcessed(user.name);
 
     await setTimeout(200);
   }
