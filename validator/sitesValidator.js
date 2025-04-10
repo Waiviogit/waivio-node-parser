@@ -61,3 +61,8 @@ exports.guestActionSchema = Joi.object().keys({
   }).required(),
   userName: Joi.string().required(),
 }).options(options);
+
+exports.trustedSchema = Joi.object().keys({
+  host: Joi.string().required(),
+  names: Joi.array().items(Joi.string()).min(1).required(),
+}).options(options);

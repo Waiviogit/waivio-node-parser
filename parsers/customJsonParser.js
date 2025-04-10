@@ -139,6 +139,10 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
     case CUSTOM_JSON_OPS.WEBSITE_CANONICAL:
       await sitesHelper.setCanonical(operation);
       break;
+    case CUSTOM_JSON_OPS.WEBSITE_TRUSTED_SET:
+    case CUSTOM_JSON_OPS.WEBSITE_TRUSTED_UNSET:
+      await sitesHelper.setTrustedUsers(operation);
+      break;
     /** Hive engine */
     case CUSTOM_JSON_OPS.WAIVIO_HIVE_ENGINE:
       await hiveEngineCustom.parse(operation, blockNum, transaction_id, timestamp);
