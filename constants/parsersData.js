@@ -19,6 +19,8 @@ exports.MAIN_OPS = {
 };
 
 exports.CUSTOM_JSON_OPS = {
+  RC: 'rc',
+  DELEGATE_RC: 'delegate_rc',
   REJECT_REFERRAL_LICENCE: 'reject_referral_license',
   CONFIRM_REFERRAL_LICENCE: 'confirm_referral_license',
   ADD_REFERRAL_AGENT: 'add_referral_agent',

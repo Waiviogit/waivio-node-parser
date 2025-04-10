@@ -26,4 +26,5 @@ module.exports = {
   ThreadModel: require('./ThreadModel'),
   DelegationModel: require('./DelegationModel'),
   ServiceBotModel: require('./ServiceBotModel'),
+  UserRcDelegationsModel: require('./UserRcDelegationsModel'),
 };

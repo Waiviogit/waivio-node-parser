@@ -46,5 +46,6 @@ module.exports = {
     Threads: require('./schemas/ThreadsSchema'),
     Delegation: require('./schemas/DelegationSchema'),
     ServiceBot: require('./schemas/ServiceBotSchema'),
+    UserRcDelegations: require('./schemas/UserRcDelegations'),
   },
 };
