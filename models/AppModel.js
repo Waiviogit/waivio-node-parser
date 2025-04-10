@@ -43,9 +43,9 @@ const findByModeration = async (userName) => {
   }
 };
 
-const findOne = async (condition) => {
+const findOne = async (condition, projection = {}) => {
   try {
-    return { result: await App.findOne(condition).lean() };
+    return { result: await App.findOne(condition, projection).lean() };
   } catch (error) {
     return { error };
   }

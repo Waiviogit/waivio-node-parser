@@ -22,7 +22,10 @@ const { paypalSubscriptionCheck } = require('utilities/waivioApi');
 const config = require('config');
 const { nginxService } = require('../nginxService');
 const seoService = require('../socketClient/seoService');
-const { REDIS_KEYS } = require('../../constants/parsersData');
+const {
+  REDIS_KEYS,
+  CUSTOM_JSON_OPS,
+} = require('../../constants/parsersData');
 
 const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
 
@@ -466,6 +469,68 @@ exports.setWebsiteReferralAccount = async (operation) => {
   if (!result) return false;
   await App.updateOne({ host, owner }, { [PATH.REFERRAL_ACCOUNT]: getDefaultReferral(account) });
   return true;
+};
+
+const trustedUpdateDataById = {
+  [CUSTOM_JSON_OPS.WEBSITE_TRUSTED_SET]: (names) => ({ $addToSet: { trusted: { $each: names } } }),
+  [CUSTOM_JSON_OPS.WEBSITE_TRUSTED_UNSET]: (names) => ({ $pullAll: { trusted: names } }),
+};
+
+const getTrusted = async ({ trusted, trustedAll }) => {
+  for (const user of trusted) {
+    if (trustedAll.includes(user)) continue;
+    trustedAll.push(user);
+    const { result: apps } = await App.find({ owner: user }, { trusted: 1, owner: 1 });
+    if (!apps?.length) continue;
+    for (const app of apps) {
+      const { trusted: newTrusted = [] } = app;
+      await getTrusted({
+        trusted: newTrusted,
+        trustedAll,
+      });
+    }
+  }
+};
+
+const updateTrustedList = async ({ owner, host }) => {
+  // find selected site for update
+  const { result } = await App.findOne(
+    { owner, host },
+    { trusted: 1, owner: 1 },
+  );
+  if (!result) return;
+  const { trusted = [] } = result;
+  const trustedAll = [];
+
+  await getTrusted({ trusted, trustedAll });
+
+  await App.updateOne({ owner, host }, { $set: { trustedAll } });
+};
+
+exports.setTrustedUsers = async (operation) => {
+  const owner = customJsonHelper.getTransactionAccount(operation);
+  const json = parseJson(operation.json);
+  if (!json || !owner) return false;
+
+  const { error, value } = sitesValidator.trustedSchema.validate(json);
+  if (error) {
+    console.error(error.message);
+    return false;
+  }
+
+  const { names, host } = value;
+
+  // we can check exist user in db
+
+  const getDataFn = trustedUpdateDataById[operation.id];
+  if (!getDataFn) return false;
+  const updateData = getDataFn(names);
+
+  await App.updateOne(
+    { host: json.host, owner },
+    updateData,
+  );
+  await updateTrustedList({ owner, host });
 };
 
 /** ------------------------PRIVATE METHODS--------------------------*/
