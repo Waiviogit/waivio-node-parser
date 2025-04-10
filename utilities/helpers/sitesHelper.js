@@ -492,7 +492,7 @@ const getTrusted = async ({ trusted, trustedAll }) => {
   }
 };
 
-const updateTrustedList = async ({ owner, host }) => {
+exports.updateTrustedList = async ({ owner, host }) => {
   // find selected site for update
   const { result } = await App.findOne(
     { owner, host },
@@ -530,7 +530,7 @@ exports.setTrustedUsers = async (operation) => {
     { host: json.host, owner },
     updateData,
   );
-  await updateTrustedList({ owner, host });
+  await this.updateTrustedList({ owner, host });
 };
 
 /** ------------------------PRIVATE METHODS--------------------------*/
