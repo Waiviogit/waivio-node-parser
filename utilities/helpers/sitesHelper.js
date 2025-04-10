@@ -476,35 +476,87 @@ const trustedUpdateDataById = {
   [CUSTOM_JSON_OPS.WEBSITE_TRUSTED_UNSET]: (names) => ({ $pullAll: { trusted: names } }),
 };
 
-const getTrusted = async ({ trusted, trustedAll }) => {
-  for (const user of trusted) {
-    if (trustedAll.includes(user)) continue;
-    trustedAll.push(user);
-    const { result: apps } = await App.find({ owner: user }, { trusted: 1, owner: 1 });
-    if (!apps?.length) continue;
-    for (const app of apps) {
-      const { trusted: newTrusted = [] } = app;
-      await getTrusted({
-        trusted: newTrusted,
-        trustedAll,
-      });
+/**
+ * Collects all trusted users recursively in a more efficient way
+ * @param {Object} params
+ * @param {Array} params.trusted - Initial list of trusted users
+ * @param {Object} params.trustedUsersMap - Map to track processed users and avoid duplicates
+ * @param {Number} params.depth - Current recursion depth to prevent infinite loops
+ * @param {Number} params.maxDepth - Maximum recursion depth
+ * @returns {Promise<Array>} - Array of all trusted users
+ */
+const getTrusted = async ({
+  trusted, trustedUsersMap = {}, depth = 0, maxDepth = 10,
+}) => {
+  // Prevent infinite recursion
+  if (depth >= maxDepth) return Object.keys(trustedUsersMap);
+
+  // Process all trusted users in parallel
+  const trustedUsers = [...new Set(trusted)]; // Remove duplicates
+  const trustedUserOwners = trustedUsers.filter((user) => !trustedUsersMap[user]);
+
+  // If no new users to process, return the current map keys
+  if (trustedUserOwners.length === 0) return Object.keys(trustedUsersMap);
+
+  // Mark these users as processed
+  trustedUserOwners.forEach((user) => {
+    trustedUsersMap[user] = true;
+  });
+
+  // Fetch all apps owned by trusted users in a single query
+  const { result: apps } = await App.find(
+    { owner: { $in: trustedUserOwners } },
+    { trusted: 1, owner: 1 },
+  );
+
+  if (!apps?.length) return Object.keys(trustedUsersMap);
+
+  // Collect all nested trusted users
+  const nestedTrustedUsers = [];
+  apps.forEach((app) => {
+    if (app.trusted && app.trusted.length) {
+      nestedTrustedUsers.push(...app.trusted);
     }
+  });
+
+  // Recursively process nested trusted users
+  if (nestedTrustedUsers.length > 0) {
+    await getTrusted({
+      trusted: nestedTrustedUsers,
+      trustedUsersMap,
+      depth: depth + 1,
+      maxDepth,
+    });
   }
+
+  return Object.keys(trustedUsersMap);
 };
 
+/**
+ * Updates the trustedAll list for a website
+ * @param {Object} params
+ * @param {String} params.owner - Website owner
+ * @param {String} params.host - Website host
+ */
 exports.updateTrustedList = async ({ owner, host }) => {
-  // find selected site for update
+  // Find selected site for update
   const { result } = await App.findOne(
     { owner, host },
     { trusted: 1, owner: 1 },
   );
+
   if (!result) return;
+
   const { trusted = [] } = result;
-  const trustedAll = [];
 
-  await getTrusted({ trusted, trustedAll });
+  // Get all trusted users including nested ones
+  const trustedAll = await getTrusted({ trusted });
 
-  await App.updateOne({ owner, host }, { $set: { trustedAll } });
+  // Update the app with the complete list of trusted users
+  await App.updateOne(
+    { owner, host },
+    { $set: { trustedAll } },
+  );
 };
 
 exports.setTrustedUsers = async (operation) => {
