@@ -1,6 +1,7 @@
-const { fillRelated } = require('utilities/tasks/addToRelated/addToRelated');
+const { addToRelatedFromObjects } = require('utilities/tasks/addToRelated/addToRelated');
 
 (async () => {
-  await fillRelated();
+  await addToRelatedFromObjects();
+  console.log('TASK FINISHED');
   process.exit();
 })();

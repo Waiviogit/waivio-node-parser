@@ -22,6 +22,14 @@ const { commentRefSetter } = require('../commentRefService');
 const { COMMENT_REF_TYPES } = require('../../constants/common');
 const { roundDown } = require('./calcHelper');
 
+const getImagesFromPost = (post) => {
+  try {
+    return _.get(JSON.parse(post.json_metadata), 'image', []);
+  } catch (e) {
+    return [];
+  }
+};
+
 const getHostsToParseObjects = async () => {
   const cache = await redisGetter.getAsync({ key: REDIS_KEYS.HOSTS_TO_PARSE_OBJECTS });
   if (cache) return jsonHelper.parseJson(cache, []);
@@ -279,17 +287,12 @@ exports.addToRelated = async (wobjects, images = [], postAuthorPermlink) => {
     .value();
 
   if (_.isEmpty(images)) {
-    for (const el of wobjects) {
-      const { result } = await relatedAlbum.findOne({
-        wobjAuthorPermlink: el.author_permlink,
+    await relatedAlbum.deleteMany({
+      filter: {
         postAuthorPermlink,
-      });
-
-      result && await relatedAlbum.deleteOne({
-        wobjAuthorPermlink: el.author_permlink,
-        postAuthorPermlink,
-      });
-    }
+        wobjAuthorPermlink: { $in: _.map(wobjects, (v) => v.author_permlink) },
+      },
+    });
     return;
   }
 
@@ -344,7 +347,7 @@ exports.parseCommentBodyWobjects = async ({
   if (_.isEmpty(matches)) return false;
 
   let { post } = await Post.findByBothAuthors({
-    author, permlink, select: { wobjects: 1 },
+    author, permlink, select: { wobjects: 1, json_metadata: 1 },
   });
 
   const { commentRef } = await CommentRef.getRef(`${author}_${permlink}`);
@@ -355,7 +358,7 @@ exports.parseCommentBodyWobjects = async ({
     const created = await restoreOldPost({ author, permlink });
     if (!created) return false;
     ({ post } = await Post.findByBothAuthors({
-      author, permlink, select: { wobjects: 1 },
+      author, permlink, select: { wobjects: 1, json_metadata: 1 },
     }));
   }
 
@@ -387,6 +390,11 @@ exports.parseCommentBodyWobjects = async ({
   }));
 
   await Post.setWobjectsToPost({ author, permlink, wobjects: objectsToUpdate });
+
+  const postAuthorPermlink = `${author}_${permlink}`;
+  const images = getImagesFromPost(post);
+
+  await this.addToRelated(objectsToUpdate, images, postAuthorPermlink);
   return true;
 };
 

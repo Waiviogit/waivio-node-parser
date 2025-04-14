@@ -1,8 +1,44 @@
 /* eslint-disable camelcase */
 const _ = require('lodash');
-const { Post } = require('database').models;
+const { Post, WObject } = require('database').models;
 const postHelper = require('utilities/helpers/postHelper');
+const { OBJECT_TYPES_WITH_ALBUM } = require('../../../constants/wobjectsData');
+const { addToRelated } = require('../../helpers/postHelper');
 
+exports.addToRelatedFromObjects = async () => {
+  const batchSize = 1000;
+
+  while (true) {
+    const objects = await WObject
+      .find(
+        { processed: false, object_type: { $in: OBJECT_TYPES_WITH_ALBUM } },
+        { author_permlink: 1 },
+      )
+      .limit(batchSize)
+      .lean();
+    if (!objects?.length) break;
+
+    for (const object of objects) {
+      const posts = await Post.find(
+        { 'wobjects.author_permlink': object.author_permlink },
+        {
+          author: 1, permlink: 1, json_metadata: 1,
+        },
+      ).lean();
+      for (const post of posts) {
+        const postAuthorPermlink = `${post.author}_${post.permlink}`;
+        const images = getImages(post.json_metadata);
+        await addToRelated([object], images, postAuthorPermlink);
+      }
+      await WObject.updateOne(
+        { author_permlink: object.author_permlink },
+        { $set: { processed: true } },
+      );
+    }
+  }
+};
+
+// initial to fill all posts
 exports.fillRelated = async () => {
   const posts = await Post.find({ notProcessed: true }).limit(1000).lean();
   if (_.isEmpty(posts)) {
@@ -29,10 +65,8 @@ exports.fillRelated = async () => {
 };
 
 const getImages = (json) => {
-  let metadata;
   try {
-    metadata = JSON.parse(json);
-    return _.get(metadata, 'image', []);
+    return _.get(JSON.parse(json), 'image', []);
   } catch (e) {
     return [];
   }
