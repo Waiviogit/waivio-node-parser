@@ -158,6 +158,8 @@ const AppSchema = new Schema({
   mapImportTag: { type: String },
   adSense: { type: AdSense, default: () => ({}) },
   billingType: { type: String, default: BILLING_TYPE.CRYPTO },
+  trusted: { type: [String] },
+  trustedAll: { type: [String] },
 }, { timestamps: true });
 
 AppSchema.pre('save', async function (next) {

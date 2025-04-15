@@ -6,7 +6,7 @@ const Create = async ({
   name, admins, moderators, topUsers,
   referralsData, blackListUsers, bots, campaignAcc, campaignCommission, authority,
   indexAcc, indexCommission, referral, owner, host, status, blacklistApps, parent,
-  canBeExtended, supportedTypes, inherited, configuration, deactivatedAt, activatedAt,
+  canBeExtended, supportedTypes, inherited, configuration, deactivatedAt, activatedAt, trusted,
 } = {}) => {
   const data = {
     host: host || faker.internet.domainWord(),
@@ -44,6 +44,7 @@ const Create = async ({
       index_percent: _.isNumber(indexCommission) ? indexCommission : 0.2,
       referral_commission_acc: referral || faker.name.firstName(),
     },
+    trusted: trusted || [],
   };
 
   return App.create(data);

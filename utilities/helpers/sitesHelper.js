@@ -22,7 +22,10 @@ const { paypalSubscriptionCheck } = require('utilities/waivioApi');
 const config = require('config');
 const { nginxService } = require('../nginxService');
 const seoService = require('../socketClient/seoService');
-const { REDIS_KEYS } = require('../../constants/parsersData');
+const {
+  REDIS_KEYS,
+  CUSTOM_JSON_OPS,
+} = require('../../constants/parsersData');
 
 const checkForSocialSite = (host = '') => SOCIAL_HOSTS.some((sh) => host.includes(sh));
 
@@ -466,6 +469,120 @@ exports.setWebsiteReferralAccount = async (operation) => {
   if (!result) return false;
   await App.updateOne({ host, owner }, { [PATH.REFERRAL_ACCOUNT]: getDefaultReferral(account) });
   return true;
+};
+
+const trustedUpdateDataById = {
+  [CUSTOM_JSON_OPS.WEBSITE_TRUSTED_SET]: (names) => ({ $addToSet: { trusted: { $each: names } } }),
+  [CUSTOM_JSON_OPS.WEBSITE_TRUSTED_UNSET]: (names) => ({ $pullAll: { trusted: names } }),
+};
+
+/**
+ * Collects all trusted users recursively in a more efficient way
+ * @param {Object} params
+ * @param {Array} params.trusted - Initial list of trusted users
+ * @param {Object} params.trustedUsersMap - Map to track processed users and avoid duplicates
+ * @param {Number} params.depth - Current recursion depth to prevent infinite loops
+ * @param {Number} params.maxDepth - Maximum recursion depth
+ * @returns {Promise<Array>} - Array of all trusted users
+ */
+const getTrusted = async ({
+  trusted, trustedUsersMap = {}, depth = 0, maxDepth = 10,
+}) => {
+  // Prevent infinite recursion
+  if (depth >= maxDepth) return Object.keys(trustedUsersMap);
+
+  // Process all trusted users in parallel
+  const trustedUsers = [...new Set(trusted)]; // Remove duplicates
+  const trustedUserOwners = trustedUsers.filter((user) => !trustedUsersMap[user]);
+
+  // If no new users to process, return the current map keys
+  if (trustedUserOwners.length === 0) return Object.keys(trustedUsersMap);
+
+  // Mark these users as processed
+  trustedUserOwners.forEach((user) => {
+    trustedUsersMap[user] = true;
+  });
+
+  // Fetch all apps owned by trusted users in a single query
+  const { result: apps } = await App.find(
+    { owner: { $in: trustedUserOwners } },
+    { trusted: 1, owner: 1 },
+  );
+
+  if (!apps?.length) return Object.keys(trustedUsersMap);
+
+  // Collect all nested trusted users
+  const nestedTrustedUsers = [];
+  apps.forEach((app) => {
+    if (app.trusted && app.trusted.length) {
+      nestedTrustedUsers.push(...app.trusted);
+    }
+  });
+
+  // Recursively process nested trusted users
+  if (nestedTrustedUsers.length > 0) {
+    await getTrusted({
+      trusted: nestedTrustedUsers,
+      trustedUsersMap,
+      depth: depth + 1,
+      maxDepth,
+    });
+  }
+
+  return Object.keys(trustedUsersMap);
+};
+
+/**
+ * Updates the trustedAll list for a website
+ * @param {Object} params
+ * @param {String} params.owner - Website owner
+ * @param {String} params.host - Website host
+ */
+exports.updateTrustedList = async ({ owner, host }) => {
+  // Find selected site for update
+  const { result } = await App.findOne(
+    { owner, host },
+    { trusted: 1, owner: 1 },
+  );
+
+  if (!result) return;
+
+  const { trusted = [] } = result;
+
+  // Get all trusted users including nested ones
+  const trustedAll = await getTrusted({ trusted });
+
+  // Update the app with the complete list of trusted users
+  await App.updateOne(
+    { owner, host },
+    { $set: { trustedAll } },
+  );
+};
+
+exports.setTrustedUsers = async (operation) => {
+  const owner = customJsonHelper.getTransactionAccount(operation);
+  const json = parseJson(operation.json);
+  if (!json || !owner) return false;
+
+  const { error, value } = sitesValidator.trustedSchema.validate(json);
+  if (error) {
+    console.error(error.message);
+    return false;
+  }
+
+  const { names, host } = value;
+
+  // we can check exist user in db
+
+  const getDataFn = trustedUpdateDataById[operation.id];
+  if (!getDataFn) return false;
+  const updateData = getDataFn(names);
+
+  await App.updateOne(
+    { host: json.host, owner },
+    updateData,
+  );
+  await this.updateTrustedList({ owner, host });
 };
 
 /** ------------------------PRIVATE METHODS--------------------------*/
