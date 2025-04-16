@@ -583,6 +583,23 @@ exports.setTrustedUsers = async (operation) => {
     updateData,
   );
   await this.updateTrustedList({ owner, host });
+  // get apps where owner in trustedAll and update this apps
+  const { result: appsToUpdate } = await App.find(
+    {
+      trustedAll: owner,
+    },
+    {
+      owner: 1,
+      host: 1,
+    },
+  );
+
+  for (const appsToUpdateElement of appsToUpdate) {
+    await this.updateTrustedList({
+      owner: appsToUpdateElement.owner,
+      host: appsToUpdateElement.host,
+    });
+  }
 };
 
 /** ------------------------PRIVATE METHODS--------------------------*/
