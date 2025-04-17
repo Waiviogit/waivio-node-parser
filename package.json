@@ -18,12 +18,14 @@
     "fieldExpertise": "node ./utilities/tasks/authorExpertise/runRewriteFields.js",
     "rewriteObjectsWeight": "node ./utilities/tasks/authorExpertise/runRewriteObjects.js",
     "rewriteUsersWeight": "node ./utilities/tasks/authorExpertise/runRewriteUsersWeight.js",
-    "setRcDelegations": "node ./utilities/tasks/setRcDelegations/run.js"
+    "setRcDelegations": "node ./utilities/tasks/setRcDelegations/run.js",
+    "addToRelated": "node ./utilities/tasks/addToRelated/run.js"
   },
   "dependencies": {
     "@hiveio/dhive": "^1.2.8",
     "@sentry/node": "^5.24.2",
     "@sentry/tracing": "^5.24.2",
+    "@waivio/objects-processor": "^1.0.5",
     "axios": "^1.6.8",
     "bluebird": "^3.5.3",
     "cron": "^1.7.2",

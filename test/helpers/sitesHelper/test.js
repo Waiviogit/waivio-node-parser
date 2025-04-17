@@ -656,4 +656,129 @@ describe('On sitesHelper', async () => {
       });
     });
   });
+
+  describe('On updateTrustedList', async () => {
+    let owner, host, trustedUsers, nestedTrustedUsers;
+
+    beforeEach(async () => {
+      await dropDatabase();
+      owner = faker.name.firstName();
+      host = faker.internet.domainName();
+      trustedUsers = [faker.name.firstName(), faker.name.firstName()];
+      nestedTrustedUsers = [faker.name.firstName(), faker.name.firstName()];
+
+      // Create main app with trusted users
+      await AppFactory.Create({
+        owner,
+        host,
+        trusted: trustedUsers,
+      });
+
+      // Create nested apps owned by trusted users
+      for (const trustedUser of trustedUsers) {
+        await AppFactory.Create({
+          owner: trustedUser,
+          host: `${trustedUser}.${host}`,
+          trusted: nestedTrustedUsers,
+        });
+      }
+    });
+
+    it('should update trustedAll with all trusted users including nested ones', async () => {
+      await sitesHelper.updateTrustedList({ owner, host });
+
+      const updatedApp = await App.findOne({ owner, host }).lean();
+      expect(updatedApp.trustedAll).to.be.an('array');
+      expect(updatedApp.trustedAll).to.have.length(trustedUsers.length + nestedTrustedUsers.length);
+      expect(updatedApp.trustedAll).to.include.members(trustedUsers);
+      expect(updatedApp.trustedAll).to.include.members(nestedTrustedUsers);
+    });
+
+    it('should not include duplicate users in trustedAll', async () => {
+      // Create a user that is trusted by multiple trusted users
+      const commonTrustedUser = faker.name.firstName();
+
+      // Update nested apps to include a common trusted user
+      for (const trustedUser of trustedUsers) {
+        await App.updateOne(
+          { owner: trustedUser },
+          { $addToSet: { trusted: commonTrustedUser } },
+        );
+      }
+
+      await sitesHelper.updateTrustedList({ owner, host });
+
+      const updatedApp = await App.findOne({ owner, host }).lean();
+      const commonUserCount = updatedApp.trustedAll.filter((user) => user === commonTrustedUser).length;
+      expect(commonUserCount).to.equal(1);
+    });
+
+    it('should handle empty trusted list', async () => {
+      // Create an app with no trusted users
+      const emptyAppOwner = faker.name.firstName();
+      const emptyAppHost = faker.internet.domainName();
+      await AppFactory.Create({
+        owner: emptyAppOwner,
+        host: emptyAppHost,
+        trusted: [],
+      });
+
+      await sitesHelper.updateTrustedList({ owner: emptyAppOwner, host: emptyAppHost });
+
+      const updatedApp = await App.findOne({ owner: emptyAppOwner, host: emptyAppHost }).lean();
+      expect(updatedApp.trustedAll).to.be.an('array');
+      expect(updatedApp.trustedAll).to.have.length(0);
+    });
+
+    it('should handle non-existent app', async () => {
+      const nonExistentOwner = faker.name.firstName();
+      const nonExistentHost = faker.internet.domainName();
+
+      // This should not throw an error
+      await sitesHelper.updateTrustedList({ owner: nonExistentOwner, host: nonExistentHost });
+
+      const nonExistentApp = await App.findOne({ owner: nonExistentOwner, host: nonExistentHost });
+      expect(nonExistentApp).to.be.null;
+    });
+
+    it('should handle deeply nested trusted users', async () => {
+      // Create a deeply nested structure of trusted users
+      const level1User = faker.name.firstName() + faker.random.alphaNumeric(5);
+      const level2User = faker.name.firstName() + faker.random.alphaNumeric(5);
+      const level3User = faker.name.firstName() + faker.random.alphaNumeric(5);
+
+      // Generate unique host names to avoid duplicates
+      const level1Host = `${level1User}.${faker.random.string(8)}.${host}`;
+      const level2Host = `${level2User}.${faker.random.string(8)}.${host}`;
+      const trustedUserHost = `${trustedUsers[0]}.${faker.random.string(8)}.${host}`;
+
+      // Create level 1 app
+      await AppFactory.Create({
+        owner: trustedUsers[0],
+        host: trustedUserHost,
+        trusted: [level1User],
+      });
+
+      // Create level 2 app
+      await AppFactory.Create({
+        owner: level1User,
+        host: level1Host,
+        trusted: [level2User],
+      });
+
+      // Create level 3 app
+      await AppFactory.Create({
+        owner: level2User,
+        host: level2Host,
+        trusted: [level3User],
+      });
+
+      await sitesHelper.updateTrustedList({ owner, host });
+
+      const updatedApp = await App.findOne({ owner, host }).lean();
+      expect(updatedApp.trustedAll).to.include(level1User);
+      expect(updatedApp.trustedAll).to.include(level2User);
+      expect(updatedApp.trustedAll).to.include(level3User);
+    });
+  });
 });

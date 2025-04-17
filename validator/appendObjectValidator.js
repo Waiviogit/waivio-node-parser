@@ -1,3 +1,4 @@
+const { FIELDS_NAMES, OBJECT_TYPES } = require('@waivio/objects-processor');
 const _ = require('lodash');
 const {
   Wobj,
@@ -12,8 +13,7 @@ const {
 } = require('validator/specifiedFieldsValidator');
 const {
   AUTHORITY_FIELD_ENUM,
-  FIELDS_NAMES,
-  OBJECT_TYPES,
+
 } = require('constants/wobjectsData');
 const {
   OBJECT_TYPES_FOR_COMPANY,
@@ -382,6 +382,7 @@ const validateSpecifiedFields = async (data) => {
     case FIELDS_NAMES.RELATED:
     case FIELDS_NAMES.ADD_ON:
     case FIELDS_NAMES.SIMILAR:
+    case FIELDS_NAMES.FEATURED:
       const notValidObj = await permlinkValidation(data.field.body);
       if (notValidObj) throw new Error(`Can't append ${fieldName}`);
       break;

@@ -57,6 +57,8 @@ exports.CUSTOM_JSON_OPS = {
   WEBSITE_REFERRAL_PAYMENTS: 'website_referral_payments',
   WEBSITE_ADSENSE: 'website_adsense',
   WEBSITE_CANONICAL: 'website_canonical',
+  WEBSITE_TRUSTED_SET: 'website_trusted_set',
+  WEBSITE_TRUSTED_UNSET: 'website_trusted_unset',
   WEBSITE_GUEST: 'website_guest',
   WAIVIO_HIVE_ENGINE: 'waivio_hive_engine',
 };

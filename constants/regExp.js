@@ -5,6 +5,8 @@ const HOSTS_TO_PARSE_LINKS = [
   'waiviodev.com',
   'dining.gifts',
   'social.gifts',
+  'socialgifts.pp.ua',
+  'dinings.pp.ua',
 ];
 
 const RE_HTTPS = new RegExp(/^https:\/\//);
