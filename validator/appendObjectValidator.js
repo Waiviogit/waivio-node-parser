@@ -170,305 +170,360 @@ const validateFieldBlacklist = async ({
   }
 };
 
-// validate all special fields(e.g.map, categoryItem, newsFilter etc.)
+const validationStrategies = {
+  [FIELDS_NAMES.PARENT]: async (data) => {
+    const { wobject: parentWobject } = await Wobj.getOne({ author_permlink: data.field.body });
+    if (!parentWobject) {
+      throw new Error(`Can't append ${FIELDS_NAMES.PARENT} ${data.field.body}, wobject should exist`);
+    }
+    if (data.author_permlink === data.field.body) {
+      throw new Error(`Can't append ${FIELDS_NAMES.PARENT} ${data.field.body}, wobject cannot be a parent to itself`);
+    }
+  },
+
+  [FIELDS_NAMES.NEWS_FILTER]: async (data) => {
+    let newsFilter;
+    try {
+      newsFilter = JSON.parse(data.field.body);
+    } catch (newsFilterParseError) {
+      throw new Error(`Error on parse "${FIELDS_NAMES.NEWS_FILTER}" field: ${newsFilterParseError}`);
+    }
+    if (!validateNewsFilter(newsFilter)) {
+      throw new Error(`Can't append ${FIELDS_NAMES.NEWS_FILTER} ${data.field.body}, not valid data`);
+    }
+  },
+
+  [FIELDS_NAMES.MAP]: async (data) => {
+    let map;
+    try {
+      map = JSON.parse(data.field.body);
+    } catch (mapParseError) {
+      throw new Error(`Error on parse "${FIELDS_NAMES.MAP}" field: ${mapParseError}`);
+    }
+    if (map.latitude && map.longitude) {
+      map.latitude = Number(map.latitude);
+      map.longitude = Number(map.longitude);
+    }
+    if (!validateMap(map)) {
+      throw new Error(`Can't append ${FIELDS_NAMES.MAP} ${data.field.body}, not valid data`);
+    }
+  },
+
+  [FIELDS_NAMES.TAG_CATEGORY]: async (data) => {
+    if (!_.get(data, 'field.id')) {
+      throw new Error(`Can't append ${FIELDS_NAMES.TAG_CATEGORY} ${data.field.body}, "id" is required`);
+    }
+    const { wobject: tagCategoryWobj } = await Wobj.getOne({
+      author_permlink: data.author_permlink,
+    });
+    const existCategory = _
+      .chain(tagCategoryWobj)
+      .get('fields', [])
+      .find({
+        id: data.field.id,
+        name: FIELDS_NAMES.TAG_CATEGORY,
+      })
+      .value();
+    if (existCategory) {
+      throw new Error(`Can't append ${FIELDS_NAMES.TAG_CATEGORY} ${data.field.body}, category with the same "id" exists`);
+    }
+  },
+
+  [FIELDS_NAMES.CATEGORY_ITEM]: async (data) => {
+    if (!_.get(data, 'field.id')) {
+      throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} ${data.field.body}, "id" is required`);
+    }
+    const { wobject: existTag } = await Wobj.getOne({ author_permlink: data.field.body });
+    if (_.get(existTag, 'object_type') !== OBJECT_TYPES.HASHTAG) {
+      throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} ${data.field.body}, Hashtag not valid!`);
+    }
+
+    const { wobject: categoryItemWobj } = await Wobj.getOne({
+      author_permlink: data.author_permlink,
+    });
+    const parentCategory = _.chain(categoryItemWobj)
+      .get('fields', [])
+      .find({
+        name: FIELDS_NAMES.TAG_CATEGORY,
+        id: data.field.id,
+      })
+      .value();
+    if (!parentCategory) {
+      throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} 
+      ${data.field.body}, "${FIELDS_NAMES.TAG_CATEGORY}" with the same "id" doesn't exist`);
+    }
+    const existItem = _
+      .chain(categoryItemWobj)
+      .get('fields', [])
+      .find({
+        name: 'categoryItem',
+        body: data.field.body,
+        id: data.field.id,
+      })
+      .value();
+    if (existItem) {
+      throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} 
+    ${data.field.body}, item with the same "id" and "body" exist`);
+    }
+  },
+
+  [FIELDS_NAMES.AUTHORITY]: async (data) => {
+    if (!_.includes(Object.values(AUTHORITY_FIELD_ENUM), data.field.body)) {
+      throw new Error(`Can't append ${FIELDS_NAMES.AUTHORITY} ${data.field.body}, not valid!`);
+    }
+    const { field } = await Wobj.getField(
+      data.field.author,
+      data.field.permlink,
+      data.author_permlink,
+      {
+        'fields.name': FIELDS_NAMES.AUTHORITY,
+        'fields.creator': data.field.creator,
+        'field.body': data.field.body,
+      },
+    );
+    if (field) {
+      throw new Error(`Can't append ${FIELDS_NAMES.AUTHORITY} the same field from this creator is exists`);
+    }
+  },
+
+  [FIELDS_NAMES.COMPANY_ID]: async (data) => {
+    const { wobject: companyObject } = await Wobj.getOne({
+      author_permlink: data.author_permlink,
+    });
+    if (!_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)) {
+      throw new Error(`Can't append ${FIELDS_NAMES.COMPANY_ID} as the object type is not corresponding`);
+    }
+  },
+
+  [FIELDS_NAMES.PRODUCT_ID]: async (data) => {
+    const { wobject: companyObject } = await Wobj.getOne({
+      author_permlink: data.author_permlink,
+    });
+    if (!_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)) {
+      throw new Error(`Can't append ${FIELDS_NAMES.PRODUCT_ID} as the object type is not corresponding`);
+    }
+    await validateProductId(data.field.body);
+  },
+
+  [FIELDS_NAMES.GROUP_ID]: async (data) => {
+    const { wobject: companyObject } = await Wobj.getOne({
+      author_permlink: data.author_permlink,
+    });
+    if (!_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)) {
+      throw new Error(`Can't append ${FIELDS_NAMES.GROUP_ID} as the object type is not corresponding`);
+    }
+  },
+
+  [FIELDS_NAMES.OPTIONS]: async (data) => {
+    const { error } = optionsSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.OPTIONS}${error.message}`);
+  },
+
+  [FIELDS_NAMES.WEIGHT]: async (data) => {
+    const { error } = weightSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.WEIGHT}${error.message}`);
+  },
+
+  [FIELDS_NAMES.DIMENSIONS]: async (data) => {
+    const { error } = dimensionsSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.DIMENSIONS}${error.message}`);
+  },
+
+  [FIELDS_NAMES.AUTHORS]: async (data) => {
+    const notValidAuthors = await validateAuthorsField(data.field.body);
+    if (notValidAuthors) throw new Error(`Can't append ${FIELDS_NAMES.AUTHORS}`);
+  },
+
+  [FIELDS_NAMES.PUBLISHER]: async (data) => {
+    const notValidPublisher = await validatePublisherField(data.field.body);
+    if (notValidPublisher) throw new Error(`Can't append ${FIELDS_NAMES.PUBLISHER}`);
+  },
+
+  [FIELDS_NAMES.PRINT_LENGTH]: async (data) => {
+    console.log();
+    if (_.isNaN(Number(data.field.body))) throw new Error(`Can't append ${FIELDS_NAMES.PRINT_LENGTH}`);
+  },
+
+  [FIELDS_NAMES.WIDGET]: async (data) => {
+    const { error } = widgetSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.WIDGET}${error.message}`);
+  },
+
+  [FIELDS_NAMES.NEWS_FEED]: async (data) => {
+    const { error } = newsFeedSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.NEWS_FEED}${error.message}`);
+  },
+
+  [FIELDS_NAMES.DEPARTMENTS]: async (data) => {
+    const { value, error } = departmentsSchema.validate({ department: data.field.body });
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.DEPARTMENTS}${error.message}`);
+    data.field.body = value.department;
+  },
+
+  [FIELDS_NAMES.MANUFACTURER]: async (data) => {
+    const notValidMerchant = await nameOrPermlinkValidation(data.field.body, [OBJECT_TYPES.BUSINESS]);
+    if (notValidMerchant) throw new Error(`Can't append ${FIELDS_NAMES.MANUFACTURER}`);
+  },
+
+  [FIELDS_NAMES.MERCHANT]: async (data) => {
+    const notValidMerchant = await nameOrPermlinkValidation(data.field.body, [OBJECT_TYPES.BUSINESS]);
+    if (notValidMerchant) throw new Error(`Can't append ${FIELDS_NAMES.MERCHANT}`);
+  },
+
+  [FIELDS_NAMES.BRAND]: async (data) => {
+    const notValidMerchant = await nameOrPermlinkValidation(data.field.body, [OBJECT_TYPES.BUSINESS]);
+    if (notValidMerchant) throw new Error(`Can't append ${FIELDS_NAMES.BRAND}`);
+  },
+
+  [FIELDS_NAMES.FEATURES]: async (data) => {
+    const { error } = featuresSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.FEATURES}${error.message}`);
+  },
+
+  [FIELDS_NAMES.PIN]: async (data) => {
+    const notPost = await postLinkValidation(data.field.body);
+    if (notPost) throw new Error(`Can't append ${FIELDS_NAMES.PIN}`);
+  },
+
+  [FIELDS_NAMES.REMOVE]: async (data) => {
+    const notPost = await postLinkValidation(data.field.body);
+    if (notPost) throw new Error(`Can't append ${FIELDS_NAMES.REMOVE}`);
+  },
+
+  [FIELDS_NAMES.SHOP_FILTER]: async (data) => {
+    const { error } = shopFilterSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.SHOP_FILTER}${error.message}`);
+  },
+
+  [FIELDS_NAMES.MENU_ITEM]: async (data) => {
+    const notValidMenuItem = await menuItemValidation(data.field.body);
+    if (notValidMenuItem) throw new Error(`Can't append ${FIELDS_NAMES.MENU_ITEM}`);
+  },
+
+  [FIELDS_NAMES.RELATED]: async (data) => {
+    const notValidObj = await permlinkValidation(data.field.body);
+    if (notValidObj) throw new Error(`Can't append ${FIELDS_NAMES.RELATED}`);
+  },
+
+  [FIELDS_NAMES.ADD_ON]: async (data) => {
+    const notValidObj = await permlinkValidation(data.field.body);
+    if (notValidObj) throw new Error(`Can't append ${FIELDS_NAMES.ADD_ON}`);
+  },
+
+  [FIELDS_NAMES.SIMILAR]: async (data) => {
+    const notValidObj = await permlinkValidation(data.field.body);
+    if (notValidObj) throw new Error(`Can't append ${FIELDS_NAMES.SIMILAR}`);
+  },
+
+  [FIELDS_NAMES.FEATURED]: async (data) => {
+    const notValidObj = await permlinkValidation(data.field.body);
+    if (notValidObj) throw new Error(`Can't append ${FIELDS_NAMES.FEATURED}`);
+  },
+
+  [FIELDS_NAMES.AFFILIATE_BUTTON]: async (data) => {
+    const { error } = validUrlSchema.validate(data.field.body);
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.AFFILIATE_BUTTON}`);
+  },
+
+  [FIELDS_NAMES.AFFILIATE_PRODUCT_ID_TYPES]: async (data) => {
+    const { value, error } = affiliateProductIdTypesSchema.validate(data.field.body);
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.AFFILIATE_PRODUCT_ID_TYPES}`);
+    data.field.body = value;
+  },
+
+  [FIELDS_NAMES.AFFILIATE_GEO_AREA]: async (data) => {
+    const { error } = affiliateGeoSchema.validate(data.field.body);
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.AFFILIATE_GEO_AREA}`);
+  },
+
+  [FIELDS_NAMES.AFFILIATE_URL_TEMPLATE]: async (data) => {
+    if (!hasProductIdAndAffiliateCode(data.field.body)) {
+      throw new Error(`Can't append ${FIELDS_NAMES.AFFILIATE_URL_TEMPLATE}`);
+    }
+  },
+
+  [FIELDS_NAMES.AFFILIATE_CODE]: async (data) => {
+    const { value, error } = affiliateCodeSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.AFFILIATE_CODE}`);
+    }
+    const [siteOrPersonalAff] = value;
+    const codes = value.slice(1);
+    if (codes.length > 1) {
+      const validChance = affiliateCodesChanceValid(codes);
+      if (!validChance) throw new Error(`Can't append ${FIELDS_NAMES.AFFILIATE_CODE}`);
+    }
+    data.field.body = JSON.stringify([removeProtocol(siteOrPersonalAff), ...codes]);
+  },
+
+  [FIELDS_NAMES.MAP_OBJECT_TAGS]: async (data) => {
+    const { value, error } = mapTypesSchema.validate(_.uniq(jsonHelper.parseJson(data.field.body)));
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.MAP_OBJECT_TAGS}`);
+    }
+    data.field.body = JSON.stringify(value);
+  },
+
+  [FIELDS_NAMES.MAP_OBJECT_TYPES]: async (data) => {
+    const { value, error } = mapTypesSchema.validate(_.uniq(jsonHelper.parseJson(data.field.body)));
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.MAP_OBJECT_TYPES}`);
+    }
+    data.field.body = JSON.stringify(value);
+  },
+
+  [FIELDS_NAMES.MAP_MOBILE_VIEW]: async (data) => {
+    const { error } = mapViewSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.MAP_MOBILE_VIEW}`);
+    }
+  },
+
+  [FIELDS_NAMES.MAP_DESKTOP_VIEW]: async (data) => {
+    const { error } = mapViewSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.MAP_DESKTOP_VIEW}`);
+    }
+  },
+
+  [FIELDS_NAMES.MAP_RECTANGLES]: async (data) => {
+    const { value, error } = mapRectanglesSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.MAP_RECTANGLES}`);
+    }
+    data.field.body = JSON.stringify(filterMapRectangles(value));
+  },
+
+  [FIELDS_NAMES.WALLET_ADDRESS]: async (data) => {
+    const { error } = walletAddressSchema.validate(jsonHelper.parseJson(data.field.body));
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.WALLET_ADDRESS}`);
+    }
+  },
+
+  [FIELDS_NAMES.PROMOTION]: async (data) => {
+    const valid = await objectPromotion.validateOnAppend({
+      field: data.field,
+      objectPermlink: data.author_permlink,
+    });
+    if (!valid) throw new Error(`Can't append ${FIELDS_NAMES.PROMOTION}`);
+  },
+
+  [FIELDS_NAMES.SALE]: async (data) => {
+    const { error } = timeLimitedSchema.validate(data.field);
+    if (error) throw new Error(`Can't append ${FIELDS_NAMES.SALE}`);
+  },
+};
+
 const validateSpecifiedFields = async (data) => {
   const fieldName = _.get(data, 'field.name');
-  switch (fieldName) {
-    case FIELDS_NAMES.PARENT:
-      const { wobject: parentWobject } = await Wobj.getOne({ author_permlink: data.field.body });
-      if (!parentWobject) {
-        throw new Error(`Can't append ${FIELDS_NAMES.PARENT} ${data.field.body}, wobject should exist`);
-      }
-      if (data.author_permlink === data.field.body) {
-        throw new Error(`Can't append ${FIELDS_NAMES.PARENT} ${data.field.body}, wobject cannot be a parent to itself`);
-      }
-      break;
-
-    case FIELDS_NAMES.NEWS_FILTER:
-      let newsFilter;
-      try {
-        newsFilter = JSON.parse(data.field.body);
-      } catch (newsFilterParseError) {
-        throw new Error(`Error on parse "${FIELDS_NAMES.NEWS_FILTER}" field: ${newsFilterParseError}`);
-      }
-      if (!validateNewsFilter(newsFilter)) {
-        throw new Error(`Can't append ${FIELDS_NAMES.NEWS_FILTER} ${data.field.body}, not valid data`);
-      }
-      break;
-
-    case FIELDS_NAMES.MAP:
-      let map;
-      try {
-        map = JSON.parse(data.field.body);
-      } catch (mapParseError) {
-        throw new Error(`Error on parse "${FIELDS_NAMES.MAP}" field: ${mapParseError}`);
-      }
-      if (map.latitude && map.longitude) {
-        map.latitude = Number(map.latitude);
-        map.longitude = Number(map.longitude);
-      }
-      if (!validateMap(map)) {
-        throw new Error(`Can't append ${FIELDS_NAMES.MAP} ${data.field.body}, not valid data`);
-      }
-      break;
-
-    case FIELDS_NAMES.TAG_CATEGORY:
-      // "id" field is required
-      if (!_.get(data, 'field.id')) {
-        throw new Error(`Can't append ${FIELDS_NAMES.TAG_CATEGORY} ${data.field.body}, "id" is required`);
-      }
-      // tagCategory must be unique by id
-      const { wobject: tagCategoryWobj } = await Wobj.getOne({
-        author_permlink: data.author_permlink,
-      });
-      const existCategory = _
-        .chain(tagCategoryWobj)
-        .get('fields', [])
-        .find({
-          id: data.field.id,
-          name: FIELDS_NAMES.TAG_CATEGORY,
-        })
-        .value();
-      if (existCategory) {
-        throw new Error(`Can't append ${FIELDS_NAMES.TAG_CATEGORY} ${data.field.body}, category with the same "id" exists`);
-      }
-      break;
-
-    case FIELDS_NAMES.CATEGORY_ITEM:
-      // "id" field is required
-      if (!_.get(data, 'field.id')) {
-        throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} ${data.field.body}, "id" is required`);
-      }
-      // the body of the categoryItem must refer ot the real hashtag wobject
-      const { wobject: existTag } = await Wobj.getOne({ author_permlink: data.field.body });
-      if (_.get(existTag, 'object_type') !== OBJECT_TYPES.HASHTAG) {
-        throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} ${data.field.body}, Hashtag not valid!`);
-      }
-
-      const { wobject: categoryItemWobj } = await Wobj.getOne({
-        author_permlink: data.author_permlink,
-      });
-      const parentCategory = _.chain(categoryItemWobj)
-        .get('fields', [])
-        .find({
-          name: FIELDS_NAMES.TAG_CATEGORY,
-          id: data.field.id,
-        })
-        .value();
-      if (!parentCategory) {
-        throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} 
-        ${data.field.body}, "${FIELDS_NAMES.TAG_CATEGORY}" with the same "id" doesn't exist`);
-      }
-      const existItem = _
-        .chain(categoryItemWobj)
-        .get('fields', [])
-        .find({
-          name: 'categoryItem',
-          body: data.field.body,
-          id: data.field.id,
-        })
-        .value();
-      if (existItem) {
-        throw new Error(`Can't append ${FIELDS_NAMES.CATEGORY_ITEM} 
-      ${data.field.body}, item with the same "id" and "body" exist`);
-      }
-      break;
-
-    case FIELDS_NAMES.AUTHORITY:
-      if (!_.includes(Object.values(AUTHORITY_FIELD_ENUM), data.field.body)) {
-        throw new Error(`Can't append ${FIELDS_NAMES.AUTHORITY} ${data.field.body}, not valid!`);
-      }
-      const { field } = await Wobj.getField(
-        data.field.author,
-        data.field.permlink,
-        data.author_permlink,
-        {
-          'fields.name': FIELDS_NAMES.AUTHORITY,
-          'fields.creator': data.field.creator,
-          'field.body': data.field.body,
-        },
-      );
-      if (field) {
-        throw new Error(`Can't append ${FIELDS_NAMES.AUTHORITY} the same field from this creator is exists`);
-      }
-      break;
-
-    case FIELDS_NAMES.COMPANY_ID:
-    case FIELDS_NAMES.PRODUCT_ID:
-    case FIELDS_NAMES.GROUP_ID:
-      const { wobject: companyObject } = await Wobj.getOne({
-        author_permlink: data.author_permlink,
-      });
-      const objectTypeNotCorresponding = !(
-        _.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)
-          && fieldName === FIELDS_NAMES.COMPANY_ID
-      )
-        && !(
-          _.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)
-          && (fieldName === FIELDS_NAMES.PRODUCT_ID || fieldName === FIELDS_NAMES.GROUP_ID)
-        );
-      if (objectTypeNotCorresponding) {
-        throw new Error(`Can't append ${fieldName} as the object type is not corresponding`);
-      }
-      if (fieldName === FIELDS_NAMES.PRODUCT_ID) await validateProductId(data.field.body);
-      break;
-    case FIELDS_NAMES.OPTIONS:
-      const { error: optErr } = optionsSchema.validate(jsonHelper.parseJson(data.field.body));
-      if (optErr) throw new Error(`Can't append ${fieldName}${optErr.message}`);
-      break;
-    case FIELDS_NAMES.WEIGHT:
-      const { error: weightErr } = weightSchema.validate(jsonHelper.parseJson(data.field.body));
-      if (weightErr) throw new Error(`Can't append ${fieldName}${weightErr.message}`);
-      break;
-    case FIELDS_NAMES.DIMENSIONS:
-      const { error: dimensionErr } = dimensionsSchema
-        .validate(jsonHelper.parseJson(data.field.body));
-      if (dimensionErr) throw new Error(`Can't append ${fieldName}${dimensionErr.message}`);
-      break;
-    case FIELDS_NAMES.AUTHORS:
-      const notValidAuthors = await validateAuthorsField(data.field.body);
-      if (notValidAuthors) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.PUBLISHER:
-      const notValidPublisher = await validatePublisherField(data.field.body);
-      if (notValidPublisher) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.PRINT_LENGTH:
-      if (_.isNaN(Number(data.field.body))) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.WIDGET:
-      const { error: widgetErr } = widgetSchema.validate(jsonHelper.parseJson(data.field.body));
-      if (widgetErr) throw new Error(`Can't append ${fieldName}${widgetErr.message}`);
-      break;
-    case FIELDS_NAMES.NEWS_FEED:
-      const { error: newsFeedErr } = newsFeedSchema.validate(jsonHelper.parseJson(data.field.body));
-      if (newsFeedErr) throw new Error(`Can't append ${fieldName}${newsFeedErr.message}`);
-      break;
-    case FIELDS_NAMES.DEPARTMENTS:
-      const {
-        value,
-        error: departmentsErr,
-      } = departmentsSchema
-        .validate({ department: data.field.body });
-      if (departmentsErr) throw new Error(`Can't append ${fieldName}${departmentsErr.message}`);
-      data.field.body = value.department;
-      break;
-    case FIELDS_NAMES.MANUFACTURER:
-    case FIELDS_NAMES.MERCHANT:
-    case FIELDS_NAMES.BRAND:
-      const notValidMerchant = await nameOrPermlinkValidation(
-        data.field.body,
-        [OBJECT_TYPES.BUSINESS],
-      );
-      if (notValidMerchant) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.FEATURES:
-      const { error: featuresErr } = featuresSchema.validate(jsonHelper.parseJson(data.field.body));
-      if (featuresErr) throw new Error(`Can't append ${fieldName}${featuresErr.message}`);
-      break;
-    case FIELDS_NAMES.PIN:
-    case FIELDS_NAMES.REMOVE:
-      const notPost = await postLinkValidation(data.field.body);
-      if (notPost) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.SHOP_FILTER:
-      const { error: shopFilterErr } = shopFilterSchema
-        .validate(jsonHelper.parseJson(data.field.body));
-      if (shopFilterErr) throw new Error(`Can't append ${fieldName}${shopFilterErr.message}`);
-      break;
-    case FIELDS_NAMES.MENU_ITEM:
-      const notValidMenuItem = await menuItemValidation(data.field.body);
-      if (notValidMenuItem) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.RELATED:
-    case FIELDS_NAMES.ADD_ON:
-    case FIELDS_NAMES.SIMILAR:
-    case FIELDS_NAMES.FEATURED:
-      const notValidObj = await permlinkValidation(data.field.body);
-      if (notValidObj) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.AFFILIATE_BUTTON:
-      const { error: affButtonErr } = validUrlSchema.validate(data.field.body);
-      if (affButtonErr) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.AFFILIATE_PRODUCT_ID_TYPES:
-      const { value: affIdTypes, error: affIdErr } = affiliateProductIdTypesSchema
-        .validate(data.field.body);
-      if (affIdErr) throw new Error(`Can't append ${fieldName}`);
-      data.field.body = affIdTypes;
-      break;
-    case FIELDS_NAMES.AFFILIATE_GEO_AREA:
-      const { error: affGeoErr } = affiliateGeoSchema
-        .validate(data.field.body);
-      if (affGeoErr) throw new Error(`Can't append ${fieldName}`);
-      break;
-    case FIELDS_NAMES.AFFILIATE_URL_TEMPLATE:
-      if (!hasProductIdAndAffiliateCode(data.field.body)) {
-        throw new Error(`Can't append ${fieldName}`);
-      }
-      break;
-    case FIELDS_NAMES.AFFILIATE_CODE:
-      const { value: affCodeField, error: affCodeErr } = affiliateCodeSchema
-        .validate(jsonHelper.parseJson(data.field.body));
-      if (affCodeErr) {
-        throw new Error(`Can't append ${fieldName}`);
-      }
-      const [siteOrPersonalAff] = affCodeField;
-
-      const codes = affCodeField.slice(1);
-      if (codes.length > 1) {
-        const validChance = affiliateCodesChanceValid(codes);
-        if (!validChance) throw new Error(`Can't append ${fieldName}`);
-      }
-      data.field.body = JSON.stringify([removeProtocol(siteOrPersonalAff), ...codes]);
-      break;
-    case FIELDS_NAMES.MAP_OBJECT_TAGS:
-    case FIELDS_NAMES.MAP_OBJECT_TYPES:
-      // uniq
-      const { value: mapTypes, error: mapTypesErr } = mapTypesSchema
-        .validate(_.uniq(jsonHelper.parseJson(data.field.body)));
-      if (mapTypesErr) {
-        throw new Error(`Can't append ${fieldName}`);
-      }
-      data.field.body = JSON.stringify(mapTypes);
-      break;
-    case FIELDS_NAMES.MAP_MOBILE_VIEW:
-    case FIELDS_NAMES.MAP_DESKTOP_VIEW:
-      const { error: mapViewErr } = mapViewSchema
-        .validate(jsonHelper.parseJson(data.field.body));
-      if (mapViewErr) {
-        throw new Error(`Can't append ${fieldName}`);
-      }
-      break;
-    case FIELDS_NAMES.MAP_RECTANGLES:
-      const { value: mapRectangles, error: mapRectanglesErr } = mapRectanglesSchema
-        .validate(jsonHelper.parseJson(data.field.body));
-      if (mapRectanglesErr) {
-        throw new Error(`Can't append ${fieldName}`);
-      }
-      data.field.body = JSON.stringify(filterMapRectangles(mapRectangles));
-      break;
-    case FIELDS_NAMES.WALLET_ADDRESS:
-      const { error: walletError } = walletAddressSchema
-        .validate(jsonHelper.parseJson(data.field.body));
-      if (walletError) {
-        throw new Error(`Can't append ${fieldName}`);
-      }
-      break;
-
-    case FIELDS_NAMES.PROMOTION: {
-      const valid = await objectPromotion.validateOnAppend({
-        field: data.field, objectPermlink: data.author_permlink,
-      });
-      if (!valid) throw new Error(`Can't append ${fieldName}`);
-    }
-      break;
-    case FIELDS_NAMES.SALE: {
-      const { error } = timeLimitedSchema.validate(data.field);
-      if (error) throw new Error(`Can't append ${fieldName}`);
-    }
-      break;
+  if (!Object.values(FIELDS_NAMES).includes(fieldName)) {
+    throw new Error(`Can't append ${fieldName}`);
   }
+  const validator = validationStrategies[fieldName];
+  if (!validator) return;
+
+  await validator(data);
 };
 
 const affiliateCodesChanceValid = (codes) => {

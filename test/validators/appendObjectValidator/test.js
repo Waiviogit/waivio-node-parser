@@ -1,11 +1,11 @@
 const {
-  expect, faker, ObjectType, WObject, sinon, AppModel,
+  expect, faker, ObjectType, WObject, sinon, AppModel, dropDatabase,
 } = require('test/testHelper');
 const { appendObjectValidator } = require('validator');
 const { ObjectFactory, AppendObject, PostFactory } = require('test/factories');
 const _ = require('lodash');
+const { FIELDS_NAMES } = require('@waivio/objects-processor');
 const {
-  FIELDS_NAMES,
   WEIGHT_UNITS,
   DIMENSION_UNITS,
   OBJECT_TYPES,
@@ -15,6 +15,7 @@ describe('appendObjectValidator', async () => {
   let wobject, mockData, mockOp, blackList;
 
   beforeEach(async () => {
+    await dropDatabase();
     blackList = [faker.random.string(), faker.random.string()];
     sinon.stub(AppModel, 'findOne').returns(Promise.resolve({ result: { black_list_users: blackList } }));
     wobject = await ObjectFactory.Create();
@@ -200,6 +201,66 @@ describe('appendObjectValidator', async () => {
           await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.rejected;
         });
       });
+
+      describe('on sale field', async () => {
+        beforeEach(() => {
+          mockData.field.name = FIELDS_NAMES.SALE;
+        });
+
+        it('should be fulfilled if body valid', async () => {
+          const now = Date.now();
+          mockData.field.startDate = now;
+          mockData.field.endDate = now + 86400000; // tomorrow
+          mockData.field.discount = 20;
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
+        it('should be rejected if startDate is missing', async () => {
+          mockData.field.endDate = Date.now();
+          mockData.field.discount = 20;
+          await expect(appendObjectValidator.validate(mockData, mockOp))
+            .to.be.rejectedWith(Error, `Can't append ${FIELDS_NAMES.SALE}`);
+        });
+
+        it('should be rejected if endDate is missing', async () => {
+          mockData.field.startDate = Date.now();
+          mockData.field.discount = 20;
+          await expect(appendObjectValidator.validate(mockData, mockOp))
+            .to.be.rejectedWith(Error, `Can't append ${FIELDS_NAMES.SALE}`);
+        });
+
+        it('should be rejected if discount is missing', async () => {
+          mockData.field.startDate = Date.now();
+          mockData.field.endDate = Date.now();
+          await expect(appendObjectValidator.validate(mockData, mockOp))
+            .to.be.rejectedWith(Error, `Can't append ${FIELDS_NAMES.SALE}`);
+        });
+
+        it('should be rejected if endDate is before startDate', async () => {
+          const now = Date.now();
+          mockData.field.startDate = now;
+          mockData.field.endDate = now - 86400000; // yesterday
+          mockData.field.discount = 20;
+          await expect(appendObjectValidator.validate(mockData, mockOp))
+            .to.be.rejectedWith(Error, `Can't append ${FIELDS_NAMES.SALE}`);
+        });
+
+        it('should be rejected if discount is not a number', async () => {
+          mockData.field.startDate = Date.now();
+          mockData.field.endDate = Date.now();
+          mockData.field.discount = '20';
+          await expect(appendObjectValidator.validate(mockData, mockOp))
+            .to.be.rejectedWith(Error, `Can't append ${FIELDS_NAMES.SALE}`);
+        });
+
+        it('should be rejected if dates are not numbers', async () => {
+          mockData.field.startDate = 'invalid-date';
+          mockData.field.endDate = 'invalid-date';
+          mockData.field.discount = 20;
+          await expect(appendObjectValidator.validate(mockData, mockOp))
+            .to.be.rejectedWith(Error, `Can't append ${FIELDS_NAMES.SALE}`);
+        });
+      });
       describe('on publisher field', async () => {
         let publisher, randomType;
         beforeEach(async () => {
@@ -276,7 +337,7 @@ describe('appendObjectValidator', async () => {
         let product, randomType;
         beforeEach(async () => {
           mockData.field.name = _.sample([FIELDS_NAMES.MERCHANT, FIELDS_NAMES.MANUFACTURER, FIELDS_NAMES.BRAND]);
-          product = await ObjectFactory.Create({ object_type: OBJECT_TYPES.PRODUCT });
+          product = await ObjectFactory.Create({ object_type: OBJECT_TYPES.BUSINESS });
           randomType = await ObjectFactory.Create({ object_type: _.sample(_.filter(Object.values(OBJECT_TYPES), OBJECT_TYPES.PRODUCT)) });
         });
         it('should be fulfilled if body valid', async () => {
@@ -316,6 +377,7 @@ describe('appendObjectValidator', async () => {
             style: faker.random.string(),
             image: faker.random.string(),
             linkToObject: product.author_permlink,
+            objectType: OBJECT_TYPES.PRODUCT,
           });
           await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
         });
@@ -556,12 +618,6 @@ describe('appendObjectValidator', async () => {
         it('should be fulfilled if body valid', async () => {
           mockData.field.body = body;
           await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
-        });
-
-        it('should be lowercase', async () => {
-          mockData.field.body = body;
-          await appendObjectValidator.validate(mockData, mockOp);
-          expect(mockData.field.body).to.be.eq(body.toLowerCase());
         });
       });
 

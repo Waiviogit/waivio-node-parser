@@ -125,4 +125,4 @@ exports.walletAddressSchema = Joi.object().keys({
 exports.timeLimitedSchema = Joi.object().keys({
   startDate: Joi.number().integer().min(0).required(), // timestamp
   endDate: Joi.number().integer().greater(Joi.ref('startDate')).required(), // timestamp
-});
+}).options(options);
