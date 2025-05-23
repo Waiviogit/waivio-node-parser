@@ -38,6 +38,7 @@ const {
   mapViewSchema,
   mapRectanglesSchema,
   walletAddressSchema,
+  timeLimitedSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 const objectPromotion = require('../utilities/objectUpdates/objectPromotion');
@@ -115,7 +116,7 @@ const validateSameFields = async (data) => {
 
   if ([FIELDS_NAMES.CATEGORY_ITEM, FIELDS_NAMES.GALLERY_ALBUM, FIELDS_NAMES.GALLERY_ITEM].includes(data.field.name)) setUniqFields.push('id');
   if ([FIELDS_NAMES.AFFILIATE_CODE, FIELDS_NAMES.AUTHORITY].includes(data.field.name)) setUniqFields.push('creator');
-  if (data.field.name === FIELDS_NAMES.PROMOTION) setUniqFields.push('startDate', 'endDate');
+  if ([FIELDS_NAMES.PROMOTION, FIELDS_NAMES.SALE].includes(data.field.name)) setUniqFields.push('startDate', 'endDate');
   if (data.field.name === FIELDS_NAMES.PHONE) setUniqFields.splice(1, 1, 'number');
   if (data.field.name === FIELDS_NAMES.LIST_ITEM) setUniqFields.splice(2, 1);
 
@@ -460,6 +461,11 @@ const validateSpecifiedFields = async (data) => {
         field: data.field, objectPermlink: data.author_permlink,
       });
       if (!valid) throw new Error(`Can't append ${fieldName}`);
+    }
+      break;
+    case FIELDS_NAMES.SALE: {
+      const { error } = timeLimitedSchema.validate(data.field);
+      if (error) throw new Error(`Can't append ${fieldName}`);
     }
       break;
   }
