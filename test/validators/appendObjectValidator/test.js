@@ -215,6 +215,11 @@ describe('appendObjectValidator', async () => {
           await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
         });
 
+        it('should be fulfilled if body valid with no start/end date', async () => {
+          mockData.field.body = faker.random.string();
+          await expect(appendObjectValidator.validate(mockData, mockOp)).to.be.fulfilled;
+        });
+
         it('should be rejected if startDate is missing', async () => {
           mockData.field.endDate = Date.now();
           mockData.field.discount = 20;
