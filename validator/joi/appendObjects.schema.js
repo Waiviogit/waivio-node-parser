@@ -121,3 +121,19 @@ exports.walletAddressSchema = Joi.object().keys({
   symbol: Joi.string().required(),
   address: Joi.string().required(),
 });
+
+exports.timeLimitedSchema = Joi.object().keys({
+  startDate: Joi.number().integer().min(0), // timestamp
+  endDate: Joi.number().integer().min(0), // timestamp
+}).custom((obj, helpers) => {
+  if (obj.startDate && !obj.endDate) {
+    return helpers.error('any.custom', { message: 'endDate is required when startDate is present' });
+  }
+  if (obj.endDate && !obj.startDate) {
+    return helpers.error('any.custom', { message: 'startDate is required when endDate is present' });
+  }
+  if (obj.startDate && obj.endDate && obj.endDate <= obj.startDate) {
+    return helpers.error('any.custom', { message: 'endDate must be greater than startDate' });
+  }
+  return obj;
+}).options(options);
