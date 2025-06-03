@@ -675,13 +675,14 @@ const checkDebtToDelete = async ({ userName, payable }) => {
 };
 
 const checkForSuspended = async (userName) => {
-  const { result: app } = await App.findOne(
+  const { result: suspended } = await App.findOne(
     { owner: userName, inherited: true, status: STATUSES.SUSPENDED },
+    { _id: 1 },
   );
 
   const { payable } = await getAccountBalance(userName);
 
-  if (app || payable < 0) {
+  if (payable < 0) {
     await App.updateMany({
       owner: userName, inherited: true, billingType: BILLING_TYPE.CRYPTO,
     }, { status: STATUSES.SUSPENDED });
@@ -689,6 +690,20 @@ const checkForSuspended = async (userName) => {
       { status: REFUND_STATUSES.PENDING, type: REFUND_TYPES.WEBSITE_REFUND, userName },
     );
     await checkDebtToDelete({ userName, payable });
+  }
+  // remove suspended status
+  if (suspended && payable > 0) {
+    const { result = [] } = await App.find(
+      { owner: userName, inherited: true },
+      { activatedAt: 1, deactivatedAt: 1, _id: 1 },
+    );
+
+    for (const app of result) {
+      let status = STATUSES.PENDING;
+      app.activatedAt ? status = STATUSES.ACTIVE : null;
+      app.deactivatedAt ? status = STATUSES.INACTIVE : null;
+      await App.updateOne({ _id: app._id }, { status });
+    }
   }
 };
 
@@ -715,6 +730,11 @@ const getAccountBalance = async (account) => {
   });
   return { payable };
 };
+
+(async () => {
+  const yo = await getAccountBalance('coffeegifts');
+  console.log();
+})();
 
 const captureException = async (error) => {
   await sendSentryNotification();
