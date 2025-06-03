@@ -731,11 +731,6 @@ const getAccountBalance = async (account) => {
   return { payable };
 };
 
-(async () => {
-  const yo = await getAccountBalance('coffeegifts');
-  console.log();
-})();
-
 const captureException = async (error) => {
   await sendSentryNotification();
   Sentry.captureException(error);
