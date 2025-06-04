@@ -21,6 +21,7 @@ const detectPostLanguageHelper = require('./detectPostLanguageHelper');
 const { commentRefSetter } = require('../commentRefService');
 const { COMMENT_REF_TYPES } = require('../../constants/common');
 const { roundDown } = require('./calcHelper');
+const { mutedUserModel } = require('../../models');
 
 const getImagesFromPost = (post) => {
   try {
@@ -338,6 +339,10 @@ const restoreOldPost = async ({ author, permlink }) => {
 exports.parseCommentBodyWobjects = async ({
   body = '', author, permlink,
 }) => {
+  const { mutedUsers = [] } = await mutedUserModel.find({ userName: author });
+  const blockedForApps = _.reduce(mutedUsers, (acc, value) => _.union(acc, value.mutedForApps), []);
+  if (_.intersection(blockedForApps, HOSTS_TO_PARSE_LINKS).length) return;
+
   const hostObjectsRegex = await getRegExToParseObjects();
 
   const matches = _.uniq([
