@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  Post, CommentModel, Wobj, relatedAlbum, CommentRef, App,
+  Post, CommentModel, Wobj, relatedAlbum, CommentRef, App, mutedUserModel,
 } = require('models');
 const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
@@ -21,7 +21,6 @@ const detectPostLanguageHelper = require('./detectPostLanguageHelper');
 const { commentRefSetter } = require('../commentRefService');
 const { COMMENT_REF_TYPES } = require('../../constants/common');
 const { roundDown } = require('./calcHelper');
-const { mutedUserModel } = require('../../models');
 
 const getImagesFromPost = (post) => {
   try {
