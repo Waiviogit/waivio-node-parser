@@ -336,9 +336,9 @@ const restoreOldPost = async ({ author, permlink }) => {
 };
 
 exports.parseCommentBodyWobjects = async ({
-  body = '', author, permlink,
+  body = '', author, permlink, commentAuthor,
 }) => {
-  const { mutedUsers = [] } = await mutedUserModel.find({ userName: author });
+  const { mutedUsers = [] } = await mutedUserModel.find({ userName: commentAuthor });
   const blockedForApps = _.reduce(mutedUsers, (acc, value) => _.union(acc, value.mutedForApps), []);
   if (_.intersection(blockedForApps, HOSTS_TO_PARSE_LINKS).length) return;
 
