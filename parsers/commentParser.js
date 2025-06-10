@@ -105,6 +105,7 @@ const commentSwitcher = async ({ operation, metadata, options }) => {
       body: operation.body,
       author: operation.parent_author,
       permlink: operation.parent_permlink,
+      commentAuthor: operation.author,
     });
   }
 

@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment');
 const {
-  Post, CommentModel, Wobj, relatedAlbum, CommentRef, App,
+  Post, CommentModel, Wobj, relatedAlbum, CommentRef, App, mutedUserModel,
 } = require('models');
 const { ObjectId } = require('mongoose').Types;
 const { postsUtil } = require('utilities/steemApi');
@@ -336,8 +336,12 @@ const restoreOldPost = async ({ author, permlink }) => {
 };
 
 exports.parseCommentBodyWobjects = async ({
-  body = '', author, permlink,
+  body = '', author, permlink, commentAuthor,
 }) => {
+  const { mutedUsers = [] } = await mutedUserModel.find({ userName: commentAuthor });
+  const blockedForApps = _.reduce(mutedUsers, (acc, value) => _.union(acc, value.mutedForApps), []);
+  if (_.intersection(blockedForApps, HOSTS_TO_PARSE_LINKS).length) return;
+
   const hostObjectsRegex = await getRegExToParseObjects();
 
   const matches = _.uniq([
