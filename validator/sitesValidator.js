@@ -20,7 +20,7 @@ exports.settingsSchema = Joi.object().keys({
   objectControl: Joi.boolean().default(false),
   disableOwnerAuthority: Joi.boolean().default(false),
   mapImportTag: Joi.string().allow(''),
-  verificationTags: Joi.array().items(Joi.string()).allow([]),
+  verificationTags: Joi.array().items(Joi.string()),
 }).options(options);
 
 exports.adSenseSchema = Joi.object().keys({
