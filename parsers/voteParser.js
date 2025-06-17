@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { postsUtil, usersUtil } = require('utilities/steemApi');
+const { usersUtil } = require('utilities/steemApi');
 const { User, Post, Wobj } = require('models');
 const { votePostHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
@@ -29,16 +29,10 @@ const parse = async (votes, blockNum) => {
   const posts = await Post.getPostsByVotes(votesOps);
   const postsWithNewVotes = await usersUtil.calculateVotePower({ votesOps, posts });
 
-  // need to refactor to group votes by object
-
-  await Promise.all(votesOps.map(async (voteOp) => {
-    await parseVoteByType(voteOp, postsWithNewVotes, blockNum);
-  }));
   await voteOnObjectFields(votesOps);
 
-  await Promise.all(posts.map(async (post) => {
-    await votePostHelper.updateVotesOnPost({ post });
-  }));
+  await Promise.all(votesOps.map((voteOp) => parseVoteByType(voteOp, postsWithNewVotes, blockNum)));
+  await Promise.all(posts.map((post) => votePostHelper.updateVotesOnPost({ post })));
 
   await sendLikeNotification(votesOps);
   console.log(`Parsed votes: ${votesOps.length}`);
