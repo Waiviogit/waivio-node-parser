@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
+const { votePostHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const followObjectParser = require('parsers/followObjectParser');
 const jsonHelper = require('utilities/helpers/jsonHelper');
@@ -11,6 +11,7 @@ const { Post, CommentModel } = require('models');
 const voteParser = require('parsers/voteParser');
 const { verifySignature } = require('utilities/helpers/signatureHelper');
 const { VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
+const { voteOnObjectFields } = require('../../parsers/voteParser');
 
 exports.followUser = async (operation) => {
   const validSignature = await verifySignature({
@@ -153,16 +154,14 @@ const voteOnPost = async ({ vote }) => {
 };
 
 const guestVoteOnField = async ({ vote }) => {
-  await voteFieldHelper.voteOnField({
+  await voteOnObjectFields([{
     author: vote.author,
     permlink: vote.permlink,
     voter: vote.voter,
-    author_permlink: vote.root_wobj,
+    root_wobj: vote.root_wobj,
     percent: vote.weight,
-    weight: 1,
-    rshares_weight: 0,
-    expertiseUSD: 0,
-  });
+    type: vote.type,
+  }]);
 };
 
 /**

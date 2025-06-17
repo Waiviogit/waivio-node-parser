@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { postsUtil, usersUtil } = require('utilities/steemApi');
-const { User, Post } = require('models');
-const { voteFieldHelper, votePostHelper } = require('utilities/helpers');
+const { User, Post, Wobj } = require('models');
+const { votePostHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
 const {
@@ -14,10 +14,12 @@ const redisSetter = require('utilities/redis/redisSetter');
 const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const moment = require('moment/moment');
-const {
-  getUSDFromRshares,
-  getWeightForFieldUpdate,
-} = require('../utilities/helpers/rewardHelper');
+const rewardHelper = require('../utilities/helpers/rewardHelper');
+const appHelper = require('../utilities/helpers/appHelper');
+const sentryHelper = require('../utilities/helpers/sentryHelper');
+const { fieldUpdateNotification } = require('../utilities/notificationsApi/notificationsUtil');
+const { handleSpecifiedField } = require('../utilities/helpers/voteFieldHelper');
+const { FIELDS_NAMES } = require('../constants/wobjectsData');
 
 const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -27,9 +29,12 @@ const parse = async (votes, blockNum) => {
   const posts = await Post.getPostsByVotes(votesOps);
   const postsWithNewVotes = await usersUtil.calculateVotePower({ votesOps, posts });
 
+  // need to refactor to group votes by object
+
   await Promise.all(votesOps.map(async (voteOp) => {
     await parseVoteByType(voteOp, postsWithNewVotes, blockNum);
   }));
+  await voteOnObjectFields(votesOps);
 
   await Promise.all(posts.map(async (post) => {
     await votePostHelper.updateVotesOnPost({ post });
@@ -37,6 +42,148 @@ const parse = async (votes, blockNum) => {
 
   await sendLikeNotification(votesOps);
   console.log(`Parsed votes: ${votesOps.length}`);
+};
+
+const voteOnObjectFields = async (votes = []) => {
+  const updates = votes.filter((v) => v.type === VOTE_TYPES.APPEND_WOBJ);
+  if (!updates?.length) return;
+  const txIds = votes.map((v) => v.transaction_id);
+  const { users: blacklistUsers = [] } = await appHelper.getBlackListUsers();
+  const filterFunctionForProcessing = (v, field) => {
+    if (field.name === FIELDS_NAMES.AUTHORITY && field.creator !== v.voter) return false;
+    return !blacklistUsers.includes(v.voter) && v.percent > 0;
+  };
+
+  const groupedByObject = _.groupBy(updates, 'root_wobj');
+  for (const groupedObjectKey in groupedByObject) {
+    const updateData = {};
+    const arrayFilters = [];
+    const specificFieldsProcessData = [];
+    const votesByObj = groupedByObject[groupedObjectKey].map((el) => ({ ...el, groupKey: `${el.author}_${el.permlink}` }));
+    const groupedByField = _.groupBy(votesByObj, 'groupKey');
+    for (const groupedByFieldKey in groupedByField) {
+      const [author, permlink] = groupedByFieldKey.split('_');
+
+      const { field } = await Wobj.getField(
+        author,
+        permlink,
+        groupedObjectKey,
+      );
+
+      if (!field) continue;
+      const updatesOnField = groupedByField[groupedByFieldKey];
+      const voters = updatesOnField.map((v) => v.voter);
+
+      // Step 1: Only keep the last vote per voter in updatesOnField
+      const lastVoteByVoter = new Map();
+      for (const u of updatesOnField) {
+        if (!filterFunctionForProcessing(u, field)) continue;
+        lastVoteByVoter.set(u.voter, u);
+      }
+      const processedVotes = await Promise.all(
+        Array.from(lastVoteByVoter.values()).map((u) => addWeightAndExpertiseOnVote(u)),
+      );
+      if (processedVotes.length === 0) continue;
+
+      const filteredVotes = field.active_votes.filter((v) => !voters.includes(v.voter));
+
+      // Step 3: Add the new votes
+      const newVotes = [...filteredVotes, ...processedVotes].map((v) => ({
+        voter: v.voter,
+        percent: v.percent,
+        rshares_weight: v.rshares_weight,
+        weight: v.weight,
+        weightWAIV: v.weightWAIV,
+      }));
+
+      const fieldWeight = newVotes.reduce((acc, el) => acc + el.weight, 0);
+      const expertiseUSD = processedVotes.reduce((acc, el) => acc + el.expertiseUSD, 0);
+
+      updateData[`fields.$[${permlink}].weight`] = fieldWeight;
+      updateData[`fields.$[${permlink}].active_votes`] = newVotes;
+      arrayFilters.push({ [`${permlink}.permlink`]: permlink });
+
+      await User.increaseWobjectWeight({
+        name: field.creator,
+        author_permlink: groupedObjectKey,
+        // half of reward
+        weight: expertiseUSD * 0.5,
+      });
+
+      for (const processedVote of processedVotes) {
+        specificFieldsProcessData.push([
+          processedVote.author,
+          processedVote.permlink,
+          groupedObjectKey,
+          processedVote.voter,
+          processedVote.percent,
+        ]);
+        if (processedVote.percent < 0) {
+          await fieldUpdateNotification({
+            authorPermlink: groupedObjectKey,
+            field,
+            reject: true,
+            initiator: processedVote.voter,
+          });
+        }
+      }
+    }
+
+    const { error: updateError } = await Wobj.updateOneWithArrayFilters({
+      authorPermlink: groupedObjectKey,
+      updateData,
+      arrayFilters,
+    });
+    if (updateError) {
+      await sentryHelper.captureException(updateError.message);
+      continue;
+    }
+
+    for (const specificFieldsArgs of specificFieldsProcessData) {
+      await handleSpecifiedField(...specificFieldsArgs);
+    }
+  }
+
+  for (const txId of txIds) {
+    await redisSetter.publishToChannel({
+      channel: REDIS_KEYS.TX_ID_MAIN,
+      msg: txId,
+    });
+  }
+};
+
+const getVoteRsharesForUpdate = async (vote) => {
+  let { rshares } = vote;
+  if (rshares === 1 && !vote.voter.includes('_')) {
+    // calc rshares after week
+    rshares = await calcAppendRshares({ vote });
+  }
+
+  if (!rshares) rshares = _.get(vote, 'rshares', 1);
+  return rshares;
+};
+
+const addWeightAndExpertiseOnVote = async (vote) => {
+  const { weight } = await User.checkForObjectShares({
+    name: vote.voter,
+    author_permlink: vote.root_wobj,
+  });
+
+  const overallExpertise = await rewardHelper.getWeightForFieldUpdate(weight);
+  const rshares = await getVoteRsharesForUpdate(vote);
+  const rsharesWeight = Math.round(Number(rshares) * 1e-6);
+  const expertiseUSD = await rewardHelper.getUSDFromRshares(rshares);
+  const percent = (vote.percent % 2 === 0) ? vote.percent : -vote.percent;
+
+  const updateWeight = Number((overallExpertise + (rsharesWeight * 0.5))
+    * (percent / 10000).toFixed(8));
+
+  return {
+    ...vote,
+    expertiseUSD,
+    rshares_weight: rsharesWeight,
+    weight: updateWeight,
+  };
 };
 
 const sendLikeNotification = async (votes) => {
@@ -66,22 +213,6 @@ const parseVoteByType = async (voteOp, posts, blockNum) => {
       guest_author: voteOp.guest_author,
       post,
     });
-  } else if (voteOp.type === VOTE_TYPES.APPEND_WOBJ && voteOp.weight >= 0) {
-    await voteAppendObject({
-      author: voteOp.author, // author and permlink - identity of field
-      permlink: voteOp.permlink,
-      voter: voteOp.voter,
-      percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
-      author_permlink: voteOp.root_wobj,
-      rshares: voteOp.rshares,
-      json: !!voteOp.json,
-      weight: voteOp.weight,
-      blockNum,
-    });
-    await redisSetter.publishToChannel({
-      channel: REDIS_KEYS.TX_ID_MAIN,
-      msg: voteOp.transaction_id,
-    });
   }
 };
 
@@ -107,36 +238,6 @@ const calcAppendRshares = async ({ vote }) => {
     : 1;
 
   return Math.round(rShares);
-};
-
-const voteAppendObject = async (data) => {
-  // data include: author, permlink, percent, voter, author_permlink, rshares
-  // author and permlink - identity of field
-  // author_permlink - identity of wobject
-
-  if (data.rshares === 1 && !data.voter.includes('_')) {
-    // calc rshares after week
-    data.rshares = await calcAppendRshares({ vote: data });
-  }
-  const { weight } = await User.checkForObjectShares({
-    name: data.voter,
-    author_permlink: data.author_permlink,
-  });
-
-  // voters weight in wobject
-  data.weight = await getWeightForFieldUpdate(weight);
-
-  if (!data.rshares) {
-    const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
-    if (voteError || !vote) {
-      return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
-    }
-    data.rshares = _.get(vote, 'rshares', 1);
-  }
-  data.rshares_weight = Math.round(Number(data.rshares) * 1e-6);
-
-  const expertiseUSD = await getUSDFromRshares(data.rshares);
-  await voteFieldHelper.voteOnField({ ...data, expertiseUSD });
 };
 
 const votesFormat = async (votesOps) => {
@@ -196,4 +297,6 @@ const customJSONAppendVote = async (operation) => {
   ]);
 };
 
-module.exports = { parse, votesFormat, customJSONAppendVote };
+module.exports = {
+  parse, votesFormat, customJSONAppendVote, voteOnObjectFields,
+};
