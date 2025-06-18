@@ -111,11 +111,13 @@ const voteOnObjectFields = async (votes = []) => {
       arrayFilters.push({ [`${nameForArrayFilter}.permlink`]: permlink });
 
       // Update user expertise
-      await User.increaseWobjectWeight({
-        name: field.creator,
-        author_permlink: rootWobj,
-        weight: expertiseUSD * 0.5,
-      });
+      if (expertiseUSD > 0) {
+        await User.increaseWobjectWeight({
+          name: field.creator,
+          author_permlink: rootWobj,
+          weight: expertiseUSD * 0.5,
+        });
+      }
 
       // Prepare for post-processing
       for (const processedVote of processedVotes) {
@@ -212,7 +214,7 @@ const addWeightAndExpertiseOnVote = async (vote) => {
     ...vote,
     expertiseUSD,
     rshares_weight: rsharesWeight,
-    weight: updateWeight,
+    weight: updateWeight || 0,
   };
 };
 
