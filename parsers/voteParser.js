@@ -76,8 +76,8 @@ const voteOnObjectFields = async (votes = []) => {
       const voters = updatesOnField.map((v) => v.voter);
 
       // Only keep the last vote per voter
+      // if length 0 it could be 0 vote - remove vote
       const lastVotes = getLastVotesByVoter(updatesOnField, field);
-      if (!lastVotes.length) continue;
 
       // Process votes in parallel
       const processedVotes = await Promise.all(
@@ -104,9 +104,11 @@ const voteOnObjectFields = async (votes = []) => {
         0,
       );
 
-      updateData[`fields.$[${permlink}].weight`] = fieldWeight;
-      updateData[`fields.$[${permlink}].active_votes`] = newVotes;
-      arrayFilters.push({ [`${permlink}.permlink`]: permlink });
+      const nameForArrayFilter = formatFieldName(permlink);
+
+      updateData[`fields.$[${nameForArrayFilter}].weight`] = fieldWeight;
+      updateData[`fields.$[${nameForArrayFilter}].active_votes`] = newVotes;
+      arrayFilters.push({ [`${nameForArrayFilter}.permlink`]: permlink });
 
       // Update user expertise
       await User.increaseWobjectWeight({
@@ -166,6 +168,18 @@ const voteOnObjectFields = async (votes = []) => {
       msg: txId,
     })),
   );
+};
+
+const formatFieldName = (str) => {
+  // Remove all characters that are not a-z, 0-9 (alphanumeric)
+  let cleaned = str.replace(/[^a-z0-9]/gi, '');
+  // Ensure first character is a lowercase letter
+  if (!/^[a-z]/.test(cleaned)) {
+    cleaned = `a${cleaned}`; // prepend 'a' if first char is not a lowercase letter
+  }
+  // Make sure all letters are lowercase
+  cleaned = cleaned.toLowerCase();
+  return cleaned;
 };
 
 const getVoteRsharesForUpdate = async (vote) => {
