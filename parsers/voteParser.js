@@ -46,7 +46,7 @@ const voteOnObjectFields = async (votes = []) => {
   const { users: blacklistUsers = [] } = await appHelper.getBlackListUsers();
   const shouldProcessVote = (vote, field) => {
     if (field.name === FIELDS_NAMES.AUTHORITY && field.creator !== vote.voter) return false;
-    return !blacklistUsers.includes(vote.voter) && vote.percent > 0;
+    return !blacklistUsers.includes(vote.voter) && vote.weight > 0;
   };
   const getLastVotesByVoter = (votesArr, field) => {
     const lastVoteByVoter = new Map();
@@ -85,7 +85,7 @@ const voteOnObjectFields = async (votes = []) => {
       );
 
       // Remove old votes from same voters
-      const filteredVotes = field.active_votes.filter((v) => !voters.includes(v.voter));
+      const filteredVotes = _.filter(field.active_votes, (v) => !voters.includes(v.voter));
       // Add new votes
       const newVotes = [
         ...filteredVotes,
@@ -205,13 +205,14 @@ const addWeightAndExpertiseOnVote = async (vote) => {
   const rshares = await getVoteRsharesForUpdate(vote);
   const rsharesWeight = Math.round(Number(rshares) * 1e-6);
   const expertiseUSD = await rewardHelper.getUSDFromRshares(rshares);
-  const percent = (vote.percent % 2 === 0) ? vote.percent : -vote.percent;
+  const percent = (vote.weight % 2 === 0) ? vote.weight : -vote.weight;
 
   const updateWeight = Number((overallExpertise + (rsharesWeight * 0.5))
     * (percent / 10000).toFixed(8));
 
   return {
     ...vote,
+    percent,
     expertiseUSD,
     rshares_weight: rsharesWeight,
     weight: updateWeight || 0,
