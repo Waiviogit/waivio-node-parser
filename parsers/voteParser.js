@@ -106,7 +106,7 @@ const voteOnObjectFields = async (votes = []) => {
 
       const nameForArrayFilter = formatFieldName(permlink);
 
-      updateData[`fields.$[${nameForArrayFilter}].weight`] = fieldWeight;
+      updateData[`fields.$[${nameForArrayFilter}].weight`] = fieldWeight === 0 ? 1 : fieldWeight;
       updateData[`fields.$[${nameForArrayFilter}].active_votes`] = newVotes;
       arrayFilters.push({ [`${nameForArrayFilter}.permlink`]: permlink });
 
