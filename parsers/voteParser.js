@@ -20,6 +20,7 @@ const sentryHelper = require('../utilities/helpers/sentryHelper');
 const { fieldUpdateNotification } = require('../utilities/notificationsApi/notificationsUtil');
 const { handleSpecifiedField } = require('../utilities/helpers/voteFieldHelper');
 const { FIELDS_NAMES } = require('../constants/wobjectsData');
+const { calcWaivVoteToUsd } = require('../utilities/hiveEngine/operations');
 
 const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -99,6 +100,7 @@ const voteOnObjectFields = async (votes = []) => {
       }));
 
       const fieldWeight = newVotes.reduce((acc, el) => acc + el.weight, 0);
+      const waivWeight = newVotes.reduce((acc, el) => acc + el.weightWAIV, 0);
       const expertiseUSD = processedVotes.reduce(
         (acc, el) => acc + el.expertiseUSD,
         0,
@@ -107,6 +109,7 @@ const voteOnObjectFields = async (votes = []) => {
       const nameForArrayFilter = formatFieldName(permlink);
 
       updateData[`fields.$[${nameForArrayFilter}].weight`] = fieldWeight === 0 ? 1 : fieldWeight;
+      updateData[`fields.$[${nameForArrayFilter}].weightWAIV`] = fieldWeight === 0 ? 1 : waivWeight;
       updateData[`fields.$[${nameForArrayFilter}].active_votes`] = newVotes;
       arrayFilters.push({ [`${nameForArrayFilter}.permlink`]: permlink });
 
@@ -195,6 +198,11 @@ const getVoteRsharesForUpdate = async (vote) => {
   return rshares;
 };
 
+const calcFieldWeight = ({ overallExpertise, rsharesWeight, percent }) => Number(
+  (overallExpertise + (rsharesWeight * 0.5))
+    * (percent / 10000).toFixed(8),
+) || 0;
+
 const addWeightAndExpertiseOnVote = async (vote) => {
   const { weight } = await User.checkForObjectShares({
     name: vote.voter,
@@ -202,20 +210,28 @@ const addWeightAndExpertiseOnVote = async (vote) => {
   });
 
   const overallExpertise = await rewardHelper.getWeightForFieldUpdate(weight);
+
   const rshares = await getVoteRsharesForUpdate(vote);
   const rsharesWeight = Math.round(Number(rshares) * 1e-6);
-  const expertiseUSD = await rewardHelper.getUSDFromRshares(rshares);
-  const percent = (vote.weight % 2 === 0) ? vote.weight : -vote.weight;
 
-  const updateWeight = Number((overallExpertise + (rsharesWeight * 0.5))
-    * (percent / 10000).toFixed(8));
+  const [expertiseHIVE, expertiseWAIV] = await Promise.all([
+    rewardHelper.getUSDFromRshares(rshares),
+    calcWaivVoteToUsd({ account: vote.voter, weight: vote.weight }),
+  ]);
+
+  const waivToRsharesWeight = await rewardHelper.getWeightForFieldUpdate(expertiseWAIV);
+
+  const percent = (vote.weight % 2 === 0) ? vote.weight : -vote.weight;
 
   return {
     ...vote,
     percent,
-    expertiseUSD,
+    expertiseUSD: expertiseHIVE + expertiseWAIV,
     rshares_weight: rsharesWeight,
-    weight: updateWeight || 0,
+    weight: calcFieldWeight({ overallExpertise, rsharesWeight, percent }),
+    weightWAIV: calcFieldWeight({
+      overallExpertise, rsharesWeight: waivToRsharesWeight, percent,
+    }),
   };
 };
 
