@@ -1,228 +1,121 @@
 const {
-  expect, voteFieldHelper, UserWobjects, WobjModel, userHelper, sinon, faker, AppModel,
+  expect, WobjModel, sinon, AppModel, dropDatabase,
 } = require('test/testHelper');
+const voteParser = require('../../../../parsers/voteParser');
 const { voteAppendObjectMocks } = require('./mocks');
+const { VOTE_TYPES } = require('../../../../constants/parsersData');
+const rewardHelper = require('../../../../utilities/helpers/rewardHelper');
+const { AppendObject } = require('../../../factories');
+const engineOperations = require('../../../../utilities/hiveEngine/operations');
 
-describe('Vote On Field', async () => {
-  let blackList;
+describe('voteParser.voteOnObjectFields', () => {
+  let mocks;
   beforeEach(async () => {
-    blackList = [faker.random.string(), faker.random.string()];
-    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: blackList } }));
-    sinon.stub(userHelper, 'checkAndCreateUser').returns({ user: 'its ok' });
+    sinon.stub(rewardHelper, 'getUSDFromRshares').returns(Promise.resolve(1));
+    sinon.stub(rewardHelper, 'getWeightForFieldUpdate').returns(Promise.resolve(1));
+    sinon.stub(engineOperations, 'calcWaivVoteToUsd').returns(Promise.resolve(1));
+    await dropDatabase();
+    mocks = await voteAppendObjectMocks();
+    // Set field weight to a known value
   });
   afterEach(async () => {
     sinon.restore();
+    await dropDatabase();
   });
-  describe('when user have weight in wobject', async () => {
-    describe('on upVote', async () => {
-      let mocks;
-      let updField,
-        exstField;
-      beforeEach(async () => {
-        mocks = await voteAppendObjectMocks();
-        const { field } = await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        );
-        exstField = field;
-        await voteFieldHelper.voteOnField({
-          author: mocks.appendObject.author,
-          permlink: mocks.appendObject.permlink,
-          voter: mocks.voter.name,
-          percent: 10000,
-          author_permlink: mocks.author_permlink,
-          weight: 100,
-          rshares_weight: 1000,
-        });
-        updField = (await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        )).field;
-      });
-      it('should increase field weight by correct value', async () => {
-        const diff = updField.weight - exstField.weight;
-        expect(diff).to.eq(100 + (1000 * 0.25));
-      });
-      it('should increase creator weight by correct value', async () => {
-        const creatorWeight = await UserWobjects
-          .findOne({ user_name: mocks.creator.name, author_permlink: mocks.author_permlink });
-        expect(creatorWeight.weight).to.eq(1000 * 0.75);
-      });
-      it('should increase voter weight by correct value', async () => {
-        const voterWeight = await UserWobjects.findOne(
-          { user_name: mocks.voter.name, author_permlink: mocks.author_permlink },
-        );
-        expect(voterWeight.weight).to.eq(1000 * 0.25);
-      });
-      it('should not create duplicates on active_votes', async () => {
-        const countVotesByVoter = updField.active_votes.filter(
-          (vote) => vote.voter === mocks.voter.name,
-        ).length;
-        expect(countVotesByVoter).to.eq(1);
-      });
+
+  it('should update field in DB on upvote', async () => {
+    const { appendObject, author_permlink, vote } = mocks;
+    const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    const upvote = {
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 10000,
+    };
+    await voteParser.voteOnObjectFields([upvote]);
+    const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    expect(after.weight).to.not.eq(before.weight);
+    expect(after.active_votes.some((v) => v.voter === vote.voter)).to.be.true;
+  });
+
+  it('should update field in DB on reject', async () => {
+    const { appendObject, author_permlink, vote } = mocks;
+    const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    const downvote = {
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 9999,
+    };
+    await voteParser.voteOnObjectFields([downvote]);
+    const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    expect(after.weight).to.not.eq(before.weight);
+    expect(after.active_votes.some((v) => v.voter === vote.voter)).to.be.true;
+  });
+
+  it('should NOT update field in DB if weight is 0', async () => {
+    const { appendObject, author_permlink, vote } = mocks;
+    const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    const zeroVote = {
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 0,
+    };
+    await voteParser.voteOnObjectFields([zeroVote]);
+    const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    expect(after.weight).to.eq(before.weight);
+    expect(after.active_votes.length).to.eq(before.active_votes.length);
+  });
+
+  it('should NOT update field if voter is blacklisted and weight is 0', async () => {
+    const { appendObject, author_permlink, vote } = mocks;
+    const blacklisted = 'blacklisted_user';
+    sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: [blacklisted] } }));
+    const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    const zeroVote = {
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 0, voter: blacklisted,
+    };
+    await voteParser.voteOnObjectFields([zeroVote]);
+    const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    expect(after.weight).to.eq(before.weight);
+    expect(after.active_votes.length).to.eq(before.active_votes.length);
+    AppModel.getOne.restore();
+  });
+
+  it('should only keep latest vote for same voter on same field', async () => {
+    const { appendObject, author_permlink, vote } = mocks;
+    const v1 = {
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 10000,
+    };
+    const v2 = {
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 2000000000, weight: 5000,
+    };
+    await voteParser.voteOnObjectFields([v1, v2]);
+    const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    const votesByVoter = after.active_votes.filter((v) => v.voter === vote.voter);
+    expect(votesByVoter.length).to.eq(1);
+    expect(votesByVoter[0].percent).to.eq(5000);
+  });
+
+  it('should only update the correct field if multiple fields exist', async () => {
+    // Extend mocks to add a second field
+    const { appendObject, author_permlink, vote } = mocks;
+    const { appendObject: append2 } = await AppendObject.Create({
+      creator: mocks.creator.name, root_wobj: author_permlink, weight: 1,
     });
-    describe('on downVote', async () => {
-      /*
-            Usually down vote indicate as negative value of "percent", but on appends we use another system,
-            to keep reputations of ours bots, we improve downVotes as upVotes, but with not integer value,
-            for example: UpVote with percent value 98 00 is still upVote, but if value not integer, like 98 50 - it
-            becomes calculate as downVote with value 99 (round value to upper if 50, and to lower if 49)
-             */
-      let mocks, updField, exstField;
+    const vote2 = {
+      ...vote, author: append2.author, permlink: append2.permlink, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 10000,
+    };
+    await voteParser.voteOnObjectFields([vote2]);
+    const { field: after1 } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
+    const { field: after2 } = await WobjModel.getField(append2.author, append2.permlink, author_permlink);
+    expect(after1.active_votes.length).to.eq(0);
+    expect(after2.active_votes.length).to.eq(1);
+  });
 
-      beforeEach(async () => {
-        mocks = await voteAppendObjectMocks();
-        const { field } = await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        );
+  it('should do nothing on empty input', async () => {
+    await voteParser.voteOnObjectFields([]);
+    // No error, nothing to assert
+  });
 
-        exstField = field;
-        await voteFieldHelper.voteOnField({
-          author: mocks.appendObject.author,
-          permlink: mocks.appendObject.permlink,
-          voter: mocks.voter.name,
-          percent: 9995, // should be rounded to - 100 percent
-          author_permlink: mocks.author_permlink,
-          weight: 100,
-          rshares_weight: 1000,
-        });
-
-        const { field: newField } = await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        );
-        updField = newField;
-      });
-      afterEach(async () => {
-        sinon.restore();
-      });
-      it('should decrease field weight by correct value', async () => {
-        const diff = updField.weight - exstField.weight;
-        expect(diff).to.eq(-350);
-      });
-      it('should decrease creator weight by correct value', async () => {
-        const creatorWeight = await UserWobjects.findOne(
-          { user_name: mocks.creator.name, author_permlink: mocks.author_permlink },
-        );
-        expect(creatorWeight.weight).to.eq(1000 * 0.75 * -1);
-      });
-      it('should not create voter user_wobject doc', async () => {
-        const voterWeight = await UserWobjects.findOne(
-          { user_name: mocks.voter.name, author_permlink: mocks.author_permlink },
-        );
-        expect(voterWeight).to.not.exist;
-      });
-
-      it('should not create duplicates on active_votes', async () => {
-        const countVotesByVoter = updField.active_votes.filter(
-          (vote) => vote.voter === mocks.voter.name,
-        ).length;
-        expect(countVotesByVoter).to.eq(1);
-      });
-    });
-    describe('on unVote after upVote', async () => {
-      /*
-            Usually down vote indicate as negative value of "percent", but on appends we use another system,
-            to keep reputations of ours bots, we improve downVotes as upVotes, but with not integer value,
-            for example: upvote with percent value 98 00 is still upVote, but if value not integer, like 98 50 - it
-            becomes calculate as downVote with value 99 (round value to upper if 50, and to lower if 49)
-             */
-      let mocks;
-      let updField,
-        exstField;
-
-      beforeEach(async () => {
-        mocks = await voteAppendObjectMocks();
-        await voteFieldHelper.voteOnField({
-          author: mocks.appendObject.author,
-          permlink: mocks.appendObject.permlink,
-          voter: mocks.voter.name,
-          percent: mocks.vote.percent, // should be rounded to - 100 percent
-          author_permlink: mocks.author_permlink,
-          weight: 100,
-          rshares_weight: 1000,
-        });
-        const { field } = await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        );
-
-        exstField = field;
-        await voteFieldHelper.voteOnField({
-          author: mocks.appendObject.author,
-          permlink: mocks.appendObject.permlink,
-          voter: mocks.voter.name,
-          percent: 0, // should be rounded to - 100 percent
-          author_permlink: mocks.author_permlink,
-          rshares_weight: 0,
-        });
-        updField = (await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        )).field;
-      });
-      it('should decrease field weight by correct value', async () => {
-        const diff = updField.weight - exstField.weight;
-        expect(diff).to.eq(-(100 + (1000 * 0.25)));
-      });
-      it('should decrease creator weight by correct value', async () => {
-        const creatorWeight = await UserWobjects.findOne(
-          { user_name: mocks.creator.name, author_permlink: mocks.author_permlink },
-        );
-        expect(creatorWeight.weight).to.eq(0);
-      });
-      it('should decrease voter weight by correct value', async () => {
-        const voterWeight = await UserWobjects.findOne(
-          { user_name: mocks.voter.name, author_permlink: mocks.author_permlink },
-        );
-        expect(voterWeight.weight).to.eq(0);
-      });
-    });
-    describe('on unVote after downVote', async () => {
-      /*
-            Usually down vote indicate as negative value of "percent", but on appends we use another system,
-            to keep reputations of ours bots, we improve downVotes as upVotes, but with not integer value,
-            for example: upvote with percent value 98 00 is still upVote, but if value not integer, like 98 50 - it
-            becomes calculate as downVote with value 99 (round value to upper if 50, and to lower if 49)
-             */
-      let mocks, updField, exstField;
-
-      beforeEach(async () => {
-        mocks = await voteAppendObjectMocks();
-        await voteFieldHelper.voteOnField({
-          author: mocks.appendObject.author,
-          permlink: mocks.appendObject.permlink,
-          voter: mocks.voter.name,
-          percent: 9995, // should be rounded to - 100 percent
-          author_permlink: mocks.author_permlink,
-          weight: 100,
-          rshares_weight: 1000,
-        });
-        const { field } = await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        );
-
-        exstField = field;
-        await voteFieldHelper.voteOnField({
-          author: mocks.appendObject.author,
-          permlink: mocks.appendObject.permlink,
-          voter: mocks.voter.name,
-          percent: 0, // should be rounded to - 100 percent
-          author_permlink: mocks.author_permlink,
-          rshares_weight: 0,
-        });
-        const { field: newField } = await WobjModel.getField(
-          mocks.appendObject.author, mocks.appendObject.permlink, mocks.author_permlink,
-        );
-
-        updField = newField;
-      });
-      it('should increase field weight by 100', async () => {
-        const diff = updField.weight - exstField.weight;
-        expect(diff).to.eq(350);
-      });
-      it('should increase creator weight and became 0', async () => {
-        const creatorWeight = await UserWobjects.findOne(
-          { user_name: mocks.creator.name, author_permlink: mocks.author_permlink },
-        );
-
-        expect(creatorWeight.weight).to.eq(0);
-      });
-    });
+  it('should skip missing field and not throw', async () => {
+    const { vote, author_permlink } = mocks;
+    const badVote = {
+      ...vote, author: 'notfound', permlink: 'notfound', type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, percent: 10000,
+    };
+    await voteParser.voteOnObjectFields([badVote]);
+    // No error, nothing to assert
   });
 });

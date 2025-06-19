@@ -388,6 +388,26 @@ const departmentUniqCount = async (department) => {
   }
 };
 
+const updateOneWithArrayFilters = async ({
+  authorPermlink, updateData, arrayFilters,
+}) => {
+  try {
+    const result = await WObjectModel.updateOne(
+      {
+        author_permlink: authorPermlink,
+      },
+      updateData,
+      {
+        arrayFilters,
+      },
+    );
+
+    return { result };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   find,
   findOne,
@@ -411,4 +431,5 @@ module.exports = {
   findSameFieldBody,
   findByGroupIds,
   departmentUniqCount,
+  updateOneWithArrayFilters,
 };

@@ -8,7 +8,7 @@ const Create = async ({
     name: name || 'city',
     body: body || faker.address.city(),
     locale: 'en-US',
-    weight: weight || faker.random.number(1000),
+    weight: weight === 0 ? 0 : weight || faker.random.number(1000),
     creator: creator || faker.name.firstName().toLowerCase(),
     author: faker.name.firstName().toLowerCase(),
     permlink: faker.random.string(20),

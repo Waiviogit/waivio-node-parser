@@ -1,7 +1,7 @@
 const _ = require('lodash');
-const { postsUtil, usersUtil } = require('utilities/steemApi');
-const { User, Post } = require('models');
-const { voteFieldHelper, votePostHelper } = require('utilities/helpers');
+const { usersUtil } = require('utilities/steemApi');
+const { User, Post, Wobj } = require('models');
+const { votePostHelper } = require('utilities/helpers');
 const { commentRefGetter } = require('utilities/commentRefService');
 const { jsonVoteValidator } = require('validator');
 const {
@@ -14,10 +14,13 @@ const redisSetter = require('utilities/redis/redisSetter');
 const { updateThreadVoteCount } = require('utilities/helpers/thredsHelper');
 const customJsonHelper = require('utilities/helpers/customJsonHelper');
 const moment = require('moment/moment');
-const {
-  getUSDFromRshares,
-  getWeightForFieldUpdate,
-} = require('../utilities/helpers/rewardHelper');
+const rewardHelper = require('../utilities/helpers/rewardHelper');
+const appHelper = require('../utilities/helpers/appHelper');
+const sentryHelper = require('../utilities/helpers/sentryHelper');
+const { fieldUpdateNotification } = require('../utilities/notificationsApi/notificationsUtil');
+const { handleSpecifiedField } = require('../utilities/helpers/voteFieldHelper');
+const { FIELDS_NAMES } = require('../constants/wobjectsData');
+const engineOperations = require('../utilities/hiveEngine/operations');
 
 const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -27,16 +30,209 @@ const parse = async (votes, blockNum) => {
   const posts = await Post.getPostsByVotes(votesOps);
   const postsWithNewVotes = await usersUtil.calculateVotePower({ votesOps, posts });
 
-  await Promise.all(votesOps.map(async (voteOp) => {
-    await parseVoteByType(voteOp, postsWithNewVotes, blockNum);
-  }));
+  await voteOnObjectFields(votesOps);
 
-  await Promise.all(posts.map(async (post) => {
-    await votePostHelper.updateVotesOnPost({ post });
-  }));
+  await Promise.all(votesOps.map((voteOp) => parseVoteByType(voteOp, postsWithNewVotes, blockNum)));
+  await Promise.all(posts.map((post) => votePostHelper.updateVotesOnPost({ post })));
 
   await sendLikeNotification(votesOps);
   console.log(`Parsed votes: ${votesOps.length}`);
+};
+
+const voteOnObjectFields = async (votes = []) => {
+  const updates = votes.filter((v) => v.type === VOTE_TYPES.APPEND_WOBJ);
+  if (!updates.length) return;
+
+  const txIds = votes.map((v) => v.transaction_id);
+  const { users: blacklistUsers = [] } = await appHelper.getBlackListUsers();
+  const shouldProcessVote = (vote, field) => {
+    if (field.name === FIELDS_NAMES.AUTHORITY && field.creator !== vote.voter) return false;
+    return !blacklistUsers.includes(vote.voter) && vote.weight > 0;
+  };
+  const getLastVotesByVoter = (votesArr, field) => {
+    const lastVoteByVoter = new Map();
+    for (const v of votesArr) {
+      if (!shouldProcessVote(v, field)) continue;
+      lastVoteByVoter.set(v.voter, v);
+    }
+    return Array.from(lastVoteByVoter.values());
+  };
+
+  const processRootWobjGroup = async (rootWobj, groupVotes) => {
+    const updateData = {};
+    const arrayFilters = [];
+    const specificFieldsProcessData = [];
+    const votesByObj = groupVotes.map((el) => ({
+      ...el,
+      groupKey: `${el.author}_${el.permlink}`,
+    }));
+    const groupedByField = _.groupBy(votesByObj, 'groupKey');
+
+    for (const groupKey of Object.keys(groupedByField)) {
+      const [author, permlink] = groupKey.split('_');
+      const { field } = await Wobj.getField(author, permlink, rootWobj);
+      if (!field) continue;
+
+      const updatesOnField = groupedByField[groupKey];
+      const voters = updatesOnField.map((v) => v.voter);
+
+      // Only keep the last vote per voter
+      // if length 0 it could be 0 vote - remove vote
+      const lastVotes = getLastVotesByVoter(updatesOnField, field);
+
+      // Process votes in parallel
+      const processedVotes = await Promise.all(
+        lastVotes.map(addWeightAndExpertiseOnVote),
+      );
+
+      // Remove old votes from same voters
+      const filteredVotes = _.filter(field.active_votes, (v) => !voters.includes(v.voter));
+      // Add new votes
+      const newVotes = [
+        ...filteredVotes,
+        ...processedVotes,
+      ].map((v) => ({
+        voter: v.voter,
+        percent: v.percent,
+        rshares_weight: v.rshares_weight,
+        weight: v.weight,
+        weightWAIV: v.weightWAIV,
+      }));
+
+      const fieldWeight = newVotes.reduce((acc, el) => acc + el.weight, 0);
+      const waivWeight = newVotes.reduce((acc, el) => acc + el.weightWAIV, 0);
+      const expertiseUSD = processedVotes.reduce(
+        (acc, el) => acc + el.expertiseUSD,
+        0,
+      );
+
+      const nameForArrayFilter = formatFieldName(permlink);
+
+      updateData[`fields.$[${nameForArrayFilter}].weight`] = fieldWeight === 0 ? 1 : fieldWeight;
+      updateData[`fields.$[${nameForArrayFilter}].weightWAIV`] = fieldWeight === 0 ? 1 : waivWeight;
+      updateData[`fields.$[${nameForArrayFilter}].active_votes`] = newVotes;
+      arrayFilters.push({ [`${nameForArrayFilter}.permlink`]: permlink });
+
+      // Update user expertise
+      if (expertiseUSD > 0) {
+        await User.increaseWobjectWeight({
+          name: field.creator,
+          author_permlink: rootWobj,
+          weight: expertiseUSD * 0.5,
+        });
+      }
+
+      // Prepare for post-processing
+      for (const processedVote of processedVotes) {
+        specificFieldsProcessData.push([
+          processedVote.author,
+          processedVote.permlink,
+          rootWobj,
+          processedVote.voter,
+          processedVote.percent,
+        ]);
+        if (processedVote.percent < 0) {
+          await fieldUpdateNotification({
+            authorPermlink: rootWobj,
+            field,
+            reject: true,
+            initiator: processedVote.voter,
+          });
+        }
+      }
+    }
+
+    // Update DB for this object
+    const { error: updateError } = await Wobj.updateOneWithArrayFilters({
+      authorPermlink: rootWobj,
+      updateData,
+      arrayFilters,
+    });
+    if (updateError) {
+      await sentryHelper.captureException(updateError.message);
+      return;
+    }
+
+    // Post-processing for each field
+    for (const args of specificFieldsProcessData) {
+      await handleSpecifiedField(...args);
+    }
+  };
+
+  // Group by root_wobj and process all groups in parallel
+  const groupedByObject = _.groupBy(updates, 'root_wobj');
+  await Promise.all(
+    Object.entries(groupedByObject)
+      .map(([rootWobj, groupVotes]) => processRootWobjGroup(rootWobj, groupVotes)),
+  );
+
+  // Publish all txIds in parallel
+  await Promise.all(
+    txIds.map((txId) => redisSetter.publishToChannel({
+      channel: REDIS_KEYS.TX_ID_MAIN,
+      msg: txId,
+    })),
+  );
+};
+
+const formatFieldName = (str) => {
+  // Remove all characters that are not a-z, 0-9 (alphanumeric)
+  let cleaned = str.replace(/[^a-z0-9]/gi, '');
+  // Ensure first character is a lowercase letter
+  if (!/^[a-z]/.test(cleaned)) {
+    cleaned = `a${cleaned}`; // prepend 'a' if first char is not a lowercase letter
+  }
+  // Make sure all letters are lowercase
+  cleaned = cleaned.toLowerCase();
+  return cleaned;
+};
+
+const getVoteRsharesForUpdate = async (vote) => {
+  let { rshares } = vote;
+  if (rshares === 1 && !vote.voter.includes('_')) {
+    // calc rshares after week
+    rshares = await calcAppendRshares({ vote });
+  }
+
+  if (!rshares) rshares = _.get(vote, 'rshares', 1);
+  return rshares;
+};
+
+const calcFieldWeight = ({ overallExpertise, rsharesWeight, percent }) => Number(
+  (overallExpertise + (rsharesWeight * 0.5))
+    * (percent / 10000).toFixed(8),
+) || 0;
+
+const addWeightAndExpertiseOnVote = async (vote) => {
+  const { weight } = await User.checkForObjectShares({
+    name: vote.voter,
+    author_permlink: vote.root_wobj,
+  });
+
+  const overallExpertise = await rewardHelper.getWeightForFieldUpdate(weight);
+
+  const rshares = await getVoteRsharesForUpdate(vote);
+  const rsharesWeight = Math.round(Number(rshares) * 1e-6);
+
+  const [expertiseHIVE, expertiseWAIV] = await Promise.all([
+    rewardHelper.getUSDFromRshares(rshares),
+    engineOperations.calcWaivVoteToUsd({ account: vote.voter, weight: vote.weight }),
+  ]);
+
+  const waivToRsharesWeight = await rewardHelper.getWeightForFieldUpdate(expertiseWAIV);
+
+  const percent = (vote.weight % 2 === 0) ? vote.weight : -vote.weight;
+
+  return {
+    ...vote,
+    percent,
+    expertiseUSD: expertiseHIVE + expertiseWAIV,
+    rshares_weight: rsharesWeight,
+    weight: calcFieldWeight({ overallExpertise, rsharesWeight, percent }),
+    weightWAIV: calcFieldWeight({
+      overallExpertise, rsharesWeight: waivToRsharesWeight, percent,
+    }),
+  };
 };
 
 const sendLikeNotification = async (votes) => {
@@ -66,22 +262,6 @@ const parseVoteByType = async (voteOp, posts, blockNum) => {
       guest_author: voteOp.guest_author,
       post,
     });
-  } else if (voteOp.type === VOTE_TYPES.APPEND_WOBJ && voteOp.weight >= 0) {
-    await voteAppendObject({
-      author: voteOp.author, // author and permlink - identity of field
-      permlink: voteOp.permlink,
-      voter: voteOp.voter,
-      percent: voteOp.weight, // in blockchain "weight" is "percent" of current vote
-      author_permlink: voteOp.root_wobj,
-      rshares: voteOp.rshares,
-      json: !!voteOp.json,
-      weight: voteOp.weight,
-      blockNum,
-    });
-    await redisSetter.publishToChannel({
-      channel: REDIS_KEYS.TX_ID_MAIN,
-      msg: voteOp.transaction_id,
-    });
   }
 };
 
@@ -109,36 +289,6 @@ const calcAppendRshares = async ({ vote }) => {
   return Math.round(rShares);
 };
 
-const voteAppendObject = async (data) => {
-  // data include: author, permlink, percent, voter, author_permlink, rshares
-  // author and permlink - identity of field
-  // author_permlink - identity of wobject
-
-  if (data.rshares === 1 && !data.voter.includes('_')) {
-    // calc rshares after week
-    data.rshares = await calcAppendRshares({ vote: data });
-  }
-  const { weight } = await User.checkForObjectShares({
-    name: data.voter,
-    author_permlink: data.author_permlink,
-  });
-
-  // voters weight in wobject
-  data.weight = await getWeightForFieldUpdate(weight);
-
-  if (!data.rshares) {
-    const { vote, error: voteError } = await tryReserveVote(data.author, data.permlink, data.voter);
-    if (voteError || !vote) {
-      return console.error(voteError || `[voteAppendObject] Vote not found. {voter:${data.voter}, comment: ${data.author}/${data.permlink}`);
-    }
-    data.rshares = _.get(vote, 'rshares', 1);
-  }
-  data.rshares_weight = Math.round(Number(data.rshares) * 1e-6);
-
-  const expertiseUSD = await getUSDFromRshares(data.rshares);
-  await voteFieldHelper.voteOnField({ ...data, expertiseUSD });
-};
-
 const votesFormat = async (votesOps) => {
   votesOps = _
     .chain(votesOps)
@@ -163,18 +313,6 @@ const votesFormat = async (votesOps) => {
   return { votesOps };
 }; // format votes, add to each type of comment(post with wobj, append wobj etc.)
 
-// Use this method when get vote from block but node still not perform this vote on database_api
-const tryReserveVote = async (author, permlink, voter, times = 10) => {
-  for (let i = 0; i < times; i++) {
-    const { votes = [], err } = await postsUtil.getVotes(author, permlink);
-    if (err) return { error: err };
-    const vote = votes.find((v) => v.voter === voter);
-    if (vote) return { vote };
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
-  return { error: { message: `[tryReserveVote]Vote from ${voter} on post(or comment) @${author}/${permlink} not found!` } };
-};
-
 const customJSONAppendVote = async (operation) => {
   const json = jsonHelper.parseJson(operation.json);
   if (_.isEmpty(json)) return console.error(ERROR.INVALID_JSON);
@@ -196,4 +334,6 @@ const customJSONAppendVote = async (operation) => {
   ]);
 };
 
-module.exports = { parse, votesFormat, customJSONAppendVote };
+module.exports = {
+  parse, votesFormat, customJSONAppendVote, voteOnObjectFields,
+};
