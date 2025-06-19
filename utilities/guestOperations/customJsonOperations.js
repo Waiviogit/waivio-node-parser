@@ -159,7 +159,7 @@ const guestVoteOnField = async ({ vote }) => {
     permlink: vote.permlink,
     voter: vote.voter,
     root_wobj: vote.root_wobj,
-    percent: vote.weight,
+    weight: vote.weight,
     type: vote.type,
   }]);
 };

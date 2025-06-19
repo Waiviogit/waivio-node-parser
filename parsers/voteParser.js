@@ -101,10 +101,10 @@ const voteOnObjectFields = async (votes = []) => {
 
       const fieldWeight = newVotes.reduce((acc, el) => acc + el.weight, 0);
       const waivWeight = newVotes.reduce((acc, el) => acc + el.weightWAIV, 0);
-      const expertiseUSD = processedVotes.reduce(
+      const expertiseUSD = Number(processedVotes.reduce(
         (acc, el) => acc + el.expertiseUSD,
         0,
-      );
+      ).toFixed(8));
 
       const nameForArrayFilter = formatFieldName(permlink);
 
