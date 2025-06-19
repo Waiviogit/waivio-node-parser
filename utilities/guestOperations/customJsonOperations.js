@@ -12,6 +12,8 @@ const voteParser = require('parsers/voteParser');
 const { verifySignature } = require('utilities/helpers/signatureHelper');
 const { VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
 const { voteOnObjectFields } = require('../../parsers/voteParser');
+const redisSetter = require('../redis/redisSetter');
+const { REDIS_KEYS } = require('../../constants/parsersData');
 
 exports.followUser = async (operation) => {
   const validSignature = await verifySignature({
@@ -52,7 +54,7 @@ exports.followWobject = async (operation) => {
   await followObjectParser.parse(operation);
 };
 
-exports.guestVote = async (operation) => {
+exports.guestVote = async (operation, transaction_id) => {
   const validSignature = await verifySignature({
     operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
   });
@@ -67,6 +69,11 @@ exports.guestVote = async (operation) => {
   } else if (vote.type === 'append_wobj') {
     await guestVoteOnField({ vote });
   }
+
+  await redisSetter.publishToChannel({
+    channel: REDIS_KEYS.TX_ID_MAIN,
+    msg: transaction_id,
+  });
 };
 
 exports.accountUpdate = async (operation) => {

@@ -43,7 +43,7 @@ const voteOnObjectFields = async (votes = []) => {
   const updates = votes.filter((v) => v.type === VOTE_TYPES.APPEND_WOBJ);
   if (!updates.length) return;
 
-  const txIds = votes.map((v) => v.transaction_id);
+  const txIds = votes.map((v) => v.transaction_id).filter((t) => !!t);
   const { users: blacklistUsers = [] } = await appHelper.getBlackListUsers();
   const shouldProcessVote = (vote, field) => {
     if (field.name === FIELDS_NAMES.AUTHORITY && field.creator !== vote.voter) return false;
