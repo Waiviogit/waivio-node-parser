@@ -20,7 +20,7 @@ const sentryHelper = require('../utilities/helpers/sentryHelper');
 const { fieldUpdateNotification } = require('../utilities/notificationsApi/notificationsUtil');
 const { handleSpecifiedField } = require('../utilities/helpers/voteFieldHelper');
 const { FIELDS_NAMES } = require('../constants/wobjectsData');
-const { calcWaivVoteToUsd } = require('../utilities/hiveEngine/operations');
+const engineOperations = require('../utilities/hiveEngine/operations');
 
 const parse = async (votes, blockNum) => {
   if (_.isEmpty(votes)) return console.log('Parsed votes: 0');
@@ -216,7 +216,7 @@ const addWeightAndExpertiseOnVote = async (vote) => {
 
   const [expertiseHIVE, expertiseWAIV] = await Promise.all([
     rewardHelper.getUSDFromRshares(rshares),
-    calcWaivVoteToUsd({ account: vote.voter, weight: vote.weight }),
+    engineOperations.calcWaivVoteToUsd({ account: vote.voter, weight: vote.weight }),
   ]);
 
   const waivToRsharesWeight = await rewardHelper.getWeightForFieldUpdate(expertiseWAIV);

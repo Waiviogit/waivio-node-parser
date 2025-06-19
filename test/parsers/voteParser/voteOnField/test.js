@@ -6,11 +6,14 @@ const { voteAppendObjectMocks } = require('./mocks');
 const { VOTE_TYPES } = require('../../../../constants/parsersData');
 const rewardHelper = require('../../../../utilities/helpers/rewardHelper');
 const { AppendObject } = require('../../../factories');
+const engineOperations = require('../../../../utilities/hiveEngine/operations');
 
 describe('voteParser.voteOnObjectFields', () => {
   let mocks;
   beforeEach(async () => {
     sinon.stub(rewardHelper, 'getUSDFromRshares').returns(Promise.resolve(1));
+    sinon.stub(rewardHelper, 'getWeightForFieldUpdate').returns(Promise.resolve(1));
+    sinon.stub(engineOperations, 'calcWaivVoteToUsd').returns(Promise.resolve(1));
     await dropDatabase();
     mocks = await voteAppendObjectMocks();
     // Set field weight to a known value
@@ -24,7 +27,7 @@ describe('voteParser.voteOnObjectFields', () => {
     const { appendObject, author_permlink, vote } = mocks;
     const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
     const upvote = {
-      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, percent: 10000,
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 10000,
     };
     await voteParser.voteOnObjectFields([upvote]);
     const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
@@ -36,7 +39,7 @@ describe('voteParser.voteOnObjectFields', () => {
     const { appendObject, author_permlink, vote } = mocks;
     const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
     const downvote = {
-      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, percent: 9999,
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 9999,
     };
     await voteParser.voteOnObjectFields([downvote]);
     const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
@@ -44,11 +47,11 @@ describe('voteParser.voteOnObjectFields', () => {
     expect(after.active_votes.some((v) => v.voter === vote.voter)).to.be.true;
   });
 
-  it('should NOT update field in DB if percent is 0', async () => {
+  it('should NOT update field in DB if weight is 0', async () => {
     const { appendObject, author_permlink, vote } = mocks;
     const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
     const zeroVote = {
-      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, percent: 0,
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 0,
     };
     await voteParser.voteOnObjectFields([zeroVote]);
     const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
@@ -56,13 +59,13 @@ describe('voteParser.voteOnObjectFields', () => {
     expect(after.active_votes.length).to.eq(before.active_votes.length);
   });
 
-  it('should NOT update field if voter is blacklisted and percent is 0', async () => {
+  it('should NOT update field if voter is blacklisted and weight is 0', async () => {
     const { appendObject, author_permlink, vote } = mocks;
     const blacklisted = 'blacklisted_user';
     sinon.stub(AppModel, 'getOne').returns(Promise.resolve({ app: { black_list_users: [blacklisted] } }));
     const { field: before } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
     const zeroVote = {
-      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, percent: 0, voter: blacklisted,
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 0, voter: blacklisted,
     };
     await voteParser.voteOnObjectFields([zeroVote]);
     const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
@@ -74,10 +77,10 @@ describe('voteParser.voteOnObjectFields', () => {
   it('should only keep latest vote for same voter on same field', async () => {
     const { appendObject, author_permlink, vote } = mocks;
     const v1 = {
-      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, percent: 10000,
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 10000,
     };
     const v2 = {
-      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 2000000000, percent: 5000,
+      ...vote, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 2000000000, weight: 5000,
     };
     await voteParser.voteOnObjectFields([v1, v2]);
     const { field: after } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
@@ -89,9 +92,11 @@ describe('voteParser.voteOnObjectFields', () => {
   it('should only update the correct field if multiple fields exist', async () => {
     // Extend mocks to add a second field
     const { appendObject, author_permlink, vote } = mocks;
-    const { appendObject: append2 } = await AppendObject.Create({ creator: mocks.creator.name, root_wobj: author_permlink });
+    const { appendObject: append2 } = await AppendObject.Create({
+      creator: mocks.creator.name, root_wobj: author_permlink, weight: 1,
+    });
     const vote2 = {
-      ...vote, author: append2.author, permlink: append2.permlink, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, percent: 10000,
+      ...vote, author: append2.author, permlink: append2.permlink, type: VOTE_TYPES.APPEND_WOBJ, root_wobj: author_permlink, rshares: 1000000000, weight: 10000,
     };
     await voteParser.voteOnObjectFields([vote2]);
     const { field: after1 } = await WobjModel.getField(appendObject.author, appendObject.permlink, author_permlink);
