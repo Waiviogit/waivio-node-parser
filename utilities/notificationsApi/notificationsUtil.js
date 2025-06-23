@@ -1,13 +1,16 @@
 const _ = require('lodash');
 const axios = require('axios');
+const { FIELDS_NAMES, OBJECT_TYPES } = require('@waivio/objects-processor');
 const { redisGetter } = require('utilities/redis');
 const {
   Post, Wobj, CommentModel, UserExpertiseModel,
 } = require('models');
 const { postsUtil } = require('utilities/steemApi');
 const { socketClient } = require('utilities/socketClient/socketClient');
-const { FIELDS_NAMES } = require('constants/wobjectsData');
+const supposedUpdatesTranslate = require('constants/translations/supposedUpdates');
 const config = require('config');
+const redisSetter = require('../redis/redisSetter');
+const { REDIS_KEYS } = require('../../constants/parsersData');
 
 const {
   HOST, BASE_URL, SET_NOTIFICATION, WS_SET_NOTIFICATION,
@@ -168,6 +171,18 @@ const getNameFromFields = (fields) => {
   return _.get(result, 'body');
 };
 
+// for detect update field on supposed updates
+const publishLinkRatingUpdate = async ({ wobject, field }) => {
+  if (wobject.object_type !== OBJECT_TYPES.LINK) return;
+  if (field.name !== FIELDS_NAMES.RATING) return;
+  if (!Object.values(supposedUpdatesTranslate.Safety).includes(field.body)) return;
+
+  await redisSetter.publishToChannel({
+    channel: REDIS_KEYS.PUB_SUPPOSED_FIELD_UPDATE,
+    msg: `${field.name}:${wobject.author_permlink}`,
+  });
+};
+
 const fieldUpdateNotification = async ({
   authorPermlink, field, reject, initiator,
 }) => {
@@ -175,6 +190,8 @@ const fieldUpdateNotification = async ({
     filter: { author_permlink: authorPermlink },
   });
   if (!wobject) return;
+
+  await publishLinkRatingUpdate({ wobject, field });
   const objectName = getNameFromFields(wobject.fields);
 
   const sendTo = _.uniq([
