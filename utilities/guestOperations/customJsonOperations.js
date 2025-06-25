@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { getFromMetadataGuestInfo } = require('utilities/guestOperations/guestHelpers');
 const notificationsUtil = require('utilities/notificationsApi/notificationsUtil');
-const { votePostHelper, voteFieldHelper } = require('utilities/helpers');
+const { votePostHelper } = require('utilities/helpers');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const followObjectParser = require('parsers/followObjectParser');
 const jsonHelper = require('utilities/helpers/jsonHelper');
@@ -11,6 +11,9 @@ const { Post, CommentModel } = require('models');
 const voteParser = require('parsers/voteParser');
 const { verifySignature } = require('utilities/helpers/signatureHelper');
 const { VERIFY_SIGNATURE_TYPE } = require('constants/parsersData');
+const { voteOnObjectFields } = require('../../parsers/voteParser');
+const redisSetter = require('../redis/redisSetter');
+const { REDIS_KEYS } = require('../../constants/parsersData');
 
 exports.followUser = async (operation) => {
   const validSignature = await verifySignature({
@@ -51,7 +54,7 @@ exports.followWobject = async (operation) => {
   await followObjectParser.parse(operation);
 };
 
-exports.guestVote = async (operation) => {
+exports.guestVote = async (operation, transaction_id) => {
   const validSignature = await verifySignature({
     operation, type: VERIFY_SIGNATURE_TYPE.CUSTOM_JSON,
   });
@@ -66,6 +69,11 @@ exports.guestVote = async (operation) => {
   } else if (vote.type === 'append_wobj') {
     await guestVoteOnField({ vote });
   }
+
+  await redisSetter.publishToChannel({
+    channel: REDIS_KEYS.TX_ID_MAIN,
+    msg: transaction_id,
+  });
 };
 
 exports.accountUpdate = async (operation) => {
@@ -153,16 +161,14 @@ const voteOnPost = async ({ vote }) => {
 };
 
 const guestVoteOnField = async ({ vote }) => {
-  await voteFieldHelper.voteOnField({
+  await voteOnObjectFields([{
     author: vote.author,
     permlink: vote.permlink,
     voter: vote.voter,
-    author_permlink: vote.root_wobj,
-    percent: vote.weight,
-    weight: 1,
-    rshares_weight: 0,
-    expertiseUSD: 0,
-  });
+    root_wobj: vote.root_wobj,
+    weight: vote.weight,
+    type: vote.type,
+  }]);
 };
 
 /**

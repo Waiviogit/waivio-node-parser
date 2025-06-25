@@ -53,7 +53,7 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
     case CUSTOM_JSON_OPS.WAIVIO_GUEST_UPDATE:
       break;
     case CUSTOM_JSON_OPS.WAIVIO_GUEST_VOTE:
-      await customJsonOperations.guestVote(operation);
+      await customJsonOperations.guestVote(operation, transaction_id);
       break;
     case CUSTOM_JSON_OPS.WAIVIO_GUEST_FOLLOW:
       await customJsonOperations.followUser(operation);
