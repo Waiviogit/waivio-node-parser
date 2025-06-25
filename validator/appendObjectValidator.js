@@ -1,4 +1,4 @@
-const { FIELDS_NAMES, OBJECT_TYPES } = require('@waivio/objects-processor');
+const { FIELDS_NAMES, OBJECT_TYPES, getTypesForField } = require('@waivio/objects-processor');
 const _ = require('lodash');
 const {
   Wobj,
@@ -13,12 +13,7 @@ const {
 } = require('validator/specifiedFieldsValidator');
 const {
   AUTHORITY_FIELD_ENUM,
-
 } = require('constants/wobjectsData');
-const {
-  OBJECT_TYPES_FOR_COMPANY,
-  OBJECT_TYPES_FOR_PRODUCT,
-} = require('../constants/wobjectsData');
 const {
   optionsSchema,
   weightSchema,
@@ -40,6 +35,7 @@ const {
   walletAddressSchema,
   timeLimitedSchema,
 } = require('./joi/appendObjects.schema');
+
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 const objectPromotion = require('../utilities/objectUpdates/objectPromotion');
 
@@ -290,7 +286,8 @@ const validationStrategies = {
     const { wobject: companyObject } = await Wobj.getOne({
       author_permlink: data.author_permlink,
     });
-    if (!_.includes(OBJECT_TYPES_FOR_COMPANY, companyObject.object_type)) {
+
+    if (!_.includes(getTypesForField(FIELDS_NAMES.COMPANY_ID), companyObject.object_type)) {
       throw new Error(`Can't append ${FIELDS_NAMES.COMPANY_ID} as the object type is not corresponding`);
     }
   },
@@ -299,7 +296,7 @@ const validationStrategies = {
     const { wobject: companyObject } = await Wobj.getOne({
       author_permlink: data.author_permlink,
     });
-    if (!_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)) {
+    if (!_.includes(getTypesForField(FIELDS_NAMES.PRODUCT_ID), companyObject.object_type)) {
       throw new Error(`Can't append ${FIELDS_NAMES.PRODUCT_ID} as the object type is not corresponding`);
     }
     await validateProductId(data.field.body);
@@ -309,7 +306,7 @@ const validationStrategies = {
     const { wobject: companyObject } = await Wobj.getOne({
       author_permlink: data.author_permlink,
     });
-    if (!_.includes(OBJECT_TYPES_FOR_PRODUCT, companyObject.object_type)) {
+    if (!_.includes(getTypesForField(FIELDS_NAMES.GROUP_ID), companyObject.object_type)) {
       throw new Error(`Can't append ${FIELDS_NAMES.GROUP_ID} as the object type is not corresponding`);
     }
   },
