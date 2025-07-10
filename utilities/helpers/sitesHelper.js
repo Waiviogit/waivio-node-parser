@@ -171,6 +171,7 @@ exports.saveAdSenseSettings = async (operation) => {
       level: value.level,
       code: value.code,
       txtFile: value.txtFile,
+      displayUnitCode: value.displayUnitCode,
     },
   });
   const key = `${REDIS_KEYS.AD_SENSE}:${value.host}`;
