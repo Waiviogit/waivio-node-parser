@@ -5,6 +5,7 @@ const { parseJson } = require('utilities/helpers/jsonHelper');
 const { GuestWallet } = require('models');
 const { transfer } = require('utilities/steemApi/broadcast');
 const config = require('config');
+const { setTimeout } = require('timers/promises');
 const { redis, redisSetter } = require('../redis');
 
 const WITHDRAW_LOCK_KEY = 'guest_withdraw_lock:';
@@ -15,13 +16,24 @@ const delWithdrawLock = async (account) => {
   });
 };
 
-exports.parseEngineTransfer = async ({ operation, memo }) => {
-  if (operation.from !== 'honey-swap') return;
-  if (operation.to !== config.guestHotAccount) return;
-  const id = _.get(memo, 'json.contractPayload.id');
-  if (!id) return;
-  const transaction = await getTransactionInfo(id);
-  if (!transaction) return;
+const createGuestWithdraw = async ({ operation, id }) => {
+  const retryCount = 5;
+  let transaction;
+
+  for (let i = 0; i < retryCount; i++) {
+    transaction = await getTransactionInfo(id);
+    if (transaction) {
+      break;
+    } else {
+      await setTimeout(1000);
+    }
+  }
+
+  if (!transaction) {
+    console.error(`ERROR cant fetch transaction info createGuestWithdraw ${id}`);
+    return;
+  }
+
   const payload = parseJson(transaction.payload, null);
   if (!payload) return;
   const {
@@ -57,4 +69,12 @@ exports.parseEngineTransfer = async ({ operation, memo }) => {
     memo: operation.memo,
     amount,
   });
+};
+
+exports.parseEngineTransfer = async ({ operation, memo }) => {
+  if (operation.from !== 'honey-swap') return;
+  if (operation.to !== config.guestHotAccount) return;
+  const id = _.get(memo, 'json.contractPayload.id');
+  if (!id) return;
+  createGuestWithdraw({ operation, id });
 };
