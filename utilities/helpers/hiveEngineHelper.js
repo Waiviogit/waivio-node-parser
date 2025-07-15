@@ -5,6 +5,15 @@ const { parseJson } = require('utilities/helpers/jsonHelper');
 const { GuestWallet } = require('models');
 const { transfer } = require('utilities/steemApi/broadcast');
 const config = require('config');
+const { redis, redisSetter } = require('../redis');
+
+const WITHDRAW_LOCK_KEY = 'guest_withdraw_lock:';
+const delWithdrawLock = async (account) => {
+  await redisSetter.deleteKey({
+    key: `${WITHDRAW_LOCK_KEY}${account}`,
+    client: redis.expiredPostsClient,
+  });
+};
 
 exports.parseEngineTransfer = async ({ operation, memo }) => {
   if (operation.from !== 'honey-swap') return;
@@ -36,6 +45,7 @@ exports.parseEngineTransfer = async ({ operation, memo }) => {
     to: address,
     from: account,
   });
+  await delWithdrawLock(account);
   if (config.environment !== 'production') return;
 
   const amount = parseFloat(operation.amount);
