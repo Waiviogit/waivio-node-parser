@@ -99,8 +99,8 @@ const voteOnObjectFields = async (votes = []) => {
         weightWAIV: v.weightWAIV,
       }));
 
-      const fieldWeight = newVotes.reduce((acc, el) => acc + el.weight, 0);
-      const waivWeight = newVotes.reduce((acc, el) => acc + el.weightWAIV, 0);
+      const fieldWeight = newVotes.reduce((acc, el) => acc + (el.weight || 0), 0);
+      const waivWeight = newVotes.reduce((acc, el) => acc + (el.weightWAIV || 0), 0);
       const expertiseUSD = Number(processedVotes.reduce(
         (acc, el) => acc + el.expertiseUSD,
         0,
