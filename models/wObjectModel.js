@@ -221,15 +221,16 @@ const getSomeFields = async (fieldName, authorPermlink, fieldFlag = false) => {
 
 const getField = async (author, permlink, authorPermlink, match) => {
   try {
-    const matchCase = match || { $match: { 'fields.author': author || /.*?/, 'fields.permlink': permlink } };
-    const [field] = await WObjectModel.aggregate([
-      { $match: { author_permlink: authorPermlink || /.*?/ } },
-      { $unwind: '$fields' },
-      matchCase,
-      { $replaceRoot: { newRoot: '$fields' } },
-    ]);
+    const fieldMatch = match?.$match || { author: author || /.*?/, permlink };
+    const wobject = await WObjectModel.findOne(
+      {
+        author_permlink: authorPermlink || /.*?/,
+        fields: { $elemMatch: fieldMatch },
+      },
+      { 'fields.$': 1 },
+    ).lean();
 
-    return { field };
+    return { field: wobject?.fields?.[0] };
   } catch (error) {
     return { error };
   }
