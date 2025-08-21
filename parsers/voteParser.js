@@ -96,7 +96,7 @@ const voteOnObjectFields = async (votes = []) => {
         percent: v.percent,
         rshares_weight: v.rshares_weight,
         weight: v.weight,
-        weightWAIV: v.weightWAIV,
+        weightWAIV: v.weightWAIV || 0,
       }));
 
       const fieldWeight = newVotes.reduce((acc, el) => acc + (el.weight || 0), 0);
