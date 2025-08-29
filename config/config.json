@@ -9,6 +9,7 @@
       "wobjectsRefs": 1,
       "lastBlock": 2,
       "actionsQueue": 3,
+      "campaigns": 6,
       "expiredPosts": 8,
       "tagCategories": 9,
       "mainFeedsCache": 10
@@ -26,6 +27,7 @@
       "wobjectsRefs": 1,
       "lastBlock": 2,
       "actionsQueue": 3,
+      "campaigns": 6,
       "expiredPosts": 8,
       "tagCategories": 9,
       "mainFeedsCache": 10
@@ -43,6 +45,7 @@
       "wobjectsRefs": 1,
       "lastBlock": 2,
       "actionsQueue": 3,
+      "campaigns": 6,
       "expiredPosts": 8,
       "tagCategories": 9,
       "mainFeedsCache": 10
@@ -60,6 +63,7 @@
       "wobjectsRefs": 7,
       "lastBlock": 7,
       "expiredPosts": 7,
+      "campaigns": 7,
       "tagCategories": 7,
       "actionsQueue": 7,
       "mainFeedsCache": 7

@@ -101,6 +101,7 @@ exports.REDIS_KEYS = {
   HOSTS_TO_PARSE_OBJECTS: 'hosts_to_parse_objects',
   START_OBJECT_PROMOTION: 'start_object_promotion',
   END_OBJECT_PROMOTION: 'end_object_promotion',
+  CAMPAIGN_AUTHORITY_UPDATE_CH: 'field_update:authority',
 };
 
 exports.HIDE_ACTION = {
