@@ -9,11 +9,13 @@ const postRefsClient = redis.createClient(config.redisCloudUrl);
 const lastBlockClient = redis.createClient(config.redisCloudUrl);
 const expiredPostsClient = redis.createClient(config.redisCloudUrl);
 const mainFeedsCacheClient = redis.createClient(config.redisCloudUrl);
+const campaignClient = redis.createClient(config.redisCloudUrl);
 
 postRefsClient.select(config.redis.wobjectsRefs);
 lastBlockClient.select(config.redis.lastBlock);
 expiredPostsClient.select(config.redis.expiredPosts);
 mainFeedsCacheClient.select(config.redis.mainFeedsCache);
+campaignClient.select(config.redis.campaigns);
 
 const publisher = redis.createClient({ db: config.redis.expiredPosts });
 const tagCategoriesClient = redis.createClient({ db: config.redis.tagCategories });
@@ -35,4 +37,5 @@ module.exports = {
   expiredListener,
   tagCategoriesClient,
   mainFeedsCacheClient,
+  campaignClient,
 };

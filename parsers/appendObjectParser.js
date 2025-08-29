@@ -3,8 +3,10 @@ const { appendObjectValidator } = require('validator');
 const { commentRefSetter } = require('utilities/commentRefService');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 const updateSpecificFieldsHelper = require('utilities/helpers/updateSpecificFieldsHelper');
-const { FIELDS_NAMES } = require('constants/wobjectsData');
+const { FIELDS_NAMES } = require('@waivio/objects-processor');
+const { redisSetter, redis } = require('utilities/redis');
 const { fieldUpdateNotification } = require('../utilities/notificationsApi/notificationsUtil');
+const { REDIS_KEYS } = require('../constants/parsersData');
 
 const parse = async (operation, metadata) => {
   const data = formField({ operation, metadata });
@@ -17,6 +19,18 @@ const parse = async (operation, metadata) => {
   } if (error) {
     console.error(error.message);
     return false;
+  }
+};
+
+const updatePublisher = async ({
+  field, authorPermlink,
+}) => {
+  if (field.name === FIELDS_NAMES.AUTHORITY) {
+    await redisSetter.publishToChannel({
+      client: redis.campaignClient,
+      channel: REDIS_KEYS.CAMPAIGN_AUTHORITY_UPDATE_CH,
+      msg: `${authorPermlink}:${field.author}:${field.permlink}`,
+    });
   }
 };
 
@@ -42,6 +56,8 @@ const appendObject = async (data, operation, metadata) => {
       field: data.field,
       initiator: data.field.creator,
     });
+
+    await updatePublisher({ field: data.field, authorPermlink: data.author_permlink });
     return { result };
   } catch (error) {
     return { error };
