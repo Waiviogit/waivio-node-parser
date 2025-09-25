@@ -38,6 +38,7 @@ const {
 
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 const objectPromotion = require('../utilities/objectUpdates/objectPromotion');
+const { validateHtmlNoScripts } = require('./htmlValidator');
 
 const cantAppendMessage = 'Can\'t append object, the same field already exists';
 
@@ -509,6 +510,11 @@ const validationStrategies = {
   [FIELDS_NAMES.SALE]: async (data) => {
     const { error } = timeLimitedSchema.validate(data.field);
     if (error) throw new Error(`Can't append ${FIELDS_NAMES.SALE}`);
+  },
+  [FIELDS_NAMES.HTML_CONTENT]: async (data) => {
+    const { errors } = validateHtmlNoScripts(data.field.body);
+
+    if (errors.length) throw new Error(`Can't append ${FIELDS_NAMES.HTML_CONTENT}: ${errors.join(',')}`);
   },
 };
 
