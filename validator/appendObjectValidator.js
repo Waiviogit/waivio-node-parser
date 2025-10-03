@@ -34,6 +34,7 @@ const {
   mapRectanglesSchema,
   walletAddressSchema,
   timeLimitedSchema,
+  htmlContentSchema,
 } = require('./joi/appendObjects.schema');
 
 const jsonHelper = require('../utilities/helpers/jsonHelper');
@@ -512,9 +513,16 @@ const validationStrategies = {
     if (error) throw new Error(`Can't append ${FIELDS_NAMES.SALE}`);
   },
   [FIELDS_NAMES.HTML_CONTENT]: async (data) => {
-    const { errors } = validateHtmlNoScripts(data.field.body);
+    const json = jsonHelper.parseJson(data.field.body);
+
+    const { errors } = validateHtmlNoScripts(json.code);
 
     if (errors.length) throw new Error(`Can't append ${FIELDS_NAMES.HTML_CONTENT}: ${errors.join(',')}`);
+
+    const { error } = htmlContentSchema.validate(json);
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.HTML_CONTENT}`);
+    }
   },
 };
 
