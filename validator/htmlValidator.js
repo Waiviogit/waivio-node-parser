@@ -43,7 +43,7 @@ const validateHtmlNoScripts = (html, returnSanitized = false) => {
     }
     if (tag === 'link') {
       const rel = (node.getAttribute?.('rel') || '').toLowerCase();
-      if (rel !== 'stylesheet') {
+      if (!['preconnect', 'stylesheet'].includes(rel)) {
         errors.push(`<link rel="${rel}"> is not allowed (only rel="stylesheet")`);
         // Mark as forbidden by changing data.allowedTags?
         // Easier: remove it here:
