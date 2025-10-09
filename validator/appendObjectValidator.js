@@ -34,10 +34,12 @@ const {
   mapRectanglesSchema,
   walletAddressSchema,
   timeLimitedSchema,
+  htmlContentSchema,
 } = require('./joi/appendObjects.schema');
 
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 const objectPromotion = require('../utilities/objectUpdates/objectPromotion');
+const { validateHtmlNoScripts } = require('./htmlValidator');
 
 const cantAppendMessage = 'Can\'t append object, the same field already exists';
 
@@ -509,6 +511,18 @@ const validationStrategies = {
   [FIELDS_NAMES.SALE]: async (data) => {
     const { error } = timeLimitedSchema.validate(data.field);
     if (error) throw new Error(`Can't append ${FIELDS_NAMES.SALE}`);
+  },
+  [FIELDS_NAMES.HTML_CONTENT]: async (data) => {
+    const json = jsonHelper.parseJson(data.field.body);
+
+    const { errors } = validateHtmlNoScripts(json.code);
+
+    if (errors.length) throw new Error(`Can't append ${FIELDS_NAMES.HTML_CONTENT}: ${errors.join(',')}`);
+
+    const { error } = htmlContentSchema.validate(json);
+    if (error) {
+      throw new Error(`Can't append ${FIELDS_NAMES.HTML_CONTENT}`);
+    }
   },
 };
 

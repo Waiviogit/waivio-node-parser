@@ -137,3 +137,9 @@ exports.timeLimitedSchema = Joi.object().keys({
   }
   return obj;
 }).options(options);
+
+exports.htmlContentSchema = Joi.object().keys({
+  hideSignIn: Joi.boolean().default(true),
+  hideMenu: Joi.boolean().default(true),
+  code: Joi.string().required(),
+});
