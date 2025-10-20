@@ -510,13 +510,6 @@ const validationStrategies = {
     const { error } = timeLimitedSchema.validate(data.field);
     if (error) throw new Error(`Can't append ${FIELDS_NAMES.SALE}`);
   },
-  [FIELDS_NAMES.HTML_CONTENT]: async (data) => {
-    const json = jsonHelper.parseJson(data.field.body);
-    const { error } = htmlContentSchema.validate(json);
-    if (error) {
-      throw new Error(`Can't append ${FIELDS_NAMES.HTML_CONTENT}`);
-    }
-  },
 };
 
 const validateSpecifiedFields = async (data) => {
