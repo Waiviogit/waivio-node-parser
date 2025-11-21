@@ -85,6 +85,7 @@ const Configuration = new Schema({
   header: { type: AppHeader },
   defaultHashtag: { type: String },
   tabsFilter: { type: [String] },
+  siteTemplate: { type: String },
 }, { _id: false });
 
 const AdSense = new Schema({
