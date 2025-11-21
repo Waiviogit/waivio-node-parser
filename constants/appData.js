@@ -2,8 +2,8 @@
 const COMMON_RPC_NODES = [
   'https://api.deathwing.me',
   'https://api.hive.blog',
-  'https://hive-api.arcange.eu',
   'https://api.openhive.network',
+  'https://rpc.mahdiyari.info',
 ];
 
 const HIVED_NODES = [
