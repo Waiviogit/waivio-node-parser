@@ -34,7 +34,6 @@ const {
   mapRectanglesSchema,
   walletAddressSchema,
   timeLimitedSchema,
-  htmlContentSchema,
 } = require('./joi/appendObjects.schema');
 const jsonHelper = require('../utilities/helpers/jsonHelper');
 const objectPromotion = require('../utilities/objectUpdates/objectPromotion');

@@ -47,5 +47,6 @@ module.exports = {
     Delegation: require('./schemas/DelegationSchema'),
     ServiceBot: require('./schemas/ServiceBotSchema'),
     UserRcDelegations: require('./schemas/UserRcDelegations'),
+    WobjectPendingUpdates: require('./schemas/WobjectPendingUpdatesSchema'),
   },
 };

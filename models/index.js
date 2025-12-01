@@ -27,4 +27,5 @@ module.exports = {
   DelegationModel: require('./DelegationModel'),
   ServiceBotModel: require('./ServiceBotModel'),
   UserRcDelegationsModel: require('./UserRcDelegationsModel'),
+  WobjectPendingUpdatesModel: require('./WobjectPendingUpdatesModel'),
 };
