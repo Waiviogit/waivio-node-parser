@@ -156,11 +156,12 @@ const getVolumes = async (data) => {
       authorPermlink,
       id: field.id,
     });
+    const firstPart = allParts[0];
 
     return {
       author_permlink: authorPermlink,
       field: {
-        ..._.omit(field, [...volumeFields, 'body']),
+        ..._.omit(firstPart, [...volumeFields, 'body', 'authorPermlink']),
         body: accumulatedBody,
       },
     };
