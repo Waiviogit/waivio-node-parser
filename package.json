@@ -19,10 +19,11 @@
     "rewriteObjectsWeight": "node ./utilities/tasks/authorExpertise/runRewriteObjects.js",
     "rewriteUsersWeight": "node ./utilities/tasks/authorExpertise/runRewriteUsersWeight.js",
     "setRcDelegations": "node ./utilities/tasks/setRcDelegations/run.js",
-    "addToRelated": "node ./utilities/tasks/addToRelated/run.js"
+    "addToRelated": "node ./utilities/tasks/addToRelated/run.js",
+    "addThreads": "node ./utilities/tasks/addThreads/run.js ecency.waves"
   },
   "dependencies": {
-    "@hiveio/dhive": "^1.2.8",
+    "@hiveio/dhive": "^1.3.2",
     "@sentry/node": "^5.24.2",
     "@sentry/tracing": "^5.24.2",
     "@waivio/objects-processor": "^1.0.18",

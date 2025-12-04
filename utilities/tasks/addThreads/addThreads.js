@@ -3,16 +3,19 @@ const _ = require('lodash');
 const { Threads } = require('database').models;
 const { ObjectId } = require('mongoose').Types;
 const moment = require('moment');
+const { THREAD_TYPE_ECENCY, THREADS_ACC, THREAD_ACCOUNTS } = require('../../../constants/common');
 const {
   extractLinks,
   extractMentions,
   extractHashtags,
+  extractHashtagsFromMetadata,
   extractImages,
   extractCryptoTickers,
   getCryptoArray,
+  getThreadType,
 } = require('../../helpers/thredsHelper');
 
-const createThread = async (comment, cryptoArray) => {
+const createThread = async (comment, cryptoArray, threadType) => {
   const thread = _.pick(comment, [
     'author',
     'permlink',
@@ -34,12 +37,16 @@ const createThread = async (comment, cryptoArray) => {
 
   thread.links = extractLinks(comment.body);
   thread.mentions = extractMentions(comment.body);
-  thread.hashtags = extractHashtags(comment.body);
+
+  // For Ecency threads, extract hashtags from json_metadata.tags
+  // For Leo threads, extract from body
+  thread.hashtags = threadType === THREAD_TYPE_ECENCY
+    ? extractHashtagsFromMetadata(comment.json_metadata)
+    : extractHashtags(comment.body);
+
   thread.images = extractImages(comment.json_metadata);
   thread.tickers = extractCryptoTickers(comment.json_metadata, cryptoArray);
-
-  // images
-  // tickers
+  thread.type = threadType;
 
   thread.createdAt = moment.utc(comment.created).format();
   thread._id = new ObjectId(moment.utc(comment.created).unix());
@@ -52,7 +59,12 @@ const createThread = async (comment, cryptoArray) => {
 
 let postsProcessed = 0;
 
-module.exports = async ({ author = 'leothreads' }) => {
+module.exports = async ({ author = THREADS_ACC }) => {
+  if (!THREAD_ACCOUNTS.includes(author)) {
+    console.error(`Invalid author: ${author}. Must be one of: ${THREAD_ACCOUNTS.join(', ')}`);
+    process.exit(1);
+  }
+
   try {
     const cryptoArray = await getCryptoArray();
 
@@ -63,7 +75,7 @@ module.exports = async ({ author = 'leothreads' }) => {
         'blog',
         {
           tag: author,
-          limit: 100,
+          limit: 20,
           ...(start_author && { start_author }),
           ...(start_permlink && { start_permlink }),
         },
@@ -72,21 +84,28 @@ module.exports = async ({ author = 'leothreads' }) => {
 
       for (const post of posts) {
         postsProcessed++;
-        const { category, author, permlink } = post;
-        const comments = await hiveMindClient.database.call(
-          'get_state',
-          [`${category}/@${author}/${permlink}`],
-        );
+        const { author: postAuthor, permlink } = post;
 
-        for (const commentsKey in comments.content) {
-          const comment = comments.content[commentsKey];
-          if (comment.author === author && comment.permlink === permlink) continue;
-          if (comment.depth === 1) {
-            await createThread(comment, cryptoArray);
+        try {
+          const comments = await hiveMindClient.database.call(
+            'get_content_replies',
+            [postAuthor, permlink],
+          );
+
+          // get_content_replies returns direct replies (depth === 1)
+          for (const comment of comments) {
+            if (comment.depth === 1) {
+              // Detect thread type from comment's parent_author for consistency
+              const threadType = getThreadType(comment.parent_author);
+              await createThread(comment, cryptoArray, threadType);
+            }
           }
+        } catch (error) {
+          console.error(`Error fetching comments for ${postAuthor}/${permlink}:`, error.message);
         }
-        start_author = post.author;
-        start_permlink = post.permlink;
+
+        start_author = postAuthor;
+        start_permlink = permlink;
         console.log('postsProcessed', postsProcessed);
       }
     }
