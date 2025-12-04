@@ -10,6 +10,9 @@ const { getTokens } = require('../hiveEngine/tokensContract');
 const { getHashAll } = require('../redis/redisGetter');
 const { REDIS_KEYS } = require('../../constants/parsersData');
 const { lastBlockClient } = require('../redis/redis');
+const {
+  THREADS_ACC, ECENCY_THREADS_ACC, THREAD_TYPE_LEO, THREAD_TYPE_ECENCY,
+} = require('../../constants/common');
 
 const getBodyLinksArray = (body, regularExpression) => _
   .chain(body.match(new RegExp(regularExpression, 'gm')))
@@ -25,6 +28,13 @@ const extractHashtags = (inputString) => {
 
   // Use map to remove the "#" symbol from each hashtag
   return _.uniq([..._.map(hashtags, (hashtag) => hashtag.slice(1)), ...objectLinks]);
+};
+
+const extractHashtagsFromMetadata = (metadata) => {
+  const json = parseJson(metadata);
+  const tags = json?.tags || [];
+  // Tags from json_metadata.tags already come without hash, so return as-is
+  return Array.isArray(tags) ? _.uniq(tags.filter(Boolean)) : [];
 };
 
 const extractMentions = (inputString) => {
@@ -87,22 +97,38 @@ const getCryptoArray = async () => {
 
 const detectBulkMessage = (metadata) => !!parseJson(metadata, null)?.bulkMessage;
 
+const THREAD_TYPE_MAP = {
+  [ECENCY_THREADS_ACC]: THREAD_TYPE_ECENCY,
+  [THREADS_ACC]: THREAD_TYPE_LEO,
+};
+
+const getThreadType = (parentAuthor) => THREAD_TYPE_MAP[parentAuthor] || THREAD_TYPE_LEO;
+
 const parseThread = async (comment, options) => {
   const cryptoArray = await getCryptoArray();
   const {
-    body, json_metadata, author, permlink,
+    body, json_metadata, author, permlink, parent_author,
   } = comment;
+
+  const threadType = getThreadType(parent_author);
+
+  // For Ecency threads, extract hashtags from json_metadata.tags
+  // For Leo threads, extract from body
+  const hashtags = threadType === THREAD_TYPE_ECENCY
+    ? extractHashtagsFromMetadata(json_metadata)
+    : extractHashtags(body);
 
   const updateData = {
     ..._.omit(comment, ['json_metadata', 'title']),
     percent_hbd: options?.percent_hbd ?? 10000,
     links: extractLinks(body),
     mentions: extractMentions(body),
-    hashtags: extractHashtags(body),
+    hashtags,
     images: extractImages(json_metadata),
     tickers: extractCryptoTickers(json_metadata, cryptoArray),
     cashout_time: moment().add(7, 'days').toISOString(),
     bulkMessage: detectBulkMessage(json_metadata),
+    type: threadType,
   };
 
   // todo add notification by hashtags check bell
@@ -212,8 +238,10 @@ module.exports = {
   extractLinks,
   extractMentions,
   extractHashtags,
+  extractHashtagsFromMetadata,
   getCryptoArray,
   parseThread,
   parseThreadReply,
   updateThreadVoteCount,
+  getThreadType,
 };

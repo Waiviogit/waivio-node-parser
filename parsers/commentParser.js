@@ -2,7 +2,7 @@ const notificationsUtil = require('utilities/notificationsApi/notificationsUtil'
 const { checkAppBlacklistValidity } = require('utilities/helpers').appHelper;
 const { chosenPostHelper, campaignHelper } = require('utilities/helpers');
 const postWithObjectsParser = require('parsers/postWithObjectParser');
-const { REDIS_KEY_CHILDREN_UPDATE, REDIS_QUEUE_DELETE_COMMENT, THREADS_ACC } = require('constants/common');
+const { REDIS_KEY_CHILDREN_UPDATE, REDIS_QUEUE_DELETE_COMMENT, THREAD_ACCOUNTS } = require('constants/common');
 const guestCommentParser = require('parsers/guestCommentParser');
 const createObjectParser = require('parsers/createObjectParser');
 const appendObjectParser = require('parsers/appendObjectParser');
@@ -86,7 +86,7 @@ const commentSwitcher = async ({ operation, metadata, options }) => {
   }
 
   // Threads logic
-  if (operation.parent_author === THREADS_ACC) {
+  if (THREAD_ACCOUNTS.includes(operation.parent_author)) {
     await parseThread(operation, options);
   } else {
     await parseThreadReply(operation);
@@ -100,7 +100,7 @@ const commentSwitcher = async ({ operation, metadata, options }) => {
   // add wobjects if comment on first level has links in body
   // not add on threads
   // not parse append or create objects
-  if (operation.parent_author !== THREADS_ACC && !_.get(metadata, 'wobj.action')) {
+  if (!THREAD_ACCOUNTS.includes(operation.parent_author) && !_.get(metadata, 'wobj.action')) {
     await postHelper.parseCommentBodyWobjects({
       body: operation.body,
       author: operation.parent_author,
