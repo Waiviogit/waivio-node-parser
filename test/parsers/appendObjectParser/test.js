@@ -3,6 +3,7 @@ const {
   appendObjectParser, WObject, expect, redisGetter, AppModel,
   updateSpecificFieldsHelper, sinon, usersUtil, importUser, faker,
 } = require('test/testHelper');
+const { WobjectPendingUpdatesModel } = require('models');
 const { SEARCH_FIELDS, FIELDS_NAMES } = require('constants/wobjectsData');
 const { ObjectFactory } = require('test/factories');
 const { getMocksData } = require('./mocks');
@@ -139,6 +140,180 @@ describe('Append object parser', async () => {
       };
       searchFields = await updateSpecificFieldsHelper.parseSearchData(field);
       expect(expectedAddress).to.be.deep.eq(searchFields);
+    });
+  });
+
+  describe('getVolumes', async () => {
+    const baseData = () => ({
+      author_permlink: faker.random.string(10),
+      field: {
+        name: 'html_content',
+        body: faker.random.string(10),
+        locale: faker.random.locale(),
+        creator: faker.random.string(8),
+        author: faker.random.string(8),
+        permlink: faker.random.string(8),
+        id: faker.random.string(6),
+        partNumber: 1,
+        totalParts: 1,
+      },
+    });
+
+    it('should return original data if volume fields missing', async () => {
+      const data = baseData();
+      delete data.field.id;
+      const result = await appendObjectParser.getVolumes(data);
+
+      expect(result).to.be.deep.eq(data);
+    });
+
+    it('should return single part field without volume meta when totalParts === 1 and partNumber === 1', async () => {
+      const data = baseData();
+
+      const result = await appendObjectParser.getVolumes(data);
+
+      expect(result.author_permlink).to.eq(data.author_permlink);
+      expect(result.field).to.include({
+        name: data.field.name,
+        body: data.field.body,
+        locale: data.field.locale,
+        creator: data.field.creator,
+        author: data.field.author,
+        permlink: data.field.permlink,
+      });
+      expect(result.field).to.not.have.keys('partNumber', 'totalParts', 'id');
+    });
+
+    it('should store intermediate multi-part update and return null', async () => {
+      const data = baseData();
+      data.field.totalParts = 3;
+      data.field.partNumber = 1;
+
+      const countStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'getDocumentsCountByAuthorPermlinkId')
+        .resolves(0);
+      const createStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'createDocument')
+        .resolves(true);
+
+      const result = await appendObjectParser.getVolumes(data);
+
+      expect(result).to.be.null;
+      expect(countStub.calledOnce).to.be.true;
+      expect(createStub.calledOnce).to.be.true;
+      const [createArg] = createStub.args[0];
+      expect(createArg).to.include({
+        name: data.field.name,
+        body: data.field.body,
+        locale: data.field.locale,
+        creator: data.field.creator,
+        author: data.field.author,
+        permlink: data.field.permlink,
+        id: data.field.id,
+        authorPermlink: data.author_permlink,
+        partNumber: data.field.partNumber,
+        totalParts: data.field.totalParts,
+      });
+    });
+
+    it('should assemble final body when last part arrives and clear pending docs', async () => {
+      const data = baseData();
+      data.field.totalParts = 3;
+      data.field.partNumber = 3;
+      data.field.body = 'three';
+
+      const storedParts = [
+        {
+          ...data.field,
+          partNumber: 1,
+          body: 'one',
+        },
+        {
+          ...data.field,
+          partNumber: 2,
+          body: 'two',
+        },
+      ];
+
+      const countStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'getDocumentsCountByAuthorPermlinkId')
+        .resolves(2);
+      const getStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'getDocumentsByAuthorPermlinkId')
+        .resolves(storedParts);
+      const deleteStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'deleteDocumentsByAuthorPermlinkId')
+        .resolves(true);
+      const createStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'createDocument')
+        .resolves(true);
+
+      const result = await appendObjectParser.getVolumes(data);
+
+      expect(result).to.exist;
+      expect(result.author_permlink).to.eq(data.author_permlink);
+      expect(result.field.body).to.eq('onetwothree');
+      expect(result.field).to.not.have.keys('partNumber', 'totalParts', 'id');
+      expect(countStub.calledOnce).to.be.true;
+      expect(getStub.calledOnce).to.be.true;
+      expect(deleteStub.calledOnce).to.be.true;
+      expect(createStub.notCalled).to.be.true;
+    });
+
+    it('should return null on duplicate partNumber when assembling last part', async () => {
+      const data = baseData();
+      data.field.totalParts = 2;
+      data.field.partNumber = 2;
+      data.field.body = 'two-duplicate';
+
+      const storedParts = [
+        {
+          ...data.field,
+          partNumber: 1,
+          body: 'one',
+        },
+        {
+          ...data.field,
+          partNumber: 2,
+          body: 'two',
+        },
+      ];
+
+      sinon
+        .stub(WobjectPendingUpdatesModel, 'getDocumentsCountByAuthorPermlinkId')
+        .resolves(1);
+      const getStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'getDocumentsByAuthorPermlinkId')
+        .resolves(storedParts);
+      const deleteStub = sinon
+        .stub(WobjectPendingUpdatesModel, 'deleteDocumentsByAuthorPermlinkId')
+        .resolves(true);
+
+      const result = await appendObjectParser.getVolumes(data);
+
+      expect(result).to.be.null;
+      expect(getStub.calledOnce).to.be.true;
+      expect(deleteStub.notCalled).to.be.true;
+    });
+
+    it('should return null if partNumber is greater than totalParts', async () => {
+      const data = baseData();
+      data.field.totalParts = 2;
+      data.field.partNumber = 3;
+
+      const result = await appendObjectParser.getVolumes(data);
+
+      expect(result).to.be.null;
+    });
+
+    it('should return null if totalParts out of allowed range', async () => {
+      const data = baseData();
+      data.field.totalParts = 11;
+      data.field.partNumber = 1;
+
+      const result = await appendObjectParser.getVolumes(data);
+
+      expect(result).to.be.null;
     });
   });
 });

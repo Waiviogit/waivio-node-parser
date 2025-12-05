@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { THREAD_TYPES, THREAD_TYPE_LEO } = require('../../constants/common');
 
 const { Schema } = mongoose;
 
@@ -37,6 +38,7 @@ const ThreadSchema = new Schema({
   percent_hbd: { type: Number },
   cashout_time: { type: String },
   bulkMessage: { type: Boolean, default: false },
+  type: { type: String, enum: THREAD_TYPES, default: THREAD_TYPE_LEO },
 }, { versionKey: false, timestamps: true, validateBeforeSave: false });
 
 ThreadSchema.index({ author: 1, permlink: 1 }, { unique: true });
