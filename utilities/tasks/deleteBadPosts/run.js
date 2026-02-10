@@ -1,6 +1,6 @@
-const { deleteBadPosts } = require('./deleteBadPosts');
+const { updateSpamList } = require('./deleteBadPosts');
 
 (async () => {
-  await deleteBadPosts();
+  await updateSpamList();
   process.exit();
 })();

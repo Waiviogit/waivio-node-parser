@@ -21,7 +21,7 @@ const WAIV_BALANCE_QUERY = {
 };
 
 const WAIV_PAGE_LIMIT = 1000;
-const WAIV_PAGE_DELAY_MS = 200;
+const WAIV_PAGE_DELAY_MS = 500;
 
 const delay = (ms) => new Promise((resolve) => {
   setTimeout(resolve, ms);
@@ -59,9 +59,7 @@ const loadWhitelist = async () => {
     console.error('Error loading whitelisted users from DB', error);
   }
   const dbWhitelisted = (result || []).map((u) => u.user);
-
   const waivHolders = await fetchWaivHolders();
-
   whitelistSet = new Set([...whitelist, ...dbWhitelisted, ...waivHolders]);
   console.log(`Whitelist loaded: ${whitelist.length} preset + ${dbWhitelisted.length} from DB + ${waivHolders.length} WAIV holders = ${whitelistSet.size} total`);
 };
@@ -95,15 +93,15 @@ const calculateDifferences = (currentSpamUsers, spaminatorList) => {
   const toRemove = [];
 
   for (const user of newSpamSet) {
-    if (!currentSpamSet.has(user) && !checkInWhitelist(user)) {
+    if (currentSpamSet.has(user)) {
+      continue;
+    }
+    if (!checkInWhitelist(user)) {
       toAdd.push(user);
+      continue;
     }
-  }
 
-  for (const user of currentSpamSet) {
-    if (!newSpamSet.has(user)) {
-      toRemove.push(user);
-    }
+    toRemove.push(user);
   }
 
   return { toAdd, toRemove };
@@ -116,6 +114,7 @@ const filterByReblogs = async (candidates) => {
   if (!candidates.length) return candidates;
 
   const rebloggedUsers = new Set();
+  let totalChecked = 0;
 
   for (const chunk of _.chunk(candidates, REBLOG_CHECK_CHUNK_SIZE)) {
     const orConditions = chunk.map((user) => ({
@@ -133,6 +132,8 @@ const filterByReblogs = async (candidates) => {
     ]);
 
     results.forEach((r) => rebloggedUsers.add(r._id));
+    totalChecked += chunk.length;
+    console.log(`Reblog check progress: ${totalChecked}/${candidates.length} checked, ${rebloggedUsers.size} found`);
   }
 
   console.log(`Users with reblogs excluded from spam: ${rebloggedUsers.size}`);
@@ -157,6 +158,7 @@ const buildBulkOperations = (toAdd, toRemove) => {
       updateOne: {
         filter: { user, type: 'spaminator' },
         update: { isSpam: false },
+        upsert: true,
       },
     });
   });
@@ -209,7 +211,7 @@ const deleteSpamPosts = async () => {
   console.log(`Total posts deleted: ${totalPostsDeleted}`);
 };
 
-const deleteBadPosts = async () => {
+const updateSpamList = async () => {
   console.log('Task started: Update Spaminator blacklist');
 
   await loadWhitelist();
@@ -236,9 +238,7 @@ const deleteBadPosts = async () => {
   const bulkOps = buildBulkOperations(filteredToAdd, toRemove);
   await executeBulkWrites(bulkOps);
 
-  await deleteSpamPosts();
-
-  console.log('Task finished');
+  console.log('Task finished: Update Spaminator blacklist');
 };
 
-module.exports = { deleteBadPosts };
+module.exports = { updateSpamList, deleteSpamPosts };
