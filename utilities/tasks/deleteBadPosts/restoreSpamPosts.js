@@ -2,7 +2,6 @@ const _ = require('lodash');
 const { SpamUser: SpamUserSchema } = require('database').models;
 const { postsUtil } = require('utilities/steemApi');
 const postWithObjectParser = require('parsers/postWithObjectParser');
-const { Post } = require('models');
 const jsonHelper = require('utilities/helpers/jsonHelper');
 
 const ACCOUNT_POSTS_LIMIT = 100;
@@ -75,64 +74,6 @@ const restoreOwnPost = async (hivePost) => {
 };
 
 /**
- * Restore a reblogged post for the given account
- */
-const restoreReblog = async (account, hivePost) => {
-  const { post: sourcePost, error } = await Post.findByBothAuthors({
-    author: hivePost.author,
-    permlink: hivePost.permlink,
-  });
-
-  // if source post not in our DB yet, parse it first
-  if (!sourcePost && !error) {
-    await restoreOwnPost(hivePost);
-  }
-
-  const { post: existingSource } = await Post.findByBothAuthors({
-    author: hivePost.author,
-    permlink: hivePost.permlink,
-  });
-
-  if (!existingSource) {
-    console.error(`Cannot restore reblog for ${account}: source post @${hivePost.author}/${hivePost.permlink} not found`);
-    return;
-  }
-
-  const data = {
-    author: account,
-    root_author: account,
-    permlink: `${existingSource.author}/${hivePost.permlink}`,
-    reblog_to: {
-      author: existingSource.author,
-      permlink: hivePost.permlink,
-    },
-    body: '',
-    json_metadata: '',
-    ..._.pick(existingSource, ['language', 'wobjects', 'id', 'blocked_for_apps']),
-  };
-
-  try {
-    const { post: createdPost, error: createError } = await Post.create(data);
-    if (createError) {
-      console.error(`Error creating reblog for ${account}: ${createError.message || createError}`);
-      return;
-    }
-
-    await Post.update({
-      author: existingSource.author,
-      permlink: hivePost.permlink,
-      $addToSet: { reblogged_users: account },
-    });
-
-    if (createdPost) {
-      console.log(`Restored reblog: ${account} -> @${hivePost.author}/${hivePost.permlink}`);
-    }
-  } catch (error) {
-    console.error(`Exception restoring reblog for ${account}: ${error.message}`);
-  }
-};
-
-/**
  * Restore all posts for a single user
  */
 const restoreUserPosts = async (account) => {
@@ -147,7 +88,6 @@ const restoreUserPosts = async (account) => {
   console.log(`Found ${hivePosts.length} posts on chain for ${account}`);
 
   let ownCount = 0;
-  let reblogCount = 0;
 
   for (const hivePost of hivePosts) {
     // skip comments (replies), only restore root posts and reblogs
@@ -156,13 +96,10 @@ const restoreUserPosts = async (account) => {
     if (hivePost.author === account) {
       await restoreOwnPost(hivePost);
       ownCount++;
-    } else {
-      await restoreReblog(account, hivePost);
-      reblogCount++;
     }
   }
   await SpamUserSchema.updateOne({ user: account }, { $set: { isSpam: false } });
-  console.log(`Restored for ${account}: ${ownCount} own posts, ${reblogCount} reblogs`);
+  console.log(`Restored for ${account}: ${ownCount} own posts`);
 };
 
 /**

@@ -100,25 +100,10 @@ const executeBulkWrites = async (bulkOps) => {
   console.log(`Processed ${bulkOps.length} updates in ${chunks.length} chunks`);
 };
 
-/**
- * Delete reblogs that point to posts by the given spam authors.
- * Reblog permlink format: "author/permlink", so we match ^author/ via $regex.
- */
-const deleteReblogsForAuthors = async (authors) => {
-  const regexConditions = authors.map((author) => ({
-    reblog_to: { $ne: null },
-    permlink: { $regex: `^${_.escapeRegExp(author)}/` },
-  }));
-
-  const { deletedCount } = await Post.deleteMany({ $or: regexConditions });
-  return deletedCount;
-};
-
 const deleteSpamPosts = async () => {
   const { SpamUser: SpamUserSchema } = require('database').models;
 
   let totalPostsDeleted = 0;
-  let totalReblogsDeleted = 0;
   const cursor = SpamUserSchema
     .find({ isSpam: true }, { user: 1 })
     .lean()
@@ -133,10 +118,9 @@ const deleteSpamPosts = async () => {
       const { deletedCount } = await Post.deleteMany({ author: { $in: batch } });
       totalPostsDeleted += deletedCount;
 
-      const reblogsDeleted = await deleteReblogsForAuthors(batch);
-      totalReblogsDeleted += reblogsDeleted;
 
-      console.log(`Batch ${batch.length} authors: ${deletedCount} posts, ${reblogsDeleted} reblogs deleted`);
+
+      console.log(`Batch ${batch.length} authors: ${deletedCount} posts`);
       batch = [];
     }
   }
@@ -145,14 +129,10 @@ const deleteSpamPosts = async () => {
   if (batch.length) {
     const { deletedCount } = await Post.deleteMany({ author: { $in: batch } });
     totalPostsDeleted += deletedCount;
-
-    const reblogsDeleted = await deleteReblogsForAuthors(batch);
-    totalReblogsDeleted += reblogsDeleted;
-
-    console.log(`Batch ${batch.length} authors: ${deletedCount} posts, ${reblogsDeleted} reblogs deleted`);
+    console.log(`Batch ${batch.length} authors: ${deletedCount} posts`);
   }
 
-  console.log(`Total posts deleted: ${totalPostsDeleted}, total reblogs deleted: ${totalReblogsDeleted}`);
+  console.log(`Total posts deleted: ${totalPostsDeleted}`);
 };
 
 const deleteBadPosts = async () => {
