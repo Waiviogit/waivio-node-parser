@@ -2,6 +2,7 @@ const axios = require('axios');
 const _ = require('lodash');
 const { Post } = require('database').models;
 const { SpamUser } = require('../../../models');
+const { getTokenBalances } = require('../../hiveEngine/tokensContract');
 const whitelist = require('./whitelist');
 
 const SPAMINATOR_URL = 'https://spaminator.me/api/bl/all.json';
@@ -10,14 +11,59 @@ const DELETE_POSTS_BATCH_SIZE = 500;
 
 let whitelistSet = new Set(whitelist);
 
+const WAIV_BALANCE_QUERY = {
+  symbol: 'WAIV',
+  $or: [
+    { stake: { $regex: '[1-9]' } },
+    { delegationsIn: { $regex: '[1-9]' } },
+    { delegationsOut: { $regex: '[1-9]' } },
+  ],
+};
+
+const WAIV_PAGE_LIMIT = 1000;
+const WAIV_PAGE_DELAY_MS = 200;
+
+const delay = (ms) => new Promise((resolve) => {
+  setTimeout(resolve, ms);
+});
+
+const fetchWaivHolders = async () => {
+  const accounts = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const result = await getTokenBalances({
+      query: WAIV_BALANCE_QUERY,
+      offset,
+      limit: WAIV_PAGE_LIMIT,
+    });
+
+    if (!Array.isArray(result) || !result.length) {
+      hasMore = false;
+      break;
+    }
+
+    accounts.push(...result.map((r) => r.account));
+    offset += WAIV_PAGE_LIMIT;
+    await delay(WAIV_PAGE_DELAY_MS);
+  }
+
+  console.log(`Fetched ${accounts.length} WAIV holders for whitelist`);
+  return accounts;
+};
+
 const loadWhitelist = async () => {
   const { result, error } = await SpamUser.find({ isSpam: false }, { user: 1 });
   if (error) {
     console.error('Error loading whitelisted users from DB', error);
   }
   const dbWhitelisted = (result || []).map((u) => u.user);
-  whitelistSet = new Set([...whitelist, ...dbWhitelisted]);
-  console.log(`Whitelist loaded: ${whitelist.length} preset + ${dbWhitelisted.length} from DB = ${whitelistSet.size} total`);
+
+  const waivHolders = await fetchWaivHolders();
+
+  whitelistSet = new Set([...whitelist, ...dbWhitelisted, ...waivHolders]);
+  console.log(`Whitelist loaded: ${whitelist.length} preset + ${dbWhitelisted.length} from DB + ${waivHolders.length} WAIV holders = ${whitelistSet.size} total`);
 };
 
 const checkInWhitelist = (user) => whitelistSet.has(user);
@@ -117,8 +163,6 @@ const deleteSpamPosts = async () => {
     if (batch.length >= DELETE_POSTS_BATCH_SIZE) {
       const { deletedCount } = await Post.deleteMany({ author: { $in: batch } });
       totalPostsDeleted += deletedCount;
-
-
 
       console.log(`Batch ${batch.length} authors: ${deletedCount} posts`);
       batch = [];
