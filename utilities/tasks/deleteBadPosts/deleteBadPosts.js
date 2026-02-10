@@ -109,6 +109,36 @@ const calculateDifferences = (currentSpamUsers, spaminatorList) => {
   return { toAdd, toRemove };
 };
 
+const REBLOG_CHECK_CHUNK_SIZE = 100;
+
+// batch-check which candidates have at least one reblogged post
+const filterByReblogs = async (candidates) => {
+  if (!candidates.length) return candidates;
+
+  const rebloggedUsers = new Set();
+
+  for (const chunk of _.chunk(candidates, REBLOG_CHECK_CHUNK_SIZE)) {
+    const orConditions = chunk.map((user) => ({
+      permlink: { $regex: new RegExp(`^${_.escapeRegExp(user)}/`) },
+    }));
+
+    const results = await Post.aggregate([
+      { $match: { $or: orConditions } },
+      {
+        $addFields: {
+          _reblogUser: { $arrayElemAt: [{ $split: ['$permlink', '/'] }, 0] },
+        },
+      },
+      { $group: { _id: '$_reblogUser' } },
+    ]);
+
+    results.forEach((r) => rebloggedUsers.add(r._id));
+  }
+
+  console.log(`Users with reblogs excluded from spam: ${rebloggedUsers.size}`);
+  return candidates.filter((u) => !rebloggedUsers.has(u));
+};
+
 const buildBulkOperations = (toAdd, toRemove) => {
   const bulkOps = [];
 
@@ -194,10 +224,16 @@ const deleteBadPosts = async () => {
   const currentSpamUsers = await getCurrentSpamUsers();
   const { toAdd, toRemove } = calculateDifferences(currentSpamUsers, spaminatorList);
 
-  console.log(`Users to add: ${toAdd.length}`);
+  console.log(`Candidates to add: ${toAdd.length}`);
+  const filteredToAdd = await filterByReblogs(toAdd);
+  const filteredSet = new Set(filteredToAdd);
+  const reblogExcluded = toAdd.filter((u) => !filteredSet.has(u));
+  toRemove.push(...reblogExcluded);
+  console.log(`Users to add (after reblog filter): ${filteredToAdd.length}`);
+  console.log(`Users excluded by reblog filter (moved to remove): ${reblogExcluded.length}`);
   console.log(`Users to remove: ${toRemove.length}`);
 
-  const bulkOps = buildBulkOperations(toAdd, toRemove);
+  const bulkOps = buildBulkOperations(filteredToAdd, toRemove);
   await executeBulkWrites(bulkOps);
 
   await deleteSpamPosts();
