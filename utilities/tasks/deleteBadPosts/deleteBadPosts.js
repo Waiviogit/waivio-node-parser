@@ -27,19 +27,33 @@ const delay = (ms) => new Promise((resolve) => {
   setTimeout(resolve, ms);
 });
 
+const WAIV_MAX_RETRIES = 4;
+
 const fetchWaivHolders = async () => {
   const accounts = [];
   let offset = 0;
   let hasMore = true;
 
   while (hasMore) {
-    const result = await getTokenBalances({
-      query: WAIV_BALANCE_QUERY,
-      offset,
-      limit: WAIV_PAGE_LIMIT,
-    });
+    let result;
+    let success = false;
 
-    if (!Array.isArray(result) || !result.length) {
+    for (let attempt = 0; attempt <= WAIV_MAX_RETRIES; attempt++) {
+      result = await getTokenBalances({
+        query: WAIV_BALANCE_QUERY,
+        offset,
+        limit: WAIV_PAGE_LIMIT,
+      });
+
+      if (Array.isArray(result) && result.length) {
+        success = true;
+        break;
+      }
+      console.log(`WAIV holders fetch attempt ${attempt + 1}/${WAIV_MAX_RETRIES + 1} returned empty at offset ${offset}`);
+      if (attempt < WAIV_MAX_RETRIES) await delay(WAIV_PAGE_DELAY_MS);
+    }
+
+    if (!success) {
       hasMore = false;
       break;
     }
