@@ -48,5 +48,6 @@ module.exports = {
     ServiceBot: require('./schemas/ServiceBotSchema'),
     UserRcDelegations: require('./schemas/UserRcDelegations'),
     WobjectPendingUpdates: require('./schemas/WobjectPendingUpdatesSchema'),
+    SpamUser: require('./schemas/SpamUserSchema'),
   },
 };
