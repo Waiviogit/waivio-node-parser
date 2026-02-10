@@ -89,6 +89,8 @@ const restoreUserPosts = async (account) => {
 
   let ownCount = 0;
 
+  await SpamUserSchema.updateOne({ user: account }, { $set: { isSpam: false } });
+
   for (const hivePost of hivePosts) {
     // skip comments (replies), only restore root posts and reblogs
     if (hivePost.parent_author) continue;
@@ -98,7 +100,6 @@ const restoreUserPosts = async (account) => {
       ownCount++;
     }
   }
-  await SpamUserSchema.updateOne({ user: account }, { $set: { isSpam: false } });
   console.log(`Restored for ${account}: ${ownCount} own posts`);
 };
 

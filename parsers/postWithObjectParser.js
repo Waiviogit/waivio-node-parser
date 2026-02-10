@@ -2,7 +2,7 @@ const _ = require('lodash');
 const moment = require('moment');
 const config = require('config');
 const {
-  Post, Wobj, User, App, mutedUserModel,
+  Post, Wobj, User, App, mutedUserModel, SpamUser,
 } = require('models');
 const DiffMatchPatch = require('diff-match-patch');
 const { postsUtil } = require('utilities/steemApi');
@@ -28,6 +28,11 @@ const parse = async ({
   operation, metadata, post, fromTTL, options,
 }) => {
   if (!(await appHelper.checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
+
+  const { result: spamRecord } = await SpamUser.findOne({ user: operation.author, isSpam: true });
+  if (spamRecord) {
+    return { error: `[postWithObjectParser.parse] Skipping post from spam user: ${operation.author}` };
+  }
 
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
   if (userError) console.log(userError.message);

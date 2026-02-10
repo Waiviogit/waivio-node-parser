@@ -21,6 +21,14 @@ const find = async (condition, select = {}) => {
   }
 };
 
+const findOne = async (condition, select = {}) => {
+  try {
+    return { result: await SpamUser.findOne(condition, select).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
 const bulkWrite = async (ops) => {
   try {
     return { result: await SpamUser.bulkWrite(ops) };
@@ -32,5 +40,6 @@ const bulkWrite = async (ops) => {
 module.exports = {
   updateOne,
   find,
+  findOne,
   bulkWrite,
 };
