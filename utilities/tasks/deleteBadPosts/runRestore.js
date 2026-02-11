@@ -1,4 +1,4 @@
-const { restoreUserPosts, restoreAllSpamUsersPosts } = require('./restoreSpamPosts');
+const { restoreUserPosts, restoreAllSpamUsersPosts } = require('../../moderation/restoreSpamPosts');
 
 const userName = process.argv[2];
 

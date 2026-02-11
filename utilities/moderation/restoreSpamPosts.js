@@ -3,7 +3,11 @@ const { SpamUser: SpamUserSchema, Post } = require('database').models;
 const { postsUtil } = require('utilities/steemApi');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const axios = require('axios');
-const { TOKEN_WAIV } = require('../../../constants/hiveEngine');
+const { TOKEN_WAIV } = require('../../constants/hiveEngine');
+const customJsonHelper = require('../helpers/customJsonHelper');
+const { App } = require('../../models');
+const config = require('../../config');
+const { parseJson } = require('../helpers/jsonHelper');
 
 const ACCOUNT_POSTS_LIMIT = 20;
 const RESTORE_BATCH_SIZE = 500;
@@ -160,7 +164,25 @@ const restoreAllSpamUsersPosts = async () => {
   console.log(`Restore complete. Processed ${userCount} users total.`);
 };
 
+const restoreUserPostsCustomJSON = async (operation) => {
+  const account = customJsonHelper.getTransactionAccount(operation);
+  const { result: app } = await App.findOne({ host: config.appHost });
+  const authorisedUsers = [app.owner, ...(app?.moderators || [])];
+  if (!authorisedUsers.includes(account)) {
+    console.log('Unauthorized restoreUserBlog attempt');
+    return false;
+  }
+  const json = parseJson(operation.json);
+  if (!json.account) {
+    console.log('Unauthorized restoreUserBlog attempt');
+    return false;
+  }
+  restoreUserPosts(json.account);
+  return true;
+};
+
 module.exports = {
+  restoreUserPostsCustomJSON,
   restoreUserPosts,
   restoreAllSpamUsersPosts,
 };

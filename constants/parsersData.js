@@ -61,6 +61,7 @@ exports.CUSTOM_JSON_OPS = {
   WEBSITE_TRUSTED_UNSET: 'website_trusted_unset',
   WEBSITE_GUEST: 'website_guest',
   WAIVIO_HIVE_ENGINE: 'waivio_hive_engine',
+  WAIVIO_RESTORE_BLOG: 'waivio_restore_blog',
 };
 
 exports.WEBSITE_GUEST_ACTIONS = [
