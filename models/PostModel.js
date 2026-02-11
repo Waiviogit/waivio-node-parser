@@ -23,7 +23,7 @@ const findOne = async (data) => {
   }
 };
 
-const update = async (data) => {
+const update = async (data, extraOptions = {}) => {
   try {
     const result = await PostModel.findOneAndUpdate(
       {
@@ -35,6 +35,7 @@ const update = async (data) => {
         upsert: true,
         new: true,
         setDefaultsOnInsert: true,
+        ...extraOptions,
       },
     );
 

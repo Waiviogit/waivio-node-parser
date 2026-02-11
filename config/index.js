@@ -5,7 +5,7 @@ const envConfig = {
   environment: process.env.NODE_ENV || 'development',
   port: process.env.PORT || '3003',
   sentryDsn: process.env.SENTRY_DNS,
-  apiKey: process.env.API_KEY,
+  apiKey: process.env.API_KEY || '',
   nginxKey: process.env.NGINX_KEY,
   serviceApiKey: process.env.SERVICE_API_KEY,
   guestHotAccount: process.env.GUEST_HOT_ACC,

@@ -1,12 +1,20 @@
 const _ = require('lodash');
-const { SpamUser: SpamUserSchema } = require('database').models;
+const { SpamUser: SpamUserSchema, Post } = require('database').models;
 const { postsUtil } = require('utilities/steemApi');
 const postWithObjectParser = require('parsers/postWithObjectParser');
-const jsonHelper = require('utilities/helpers/jsonHelper');
+const axios = require('axios');
+const { TOKEN_WAIV } = require('../../../constants/hiveEngine');
 
-const ACCOUNT_POSTS_LIMIT = 100;
+const ACCOUNT_POSTS_LIMIT = 20;
 const RESTORE_BATCH_SIZE = 500;
 
+const accountHistory = async (params) => {
+  try {
+    return await axios.get('https://history.hive-engine.com/accountHistory', { params });
+  } catch (error) {
+    return error;
+  }
+};
 /**
  * Fetch all blog posts for a given account by paginating through get_account_posts
  */
@@ -46,14 +54,14 @@ const fetchAllAccountPosts = async (account) => {
 /**
  * Restore a single user's own post via postWithObjectParser.parse
  */
-const restoreOwnPost = async (hivePost) => {
-  const metadata = jsonHelper.parseJson(hivePost.json_metadata, {});
+const restoreOwnPost = async (hivePost, history) => {
+  const metadata = hivePost.json_metadata;
 
   const operation = {
     author: hivePost.author,
     title: hivePost.title,
     body: hivePost.body,
-    json_metadata: hivePost.json_metadata,
+    json_metadata: JSON.stringify(hivePost.json_metadata),
     permlink: hivePost.permlink,
     parent_author: hivePost.parent_author || '',
     parent_permlink: hivePost.parent_permlink || '',
@@ -64,9 +72,26 @@ const restoreOwnPost = async (hivePost) => {
       operation,
       metadata,
       post: hivePost,
+      timestamp: hivePost.created,
     });
     if (_.get(result, 'error')) {
       console.error(`Error restoring post @${hivePost.author}/${hivePost.permlink}: ${result.error}`);
+    }
+    if (result?.post) {
+      const { votes } = await postsUtil.getVotes(hivePost.author, hivePost.permlink);
+      const authorReward = _.find(history, (el) => el.authorperm === `@${hivePost.author}/${hivePost.permlink}`)?.quantity || '0';
+      const rewardNumber = parseFloat(authorReward);
+      if (votes.length) {
+        await Post.updateOne(
+          { author: hivePost.author, permlink: hivePost.permlink },
+          {
+            $set: {
+              active_votes: votes.map(({ reputation, time, ...rest }) => rest),
+              ...(rewardNumber && { total_rewards_WAIV: rewardNumber * 2 }),
+            },
+          },
+        );
+      }
     }
   } catch (error) {
     console.error(`Exception restoring post @${hivePost.author}/${hivePost.permlink}: ${error.message}`);
@@ -85,6 +110,15 @@ const restoreUserPosts = async (account) => {
     return;
   }
 
+  const response = await accountHistory({
+    account,
+    symbol: TOKEN_WAIV.SYMBOL,
+    ops: ['comments_authorReward'].toString(),
+    limit: 1000,
+  });
+
+  const history = response.data || [];
+
   console.log(`Found ${hivePosts.length} posts on chain for ${account}`);
 
   let ownCount = 0;
@@ -96,7 +130,7 @@ const restoreUserPosts = async (account) => {
     if (hivePost.parent_author) continue;
 
     if (hivePost.author === account) {
-      await restoreOwnPost(hivePost);
+      await restoreOwnPost(hivePost, history);
       ownCount++;
     }
   }
