@@ -37,9 +37,24 @@ const bulkWrite = async (ops) => {
   }
 };
 
+const updateStatus = async (filter, updateData, options = {}) => {
+  try {
+    return { result: await SpamUser.updateOne(filter, updateData, options) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const findCursor = (condition, select = {}, batchSize = 100) => SpamUser
+  .find(condition, select)
+  .lean()
+  .cursor({ batchSize });
+
 module.exports = {
   updateOne,
   find,
   findOne,
   bulkWrite,
+  updateStatus,
+  findCursor,
 };

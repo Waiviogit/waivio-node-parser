@@ -1,11 +1,10 @@
 const _ = require('lodash');
-const { SpamUser: SpamUserSchema, Post } = require('database').models;
 const { postsUtil } = require('utilities/steemApi');
 const postWithObjectParser = require('parsers/postWithObjectParser');
 const axios = require('axios');
 const { TOKEN_WAIV } = require('../../constants/hiveEngine');
 const customJsonHelper = require('../helpers/customJsonHelper');
-const { App } = require('../../models');
+const { App, Post, SpamUser } = require('../../models');
 const config = require('../../config');
 const { parseJson } = require('../helpers/jsonHelper');
 
@@ -127,7 +126,7 @@ const restoreUserPosts = async (account) => {
 
   let ownCount = 0;
 
-  await SpamUserSchema.updateOne({ user: account }, { $set: { isSpam: false } });
+  await SpamUser.updateStatus({ user: account }, { $set: { isSpam: false } });
 
   for (const hivePost of hivePosts) {
     // skip comments (replies), only restore root posts and reblogs
@@ -141,16 +140,22 @@ const restoreUserPosts = async (account) => {
   console.log(`Restored for ${account}: ${ownCount} own posts`);
 };
 
+const removeUserPosts = async (account) => {
+  await SpamUser.updateStatus(
+    { user: account },
+    { $set: { isSpam: true, type: 'waivio' } },
+    { upsert: true },
+  );
+  await Post.deleteMany({ author: account });
+};
+
 /**
  * Restore posts for all spam users (isSpam: true) using cursor
  */
 const restoreAllSpamUsersPosts = async () => {
   console.log('Restoring posts for all spam users');
 
-  const cursor = SpamUserSchema
-    .find({ isSpam: true }, { user: 1 })
-    .lean()
-    .cursor({ batchSize: RESTORE_BATCH_SIZE });
+  const cursor = SpamUser.findCursor({ isSpam: true }, { user: 1 }, RESTORE_BATCH_SIZE);
 
   let userCount = 0;
   for await (const doc of cursor) {
@@ -164,25 +169,39 @@ const restoreAllSpamUsersPosts = async () => {
   console.log(`Restore complete. Processed ${userCount} users total.`);
 };
 
-const restoreUserPostsCustomJSON = async (operation) => {
+const restrictedCustomJSON = async (operation) => {
   const account = customJsonHelper.getTransactionAccount(operation);
   const { result: app } = await App.findOne({ host: config.appHost });
   const authorisedUsers = [app.owner, ...(app?.moderators || [])];
   if (!authorisedUsers.includes(account)) {
-    console.log('Unauthorized restoreUserBlog attempt');
+    console.log('[restrictedCustomJSON] Unauthorized restoreUserBlog attempt');
     return false;
   }
   const json = parseJson(operation.json);
   if (!json.account) {
-    console.log('Unauthorized restoreUserBlog attempt');
+    console.log('[restrictedCustomJSON] Unauthorized restoreUserBlog attempt');
     return false;
   }
-  restoreUserPosts(json.account);
+
+  if (json.account.includes('_')) {
+    console.log(`[restrictedCustomJSON] cant perform action on guest user ${json.account}`);
+    return false;
+  }
+
+  const actions = {
+    restore: restoreUserPosts,
+    remove: removeUserPosts,
+    default: () => {},
+  };
+
+  const handler = actions[json.action] || actions.default;
+
+  handler(json.account);
   return true;
 };
 
 module.exports = {
-  restoreUserPostsCustomJSON,
+  restrictedCustomJSON,
   restoreUserPosts,
   restoreAllSpamUsersPosts,
 };

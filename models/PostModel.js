@@ -158,6 +158,14 @@ const find = async ({ filter, projection, options }) => {
   }
 };
 
+const deleteMany = async (filter) => {
+  try {
+    return { result: await PostModel.deleteMany(filter) };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   removeWobjectsFromPost,
   getPostsByVotes,
@@ -172,4 +180,5 @@ module.exports = {
   create,
   update,
   find,
+  deleteMany,
 };
