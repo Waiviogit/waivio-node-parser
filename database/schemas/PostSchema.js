@@ -76,6 +76,7 @@ const PostSchema = new Schema({
   blocked_for_apps: { type: [String] },
   net_rshares_WAIV: { type: Number, default: 0 },
   total_payout_WAIV: { type: Number, default: 0 },
+  total_rewards_WAIV: { type: Number, default: 0 },
   links: { type: [String], index: true },
   mentions: { type: [String], index: true },
 }, { strict: false, timestamps: true });

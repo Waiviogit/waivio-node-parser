@@ -9,6 +9,7 @@ const redisSetter = require('utilities/redis/redisSetter');
 const { parseJson } = require('../utilities/helpers/jsonHelper');
 const { sitesValidator } = require('../validator');
 const { verifySignature } = require('../utilities/helpers/signatureHelper');
+const { restrictedCustomJSON } = require('../utilities/moderation/restoreSpamPosts');
 
 exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
   switch (operation.id) {
@@ -38,6 +39,9 @@ exports.parse = async (operation, blockNum, transaction_id, timestamp) => {
       break;
     case CUSTOM_JSON_OPS.HIDE_COMMENT:
       await userParsers.hideCommentParser(operation);
+      break;
+    case CUSTOM_JSON_OPS.WAIVIO_RESTRICTED:
+      await restrictedCustomJSON(operation);
       break;
       /** REFERRAL OPERATIONS */
     case CUSTOM_JSON_OPS.REJECT_REFERRAL_LICENCE:

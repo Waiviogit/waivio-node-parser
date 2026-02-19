@@ -1,0 +1,207 @@
+const _ = require('lodash');
+const { postsUtil } = require('utilities/steemApi');
+const postWithObjectParser = require('parsers/postWithObjectParser');
+const axios = require('axios');
+const { TOKEN_WAIV } = require('../../constants/hiveEngine');
+const customJsonHelper = require('../helpers/customJsonHelper');
+const { App, Post, SpamUser } = require('../../models');
+const config = require('../../config');
+const { parseJson } = require('../helpers/jsonHelper');
+
+const ACCOUNT_POSTS_LIMIT = 20;
+const RESTORE_BATCH_SIZE = 500;
+
+const accountHistory = async (params) => {
+  try {
+    return await axios.get('https://history.hive-engine.com/accountHistory', { params });
+  } catch (error) {
+    return error;
+  }
+};
+/**
+ * Fetch all blog posts for a given account by paginating through get_account_posts
+ */
+const fetchAllAccountPosts = async (account) => {
+  const allPosts = [];
+  let startAuthor;
+  let startPermlink;
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { posts, err } = await postsUtil.getAccountPosts({
+      account,
+      limit: ACCOUNT_POSTS_LIMIT,
+      startAuthor,
+      startPermlink,
+    });
+
+    if (err || !posts || !posts.length) break;
+
+    // when paginating, first post is the same as last from prev page
+    const newPosts = startAuthor ? posts.slice(1) : posts;
+    if (!newPosts.length) break;
+
+    allPosts.push(...newPosts);
+
+    const lastPost = posts[posts.length - 1];
+    startAuthor = lastPost.author;
+    startPermlink = lastPost.permlink;
+
+    // if we got less than limit, we've reached the end
+    if (posts.length < ACCOUNT_POSTS_LIMIT) break;
+  }
+
+  return allPosts;
+};
+
+/**
+ * Restore a single user's own post via postWithObjectParser.parse
+ */
+const restoreOwnPost = async (hivePost, history) => {
+  const metadata = hivePost.json_metadata;
+
+  const operation = {
+    author: hivePost.author,
+    title: hivePost.title,
+    body: hivePost.body,
+    json_metadata: JSON.stringify(hivePost.json_metadata),
+    permlink: hivePost.permlink,
+    parent_author: hivePost.parent_author || '',
+    parent_permlink: hivePost.parent_permlink || '',
+  };
+
+  try {
+    const result = await postWithObjectParser.parse({
+      operation,
+      metadata,
+      post: hivePost,
+      timestamp: hivePost.created,
+    });
+    if (_.get(result, 'error')) {
+      console.error(`Error restoring post @${hivePost.author}/${hivePost.permlink}: ${result.error}`);
+    }
+    if (result?.post) {
+      const { votes } = await postsUtil.getVotes(hivePost.author, hivePost.permlink);
+      const authorReward = _.find(history, (el) => el.authorperm === `@${hivePost.author}/${hivePost.permlink}`)?.quantity || '0';
+      const rewardNumber = parseFloat(authorReward);
+      if (votes.length) {
+        await Post.updateOne(
+          { author: hivePost.author, permlink: hivePost.permlink },
+          {
+            $set: {
+              active_votes: votes.map(({ reputation, time, ...rest }) => rest),
+              ...(rewardNumber && { total_rewards_WAIV: rewardNumber * 2 }),
+            },
+          },
+        );
+      }
+    }
+  } catch (error) {
+    console.error(`Exception restoring post @${hivePost.author}/${hivePost.permlink}: ${error.message}`);
+  }
+};
+
+/**
+ * Restore all posts for a single user
+ */
+const restoreUserPosts = async (account) => {
+  console.log(`Restoring posts for user: ${account}`);
+
+  const hivePosts = await fetchAllAccountPosts(account);
+  if (!hivePosts.length) {
+    console.log(`No posts found on chain for ${account}`);
+    return;
+  }
+
+  const response = await accountHistory({
+    account,
+    symbol: TOKEN_WAIV.SYMBOL,
+    ops: ['comments_authorReward'].toString(),
+    limit: 1000,
+  });
+
+  const history = response.data || [];
+
+  console.log(`Found ${hivePosts.length} posts on chain for ${account}`);
+
+  let ownCount = 0;
+
+  await SpamUser.updateStatus({ user: account }, { $set: { isSpam: false } });
+
+  for (const hivePost of hivePosts) {
+    // skip comments (replies), only restore root posts and reblogs
+    if (hivePost.parent_author) continue;
+
+    if (hivePost.author === account) {
+      await restoreOwnPost(hivePost, history);
+      ownCount++;
+    }
+  }
+  console.log(`Restored for ${account}: ${ownCount} own posts`);
+};
+
+const removeUserPosts = async (account) => {
+  await SpamUser.updateStatus(
+    { user: account },
+    { $set: { isSpam: true, type: 'waivio' } },
+    { upsert: true },
+  );
+  await Post.deleteMany({ author: account });
+};
+
+/**
+ * Restore posts for all spam users (isSpam: true) using cursor
+ */
+const restoreAllSpamUsersPosts = async () => {
+  console.log('Restoring posts for all spam users');
+
+  const cursor = SpamUser.findCursor({ isSpam: true }, { user: 1 }, RESTORE_BATCH_SIZE);
+
+  let userCount = 0;
+  for await (const doc of cursor) {
+    await restoreUserPosts(doc.user);
+    userCount++;
+    if (userCount % 100 === 0) {
+      console.log(`Processed ${userCount} users so far...`);
+    }
+  }
+
+  console.log(`Restore complete. Processed ${userCount} users total.`);
+};
+
+const restrictedCustomJSON = async (operation) => {
+  const account = customJsonHelper.getTransactionAccount(operation);
+  const { result: app } = await App.findOne({ host: config.appHost });
+  const authorisedUsers = [app.owner, ...(app?.moderators || [])];
+  if (!authorisedUsers.includes(account)) {
+    console.log('[restrictedCustomJSON] Unauthorized restoreUserBlog attempt');
+    return false;
+  }
+  const json = parseJson(operation.json);
+  if (!json.account) {
+    console.log('[restrictedCustomJSON] Unauthorized restoreUserBlog attempt');
+    return false;
+  }
+
+  if (json.account.includes('_')) {
+    console.log(`[restrictedCustomJSON] cant perform action on guest user ${json.account}`);
+    return false;
+  }
+
+  const actions = {
+    restore: restoreUserPosts,
+    remove: removeUserPosts,
+    default: () => {},
+  };
+
+  const handler = actions[json.action] || actions.default;
+
+  handler(json.account);
+  return true;
+};
+
+module.exports = {
+  restrictedCustomJSON,
+  restoreUserPosts,
+  restoreAllSpamUsersPosts,
+};

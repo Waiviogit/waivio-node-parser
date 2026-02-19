@@ -23,7 +23,7 @@ const findOne = async (data) => {
   }
 };
 
-const update = async (data) => {
+const update = async (data, extraOptions = {}) => {
   try {
     const result = await PostModel.findOneAndUpdate(
       {
@@ -35,6 +35,7 @@ const update = async (data) => {
         upsert: true,
         new: true,
         setDefaultsOnInsert: true,
+        ...extraOptions,
       },
     );
 
@@ -157,6 +158,14 @@ const find = async ({ filter, projection, options }) => {
   }
 };
 
+const deleteMany = async (filter) => {
+  try {
+    return { result: await PostModel.deleteMany(filter) };
+  } catch (error) {
+    return { error };
+  }
+};
+
 module.exports = {
   removeWobjectsFromPost,
   getPostsByVotes,
@@ -171,4 +180,5 @@ module.exports = {
   create,
   update,
   find,
+  deleteMany,
 };

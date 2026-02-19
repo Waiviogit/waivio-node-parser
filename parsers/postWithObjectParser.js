@@ -1,8 +1,9 @@
 const _ = require('lodash');
 const moment = require('moment');
+const mongoose = require('mongoose');
 const config = require('config');
 const {
-  Post, Wobj, User, App, mutedUserModel,
+  Post, Wobj, User, App, mutedUserModel, SpamUser,
 } = require('models');
 const DiffMatchPatch = require('diff-match-patch');
 const { postsUtil } = require('utilities/steemApi');
@@ -25,9 +26,14 @@ const {
 } = require('constants/common');
 
 const parse = async ({
-  operation, metadata, post, fromTTL, options,
+  operation, metadata, post, fromTTL, options, timestamp,
 }) => {
   if (!(await appHelper.checkAppBlacklistValidity(metadata))) return { error: '[postWithObjectParser.parse]Dont parse post from not valid app' };
+
+  const { result: spamRecord } = await SpamUser.findOne({ user: operation.author, isSpam: true });
+  if (spamRecord) {
+    return { error: `[postWithObjectParser.parse] Skipping post from spam user: ${operation.author}` };
+  }
 
   const { user, error: userError } = await userHelper.checkAndCreateUser(operation.author);
   if (userError) console.log(userError.message);
@@ -53,7 +59,7 @@ const parse = async ({
     guestInfo, // do we need this field?
   };
   const result = await createOrUpdatePost({
-    data, postData: post, fromTTL, metadata, options,
+    data, postData: post, fromTTL, metadata, options, timestamp,
   });
 
   if (_.get(result, 'error')) {
@@ -67,7 +73,7 @@ const parse = async ({
 };
 
 const createOrUpdatePost = async ({
-  data, postData, fromTTL, metadata, options,
+  data, postData, fromTTL, metadata, options, timestamp,
 }) => {
   let hivePost, err;
   const { post } = await Post.findOne({ author: data.author, permlink: data.permlink });
@@ -90,8 +96,16 @@ const createOrUpdatePost = async ({
     data.root_title = data.title;
     data.language = language;
     data.languages = languages;
-    data.created = moment().format('YYYY-MM-DDTHH:mm:ss');
-    data.cashout_time = moment().add(7, 'days').toISOString();
+    data.created = moment(timestamp).format('YYYY-MM-DDTHH:mm:ss');
+    // generate _id and createdAt based on blockchain timestamp
+    const createdAt = moment(timestamp).toDate();
+    const timestampSec = Math.floor(createdAt.getTime() / 1000);
+    const hexTs = timestampSec.toString(16).padStart(8, '0');
+    const randomPart = new mongoose.Types.ObjectId().toString().slice(8);
+    data._id = new mongoose.Types.ObjectId(hexTs + randomPart);
+    data.createdAt = createdAt;
+    data.updatedAt = createdAt;
+    data.cashout_time = moment(timestamp).add(7, 'days').format('YYYY-MM-DDTHH:mm:ss');
     data.url = `/${data.parent_permlink}/@${data.root_author}/${data.permlink}`;
     data.links = postHelper.getLinksFromPost(data.body, metadata);
     data.mentions = postHelper.getMentionsFromPost(data.body);
@@ -103,7 +117,7 @@ const createOrUpdatePost = async ({
       data.wobjects,
       _.get(data, 'guestInfo.userId'),
     );
-    ({ result: updPost, error } = await Post.update(data));
+    ({ result: updPost, error } = await Post.update(data, { timestamps: false }));
     if (error) return { error };
     for (const authorPermlink of data.wobjects.map((w) => w.author_permlink)) {
       await Wobj.pushNewPost({ author_permlink: authorPermlink, post_id: updPost._id });

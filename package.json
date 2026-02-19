@@ -20,7 +20,11 @@
     "rewriteUsersWeight": "node ./utilities/tasks/authorExpertise/runRewriteUsersWeight.js",
     "setRcDelegations": "node ./utilities/tasks/setRcDelegations/run.js",
     "addToRelated": "node ./utilities/tasks/addToRelated/run.js",
-    "addThreads": "node ./utilities/tasks/addThreads/run.js ecency.waves"
+    "addThreads": "node ./utilities/tasks/addThreads/run.js ecency.waves",
+    "updateSpamList": "node ./utilities/tasks/deleteBadPosts/run.js",
+    "deleteSpamPosts": "node ./utilities/tasks/deleteBadPosts/runDeletePosts.js",
+    "restoreSpamPosts": "node ./utilities/tasks/deleteBadPosts/runRestore.js",
+    "restoreUserPosts": "node ./utilities/tasks/deleteBadPosts/runRestore.js"
   },
   "dependencies": {
     "@hiveio/dhive": "^1.3.2",

@@ -21,7 +21,7 @@ const { parseThread, parseThreadReply } = require('utilities/helpers/thredsHelpe
 const { verifySignature, verifyObjectsAction } = require('utilities/helpers/signatureHelper');
 
 const parse = async ({
-  operation, options, transactionId,
+  operation, options, transactionId, timestamp,
 }) => {
   const metadata = jsonHelper.parseJson(operation.json_metadata, null);
 
@@ -37,7 +37,9 @@ const parse = async ({
 
   if (operation.parent_author === '' && metadata) {
     // comment without parent_author is POST
-    await postSwitcher({ operation, metadata, options });
+    await postSwitcher({
+      operation, metadata, options, timestamp,
+    });
   }
 
   if (operation.parent_author && operation.parent_permlink) {
@@ -52,7 +54,7 @@ const parse = async ({
 };
 
 const postSwitcher = async ({
-  operation, metadata, post, fromTTL = false, options,
+  operation, metadata, post, fromTTL = false, options, timestamp,
 }) => {
   if (_.get(metadata.wobj, 'action') === 'createObjectType') {
     const validOp = await verifyObjectsAction({ operation, metadata });
@@ -61,7 +63,7 @@ const postSwitcher = async ({
     await objectTypeParser.parse(operation, metadata); // create new Object Type
   } else {
     await postWithObjectsParser.parse({
-      operation, metadata, post, fromTTL, options,
+      operation, metadata, post, fromTTL, options, timestamp,
     });
   }
 };

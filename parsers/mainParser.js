@@ -33,6 +33,7 @@ const parseSwitcher = async (transactions, timestamp, blockNum) => {
                 operation: operation[1],
                 options: _.get(transaction, 'operations[1][1]'),
                 transactionId: _.get(transaction, 'transaction_id'),
+                timestamp,
               });
               break;
             case MAIN_OPS.DELETE_COMMENT:

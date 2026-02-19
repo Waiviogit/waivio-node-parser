@@ -275,6 +275,12 @@ exports.parseBodyWobjects = async (metadata, postBody = '') => {
     .get('wobj.wobjects', [])
     .uniqBy('author_permlink')
     .filter((w) => w.percent >= 0 && w.percent <= 100)
+    .map((el) => ({
+      percent: el.percent,
+      author_permlink: el.author_permlink,
+      tagged: el.tagged,
+      object_type: el.object_type,
+    }))
     .value();
 };
 

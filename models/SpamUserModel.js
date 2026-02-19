@@ -1,0 +1,60 @@
+const { SpamUser } = require('database').models;
+
+const updateOne = async (data) => {
+  try {
+    const result = await SpamUser.findOneAndUpdate(
+      { user: data.user, type: data.type },
+      data,
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+    return { result: !!result };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const find = async (condition, select = {}) => {
+  try {
+    return { result: await SpamUser.find(condition, select).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const findOne = async (condition, select = {}) => {
+  try {
+    return { result: await SpamUser.findOne(condition, select).lean() };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const bulkWrite = async (ops) => {
+  try {
+    return { result: await SpamUser.bulkWrite(ops) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const updateStatus = async (filter, updateData, options = {}) => {
+  try {
+    return { result: await SpamUser.updateOne(filter, updateData, options) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const findCursor = (condition, select = {}, batchSize = 100) => SpamUser
+  .find(condition, select)
+  .lean()
+  .cursor({ batchSize });
+
+module.exports = {
+  updateOne,
+  find,
+  findOne,
+  bulkWrite,
+  updateStatus,
+  findCursor,
+};

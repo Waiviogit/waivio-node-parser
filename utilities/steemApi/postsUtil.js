@@ -36,4 +36,23 @@ const getVotes = async (author, permlink) => {
   }
 };
 
-module.exports = { getPost, getVotes, getPostsByAuthor };
+const getAccountPosts = async ({
+  account, limit = 20, startAuthor, startPermlink,
+}) => {
+  try {
+    const posts = await hiveMindClient.call('bridge', 'get_account_posts', {
+      account,
+      limit,
+      sort: 'blog',
+      start_author: startAuthor,
+      start_permlink: startPermlink,
+    });
+    return { posts };
+  } catch (err) {
+    return { err };
+  }
+};
+
+module.exports = {
+  getPost, getVotes, getPostsByAuthor, getAccountPosts,
+};
